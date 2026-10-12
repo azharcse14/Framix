@@ -1,0 +1,13 @@
+# Testing
+- Engine logic (timeline, time, undo, project file, FFI, export rules): write the failing test first, run it, show the failing assertion, then implement.
+- Commit tests separately before implementation. Never modify or delete those tests while implementing; if a test seems wrong, stop and ask.
+- Test behavior through public APIs, not private internals. Prefer in-memory fakes of ports over mocks; a test that only checks a mock was called is not a test.
+- Bug fix = regression test first.
+- Time math and timeline ops: proptest invariants (split then merge restores the clip; durations never negative; frame <-> time round-trips).
+- Every new media parser gets a cargo-fuzz target.
+- Fixtures come from the test media corpus (tests/media, git LFS). Tests never download media.
+- Every project format version has a fixture project; migration tests open each one.
+- Shaders: golden image test with tolerance, after the look is approved. CI runs goldens on software Vulkan (lavapipe); real-GPU goldens are a separate set.
+- UI: widget test after the design is stable; bn locale screenshot test for any screen with text.
+- Spike/prototype code is exempt: mark it `// SPIKE` and keep it off main.
+- Never disable, skip, or loosen a test or lint to get green.
