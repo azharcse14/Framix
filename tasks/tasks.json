@@ -349,12 +349,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "49afdd3",
+   "branch": "tc-005-audit",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "GitHub Dependabot alerts: owner enables in repo settings (human step)"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -9740,6 +9745,10 @@
     {
      "date": "2026-10-15",
      "text": "ENG-003 lowered analyzer 14.5.0->13.2.0 and _fe_analyzer_shared 109->102 in pubspec.lock to satisfy the 14-day rule"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "cargo audit done in TC-005 (scripts/audit.sh); cargo-deny still open"
     }
    ],
    "source": "plan"
@@ -10389,7 +10398,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "cargo audit done in TC-005 (scripts/audit.sh); cargo-deny/cargo-about still open"
+    }
+   ],
    "source": "plan"
   },
   {

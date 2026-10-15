@@ -222,7 +222,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [ ] `TC-002` Exact pin: FVM (.fvmrc), rust-toolchain.toml, Gradle wrapper, NDK version, CI te Xcode version; lock file commit \[—\]
 - [ ] `TC-003` Renovate ba Dependabot e protita shoptaho dependency update PR; notun version 14 din purono hole tobe (Renovate minimumReleaseAge ba Dependabot cooldown); CI pass hole merge \[—\]
 - [ ] `TC-004` Protita quarter e ekdin toolchain update (Flutter, Xcode, AGP) \[—\]
-- [ ] `TC-005` Security: cargo audit, dart pub outdated, GitHub advisory alert (pura plan: Security ar reverse engineering section) \[Rust\]\[Dart\]
+- [x] `TC-005` Security: cargo audit, dart pub outdated, GitHub advisory alert (pura plan: Security ar reverse engineering section) \[Rust\]\[Dart\]
 - [ ] `TC-006` Warning zero: dart analyze, cargo clippy -D warnings, Xcode ar Gradle deprecation warning \[Rust\]\[Dart\]\[Native\]
 - [ ] `TC-007` Notun OS beta (iOS June e, Android bochorer shurute) te app test, stable er age ready \[—\]
 - [x] `TC-008` Minimum OS (kon purono phone e chole) ar target/compile SDK (kon notun SDK diye build) alada decision \[—\]
