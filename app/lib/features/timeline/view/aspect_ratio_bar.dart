@@ -9,6 +9,9 @@ import '../bloc/timeline_cubit.dart';
 /// Ratios offered to the user; the engine validates and stores them reduced.
 const _presets = [(9, 16), (16, 9), (1, 1), (4, 5), (3, 4), (21, 9)];
 
+/// Height of the canvas outline until the real preview Texture replaces it.
+const _canvasHeight = 160.0;
+
 /// Canvas outline in the engine's aspect ratio, and the preset chips to change it.
 class AspectRatioBar extends StatelessWidget {
   const AspectRatioBar({super.key});
@@ -27,7 +30,7 @@ class AspectRatioBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              height: 160,
+              height: _canvasHeight,
               child: known
                   ? Center(
                       child: AspectRatio(
@@ -35,7 +38,8 @@ class AspectRatioBar extends StatelessWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: scheme.surface,
-                            border: Border.all(color: scheme.outline),
+                            // outline (border token) is ~1.4:1; this boundary must reach 3:1.
+                            border: Border.all(color: scheme.onSurfaceVariant),
                           ),
                         ),
                       ),

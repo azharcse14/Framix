@@ -74,6 +74,10 @@ impl Engine {
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
+                // Re-selecting the current ratio is not an edit: no undo step, redo kept.
+                if self.history.timeline().aspect() == aspect {
+                    return Ok(Reply::Timeline);
+                }
                 timeline(self.edit(|tl| {
                     tl.set_aspect(aspect);
                     Ok::<_, TimelineError>(())
