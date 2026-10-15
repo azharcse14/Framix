@@ -917,7 +917,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 | Accent text | #A271FF | Dark surface e accent text, active tool icon/label, selected clip outline, link (Elevated e 4.78:1) |
 | On accent | #FFFFFF | Accent fill er upor text/icon |
 
-- Base gray ekdom neutral (kono tint na), jate color grading e user er chokh vul rong na dekhe; pure black (#000) na, jate layer bojha jay.
+- Base gray prai neutral: red = green, blue sorbochcho +12 (halka cool bhab, ekhon +2 theke +11), onno kono tint na, jate color grading e user er chokh vul rong na dekhe; pure black (#000) na, jate layer bojha jay.
 - Accent shudhu gurutto purno jaygay; baki shob gray.
 - Accent preset (custom theme er jonno): protita preset e tinta token (fill, text, onAccent). Electric violet: fill #6E4CF5, text #A271FF, onAccent shada (default). Sunset coral #FF6B4A ar Fresh aqua #22C7B8 e fill er upor shada text fail (2.82:1, 2.11:1), tai onAccent #0E0E11 (6.84:1, 9.11:1); dark surface e text hishebe eki rong chole (Elevated e 5.62:1, 7.48:1). Aro 3-5 ta preset ei niyom e test kore. Free colour picker na.
 - Timeline track category colour (accent theke alada): video neutral (thumbnail), audio sobuj, text amber, sticker golapi, effect teal, overlay nil. Hex design phase e final.

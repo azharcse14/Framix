@@ -19,7 +19,7 @@ Full version: docs/plan.md (Design system). Widgets use tokens only, never hex l
 Light theme (Home, Settings only): textMuted #666670; accentText = accentFill #6E4CF5.
 
 ## Rules
-- Neutral grays with no tint, so users judge color correctly. No pure black.
+- Near-neutral grays: red = green, blue at most +12 (a slight cool bias, today +2 to +11), no other tint, so users judge color correctly. No pure black. app/test/core/ui/gray_rule_test.dart enforces it.
 - ColorScheme built by hand from tokens (no fromSeed); extra tokens in the FramixColors ThemeExtension.
 - Accent only on the one primary action per screen and selected state.
 - Track colors (audio green, text amber, sticker pink, effect teal, overlay blue) always come with an icon.
