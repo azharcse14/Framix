@@ -34,3 +34,5 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
 - Design drift from docs/architecture.md crate table without an ADR (P1-023: memento undo, while the table says core owns "undo commands"). Flag as Warning: update the table via a short ADR.
 
 - Memento/snapshot undo also restores id allocators inside the snapshot (Timeline::next_id), so ids get reused after undo + new edit. Check any snapshot-restore code for allocator rollback.
+  P1-043 fix bumped the counter (max) after each swap and made Timeline's PartialEq ignore next_id so frozen undo tests still pass. Side effect: `==` no longer proves two timelines behave the same, so any later round-trip test (save/load P1-009, crash recovery) can pass with a lost/zeroed counter -> duplicate live ids.
+  **How to apply:** when a review touches serialization/restore of Timeline, require an explicit next-id check (e.g. add_track on both, compare ids), not just `==`. Also check ADR text that described the bug is updated when the bug is fixed.

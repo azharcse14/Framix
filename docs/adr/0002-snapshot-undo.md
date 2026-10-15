@@ -9,10 +9,10 @@ docs/architecture.md gave `core` "undo commands": every edit would need a hand-w
 ## Decision
 - `app::history::History` owns the timeline. Every edit is one command, a closure run through `History::apply`.
 - An undo step is the timeline as it was before the edit. Undo and redo swap snapshots; an edit that fails leaves no step and no change.
-- `core` has no undo code; it only needs `Timeline: Clone + PartialEq`.
+- `core` has no undo code; it only needs `Timeline: Clone + PartialEq`, where `==` compares content only.
 
 ## Consequences
 - Undo cannot drift from the edit, and new edit types need no undo code.
 - Memory grows with history length times timeline size. The cap is GOT-051; structural sharing (Arc'd tracks) comes in if timelines get large.
-- A snapshot also restores the id counter, so after undo a new edit can get an id that the undone clip had (P1-043).
+- The id counter lives inside the snapshot, so every swap raises it to the larger of the two (`Timeline::keep_ids_newer_than`, P1-043); ids are never reissued after undo or redo.
 - Merging a drag gesture into one step is still to be done when drag commands arrive.

@@ -892,6 +892,10 @@
     {
      "date": "2026-10-15",
      "text": "persist Timeline next_id (or set it above the max loaded id) so ids are not reused after reload (P1-014)"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "round-trip test must also check id allocation (add_track on the original and on the loaded timeline gives the same new id); Timeline == ignores next_id (P1-043)"
     }
    ],
    "source": "plan"
@@ -11948,7 +11952,12 @@
    "done": null,
    "commit": null,
    "branch": "p1-043-ids-after-undo",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "deviation: the counter stays inside the snapshot and History raises it on every swap (moving it out would change the add_track that the frozen P1-014 tests call). Anything else that restores a Timeline must follow the same rule (see the Timeline doc)."
+    }
+   ],
    "source": "added"
   }
  ]

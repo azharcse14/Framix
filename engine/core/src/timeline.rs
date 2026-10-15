@@ -117,10 +117,14 @@ pub enum TimelineError {
 }
 
 /// The editable timeline of a video project.
+///
+/// `==` compares content (tracks and clips) only, not the id counter: two equal timelines
+/// can hand out different ids next. Anything that restores a timeline (undo, load) must
+/// keep the counter ahead of every issued id.
 #[derive(Clone, Debug, Default)]
 pub struct Timeline {
     tracks: Vec<Track>,
-    /// Last id handed out. Not content: equality ignores it.
+    /// Last id handed out.
     next_id: u64,
 }
 
