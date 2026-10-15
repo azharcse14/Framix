@@ -12111,6 +12111,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "553918c",
+   "branch": "ds-009-outlined-contrast",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-051",
+   "section": "ENG",
+   "group": null,
+   "title": "TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
@@ -12120,10 +12139,10 @@
    "source": "added"
   },
   {
-   "id": "ENG-051",
-   "section": "ENG",
+   "id": "DS-010",
+   "section": "DS",
    "group": null,
-   "title": "TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval)",
+   "title": "border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule)",
    "tags": [
     "Dart"
    ],

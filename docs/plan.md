@@ -929,7 +929,8 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [ ] `DS-006` Material You (dynamic color), Android 12+ (optional): shudhu accent preset hishebe, surface e na, Editor e kokhono na; contrast check fail korle fallback \[Dart\]
 - [ ] `DS-007` Notun theme mane screenshot test, contrast check, icon duita version, tai pura custom background theme pore \[—\]
 - [ ] `DS-008` bn locale e screenshot test: button, chip, tab, toolbar label e Bangla upore-niche kata jacche kina \[Dart\]
-- [ ] `DS-009` OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md \[Dart\]
+- [x] `DS-009` OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md \[Dart\]
+- [ ] `DS-010` border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule) \[Dart\]
 
 **Font**
 
