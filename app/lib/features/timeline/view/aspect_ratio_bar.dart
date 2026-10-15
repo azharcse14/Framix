@@ -38,8 +38,7 @@ class AspectRatioBar extends StatelessWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: scheme.surface,
-                            // outline (border token) is ~1.4:1; this boundary must reach 3:1.
-                            border: Border.all(color: scheme.onSurfaceVariant),
+                            border: Border.all(color: scheme.outline),
                           ),
                         ),
                       ),

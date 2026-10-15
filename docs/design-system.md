@@ -8,7 +8,8 @@ Full version: docs/plan.md (Design system). Widgets use tokens only, never hex l
 | background | #0E0E11 | Screen background |
 | surface | #17171B | Card, panel |
 | elevated | #222228 | Bottom sheet, popup, clip |
-| border | #2E2E36 | Divider, outline |
+| border | #2E2E36 | Decorative divider (no contrast requirement); ColorScheme.outlineVariant |
+| outline | #6C6C75 | Boundary of interactive controls: outlined button, chip, canvas edge (3:1 on background, surface, elevated); ColorScheme.outline |
 | textMuted | #9A9AA5 | Secondary text |
 | text | #F4F4F6 | Main text |
 | accentFill | #6E4CF5 | Primary button, toggle, slider fill (white text 5.23:1) |
