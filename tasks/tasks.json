@@ -358,6 +358,10 @@
     {
      "date": "2026-10-15",
      "text": "GitHub Dependabot alerts: owner enables in repo settings (human step)"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "commit 49afdd3 rewritten as 89d3a2d (Co-Authored-By trailer removed; same tree)"
     }
    ],
    "source": "plan"
