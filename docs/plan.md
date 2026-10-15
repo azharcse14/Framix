@@ -1469,7 +1469,7 @@ OS memory ke page e bhag kore; ager Android e page 4 KB, Android 15 theke 16 KB 
 - [x] `GOT-001` Android ABI: arm64-v8a ship, sathe x86\_64 (emulator, ChromeOS); armeabi-v7a na (ADR 0001); Flutter build e --target-platform android-arm64,android-x64 ar abiFilters \[Native\]
 - [ ] `GOT-002` Shob Rust code ekta-i Rust library te (Native Assets e dynamic library); duita alada Rust library hole duplicate std symbol (static) ba duita alada engine state ar allocator (dynamic) er shomossha \[Rust\]
 - [ ] `GOT-003` Cargo profile e panic = "abort" dile catch\_unwind kaj kore na; FFI safety er jonno panic = "unwind" rakho, ba size er jonno abort nile FFI design shei vabe \[Rust\]
-- [ ] `GOT-004` Rust library Flutter e package: Flutter Native Assets (hook/build.dart) + native\_toolchain\_rust; shomossha hole cargokit \[Rust\]\[Dart\]
+- [x] `GOT-004` Rust library Flutter e package: Flutter Native Assets (hook/build.dart) + native\_toolchain\_rust; shomossha hole cargokit \[Rust\]\[Dart\]
 - [ ] `GOT-005` Release build e debug symbol alada rakho (crash symbolication), app e strip \[Native\]
 - [ ] `GOT-006` Rust crate license ar security: cargo-deny / cargo-about (license list), cargo audit \[Rust\]
 
