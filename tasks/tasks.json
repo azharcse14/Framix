@@ -12210,7 +12210,12 @@
    "done": "2026-10-15",
    "commit": "d36417a",
    "branch": "rel-024-app-icon",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "review fixes: safe-zone circle, rounded stem, legacy PNGs removed, moved to scripts/app_icon (a79dc7f)"
+    }
+   ],
    "source": "added"
   }
  ]
