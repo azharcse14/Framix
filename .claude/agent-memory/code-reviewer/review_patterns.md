@@ -50,3 +50,8 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
   Same review: a "dispose closes the stream" Dart test passed on a `Stream.empty()` stub (stub-first pattern again; check Dart stubs too, not just Rust).
 
 - New codegen tool added without pinning (P1-006: protoc unchecked in gen_ffi.sh, protoc_plugin/protox/buf missing from docs/toolchain.md "FFI codegen" row). For any new generator, require the version in toolchain.md and a version check in the script, like cbindgen.
+
+- First-screen tasks absorb foundation tasks (ENG-003 did L10N-001 gen-l10n/ARB, DS-003 hand-built ColorScheme, ENG-002 bloc/get_it while those stayed todo). Flag Warning; ask for task.py notes on the owning tasks so they are not redone.
+- Hand-built ColorScheme maps primary=accentFill (#6E4CF5); M3 OutlinedButton/TextButton then draw accentFill text on background = ~3.7:1, below the 4.5:1 rule (design-system says accentText for accent text on dark). Check component themes whenever a screen uses non-filled buttons.
+- Generated l10n (app/lib/l10n/generated) committed but check.sh's `git diff --exit-code` only covers ffi/proto paths; flag until the l10n path is added (same family as the cbindgen freshness gap).
+- Dart UI deriving display data from list position (ENG-003 "Video track {index+1}" across all kinds) = numbering/naming rule in Dart and wrong with mixed kinds; the engine should carry name/number.
