@@ -888,7 +888,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "persist Timeline next_id (or set it above the max loaded id) so ids are not reused after reload (P1-014)"
+    }
+   ],
    "source": "plan"
   },
   {

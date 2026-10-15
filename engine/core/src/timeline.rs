@@ -40,7 +40,9 @@ pub struct ClipPlacement {
 }
 
 /// A clip on a track. Covers the half-open range `[start, start + duration)`.
+/// Only [`Timeline::insert_clip`] builds clips, so `end` never overflows.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Clip {
     /// Stable id.
     pub id: ClipId,
@@ -57,7 +59,7 @@ pub struct Clip {
 impl Clip {
     /// First tick after the clip.
     pub fn end(&self) -> Time {
-        // Timeline::insert_clip checked that start + duration fits in i64.
+        // Non-exhaustive: only insert_clip builds a Clip, and it checked this sum fits.
         Time(self.start.0 + self.duration.0)
     }
 }
@@ -97,14 +99,19 @@ impl Track {
 /// Why a timeline edit was rejected.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum TimelineError {
+    /// No track has this id.
     #[error("track {0:?} does not exist")]
     UnknownTrack(TrackId),
+    /// Duration is zero or negative.
     #[error("clip duration must be positive")]
     NonPositiveDuration,
+    /// `start + duration` does not fit in [`Time`].
     #[error("clip end is past the largest representable time")]
     TimeOverflow,
+    /// The clip would overlap this existing clip.
     #[error("clip overlaps clip {0:?}")]
     Overlap(ClipId),
+    /// Start or source offset is before zero.
     #[error("clip start and source offset must not be negative")]
     NegativeTime,
 }
@@ -144,6 +151,9 @@ impl Timeline {
         track: TrackId,
         placement: ClipPlacement,
     ) -> Result<ClipId, TimelineError> {
+        if placement.start.0 < 0 || placement.source_start.0 < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
         if placement.duration.0 <= 0 {
             return Err(TimelineError::NonPositiveDuration);
         }
