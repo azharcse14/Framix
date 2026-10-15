@@ -71,6 +71,11 @@ impl Engine {
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
+            command::Kind::RemoveClip(_)
+            | command::Kind::SplitClip(_)
+            | command::Kind::MergeClips(_)
+            | command::Kind::TrimClip(_)
+            | command::Kind::DuplicateClip(_) => Err("not implemented".to_owned()),
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;

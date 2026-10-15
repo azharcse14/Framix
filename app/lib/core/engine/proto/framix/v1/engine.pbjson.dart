@@ -115,6 +115,51 @@ const Command$json = {
       '9': 0,
       '10': 'setAspectRatio'
     },
+    {
+      '1': 'remove_clip',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.RemoveClip',
+      '9': 0,
+      '10': 'removeClip'
+    },
+    {
+      '1': 'split_clip',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SplitClip',
+      '9': 0,
+      '10': 'splitClip'
+    },
+    {
+      '1': 'merge_clips',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.MergeClips',
+      '9': 0,
+      '10': 'mergeClips'
+    },
+    {
+      '1': 'trim_clip',
+      '3': 13,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.TrimClip',
+      '9': 0,
+      '10': 'trimClip'
+    },
+    {
+      '1': 'duplicate_clip',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.DuplicateClip',
+      '9': 0,
+      '10': 'duplicateClip'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -132,7 +177,12 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'ByABKAsyFi5mcmFtaXgudjEuU2F2ZVByb2plY3RIAFILc2F2ZVByb2plY3QSOwoMb3Blbl9wcm'
     '9qZWN0GAggASgLMhYuZnJhbWl4LnYxLk9wZW5Qcm9qZWN0SABSC29wZW5Qcm9qZWN0EkUKEHNl'
     'dF9hc3BlY3RfcmF0aW8YCSABKAsyGS5mcmFtaXgudjEuU2V0QXNwZWN0UmF0aW9IAFIOc2V0QX'
-    'NwZWN0UmF0aW9CBgoEa2luZA==');
+    'NwZWN0UmF0aW8SOAoLcmVtb3ZlX2NsaXAYCiABKAsyFS5mcmFtaXgudjEuUmVtb3ZlQ2xpcEgA'
+    'UgpyZW1vdmVDbGlwEjUKCnNwbGl0X2NsaXAYCyABKAsyFC5mcmFtaXgudjEuU3BsaXRDbGlwSA'
+    'BSCXNwbGl0Q2xpcBI4CgttZXJnZV9jbGlwcxgMIAEoCzIVLmZyYW1peC52MS5NZXJnZUNsaXBz'
+    'SABSCm1lcmdlQ2xpcHMSMgoJdHJpbV9jbGlwGA0gASgLMhMuZnJhbWl4LnYxLlRyaW1DbGlwSA'
+    'BSCHRyaW1DbGlwEkEKDmR1cGxpY2F0ZV9jbGlwGA4gASgLMhguZnJhbWl4LnYxLkR1cGxpY2F0'
+    'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcEIGCgRraW5k');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -242,6 +292,72 @@ const SetAspectRatio$json = {
 final $typed_data.Uint8List setAspectRatioDescriptor = $convert.base64Decode(
     'Cg5TZXRBc3BlY3RSYXRpbxIUCgV3aWR0aBgBIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAIgASgNUg'
     'ZoZWlnaHQ=');
+
+@$core.Deprecated('Use removeClipDescriptor instead')
+const RemoveClip$json = {
+  '1': 'RemoveClip',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+  ],
+};
+
+/// Descriptor for `RemoveClip`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List removeClipDescriptor = $convert
+    .base64Decode('CgpSZW1vdmVDbGlwEhcKB2NsaXBfaWQYASABKARSBmNsaXBJZA==');
+
+@$core.Deprecated('Use splitClipDescriptor instead')
+const SplitClip$json = {
+  '1': 'SplitClip',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {'1': 'at', '3': 2, '4': 1, '5': 3, '10': 'at'},
+  ],
+};
+
+/// Descriptor for `SplitClip`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List splitClipDescriptor = $convert.base64Decode(
+    'CglTcGxpdENsaXASFwoHY2xpcF9pZBgBIAEoBFIGY2xpcElkEg4KAmF0GAIgASgDUgJhdA==');
+
+@$core.Deprecated('Use mergeClipsDescriptor instead')
+const MergeClips$json = {
+  '1': 'MergeClips',
+  '2': [
+    {'1': 'left_id', '3': 1, '4': 1, '5': 4, '10': 'leftId'},
+    {'1': 'right_id', '3': 2, '4': 1, '5': 4, '10': 'rightId'},
+  ],
+};
+
+/// Descriptor for `MergeClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List mergeClipsDescriptor = $convert.base64Decode(
+    'CgpNZXJnZUNsaXBzEhcKB2xlZnRfaWQYASABKARSBmxlZnRJZBIZCghyaWdodF9pZBgCIAEoBF'
+    'IHcmlnaHRJZA==');
+
+@$core.Deprecated('Use trimClipDescriptor instead')
+const TrimClip$json = {
+  '1': 'TrimClip',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {'1': 'start', '3': 2, '4': 1, '5': 3, '10': 'start'},
+    {'1': 'end', '3': 3, '4': 1, '5': 3, '10': 'end'},
+  ],
+};
+
+/// Descriptor for `TrimClip`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List trimClipDescriptor = $convert.base64Decode(
+    'CghUcmltQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSFAoFc3RhcnQYAiABKANSBXN0YX'
+    'J0EhAKA2VuZBgDIAEoA1IDZW5k');
+
+@$core.Deprecated('Use duplicateClipDescriptor instead')
+const DuplicateClip$json = {
+  '1': 'DuplicateClip',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+  ],
+};
+
+/// Descriptor for `DuplicateClip`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List duplicateClipDescriptor = $convert
+    .base64Decode('Cg1EdXBsaWNhdGVDbGlwEhcKB2NsaXBfaWQYASABKARSBmNsaXBJZA==');
 
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {

@@ -31,6 +31,11 @@ enum Command_Kind {
   saveProject,
   openProject,
   setAspectRatio,
+  removeClip,
+  splitClip,
+  mergeClips,
+  trimClip,
+  duplicateClip,
   notSet
 }
 
@@ -46,6 +51,11 @@ class Command extends $pb.GeneratedMessage {
     SaveProject? saveProject,
     OpenProject? openProject,
     SetAspectRatio? setAspectRatio,
+    RemoveClip? removeClip,
+    SplitClip? splitClip,
+    MergeClips? mergeClips,
+    TrimClip? trimClip,
+    DuplicateClip? duplicateClip,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -57,6 +67,11 @@ class Command extends $pb.GeneratedMessage {
     if (saveProject != null) result.saveProject = saveProject;
     if (openProject != null) result.openProject = openProject;
     if (setAspectRatio != null) result.setAspectRatio = setAspectRatio;
+    if (removeClip != null) result.removeClip = removeClip;
+    if (splitClip != null) result.splitClip = splitClip;
+    if (mergeClips != null) result.mergeClips = mergeClips;
+    if (trimClip != null) result.trimClip = trimClip;
+    if (duplicateClip != null) result.duplicateClip = duplicateClip;
     return result;
   }
 
@@ -79,13 +94,18 @@ class Command extends $pb.GeneratedMessage {
     7: Command_Kind.saveProject,
     8: Command_Kind.openProject,
     9: Command_Kind.setAspectRatio,
+    10: Command_Kind.removeClip,
+    11: Command_Kind.splitClip,
+    12: Command_Kind.mergeClips,
+    13: Command_Kind.trimClip,
+    14: Command_Kind.duplicateClip,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -104,6 +124,16 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: OpenProject.$_createMessage)
     ..aOM<SetAspectRatio>(9, _omitFieldNames ? '' : 'setAspectRatio',
         subBuilder: SetAspectRatio.$_createMessage)
+    ..aOM<RemoveClip>(10, _omitFieldNames ? '' : 'removeClip',
+        subBuilder: RemoveClip.$_createMessage)
+    ..aOM<SplitClip>(11, _omitFieldNames ? '' : 'splitClip',
+        subBuilder: SplitClip.$_createMessage)
+    ..aOM<MergeClips>(12, _omitFieldNames ? '' : 'mergeClips',
+        subBuilder: MergeClips.$_createMessage)
+    ..aOM<TrimClip>(13, _omitFieldNames ? '' : 'trimClip',
+        subBuilder: TrimClip.$_createMessage)
+    ..aOM<DuplicateClip>(14, _omitFieldNames ? '' : 'duplicateClip',
+        subBuilder: DuplicateClip.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -135,6 +165,11 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -145,6 +180,11 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -245,6 +285,61 @@ class Command extends $pb.GeneratedMessage {
   void clearSetAspectRatio() => $_clearField(9);
   @$pb.TagNumber(9)
   SetAspectRatio ensureSetAspectRatio() => $_ensure(8);
+
+  @$pb.TagNumber(10)
+  RemoveClip get removeClip => $_getN(9);
+  @$pb.TagNumber(10)
+  set removeClip(RemoveClip value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasRemoveClip() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearRemoveClip() => $_clearField(10);
+  @$pb.TagNumber(10)
+  RemoveClip ensureRemoveClip() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  SplitClip get splitClip => $_getN(10);
+  @$pb.TagNumber(11)
+  set splitClip(SplitClip value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasSplitClip() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearSplitClip() => $_clearField(11);
+  @$pb.TagNumber(11)
+  SplitClip ensureSplitClip() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  MergeClips get mergeClips => $_getN(11);
+  @$pb.TagNumber(12)
+  set mergeClips(MergeClips value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasMergeClips() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearMergeClips() => $_clearField(12);
+  @$pb.TagNumber(12)
+  MergeClips ensureMergeClips() => $_ensure(11);
+
+  @$pb.TagNumber(13)
+  TrimClip get trimClip => $_getN(12);
+  @$pb.TagNumber(13)
+  set trimClip(TrimClip value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasTrimClip() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearTrimClip() => $_clearField(13);
+  @$pb.TagNumber(13)
+  TrimClip ensureTrimClip() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  DuplicateClip get duplicateClip => $_getN(13);
+  @$pb.TagNumber(14)
+  set duplicateClip(DuplicateClip value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasDuplicateClip() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearDuplicateClip() => $_clearField(14);
+  @$pb.TagNumber(14)
+  DuplicateClip ensureDuplicateClip() => $_ensure(13);
 }
 
 /// Appends an empty track.
@@ -758,6 +853,342 @@ class SetAspectRatio extends $pb.GeneratedMessage {
   $core.bool hasHeight() => $_has(1);
   @$pb.TagNumber(2)
   void clearHeight() => $_clearField(2);
+}
+
+/// Removes a clip.
+class RemoveClip extends $pb.GeneratedMessage {
+  factory RemoveClip({
+    $fixnum.Int64? clipId,
+  }) {
+    final result = RemoveClip._();
+    if (clipId != null) result.clipId = clipId;
+    return result;
+  }
+
+  RemoveClip._();
+
+  factory RemoveClip.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClip()..mergeFromBuffer(data, registry);
+  factory RemoveClip.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClip()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RemoveClip',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RemoveClip.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClip clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClip copyWith(void Function(RemoveClip) updates) =>
+      super.copyWith((message) => updates(message as RemoveClip)) as RemoveClip;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RemoveClip() / RemoveClip.new instead')
+  static RemoveClip create() => RemoveClip._();
+  static $pb.GeneratedMessage $_createMessage() => RemoveClip._();
+  @$core.override
+  RemoveClip createEmptyInstance() => RemoveClip._();
+  @$core.pragma('dart2js:noInline')
+  static RemoveClip getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RemoveClip>(RemoveClip.$_createMessage);
+  static RemoveClip? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+}
+
+/// Splits a clip at timeline time `at` (strictly inside it); the right part gets a new id.
+class SplitClip extends $pb.GeneratedMessage {
+  factory SplitClip({
+    $fixnum.Int64? clipId,
+    $fixnum.Int64? at,
+  }) {
+    final result = SplitClip._();
+    if (clipId != null) result.clipId = clipId;
+    if (at != null) result.at = at;
+    return result;
+  }
+
+  SplitClip._();
+
+  factory SplitClip.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SplitClip()..mergeFromBuffer(data, registry);
+  factory SplitClip.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SplitClip()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SplitClip',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SplitClip.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(2, _omitFieldNames ? '' : 'at')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SplitClip clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SplitClip copyWith(void Function(SplitClip) updates) =>
+      super.copyWith((message) => updates(message as SplitClip)) as SplitClip;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SplitClip() / SplitClip.new instead')
+  static SplitClip create() => SplitClip._();
+  static $pb.GeneratedMessage $_createMessage() => SplitClip._();
+  @$core.override
+  SplitClip createEmptyInstance() => SplitClip._();
+  @$core.pragma('dart2js:noInline')
+  static SplitClip getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SplitClip>(SplitClip.$_createMessage);
+  static SplitClip? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get at => $_getI64(1);
+  @$pb.TagNumber(2)
+  set at($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasAt() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearAt() => $_clearField(2);
+}
+
+/// Joins `right_id` into `left_id`: neighbours on one track, same media, continuous source.
+class MergeClips extends $pb.GeneratedMessage {
+  factory MergeClips({
+    $fixnum.Int64? leftId,
+    $fixnum.Int64? rightId,
+  }) {
+    final result = MergeClips._();
+    if (leftId != null) result.leftId = leftId;
+    if (rightId != null) result.rightId = rightId;
+    return result;
+  }
+
+  MergeClips._();
+
+  factory MergeClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MergeClips()..mergeFromBuffer(data, registry);
+  factory MergeClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MergeClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MergeClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MergeClips.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'leftId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'rightId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MergeClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MergeClips copyWith(void Function(MergeClips) updates) =>
+      super.copyWith((message) => updates(message as MergeClips)) as MergeClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MergeClips() / MergeClips.new instead')
+  static MergeClips create() => MergeClips._();
+  static $pb.GeneratedMessage $_createMessage() => MergeClips._();
+  @$core.override
+  MergeClips createEmptyInstance() => MergeClips._();
+  @$core.pragma('dart2js:noInline')
+  static MergeClips getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MergeClips>(MergeClips.$_createMessage);
+  static MergeClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get leftId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set leftId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasLeftId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLeftId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get rightId => $_getI64(1);
+  @$pb.TagNumber(2)
+  set rightId($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRightId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRightId() => $_clearField(2);
+}
+
+/// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+class TrimClip extends $pb.GeneratedMessage {
+  factory TrimClip({
+    $fixnum.Int64? clipId,
+    $fixnum.Int64? start,
+    $fixnum.Int64? end,
+  }) {
+    final result = TrimClip._();
+    if (clipId != null) result.clipId = clipId;
+    if (start != null) result.start = start;
+    if (end != null) result.end = end;
+    return result;
+  }
+
+  TrimClip._();
+
+  factory TrimClip.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      TrimClip()..mergeFromBuffer(data, registry);
+  factory TrimClip.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      TrimClip()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrimClip',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: TrimClip.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(2, _omitFieldNames ? '' : 'start')
+    ..aInt64(3, _omitFieldNames ? '' : 'end')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TrimClip clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TrimClip copyWith(void Function(TrimClip) updates) =>
+      super.copyWith((message) => updates(message as TrimClip)) as TrimClip;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use TrimClip() / TrimClip.new instead')
+  static TrimClip create() => TrimClip._();
+  static $pb.GeneratedMessage $_createMessage() => TrimClip._();
+  @$core.override
+  TrimClip createEmptyInstance() => TrimClip._();
+  @$core.pragma('dart2js:noInline')
+  static TrimClip getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrimClip>(TrimClip.$_createMessage);
+  static TrimClip? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get start => $_getI64(1);
+  @$pb.TagNumber(2)
+  set start($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasStart() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearStart() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get end => $_getI64(2);
+  @$pb.TagNumber(3)
+  set end($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasEnd() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEnd() => $_clearField(3);
+}
+
+/// Copies a clip to right after itself; refused if that space is taken.
+class DuplicateClip extends $pb.GeneratedMessage {
+  factory DuplicateClip({
+    $fixnum.Int64? clipId,
+  }) {
+    final result = DuplicateClip._();
+    if (clipId != null) result.clipId = clipId;
+    return result;
+  }
+
+  DuplicateClip._();
+
+  factory DuplicateClip.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClip()..mergeFromBuffer(data, registry);
+  factory DuplicateClip.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClip()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DuplicateClip',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: DuplicateClip.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClip clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClip copyWith(void Function(DuplicateClip) updates) =>
+      super.copyWith((message) => updates(message as DuplicateClip))
+          as DuplicateClip;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DuplicateClip() / DuplicateClip.new instead')
+  static DuplicateClip create() => DuplicateClip._();
+  static $pb.GeneratedMessage $_createMessage() => DuplicateClip._();
+  @$core.override
+  DuplicateClip createEmptyInstance() => DuplicateClip._();
+  @$core.pragma('dart2js:noInline')
+  static DuplicateClip getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DuplicateClip>(
+          DuplicateClip.$_createMessage);
+  static DuplicateClip? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
 }
 
 enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }

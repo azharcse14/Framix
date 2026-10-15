@@ -17,6 +17,11 @@ message Command {
     SaveProject save_project = 7;
     OpenProject open_project = 8;
     SetAspectRatio set_aspect_ratio = 9;
+    RemoveClip remove_clip = 10;
+    SplitClip split_clip = 11;
+    MergeClips merge_clips = 12;
+    TrimClip trim_clip = 13;
+    DuplicateClip duplicate_clip = 14;
   }
 }
 
@@ -69,6 +74,35 @@ message OpenProject {
 message SetAspectRatio {
   uint32 width = 1;
   uint32 height = 2;
+}
+
+// Removes a clip.
+message RemoveClip {
+  uint64 clip_id = 1;
+}
+
+// Splits a clip at timeline time `at` (strictly inside it); the right part gets a new id.
+message SplitClip {
+  uint64 clip_id = 1;
+  int64 at = 2;
+}
+
+// Joins `right_id` into `left_id`: neighbours on one track, same media, continuous source.
+message MergeClips {
+  uint64 left_id = 1;
+  uint64 right_id = 2;
+}
+
+// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+message TrimClip {
+  uint64 clip_id = 1;
+  int64 start = 2;
+  int64 end = 3;
+}
+
+// Copies a clip to right after itself; refused if that space is taken.
+message DuplicateClip {
+  uint64 clip_id = 1;
 }
 
 // Sent by the engine. Exactly one kind is set.

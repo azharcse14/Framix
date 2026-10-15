@@ -115,6 +115,15 @@ pub enum TimelineError {
     /// Start or source offset is before zero.
     #[error("clip start and source offset must not be negative")]
     NegativeTime,
+    /// No clip has this id.
+    #[error("clip {0:?} does not exist")]
+    UnknownClip(ClipId),
+    /// A split point must lie strictly inside the clip.
+    #[error("split point is not inside the clip")]
+    SplitOutside,
+    /// Merge needs two neighbouring clips on one track, same media, continuous source.
+    #[error("clips cannot be merged")]
+    NotMergeable,
 }
 
 /// The editable timeline of a video project.
@@ -210,6 +219,42 @@ impl Timeline {
         };
         self.tracks[index].clips.insert(at, clip);
         Ok(id)
+    }
+
+    /// Removes a clip.
+    pub fn remove_clip(&mut self, _clip: ClipId) -> Result<(), TimelineError> {
+        Ok(())
+    }
+
+    /// Splits a clip at timeline time `at` (strictly inside it). The left part keeps the id;
+    /// the right part gets a new id and starts its source `at - start` later.
+    pub fn split_clip(&mut self, _clip: ClipId, _at: Time) -> Result<ClipId, TimelineError> {
+        Err(TimelineError::SplitOutside)
+    }
+
+    /// Joins `right` into `left`: neighbours on one track (`left` ends where `right` starts),
+    /// same media, and `right`'s source continues `left`'s. `left` keeps its id.
+    pub fn merge_clips(&mut self, _left: ClipId, _right: ClipId) -> Result<(), TimelineError> {
+        Ok(())
+    }
+
+    /// Moves a clip's edges to `[start, end)`. Moving the start also moves the source offset by
+    /// the same amount, so the frames under the rest of the clip stay put.
+    // ponytail: no media-length check yet (P1-013 brings durations); the tail can grow past
+    // the end of the media.
+    pub fn trim_clip(
+        &mut self,
+        _clip: ClipId,
+        _start: Time,
+        _end: Time,
+    ) -> Result<(), TimelineError> {
+        Ok(())
+    }
+
+    /// Copies a clip to right after itself on the same track (no ripple: refused with
+    /// [`TimelineError::Overlap`] if that space is taken).
+    pub fn duplicate_clip(&mut self, _clip: ClipId) -> Result<ClipId, TimelineError> {
+        Err(TimelineError::NotMergeable)
     }
 
     /// End of the last clip on any track; zero when empty.
