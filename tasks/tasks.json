@@ -6633,12 +6633,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-008-ffi-panic-free",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "plan: new core crate; Time = i64 flicks (705_600_000/s, exact for 24/25/30/50/60/120 and NTSC x/1001 rates and common sample rates); Rate {num,den}; frame<->time via i128 floor/ceil, checked (Option). proptest ~1.11 dev-dep (1.12 is <14 days old)."
+    }
+   ],
    "source": "plan"
   },
   {
