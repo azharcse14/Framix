@@ -78,6 +78,13 @@ ThemeData framixDarkTheme() {
       surfaceContainerHighest: c.elevated,
     ),
     scaffoldBackgroundColor: c.background,
+    // Accent belongs to the one primary action; secondary actions stay neutral.
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: c.text,
+        side: BorderSide(color: c.border),
+      ),
+    ),
     extensions: const [c],
   );
 }
