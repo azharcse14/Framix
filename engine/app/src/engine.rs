@@ -5,14 +5,26 @@ use framix_core::timeline::{self, ClipPlacement, MediaId, Timeline, TimelineErro
 
 use crate::history::History;
 use crate::proto::{self, Command, CommandFailed, Event, TimelineChanged, TrackKind, command};
+use crate::store::ProjectStore;
 
-/// Engine state behind the FFI boundary: one project's timeline and its undo history.
-#[derive(Debug, Default)]
+/// Engine state behind the FFI boundary: one project's timeline, its undo history, and where
+/// projects are saved.
+#[derive(Default)]
 pub struct Engine {
     history: History,
+    store: Option<Box<dyn ProjectStore>>,
 }
 
 impl Engine {
+    /// An engine that saves and opens projects through `store`. [`Engine::default`] has no
+    /// store and refuses SaveProject/OpenProject.
+    pub fn with_store(store: Box<dyn ProjectStore>) -> Self {
+        Self {
+            history: History::default(),
+            store: Some(store),
+        }
+    }
+
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
@@ -40,6 +52,9 @@ impl Engine {
             command::Kind::Undo(_) => step(self.history.undo(), "nothing to undo"),
             command::Kind::Redo(_) => step(self.history.redo(), "nothing to redo"),
             command::Kind::GetTimeline(_) => Ok(()),
+            command::Kind::NewProject(_)
+            | command::Kind::SaveProject(_)
+            | command::Kind::OpenProject(_) => Err("not implemented".to_owned()),
         }
     }
 

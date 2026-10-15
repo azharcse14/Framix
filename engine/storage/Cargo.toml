@@ -1,0 +1,8 @@
+[package]
+name = "framix_storage"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+framix_app = { path = "../app" }

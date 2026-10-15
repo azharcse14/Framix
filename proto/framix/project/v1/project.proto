@@ -1,0 +1,38 @@
+// Project file format (*.framix project data), written by the engine only.
+// Times are integer ticks (engine core::time). Never reuse or renumber a field; reserve
+// removed ones. Bump FORMAT_VERSION (engine/app/src/project.rs) when old readers would
+// misread a new file, and keep a fixture per version (engine/app/tests/fixtures).
+syntax = "proto3";
+
+package framix.project.v1;
+
+// One saved project.
+message ProjectFile {
+  // Version that wrote the file.
+  uint32 format_version = 1;
+  // Oldest reader version that can open it; newer files are refused, not misread.
+  uint32 min_reader_version = 2;
+  repeated SavedTrack tracks = 3;
+}
+
+// What a track carries. Separate from the UI contract's TrackKind so the file format
+// evolves on its own.
+enum SavedTrackKind {
+  SAVED_TRACK_KIND_UNSPECIFIED = 0;
+  SAVED_TRACK_KIND_VIDEO = 1;
+  SAVED_TRACK_KIND_AUDIO = 2;
+}
+
+// A track and its clips in timeline order. Ids are not stored: they are reassigned on load.
+message SavedTrack {
+  SavedTrackKind kind = 1;
+  repeated SavedClip clips = 2;
+}
+
+// A clip placement.
+message SavedClip {
+  uint64 media_id = 1;
+  int64 source_start = 2;
+  int64 start = 3;
+  int64 duration = 4;
+}

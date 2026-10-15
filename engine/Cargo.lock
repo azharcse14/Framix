@@ -117,6 +117,7 @@ dependencies = [
  "prost",
  "prost-build",
  "protox",
+ "thiserror",
 ]
 
 [[package]]
@@ -133,6 +134,13 @@ version = "0.1.0"
 dependencies = [
  "framix_app",
  "prost",
+]
+
+[[package]]
+name = "framix_storage"
+version = "0.1.0"
+dependencies = [
+ "framix_app",
 ]
 
 [[package]]

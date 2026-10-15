@@ -1,9 +1,15 @@
-//! Generates the Protobuf command/event types from proto/framix/v1/engine.proto.
+//! Generates the Protobuf types: command/event (engine.proto) and the project file
+//! (project.proto).
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let proto = "../../proto/framix/v1/engine.proto";
-    println!("cargo:rerun-if-changed={proto}");
-    let descriptors = protox::compile([proto], ["../../proto"])?;
+    let protos = [
+        "../../proto/framix/v1/engine.proto",
+        "../../proto/framix/project/v1/project.proto",
+    ];
+    for proto in protos {
+        println!("cargo:rerun-if-changed={proto}");
+    }
+    let descriptors = protox::compile(protos, ["../../proto"])?;
     prost_build::Config::new().compile_fds(descriptors)?;
     Ok(())
 }

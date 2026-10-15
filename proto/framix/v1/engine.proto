@@ -13,6 +13,9 @@ message Command {
     Undo undo = 3;
     Redo redo = 4;
     GetTimeline get_timeline = 5;
+    NewProject new_project = 6;
+    SaveProject save_project = 7;
+    OpenProject open_project = 8;
   }
 }
 
@@ -46,11 +49,26 @@ message Redo {}
 // Asks for the current timeline; answered with TimelineChanged, nothing is edited.
 message GetTimeline {}
 
+// Starts an empty project; the old one is dropped (save it first) and undo is cleared.
+message NewProject {}
+
+// Saves the project to `path` atomically, keeping the previous saves as backups.
+message SaveProject {
+  string path = 1;
+}
+
+// Replaces the project with the one at `path`; undo is cleared. A file that is unreadable,
+// from a newer app, or invalid is refused and the current project stays.
+message OpenProject {
+  string path = 1;
+}
+
 // Sent by the engine. Exactly one kind is set.
 message Event {
   oneof kind {
     TimelineChanged timeline_changed = 1;
     CommandFailed command_failed = 2;
+    ProjectSaved project_saved = 3;
   }
 }
 
@@ -79,6 +97,9 @@ message Clip {
   int64 start = 4;
   int64 duration = 5;
 }
+
+// SaveProject finished.
+message ProjectSaved {}
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
 // never shown to users; add a code enum when the UI needs to explain failures.
