@@ -830,15 +830,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-15",
+   "commit": "02fe36a",
    "branch": "p1-006-command-event",
    "notes": [
     {
      "date": "2026-10-15",
      "text": "plan: proto/framix/v1/engine.proto (Command: AddTrack, InsertClip, Undo, Redo; Event: TimelineChanged, CommandFailed; times in ticks). Rust: app builds proto via prost-build + protox (no protoc in Xcode/Gradle builds); app::engine::Engine::handle(Command)->Event over History. ffi: ENGINE_PROTOCOL_VERSION=1, engine_create(version, out)->code, engine_send copies bytes to an engine thread (mpsc), engine_set_event_callback(fn(ptr,len)) (Dart frees via engine_free_buffer), engine_destroy joins the thread. Dart: protoc_plugin 25.1.0 -> lib/core/engine/proto, FramixEngine (NativeCallable.listener, events stream). First command set is included because the API can't be tested without commands."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "new deps need user sign-off: prost, prost-build, protox (build-time, ~40 crates), Dart protobuf, fixnum, ffi"
     }
    ],
    "source": "plan"
@@ -12016,7 +12020,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "add an assertion that in-flight events at dispose are delivered or freed (P1-006 review)"
+    }
+   ],
    "source": "added"
   }
  ]

@@ -363,7 +363,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-003` Android preview output: SurfaceProducer er Surface theke ANativeWindow baniye sorasori wgpu surface e render; AHardwareBuffer path er sathe tulona \[Native\]\[Rust\]
 - [ ] `P1-004` Low-end Android e GLES fallback: Texture output ar decoder import dui backend e kaj kore kina (GLES 3.0 e compute shader nai) \[Rust\]\[Native\]
 - [ ] `P1-005` Rust ↔ platform layer interop: C ABI + init e callback register (FFI niyom dekho) \[Rust\]\[Native\]
-- [ ] `P1-006` dart:ffi command-event API (engine\_create with protocol version, engine\_send, engine\_set\_event\_callback, engine\_destroy) \[Dart\]\[Rust\]
+- [x] `P1-006` dart:ffi command-event API (engine\_create with protocol version, engine\_send, engine\_set\_event\_callback, engine\_destroy) \[Dart\]\[Rust\]
 - [x] `P1-007` cbindgen → ffigen binding pipeline \[Rust\]\[Dart\]
 - [x] `P1-008` Panic handling (catch\_unwind) ar memory free function \[Rust\]
 
