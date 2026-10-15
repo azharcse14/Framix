@@ -68,16 +68,13 @@ external int engine_set_event_callback(
 /// SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
 /// the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
 /// Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
+/// Size, format and device are read from the texture; anything unusable gives
+/// [`ENGINE_ERR_GPU`].
 ///
 /// # Safety
-/// `mtl_texture` must be null or a live BGRA8Unorm render-target `id<MTLTexture>` of size
-/// `width` x `height` on the system default Metal device.
-@ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Void>, ffi.Uint32, ffi.Uint32)>()
-external int engine_spike_render_metal(
-  ffi.Pointer<ffi.Void> mtl_texture,
-  int width,
-  int height,
-);
+/// `mtl_texture` must be null or a live `id<MTLTexture>`.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Void>)>()
+external int engine_spike_render_metal(ffi.Pointer<ffi.Void> mtl_texture);
 
 const int ENGINE_ERR_GPU = -5;
 

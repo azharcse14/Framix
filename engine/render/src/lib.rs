@@ -15,9 +15,13 @@ pub enum RenderError {
     /// The adapter refused a device.
     #[error("no GPU device: {0}")]
     NoDevice(#[from] wgpu::RequestDeviceError),
-    /// The external texture handle was null or the size was zero.
+    /// The external texture was null, empty, not BGRA8Unorm, not a render target, or from
+    /// another GPU than the one wgpu opened.
     #[error("invalid external texture")]
     InvalidTexture,
+    /// Waiting for the GPU failed (timeout or device lost).
+    #[error("GPU wait failed: {0}")]
+    Wait(#[from] wgpu::PollError),
 }
 
 /// A GPU device plus the test-pattern pipeline. One per engine.
@@ -84,7 +88,7 @@ impl Gpu {
 
     /// Draws the test pattern into `target` and waits until the GPU is done, so the platform
     /// layer can tell Flutter a new frame is ready right after this returns.
-    pub fn draw_test_pattern(&self, target: &wgpu::Texture) {
+    pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
         let view = target.create_view(&Default::default());
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
@@ -106,40 +110,58 @@ impl Gpu {
         }
         self.queue.submit([encoder.finish()]);
         // SPIKE: blocking wait; the real render thread will signal via a fence instead.
-        let _ = self.device.poll(wgpu::PollType::wait_indefinitely());
+        self.device.poll(wgpu::PollType::wait_indefinitely())?;
+        Ok(())
     }
 
     /// Wraps a Metal texture owned by the platform layer as a render target, without copying.
+    /// Size, format, usage and device are read from the texture and checked.
     ///
     /// # Safety
-    /// `mtl_texture` must be a live `id<MTLTexture>` created on the system default device, with
-    /// format BGRA8Unorm, size `width` x `height`, usage including render target. It is retained
-    /// here, so the caller may release its own reference.
+    /// `mtl_texture` must be null or a live `id<MTLTexture>`. It is retained here, so the caller
+    /// may release its own reference.
     #[cfg(target_vendor = "apple")]
     pub unsafe fn wrap_metal_texture(
         &self,
         mtl_texture: *mut std::ffi::c_void,
-        width: u32,
-        height: u32,
     ) -> Result<wgpu::Texture, RenderError> {
         use objc2::rc::Retained;
         use objc2::runtime::ProtocolObject;
-        use objc2_metal::{MTLTexture, MTLTextureType};
+        use objc2_metal::{
+            MTLPixelFormat, MTLResource, MTLTexture, MTLTextureType, MTLTextureUsage,
+        };
         use wgpu::hal::{CopyExtent, api::Metal, metal::Device};
 
-        if width == 0 || height == 0 {
-            return Err(RenderError::InvalidTexture);
-        }
-        // SAFETY: the caller guarantees a live id<MTLTexture>; retain() adds our own reference
-        // and returns None for null.
+        // SAFETY: the caller guarantees null or a live id<MTLTexture>; retain() adds our own
+        // reference and returns None for null.
         let raw = unsafe { Retained::retain(mtl_texture.cast::<ProtocolObject<dyn MTLTexture>>()) }
             .ok_or(RenderError::InvalidTexture)?;
+        let (width, height) = (
+            u32::try_from(raw.width()).map_err(|_| RenderError::InvalidTexture)?,
+            u32::try_from(raw.height()).map_err(|_| RenderError::InvalidTexture)?,
+        );
+        // SAFETY: as_hal only borrows wgpu's Metal device to read its raw handle.
+        let same_device = unsafe { self.device.as_hal::<Metal>() }.is_some_and(|hal| {
+            std::ptr::eq(
+                Retained::as_ptr(&raw.device()),
+                Retained::as_ptr(hal.raw_device()),
+            )
+        });
+        if width == 0
+            || height == 0
+            || raw.pixelFormat() != MTLPixelFormat::BGRA8Unorm
+            || !raw.usage().contains(MTLTextureUsage::RenderTarget)
+            || !same_device
+        {
+            return Err(RenderError::InvalidTexture);
+        }
         let size = wgpu::Extent3d {
             width,
             height,
             depth_or_array_layers: 1,
         };
-        // SAFETY: format, type, layers, mips and size describe `raw` as the caller guarantees.
+        // SAFETY: format, size and usage were checked above; the platform layer creates plain 2D
+        // single-mip textures (SpikePreview.swift).
         let hal = unsafe {
             Device::texture_from_raw(
                 raw,
@@ -155,8 +177,8 @@ impl Gpu {
                 None,
             )
         };
-        // SAFETY: `hal` is a texture from the same system default device wgpu opened, and the
-        // descriptor below matches it; UNINITIALIZED makes the first pass clear it.
+        // SAFETY: `hal` is on wgpu's own device (checked above) and the descriptor matches it;
+        // UNINITIALIZED makes the first pass clear it.
         Ok(unsafe {
             self.device.create_texture_from_hal::<Metal>(
                 hal,

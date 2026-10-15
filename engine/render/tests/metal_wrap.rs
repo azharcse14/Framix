@@ -14,16 +14,23 @@ const W: u32 = 64;
 const H: u32 = 32;
 
 fn external_texture() -> Retained<ProtocolObject<dyn MTLTexture>> {
+    texture_with(
+        MTLPixelFormat::BGRA8Unorm,
+        MTLTextureUsage::RenderTarget | MTLTextureUsage::ShaderRead,
+    )
+}
+
+fn texture_with(
+    format: MTLPixelFormat,
+    usage: MTLTextureUsage,
+) -> Retained<ProtocolObject<dyn MTLTexture>> {
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     // SAFETY: plain descriptor setup on a fresh object.
     unsafe {
         let desc = MTLTextureDescriptor::texture2DDescriptorWithPixelFormat_width_height_mipmapped(
-            MTLPixelFormat::BGRA8Unorm,
-            W as usize,
-            H as usize,
-            false,
+            format, W as usize, H as usize, false,
         );
-        desc.setUsage(MTLTextureUsage::RenderTarget | MTLTextureUsage::ShaderRead);
+        desc.setUsage(usage);
         desc.setStorageMode(MTLStorageMode::Shared);
         device.newTextureWithDescriptor(&desc).expect("texture")
     }
@@ -61,9 +68,9 @@ fn renders_into_a_platform_owned_metal_texture() {
     let gpu = Gpu::new().expect("gpu");
     let external = external_texture();
     let ptr = Retained::as_ptr(&external).cast_mut().cast();
-    // SAFETY: `external` is a live BGRA8 render-target texture on the system default device.
-    let target = unsafe { gpu.wrap_metal_texture(ptr, W, H) }.expect("wrap");
-    gpu.draw_test_pattern(&target);
+    // SAFETY: `external` is a live id<MTLTexture>.
+    let target = unsafe { gpu.wrap_metal_texture(ptr) }.expect("wrap");
+    gpu.draw_test_pattern(&target).expect("draw");
 
     // Red ramps left to right, green top to bottom; blue is 0.5 everywhere.
     let [b, g, r, a] = pixel(&external, 0, 0);
@@ -79,13 +86,18 @@ fn renders_into_a_platform_owned_metal_texture() {
 }
 
 #[test]
-fn rejects_null_and_empty_textures() {
+fn rejects_null_wrong_format_and_non_render_target() {
     let gpu = Gpu::new().expect("gpu");
-    // SAFETY: null and zero sizes are rejected before the pointer is used.
+    let wrong_format = texture_with(MTLPixelFormat::RGBA8Unorm, MTLTextureUsage::RenderTarget);
+    let read_only = texture_with(MTLPixelFormat::BGRA8Unorm, MTLTextureUsage::ShaderRead);
+    // SAFETY: null is rejected before use; the others are live id<MTLTexture>s.
     unsafe {
-        assert!(gpu.wrap_metal_texture(std::ptr::null_mut(), W, H).is_err());
-        let external = external_texture();
-        let ptr = Retained::as_ptr(&external).cast_mut().cast();
-        assert!(gpu.wrap_metal_texture(ptr, 0, H).is_err());
+        assert!(gpu.wrap_metal_texture(std::ptr::null_mut()).is_err());
+        for t in [&wrong_format, &read_only] {
+            assert!(
+                gpu.wrap_metal_texture(Retained::as_ptr(t).cast_mut().cast())
+                    .is_err()
+            );
+        }
     }
 }

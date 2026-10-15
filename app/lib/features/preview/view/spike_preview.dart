@@ -39,11 +39,7 @@ class _SpikePreviewState extends State<SpikePreview> {
       final textureId = created!['textureId']! as int;
       final metalTexture = created['metalTexture']! as int;
       // The handle is an opaque id<MTLTexture>; the frame itself never reaches Dart.
-      final code = engine_spike_render_metal(
-        Pointer.fromAddress(metalTexture),
-        _width,
-        _height,
-      );
+      final code = engine_spike_render_metal(Pointer.fromAddress(metalTexture));
       if (code != ENGINE_OK) {
         debugPrint('spike preview: render failed ($code)');
         return;

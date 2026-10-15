@@ -12,26 +12,23 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 /// SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
 /// the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
 /// Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
+/// Size, format and device are read from the texture; anything unusable gives
+/// [`ENGINE_ERR_GPU`].
 ///
 /// # Safety
-/// `mtl_texture` must be null or a live BGRA8Unorm render-target `id<MTLTexture>` of size
-/// `width` x `height` on the system default Metal device.
+/// `mtl_texture` must be null or a live `id<MTLTexture>`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn engine_spike_render_metal(
-    mtl_texture: *mut c_void,
-    width: u32,
-    height: u32,
-) -> i32 {
+pub unsafe extern "C" fn engine_spike_render_metal(mtl_texture: *mut c_void) -> i32 {
     ffi_guard(|| {
         if mtl_texture.is_null() {
             return ENGINE_ERR_NULL;
         }
-        render(mtl_texture, width, height)
+        render(mtl_texture)
     })
 }
 
 #[cfg(target_vendor = "apple")]
-fn render(mtl_texture: *mut c_void, width: u32, height: u32) -> i32 {
+fn render(mtl_texture: *mut c_void) -> i32 {
     use std::sync::OnceLock;
     static GPU: OnceLock<Option<framix_render::Gpu>> = OnceLock::new();
     let Some(gpu) = GPU.get_or_init(|| {
@@ -42,11 +39,10 @@ fn render(mtl_texture: *mut c_void, width: u32, height: u32) -> i32 {
         return ENGINE_ERR_GPU;
     };
     // SAFETY: forwarded from engine_spike_render_metal's contract.
-    match unsafe { gpu.wrap_metal_texture(mtl_texture, width, height) } {
-        Ok(target) => {
-            gpu.draw_test_pattern(&target);
-            crate::ENGINE_OK
-        }
+    let drawn = unsafe { gpu.wrap_metal_texture(mtl_texture) }
+        .and_then(|target| gpu.draw_test_pattern(&target));
+    match drawn {
+        Ok(()) => crate::ENGINE_OK,
         Err(e) => {
             eprintln!("framix spike: {e}");
             ENGINE_ERR_GPU
@@ -55,6 +51,6 @@ fn render(mtl_texture: *mut c_void, width: u32, height: u32) -> i32 {
 }
 
 #[cfg(not(target_vendor = "apple"))]
-fn render(_: *mut c_void, _: u32, _: u32) -> i32 {
+fn render(_: *mut c_void) -> i32 {
     ENGINE_ERR_GPU
 }

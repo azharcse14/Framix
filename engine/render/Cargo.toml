@@ -11,7 +11,7 @@ thiserror = "2.0.21"
 pollster = "=0.4.0"
 
 [target.'cfg(target_vendor = "apple")'.dependencies]
-objc2 = "0.6"
+objc2 = "=0.6.4"
 objc2-metal = { version = "=0.3.2", default-features = false, features = ["std", "MTLResource", "MTLTexture", "MTLPixelFormat", "MTLTypes"] }
 
 [target.'cfg(target_vendor = "apple")'.dev-dependencies]

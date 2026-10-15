@@ -124,11 +124,12 @@ int32_t engine_free_buffer(struct EngineBuffer buf);
  * SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
  * the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
  * Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
+ * Size, format and device are read from the texture; anything unusable gives
+ * [`ENGINE_ERR_GPU`].
  *
  * # Safety
- * `mtl_texture` must be null or a live BGRA8Unorm render-target `id<MTLTexture>` of size
- * `width` x `height` on the system default Metal device.
+ * `mtl_texture` must be null or a live `id<MTLTexture>`.
  */
-int32_t engine_spike_render_metal(void *mtl_texture, uint32_t width, uint32_t height);
+int32_t engine_spike_render_metal(void *mtl_texture);
 
 #endif  /* FRAMIX_ENGINE_H */
