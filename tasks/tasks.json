@@ -850,12 +850,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-007-bindings",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "plan: cbindgen (engine/ffi/cbindgen.toml) -> engine/ffi/include/framix_engine.h; ffigen 22.0.0 (app/ffigen.yaml, @Native with asset-id package:framix/engine) -> app/lib/core/engine/engine_bindings.g.dart; scripts/gen_ffi.sh runs both; check.sh runs cbindgen --verify so a stale header fails. Protobuf codegen arrives with P1-006."
+    }
+   ],
    "source": "plan"
   },
   {
