@@ -49,7 +49,8 @@ class FramixColors extends ThemeExtension<FramixColors> {
   FramixColors copyWith() => this;
 
   @override
-  FramixColors lerp(FramixColors? other, double t) => t < 0.5 ? this : other ?? this;
+  FramixColors lerp(FramixColors? other, double t) =>
+      t < 0.5 ? this : other ?? this;
 }
 
 /// Spacing tokens.
