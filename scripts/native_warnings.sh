@@ -2,6 +2,8 @@
 # Warning zero for the platform builds (TC-006): builds iOS (simulator) and Android debug and
 # fails on any Xcode or Gradle warning not listed below. Slow (minutes), so check.sh skips it;
 # run it after touching app/ios, app/android, native/, or a toolchain version.
+# A warning mode set in ~/.gradle/gradle.properties or GRADLE_OPTS overrides the project's:
+# "summary" still fails here (its summary line is not allowed), "none" would hide Gradle's own.
 set -euo pipefail
 cd "$(dirname "$0")/../app"
 if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flutter); fi
