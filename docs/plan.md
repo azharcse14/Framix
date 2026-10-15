@@ -381,7 +381,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Timeline basics**
 
-- [ ] `P1-018` Trim, split, merge, delete, duplicate \[Rust\]\[Dart\]
+- [x] `P1-018` Trim, split, merge, delete, duplicate \[Rust\]\[Dart\]
 - [ ] `P1-019` Drag kore reorder \[Dart\]
 - [ ] `P1-020` Timeline zoom in/out, scrubbing preview \[Dart\]\[Rust\]
 - [ ] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
@@ -417,6 +417,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-042` engine_free_buffer ke unsafe extern "C" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai \[Rust\]
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]
 - [ ] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
+- [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
 
 ## Phase 2: Audio
 
