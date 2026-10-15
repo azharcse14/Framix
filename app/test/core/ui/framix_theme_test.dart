@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 void main() {
   // Accent is for the one primary action and fails 4.5:1 as text on dark
-  // surfaces (docs/design-system.md); secondary outlined buttons use text/border.
+  // surfaces (docs/design-system.md); secondary outlined buttons use text/outline.
   testWidgets('outlined buttons use text color and the outline token', (
     tester,
   ) async {

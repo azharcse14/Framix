@@ -86,8 +86,19 @@ ThemeData framixDarkTheme() {
     ),
     scaffoldBackgroundColor: c.background,
     // Accent belongs to the one primary action; secondary actions stay neutral.
+    // M3 chips edge unselected chips with outlineVariant (the divider border); a chip is a
+    // control, so use the 3:1 outline. Selected stays transparent, disabled keeps M3's side.
+    chipTheme: ChipThemeData(
+      side: WidgetStateBorderSide.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return null;
+        if (states.contains(WidgetState.selected)) {
+          return const BorderSide(color: Colors.transparent);
+        }
+        return BorderSide(color: c.outline);
+      }),
+    ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      // Outline comes from ColorScheme.outline (border), keeping the M3 disabled side.
+      // Outline comes from ColorScheme.outline (outline token), keeping the M3 disabled side.
       style: OutlinedButton.styleFrom(foregroundColor: c.text),
     ),
     extensions: const [c],

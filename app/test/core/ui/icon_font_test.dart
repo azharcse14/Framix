@@ -8,8 +8,10 @@ void main() {
   test('pubspec bundles the MaterialIcons font', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     expect(
-      RegExp(r'^\s+uses-material-design:\s*true\s*$', multiLine: true)
-          .hasMatch(pubspec),
+      RegExp(
+        r'^\s+uses-material-design:\s*true\s*$',
+        multiLine: true,
+      ).hasMatch(pubspec),
       isTrue,
     );
   });

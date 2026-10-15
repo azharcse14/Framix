@@ -14,7 +14,11 @@ void main() {
 
   test('control outlines reach 3:1 on every surface (design-system.md)', () {
     for (final bg in [c.background, c.surface, c.elevated]) {
-      expect(_contrast(c.outline, bg), greaterThanOrEqualTo(3.0), reason: '$bg');
+      expect(
+        _contrast(c.outline, bg),
+        greaterThanOrEqualTo(3.0),
+        reason: '$bg',
+      );
     }
   });
 
