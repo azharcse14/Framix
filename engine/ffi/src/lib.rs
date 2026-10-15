@@ -30,13 +30,17 @@ impl EngineBuffer {
 }
 
 /// Frees a buffer from [`EngineBuffer::from_vec`]. A null buffer is a no-op.
+///
+/// # Safety
+/// A non-null `buf` must come from [`EngineBuffer::from_vec`] with `ptr` and `len` unchanged,
+/// and must not be freed more than once.
 #[unsafe(no_mangle)]
-pub extern "C" fn engine_free_buffer(buf: EngineBuffer) -> i32 {
+pub unsafe extern "C" fn engine_free_buffer(buf: EngineBuffer) -> i32 {
     ffi_guard(|| {
         if !buf.ptr.is_null() {
             let slice = std::ptr::slice_from_raw_parts_mut(buf.ptr, buf.len);
-            // SAFETY: a non-null buffer comes only from `from_vec`, which leaked a Box<[u8]> of
-            // exactly `len` bytes; the caller frees each buffer once, so ownership returns here.
+            // SAFETY: the caller upholds this fn's contract: `buf` is an unchanged, not yet freed
+            // Box<[u8]> of exactly `len` bytes leaked by `from_vec`, so ownership returns here.
             drop(unsafe { Box::from_raw(slice) });
         }
         ENGINE_OK
