@@ -33,7 +33,7 @@ impl EngineBuffer {
 ///
 /// # Safety
 /// A non-null `buf` must come from [`EngineBuffer::from_vec`] with `ptr` and `len` unchanged,
-/// and must not be freed more than once.
+/// must not be freed more than once, and `ptr` must not be read after this call.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_free_buffer(buf: EngineBuffer) -> i32 {
     ffi_guard(|| {
