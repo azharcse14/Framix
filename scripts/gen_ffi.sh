@@ -14,4 +14,6 @@ if command -v fvm >/dev/null 2>&1; then DART=(fvm dart); else DART=(dart); fi
 
 cbindgen --quiet --config engine/ffi/cbindgen.toml --crate framix_ffi \
   --output engine/ffi/include/framix_engine.h engine/ffi
-(cd app && "${DART[@]}" run ffigen --config ffigen.yaml >/dev/null)
+# A declaration ffigen can't bind is only reported as a warning and silently left out.
+out=$(cd app && "${DART[@]}" run ffigen --config ffigen.yaml 2>&1)
+if grep -E '\[(WARNING|SEVERE)\]' <<<"$out" >&2; then exit 1; fi
