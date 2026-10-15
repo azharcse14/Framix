@@ -30,14 +30,19 @@ impl History {
         &self.current
     }
 
-    /// Runs `edit` as one undoable step. On `Err` the timeline and history are unchanged,
-    /// even if `edit` mutated before failing.
+    /// Runs `edit` as one undoable step; an edit that changes nothing adds no step and keeps
+    /// redo. On `Err` the timeline and history are unchanged, even if `edit` mutated before
+    /// failing.
     pub fn apply<T, E>(
         &mut self,
         edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
     ) -> Result<T, E> {
         let mut next = self.current.clone();
         let value = edit(&mut next)?;
+        // An edit that changed nothing (same trim, same ratio) is not a step: keep redo.
+        if next == self.current {
+            return Ok(value);
+        }
         self.undo.push(std::mem::replace(&mut self.current, next));
         self.redo.clear();
         Ok(value)
