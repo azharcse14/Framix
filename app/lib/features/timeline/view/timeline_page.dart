@@ -98,6 +98,7 @@ class _TrackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isAudio = track.kind == TrackKind.TRACK_KIND_AUDIO;
+    final cubit = context.read<TimelineCubit>();
     return ListTile(
       leading: Icon(isAudio ? Icons.audiotrack : Icons.videocam),
       title: Text(
@@ -106,6 +107,34 @@ class _TrackTile extends StatelessWidget {
             : l10n.videoTrackName(track.number),
       ),
       subtitle: Text(l10n.clipCount(track.clips.length)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: l10n.muteTrack,
+            isSelected: track.muted,
+            icon: const Icon(Icons.volume_up),
+            selectedIcon: const Icon(Icons.volume_off),
+            onPressed: () => cubit.setTrackFlags(track, muted: !track.muted),
+          ),
+          if (!isAudio)
+            IconButton(
+              tooltip: l10n.hideTrack,
+              isSelected: track.hidden,
+              icon: const Icon(Icons.visibility),
+              selectedIcon: const Icon(Icons.visibility_off),
+              onPressed: () =>
+                  cubit.setTrackFlags(track, hidden: !track.hidden),
+            ),
+          IconButton(
+            tooltip: l10n.lockTrack,
+            isSelected: track.locked,
+            icon: const Icon(Icons.lock_open),
+            selectedIcon: const Icon(Icons.lock),
+            onPressed: () => cubit.setTrackFlags(track, locked: !track.locked),
+          ),
+        ],
+      ),
     );
   }
 }

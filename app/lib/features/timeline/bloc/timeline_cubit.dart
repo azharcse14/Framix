@@ -32,6 +32,19 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Sends the track's full switch set; the engine validates it (e.g. audio can't hide).
+  void setTrackFlags(Track track, {bool? muted, bool? hidden, bool? locked}) =>
+      _engine.send(
+        Command(
+          setTrackFlags: SetTrackFlags(
+            trackId: track.id,
+            muted: muted ?? track.muted,
+            hidden: hidden ?? track.hidden,
+            locked: locked ?? track.locked,
+          ),
+        ),
+      );
+
   void undo() => _engine.send(Command(undo: Undo()));
 
   void redo() => _engine.send(Command(redo: Redo()));
