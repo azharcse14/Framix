@@ -979,12 +979,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-014-timeline-model",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "plan: core::timeline. Timeline{tracks} -> Track{id,kind Video|Audio, clips sorted by start, half-open, non-overlapping} -> Clip{id, media, source_start, start, duration>0}. Ids allocated by Timeline (undo/selection need stable ids). clip_at = binary search. Keyframes: not built (P5-001); clip-relative Time keeps them valid when a clip moves. Errors via thiserror 2.0.21 (22 days old). Project format/proto stays in P1-009."
+    }
+   ],
    "source": "plan"
   },
   {
