@@ -757,6 +757,10 @@
     {
      "date": "2026-10-15",
      "text": "iOS part works on the simulator (branch p1-001-ios-texture-spike, SPIKE, off main): IOSurface CVPixelBuffer as FlutterTexture + MTLTexture on the same IOSurface, wgpu draws via wgpu-hal, no CPU copy. Pending: real iPhone, Android HardwareBuffer path, an IOSurface-backed host test. Known spike limits: single frame (continuous preview needs double buffering or MTLSharedEvent sync), textures never unregistered."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "blocked: Android half (HardwareBuffer/SurfaceProducer) needs an Android emulator or device and more free disk (~2.8 GB free). iOS half works on the simulator on branch p1-001-ios-texture-spike (SPIKE, off main)."
     }
    ],
    "source": "plan"
