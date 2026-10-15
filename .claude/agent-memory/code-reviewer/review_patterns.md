@@ -45,3 +45,8 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
 
 - Generated-artifact leaks from "prove the check works" experiments (P1-007): implementer edited a Rust doc comment, ran `cbindgen --verify`, reverted the source but committed the header containing the edit. `cbindgen --verify` (0.29.4) WRITES the new header even when it fails, so a second check.sh run goes green while the tree is dirty.
   **How to apply:** for any committed generated file, always run check.sh and `git status` afterwards; restore with `git checkout -- <file>` if the check mutated it. Freshness checks should regenerate + `git diff --exit-code`, covering every generated layer (header AND Dart bindings), not just the first.
+
+- Dart wrappers around native handles (P1-006 FramixEngine): no `_disposed` guard, so send-after-dispose or double dispose passes a freed pointer to Rust (UAF from safe Dart). Check every Dart class holding a Pointer for a closed-state guard.
+  Same review: a "dispose closes the stream" Dart test passed on a `Stream.empty()` stub (stub-first pattern again; check Dart stubs too, not just Rust).
+
+- New codegen tool added without pinning (P1-006: protoc unchecked in gen_ffi.sh, protoc_plugin/protox/buf missing from docs/toolchain.md "FFI codegen" row). For any new generator, require the version in toolchain.md and a version check in the script, like cbindgen.
