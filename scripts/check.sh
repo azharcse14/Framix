@@ -35,13 +35,6 @@ if [ -f engine/Cargo.toml ] && touched engine/; then
   run cargo fmt --manifest-path engine/Cargo.toml --all -- --check
   run cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets -- -D warnings
   run cargo test --manifest-path engine/Cargo.toml --workspace
-  # FFI header must match the Rust source (regenerate with scripts/gen_ffi.sh).
-  if command -v cbindgen >/dev/null 2>&1; then
-    run cbindgen --verify --quiet --config engine/ffi/cbindgen.toml --crate framix_ffi \
-      --output engine/ffi/include/framix_engine.h engine/ffi
-  else
-    echo "✗ cbindgen missing: cargo install cbindgen --version 0.29.4 --locked" >&2; fail=1
-  fi
 fi
 
 # Flutter app
@@ -49,6 +42,12 @@ if [ -f app/pubspec.yaml ] && touched app/; then
   if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flutter); fi
   run_in app "${FLUTTER[@]}" analyze
   run_in app "${FLUTTER[@]}" test
+fi
+
+# Generated FFI code must match its sources (header from engine/ffi, Dart from the header).
+if touched engine/ || touched app/; then
+  run scripts/gen_ffi.sh
+  run git diff --exit-code -- engine/ffi/include app/lib/core/engine/engine_bindings.g.dart
 fi
 
 # Protobuf contract

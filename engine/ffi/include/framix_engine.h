@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 /**
- * Call succeeded (changed).
+ * Call succeeded.
  */
 #define ENGINE_OK 0
 
