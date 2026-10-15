@@ -85,6 +85,7 @@ fn track(kind: SavedTrackKind, clips: Vec<SavedClip>) -> SavedTrack {
     SavedTrack {
         kind: kind as i32,
         clips,
+        ..Default::default()
     }
 }
 

@@ -36,6 +36,7 @@ enum Command_Kind {
   mergeClips,
   trimClip,
   duplicateClip,
+  setTrackFlags,
   notSet
 }
 
@@ -56,6 +57,7 @@ class Command extends $pb.GeneratedMessage {
     MergeClips? mergeClips,
     TrimClip? trimClip,
     DuplicateClip? duplicateClip,
+    SetTrackFlags? setTrackFlags,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -72,6 +74,7 @@ class Command extends $pb.GeneratedMessage {
     if (mergeClips != null) result.mergeClips = mergeClips;
     if (trimClip != null) result.trimClip = trimClip;
     if (duplicateClip != null) result.duplicateClip = duplicateClip;
+    if (setTrackFlags != null) result.setTrackFlags = setTrackFlags;
     return result;
   }
 
@@ -99,13 +102,14 @@ class Command extends $pb.GeneratedMessage {
     12: Command_Kind.mergeClips,
     13: Command_Kind.trimClip,
     14: Command_Kind.duplicateClip,
+    15: Command_Kind.setTrackFlags,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -134,6 +138,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: TrimClip.$_createMessage)
     ..aOM<DuplicateClip>(14, _omitFieldNames ? '' : 'duplicateClip',
         subBuilder: DuplicateClip.$_createMessage)
+    ..aOM<SetTrackFlags>(15, _omitFieldNames ? '' : 'setTrackFlags',
+        subBuilder: SetTrackFlags.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -170,6 +176,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -185,6 +192,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -340,6 +348,17 @@ class Command extends $pb.GeneratedMessage {
   void clearDuplicateClip() => $_clearField(14);
   @$pb.TagNumber(14)
   DuplicateClip ensureDuplicateClip() => $_ensure(13);
+
+  @$pb.TagNumber(15)
+  SetTrackFlags get setTrackFlags => $_getN(14);
+  @$pb.TagNumber(15)
+  set setTrackFlags(SetTrackFlags value) => $_setField(15, value);
+  @$pb.TagNumber(15)
+  $core.bool hasSetTrackFlags() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearSetTrackFlags() => $_clearField(15);
+  @$pb.TagNumber(15)
+  SetTrackFlags ensureSetTrackFlags() => $_ensure(14);
 }
 
 /// Appends an empty track.
@@ -1191,6 +1210,102 @@ class DuplicateClip extends $pb.GeneratedMessage {
   void clearClipId() => $_clearField(1);
 }
 
+/// Sets a track's switches (allowed while locked, so it can be unlocked). Only video tracks
+/// can be hidden. A locked track refuses clip edits.
+class SetTrackFlags extends $pb.GeneratedMessage {
+  factory SetTrackFlags({
+    $fixnum.Int64? trackId,
+    $core.bool? muted,
+    $core.bool? hidden,
+    $core.bool? locked,
+  }) {
+    final result = SetTrackFlags._();
+    if (trackId != null) result.trackId = trackId;
+    if (muted != null) result.muted = muted;
+    if (hidden != null) result.hidden = hidden;
+    if (locked != null) result.locked = locked;
+    return result;
+  }
+
+  SetTrackFlags._();
+
+  factory SetTrackFlags.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetTrackFlags()..mergeFromBuffer(data, registry);
+  factory SetTrackFlags.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetTrackFlags()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetTrackFlags',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SetTrackFlags.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'trackId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOB(2, _omitFieldNames ? '' : 'muted')
+    ..aOB(3, _omitFieldNames ? '' : 'hidden')
+    ..aOB(4, _omitFieldNames ? '' : 'locked')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetTrackFlags clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetTrackFlags copyWith(void Function(SetTrackFlags) updates) =>
+      super.copyWith((message) => updates(message as SetTrackFlags))
+          as SetTrackFlags;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SetTrackFlags() / SetTrackFlags.new instead')
+  static SetTrackFlags create() => SetTrackFlags._();
+  static $pb.GeneratedMessage $_createMessage() => SetTrackFlags._();
+  @$core.override
+  SetTrackFlags createEmptyInstance() => SetTrackFlags._();
+  @$core.pragma('dart2js:noInline')
+  static SetTrackFlags getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetTrackFlags>(
+          SetTrackFlags.$_createMessage);
+  static SetTrackFlags? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get trackId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set trackId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTrackId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get muted => $_getBF(1);
+  @$pb.TagNumber(2)
+  set muted($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMuted() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMuted() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get hidden => $_getBF(2);
+  @$pb.TagNumber(3)
+  set hidden($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasHidden() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearHidden() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get locked => $_getBF(3);
+  @$pb.TagNumber(4)
+  set locked($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasLocked() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLocked() => $_clearField(4);
+}
+
 enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }
 
 /// Sent by the engine. Exactly one kind is set.
@@ -1421,12 +1536,18 @@ class Track extends $pb.GeneratedMessage {
     TrackKind? kind,
     $core.Iterable<Clip>? clips,
     $core.int? number,
+    $core.bool? muted,
+    $core.bool? hidden,
+    $core.bool? locked,
   }) {
     final result = Track._();
     if (id != null) result.id = id;
     if (kind != null) result.kind = kind;
     if (clips != null) result.clips.addAll(clips);
     if (number != null) result.number = number;
+    if (muted != null) result.muted = muted;
+    if (hidden != null) result.hidden = hidden;
+    if (locked != null) result.locked = locked;
     return result;
   }
 
@@ -1450,6 +1571,9 @@ class Track extends $pb.GeneratedMessage {
     ..pPM<Clip>(3, _omitFieldNames ? '' : 'clips',
         subBuilder: Clip.$_createMessage)
     ..aI(4, _omitFieldNames ? '' : 'number', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(5, _omitFieldNames ? '' : 'muted')
+    ..aOB(6, _omitFieldNames ? '' : 'hidden')
+    ..aOB(7, _omitFieldNames ? '' : 'locked')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1502,6 +1626,33 @@ class Track extends $pb.GeneratedMessage {
   $core.bool hasNumber() => $_has(3);
   @$pb.TagNumber(4)
   void clearNumber() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get muted => $_getBF(4);
+  @$pb.TagNumber(5)
+  set muted($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasMuted() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearMuted() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get hidden => $_getBF(5);
+  @$pb.TagNumber(6)
+  set hidden($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasHidden() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearHidden() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.bool get locked => $_getBF(6);
+  @$pb.TagNumber(7)
+  set locked($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasLocked() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearLocked() => $_clearField(7);
 }
 
 /// A clip on a track.

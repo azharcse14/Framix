@@ -72,6 +72,9 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
                     duration: c.duration.0,
                 })
                 .collect(),
+            muted: false,
+            hidden: false,
+            locked: false,
         })
         .collect();
     ProjectFile {

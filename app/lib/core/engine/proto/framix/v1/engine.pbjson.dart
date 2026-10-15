@@ -160,6 +160,15 @@ const Command$json = {
       '9': 0,
       '10': 'duplicateClip'
     },
+    {
+      '1': 'set_track_flags',
+      '3': 15,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SetTrackFlags',
+      '9': 0,
+      '10': 'setTrackFlags'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -182,7 +191,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'BSCXNwbGl0Q2xpcBI4CgttZXJnZV9jbGlwcxgMIAEoCzIVLmZyYW1peC52MS5NZXJnZUNsaXBz'
     'SABSCm1lcmdlQ2xpcHMSMgoJdHJpbV9jbGlwGA0gASgLMhMuZnJhbWl4LnYxLlRyaW1DbGlwSA'
     'BSCHRyaW1DbGlwEkEKDmR1cGxpY2F0ZV9jbGlwGA4gASgLMhguZnJhbWl4LnYxLkR1cGxpY2F0'
-    'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcEIGCgRraW5k');
+    'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcBJCCg9zZXRfdHJhY2tfZmxhZ3MYDyABKAsyGC5mcmFtaX'
+    'gudjEuU2V0VHJhY2tGbGFnc0gAUg1zZXRUcmFja0ZsYWdzQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -359,6 +369,23 @@ const DuplicateClip$json = {
 final $typed_data.Uint8List duplicateClipDescriptor = $convert
     .base64Decode('Cg1EdXBsaWNhdGVDbGlwEhcKB2NsaXBfaWQYASABKARSBmNsaXBJZA==');
 
+@$core.Deprecated('Use setTrackFlagsDescriptor instead')
+const SetTrackFlags$json = {
+  '1': 'SetTrackFlags',
+  '2': [
+    {'1': 'track_id', '3': 1, '4': 1, '5': 4, '10': 'trackId'},
+    {'1': 'muted', '3': 2, '4': 1, '5': 8, '10': 'muted'},
+    {'1': 'hidden', '3': 3, '4': 1, '5': 8, '10': 'hidden'},
+    {'1': 'locked', '3': 4, '4': 1, '5': 8, '10': 'locked'},
+  ],
+};
+
+/// Descriptor for `SetTrackFlags`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setTrackFlagsDescriptor = $convert.base64Decode(
+    'Cg1TZXRUcmFja0ZsYWdzEhkKCHRyYWNrX2lkGAEgASgEUgd0cmFja0lkEhQKBW11dGVkGAIgAS'
+    'gIUgVtdXRlZBIWCgZoaWRkZW4YAyABKAhSBmhpZGRlbhIWCgZsb2NrZWQYBCABKAhSBmxvY2tl'
+    'ZA==');
+
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {
   '1': 'Event',
@@ -452,6 +479,9 @@ const Track$json = {
       '10': 'clips'
     },
     {'1': 'number', '3': 4, '4': 1, '5': 13, '10': 'number'},
+    {'1': 'muted', '3': 5, '4': 1, '5': 8, '10': 'muted'},
+    {'1': 'hidden', '3': 6, '4': 1, '5': 8, '10': 'hidden'},
+    {'1': 'locked', '3': 7, '4': 1, '5': 8, '10': 'locked'},
   ],
 };
 
@@ -459,7 +489,8 @@ const Track$json = {
 final $typed_data.Uint8List trackDescriptor = $convert.base64Decode(
     'CgVUcmFjaxIOCgJpZBgBIAEoBFICaWQSKAoEa2luZBgCIAEoDjIULmZyYW1peC52MS5UcmFja0'
     'tpbmRSBGtpbmQSJQoFY2xpcHMYAyADKAsyDy5mcmFtaXgudjEuQ2xpcFIFY2xpcHMSFgoGbnVt'
-    'YmVyGAQgASgNUgZudW1iZXI=');
+    'YmVyGAQgASgNUgZudW1iZXISFAoFbXV0ZWQYBSABKAhSBW11dGVkEhYKBmhpZGRlbhgGIAEoCF'
+    'IGaGlkZGVuEhYKBmxvY2tlZBgHIAEoCFIGbG9ja2Vk');
 
 @$core.Deprecated('Use clipDescriptor instead')
 const Clip$json = {

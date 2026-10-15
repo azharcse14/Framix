@@ -65,12 +65,24 @@ impl Clip {
     }
 }
 
+/// Per-track switches. All off by default.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct TrackFlags {
+    /// Silent in preview and export.
+    pub muted: bool,
+    /// Not drawn in preview and export (visual tracks only).
+    pub hidden: bool,
+    /// Clips on the track cannot be edited.
+    pub locked: bool,
+}
+
 /// One track: clips sorted by start, never overlapping.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Track {
     id: TrackId,
     kind: TrackKind,
     clips: Vec<Clip>,
+    flags: TrackFlags,
 }
 
 impl Track {
@@ -82,6 +94,11 @@ impl Track {
     /// What the track carries.
     pub fn kind(&self) -> TrackKind {
         self.kind
+    }
+
+    /// Mute, hide and lock switches.
+    pub fn flags(&self) -> TrackFlags {
+        self.flags
     }
 
     /// Clips sorted by start time.
@@ -124,6 +141,12 @@ pub enum TimelineError {
     /// Merge needs two neighbouring clips on one track, same media, continuous source.
     #[error("clips cannot be merged")]
     NotMergeable,
+    /// The track is locked; its clips cannot be edited.
+    #[error("track {0:?} is locked")]
+    TrackLocked(TrackId),
+    /// Only visual tracks can be hidden.
+    #[error("track {0:?} cannot be hidden")]
+    NotVisual(TrackId),
 }
 
 /// The editable timeline of a video project.
@@ -175,6 +198,7 @@ impl Timeline {
             id,
             kind,
             clips: Vec::new(),
+            flags: TrackFlags::default(),
         });
         id
     }
@@ -219,6 +243,16 @@ impl Timeline {
         };
         self.tracks[index].clips.insert(at, clip);
         Ok(id)
+    }
+
+    /// Sets a track's mute, hide and lock switches (allowed on a locked track, so it can be
+    /// unlocked).
+    pub fn set_track_flags(
+        &mut self,
+        _track: TrackId,
+        _flags: TrackFlags,
+    ) -> Result<(), TimelineError> {
+        Ok(())
     }
 
     /// Removes a clip.

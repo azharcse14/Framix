@@ -20,6 +20,7 @@ fn video(clips: Vec<SavedClip>) -> SavedTrack {
     SavedTrack {
         kind: SavedTrackKind::Video as i32,
         clips,
+        ..Default::default()
     }
 }
 

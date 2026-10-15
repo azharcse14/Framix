@@ -30,6 +30,9 @@ enum SavedTrackKind {
 message SavedTrack {
   SavedTrackKind kind = 1;
   repeated SavedClip clips = 2;
+  bool muted = 3;
+  bool hidden = 4;
+  bool locked = 5;
 }
 
 // A clip placement.

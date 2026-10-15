@@ -88,6 +88,7 @@ impl Engine {
             command::Kind::DuplicateClip(op) => {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
             }
+            command::Kind::SetTrackFlags(_) => Err("not implemented".to_owned()),
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
@@ -160,6 +161,9 @@ impl Engine {
                         })
                         .collect(),
                     number: *count,
+                    muted: false,
+                    hidden: false,
+                    locked: false,
                 }
             })
             .collect();
