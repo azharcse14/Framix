@@ -984,10 +984,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-15",
+   "commit": "bf539d8",
    "branch": "p1-014-timeline-model",
    "notes": [
     {
@@ -9680,7 +9680,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "P1-014 downgraded libc 0.2.190->0.2.189, zerocopy 0.8.63->0.8.59, unicode-ident 1.0.27->1.0.26, syn 3.0.9->3.0.6 (were under 14 days old); automate this age check here"
+    }
+   ],
    "source": "plan"
   },
   {
