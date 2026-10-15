@@ -86,12 +86,18 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
                 "width" to int(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),
                 "height" to int(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),
                 "rotation" to int(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION),
-                "codec" to (videoMime(uri) ?: ""),
+                "codec" to codecTag(uri),
             )
         }
-    }.getOrNull()
+    }.getOrNull()?.takeIf { readable(it) }
 
-    /** The video track's MIME type (e.g. video/hevc), used as the codec tag. */
+    /**
+     * Codec tag: the video track's MIME subtype without `video/` (hevc, avc, x-vnd.on2.vp9),
+     * or empty when longer than the engine's 16-character limit. Informational only.
+     */
+    private fun codecTag(uri: Uri): String =
+        videoMime(uri)?.removePrefix("video/")?.takeIf { it.length <= 16 } ?: ""
+
     private fun videoMime(uri: Uri): String? {
         val extractor = MediaExtractor()
         return try {
@@ -125,7 +131,17 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
             "rotation" to rotationOf(orientation),
             "codec" to "",
         )
-    }.getOrNull()
+    }.getOrNull()?.takeIf { readable(it) }
+
+    /** Drops items the platform could not measure, so one bad file doesn't sink the pick. */
+    private fun readable(item: Map<String, Any>): Boolean {
+        val sides = listOf(item["width"], item["height"]).all { (it as? Int ?: 0) > 0 }
+        val video = item["kind"] == "video"
+        return sides && (!video || (item["durationValue"] as? Long ?: 0L) > 0L)
+    }
+
+    /** Stops the worker thread; call when the activity is destroyed. */
+    fun close() = io.shutdown()
 
     private fun rotationOf(orientation: Int) = when (orientation) {
         ExifInterface.ORIENTATION_ROTATE_90, ExifInterface.ORIENTATION_TRANSPOSE -> 90

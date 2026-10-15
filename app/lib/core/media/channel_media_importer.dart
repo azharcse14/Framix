@@ -24,7 +24,7 @@ class ChannelMediaImporter implements MediaImporter {
       final picked =
           await _channel.invokeListMethod<Map<Object?, Object?>>(method) ??
           const [];
-      return [for (final m in picked) _item(m)];
+      return [for (final m in picked) ?_item(m)];
     } on PlatformException catch (e) {
       // The code only (busy, ...); never the file names.
       debugPrint('media pick failed: ${e.code}');
@@ -32,7 +32,18 @@ class ChannelMediaImporter implements MediaImporter {
     }
   }
 
-  static MediaItem _item(Map<Object?, Object?> m) => MediaItem(
+  /// The item, or null (logged, never with its uri) when a value can't be a proto field
+  /// (e.g. a -1 size from an unreadable file); the engine checks everything else.
+  static MediaItem? _item(Map<Object?, Object?> m) {
+    try {
+      return _fields(m);
+    } on ArgumentError {
+      debugPrint('media pick: skipped an item with an invalid value');
+      return null;
+    }
+  }
+
+  static MediaItem _fields(Map<Object?, Object?> m) => MediaItem(
     uri: m['uri'] as String? ?? '',
     kind: switch (m['kind']) {
       'video' => MediaKind.MEDIA_KIND_VIDEO,

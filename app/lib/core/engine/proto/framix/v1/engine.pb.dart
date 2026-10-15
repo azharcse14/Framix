@@ -1618,7 +1618,8 @@ class MediaItem extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearRotation() => $_clearField(7);
 
-  /// Short codec tag (e.g. "avc1", "hvc1"), at most 16 ASCII characters.
+  /// Informational codec tag, at most 16 ASCII characters: the fourCC on iOS ("avc1", "hvc1"),
+  /// the MIME subtype on Android ("avc", "hevc", "x-vnd.on2.vp9"); empty when unknown.
   @$pb.TagNumber(8)
   $core.String get codec => $_getSZ(7);
   @$pb.TagNumber(8)

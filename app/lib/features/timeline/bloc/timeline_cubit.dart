@@ -8,8 +8,8 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 /// Mirrors the engine's timeline. Holds the latest [TimelineChanged]; sends commands only.
 class TimelineCubit extends Cubit<TimelineChanged> {
   TimelineCubit(this._engine) : super(TimelineChanged()..freeze()) {
-    // CommandFailed needs no UI yet: buttons are enabled from can_undo/can_redo, and
-    // add-track cannot fail. Failure messages arrive with a code enum later.
+    // CommandFailed has no UI yet (import can fail: too many items, bad metadata); a
+    // generic failure message is filed as its own task.
     _events = _engine.events
         .where((e) => e.hasTimelineChanged())
         .map((e) => e.timelineChanged..freeze())

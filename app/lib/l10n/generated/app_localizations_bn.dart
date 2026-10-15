@@ -71,4 +71,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get importFromFiles => 'ফাইল থেকে আনুন';
+
+  @override
+  String get importing => 'মিডিয়া আনা হচ্ছে';
 }

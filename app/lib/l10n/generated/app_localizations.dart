@@ -193,6 +193,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import from files'**
   String get importFromFiles;
+
+  /// No description provided for @importing.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing media'**
+  String get importing;
 }
 
 class _AppLocalizationsDelegate

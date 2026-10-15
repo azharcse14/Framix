@@ -72,4 +72,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importFromFiles => 'Import from files';
+
+  @override
+  String get importing => 'Importing media';
 }

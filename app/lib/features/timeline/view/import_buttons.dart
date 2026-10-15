@@ -31,11 +31,14 @@ class _ImportButtonsState extends State<ImportButtons> {
     final l10n = AppLocalizations.of(context);
     final importer = context.read<MediaImporter>();
     if (_busy) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      return Padding(
+        padding: const EdgeInsets.all(12),
         child: SizedBox.square(
           dimension: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            semanticsLabel: l10n.importing,
+          ),
         ),
       );
     }

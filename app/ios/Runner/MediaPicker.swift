@@ -28,8 +28,11 @@ final class MediaPicker: NSObject {
     guard call.method == "pickGallery" || call.method == "pickFiles" else {
       return result(FlutterMethodNotImplemented)
     }
-    guard pending == nil, let presenter = Self.topViewController() else {
+    guard pending == nil else {
       return result(FlutterError(code: "busy", message: nil, details: nil))
+    }
+    guard let presenter = Self.topViewController() else {
+      return result(FlutterError(code: "no-presenter", message: nil, details: nil))
     }
     pending = result
     if call.method == "pickGallery" {
@@ -46,6 +49,8 @@ final class MediaPicker: NSObject {
         forOpeningContentTypes: [.movie, .image], asCopy: true)
       picker.allowsMultipleSelection = true
       picker.delegate = self
+      // Swipe-down would skip the delegate and leave `pending` stuck; Cancel always reports.
+      picker.isModalInPresentation = true
       presenter.present(picker, animated: true)
     }
   }
@@ -91,6 +96,11 @@ final class MediaPicker: NSObject {
       for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true
     ).appendingPathComponent("media", isDirectory: true)
     try manager.createDirectory(at: dir, withIntermediateDirectories: true)
+    // Photos already backs up gallery originals; don't upload the copies again.
+    var values = URLResourceValues()
+    values.isExcludedFromBackup = true
+    var excluded = dir
+    try? excluded.setResourceValues(values)
     let ext = source.pathExtension.lowercased()
     let safeExt =
       (1...5).contains(ext.count) && ext.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber) }
@@ -115,6 +125,8 @@ final class MediaPicker: NSObject {
       else { return nil }
       let degrees = Int((atan2(transform.b, transform.a) * 180 / .pi).rounded())
       let codec = formats.first.map { fourCC(CMFormatDescriptionGetMediaSubType($0)) } ?? ""
+      // Unmeasurable (e.g. audio-only) files are skipped, not sent for the engine to refuse.
+      guard size.width != 0, size.height != 0, duration.value > 0 else { return nil }
       return [
         "uri": file.relative, "kind": "video",
         "durationValue": Int(duration.value), "durationTimescale": Int(duration.timescale),
@@ -125,7 +137,7 @@ final class MediaPicker: NSObject {
     guard let source = CGImageSourceCreateWithURL(file.url as CFURL, nil),
       let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
       let width = props[kCGImagePropertyPixelWidth] as? Int,
-      let height = props[kCGImagePropertyPixelHeight] as? Int
+      let height = props[kCGImagePropertyPixelHeight] as? Int, width > 0, height > 0
     else { return nil }
     // EXIF orientation to clockwise degrees (mirrored variants keep their rotation).
     let orientation = props[kCGImagePropertyOrientation] as? Int ?? 1

@@ -15,5 +15,6 @@
   "hideTrack": "ট্র্যাক লুকান",
   "lockTrack": "ট্র্যাক লক",
   "importFromGallery": "গ্যালারি থেকে আনুন",
-  "importFromFiles": "ফাইল থেকে আনুন"
+  "importFromFiles": "ফাইল থেকে আনুন",
+  "importing": "মিডিয়া আনা হচ্ছে"
 }

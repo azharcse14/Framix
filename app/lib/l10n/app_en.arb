@@ -19,5 +19,6 @@
   "hideTrack": "Hide track",
   "lockTrack": "Lock track",
   "importFromGallery": "Import from gallery",
-  "importFromFiles": "Import from files"
+  "importFromFiles": "Import from files",
+  "importing": "Importing media"
 }

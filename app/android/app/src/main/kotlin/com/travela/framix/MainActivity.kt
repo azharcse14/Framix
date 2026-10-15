@@ -14,6 +14,11 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler(mediaPicker)
     }
 
+    override fun onDestroy() {
+        mediaPicker.close()
+        super.onDestroy()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (!mediaPicker.onActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data)
