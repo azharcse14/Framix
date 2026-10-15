@@ -1,0 +1,15 @@
+[workspace]
+resolver = "3"
+members = ["ffi"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+publish = false
+
+# FFI relies on catch_unwind, so panic must stay "unwind" (GOT-003).
+[profile.release]
+panic = "unwind"
+lto = true
+codegen-units = 1
+strip = true

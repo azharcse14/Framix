@@ -1,0 +1,9 @@
+[package]
+name = "framix_ffi"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[lib]
+# cdylib for the app, rlib so integration tests can link it.
+crate-type = ["cdylib", "rlib"]
