@@ -89,12 +89,19 @@ impl Engine {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
             }
             command::Kind::SetTrackFlags(op) => {
-                let flags = TrackFlags {
-                    muted: op.muted.unwrap_or(false),
-                    hidden: op.hidden.unwrap_or(false),
-                    locked: op.locked.unwrap_or(false),
-                };
-                timeline(self.edit(|tl| tl.set_track_flags(TrackId(op.track_id), flags)))
+                let track = TrackId(op.track_id);
+                timeline(self.edit(|tl| {
+                    let current = tl
+                        .track(track)
+                        .ok_or(TimelineError::UnknownTrack(track))?
+                        .flags();
+                    let flags = TrackFlags {
+                        muted: op.muted.unwrap_or(current.muted),
+                        hidden: op.hidden.unwrap_or(current.hidden),
+                        locked: op.locked.unwrap_or(current.locked),
+                    };
+                    tl.set_track_flags(track, flags)
+                }))
             }
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)

@@ -32,15 +32,16 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
-  /// Sends the track's full switch set; the engine validates it (e.g. audio can't hide).
+  /// Changes only the given switches; the engine keeps the rest and validates the result
+  /// (e.g. audio can't hide), so quick taps on different switches don't undo each other.
   void setTrackFlags(Track track, {bool? muted, bool? hidden, bool? locked}) =>
       _engine.send(
         Command(
           setTrackFlags: SetTrackFlags(
             trackId: track.id,
-            muted: muted ?? track.muted,
-            hidden: hidden ?? track.hidden,
-            locked: locked ?? track.locked,
+            muted: muted,
+            hidden: hidden,
+            locked: locked,
           ),
         ),
       );
