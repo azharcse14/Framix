@@ -1,0 +1,12 @@
+{
+  "@@locale": "bn",
+  "appTitle": "Framix",
+  "timelineEmpty": "এখনো কোনো ট্র্যাক নেই। শুরু করতে ভিডিও বা অডিও ট্র্যাক যোগ করুন।",
+  "addVideoTrack": "ভিডিও ট্র্যাক যোগ করুন",
+  "addAudioTrack": "অডিও ট্র্যাক যোগ করুন",
+  "undo": "আনডু",
+  "redo": "রিডু",
+  "videoTrackName": "ভিডিও ট্র্যাক {number}",
+  "audioTrackName": "অডিও ট্র্যাক {number}",
+  "clipCount": "{count, plural, =0{কোনো ক্লিপ নেই} other{{count}টি ক্লিপ}}"
+}

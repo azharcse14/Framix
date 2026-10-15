@@ -6637,12 +6637,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "eng-003-timeline-screen",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "plan: first screen mirroring engine state. TimelineCubit(FramixEngine) holds the latest TimelineChanged (proto) as state, only sends commands (AddTrack, Undo, Redo). TimelinePage: track list, undo/redo, add video/audio track. Theme tokens (dark, docs/design-system.md) as FramixColors + a hand-built ColorScheme; en+bn ARB via gen-l10n; FramixEngine in get_it. material_ui 1.5.0, flutter_bloc 9.1.1, get_it 9.3.0 (all >=14 days). Fonts (Plus Jakarta Sans, Anek Bangla) and routing (ENG-001) not in scope."
+    }
+   ],
    "source": "plan"
   },
   {

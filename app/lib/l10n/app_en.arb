@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "appTitle": "Framix",
+  "timelineEmpty": "No tracks yet. Add a video or audio track to start.",
+  "addVideoTrack": "Add video track",
+  "addAudioTrack": "Add audio track",
+  "undo": "Undo",
+  "redo": "Redo",
+  "videoTrackName": "Video track {number}",
+  "@videoTrackName": {"placeholders": {"number": {"type": "int"}}},
+  "audioTrackName": "Audio track {number}",
+  "@audioTrackName": {"placeholders": {"number": {"type": "int"}}},
+  "clipCount": "{count, plural, =0{No clips} =1{1 clip} other{{count} clips}}",
+  "@clipCount": {"placeholders": {"count": {"type": "int"}}}
+}
