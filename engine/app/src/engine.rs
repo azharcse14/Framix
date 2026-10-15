@@ -1,5 +1,6 @@
 //! Turns UI commands into timeline edits and reports the result as an event.
 
+use framix_core::aspect::AspectRatio;
 use framix_core::time::Time;
 use framix_core::timeline::{self, ClipPlacement, MediaId, Timeline, TimelineError, TrackId};
 
@@ -70,7 +71,14 @@ impl Engine {
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
-            command::Kind::SetAspectRatio(_) => Err("not implemented".to_owned()),
+            command::Kind::SetAspectRatio(set) => {
+                let aspect = AspectRatio::new(set.width, set.height)
+                    .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
+                timeline(self.edit(|tl| {
+                    tl.set_aspect(aspect);
+                    Ok::<_, TimelineError>(())
+                }))
+            }
         }
     }
 
@@ -144,8 +152,8 @@ impl Engine {
                 duration: timeline.duration().0,
                 can_undo: self.history.can_undo(),
                 can_redo: self.history.can_redo(),
-                aspect_width: 0,
-                aspect_height: 0,
+                aspect_width: timeline.aspect().width(),
+                aspect_height: timeline.aspect().height(),
             })),
         }
     }

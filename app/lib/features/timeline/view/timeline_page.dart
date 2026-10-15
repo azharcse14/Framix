@@ -5,6 +5,7 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/timeline_cubit.dart';
+import 'aspect_ratio_bar.dart';
 
 /// The timeline: track list, undo/redo, and add-track actions.
 class TimelinePage extends StatelessWidget {
@@ -36,18 +37,28 @@ class TimelinePage extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<TimelineCubit, TimelineChanged>(
-        builder: (context, state) => state.tracks.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(FramixSpace.m),
-                  child: Text(l10n.timelineEmpty, textAlign: TextAlign.center),
-                ),
-              )
-            : ListView.builder(
-                itemCount: state.tracks.length,
-                itemBuilder: (_, i) => _TrackTile(track: state.tracks[i]),
-              ),
+      body: Column(
+        children: [
+          const AspectRatioBar(),
+          Expanded(
+            child: BlocBuilder<TimelineCubit, TimelineChanged>(
+              builder: (context, state) => state.tracks.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(FramixSpace.m),
+                        child: Text(
+                          l10n.timelineEmpty,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: state.tracks.length,
+                      itemBuilder: (_, i) => _TrackTile(track: state.tracks[i]),
+                    ),
+            ),
+          ),
+        ],
       ),
       // Primary actions in the lower half (docs/design-system.md, touch).
       bottomNavigationBar: SafeArea(

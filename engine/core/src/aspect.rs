@@ -16,8 +16,19 @@ impl AspectRatio {
 
     /// `width:height` reduced, or `None` unless both sides are 1..=100 and the ratio lies
     /// between 1:3 and 3:1.
-    pub fn new(_width: u32, _height: u32) -> Option<Self> {
-        None
+    pub fn new(width: u32, height: u32) -> Option<Self> {
+        let side = 1..=100;
+        if !side.contains(&width) || !side.contains(&height) {
+            return None;
+        }
+        if width > 3 * height || height > 3 * width {
+            return None;
+        }
+        let g = gcd(width, height);
+        Some(Self {
+            width: width / g,
+            height: height / g,
+        })
     }
 
     /// Reduced width.
@@ -35,4 +46,8 @@ impl Default for AspectRatio {
     fn default() -> Self {
         Self::PORTRAIT_9_16
     }
+}
+
+fn gcd(a: u32, b: u32) -> u32 {
+    if b == 0 { a } else { gcd(b, a % b) }
 }

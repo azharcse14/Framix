@@ -132,7 +132,7 @@ pub struct Timeline {
 
 impl PartialEq for Timeline {
     fn eq(&self, other: &Self) -> bool {
-        self.tracks == other.tracks
+        self.tracks == other.tracks && self.aspect == other.aspect
     }
 }
 
@@ -145,7 +145,9 @@ impl Timeline {
     }
 
     /// Sets the canvas aspect ratio.
-    pub fn set_aspect(&mut self, _aspect: AspectRatio) {}
+    pub fn set_aspect(&mut self, aspect: AspectRatio) {
+        self.aspect = aspect;
+    }
 
     /// Tracks in display order.
     pub fn tracks(&self) -> &[Track] {

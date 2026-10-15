@@ -1,5 +1,6 @@
 //! Project file encoding (proto/framix/project/v1/project.proto). Pure: bytes in, bytes out.
 
+use framix_core::aspect::AspectRatio;
 use framix_core::time::Time;
 use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TimelineError, TrackKind};
 use prost::Message as _;
@@ -77,8 +78,8 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         format_version: FORMAT_VERSION,
         min_reader_version: MIN_READER_VERSION,
         tracks,
-        aspect_width: 0,
-        aspect_height: 0,
+        aspect_width: timeline.aspect().width(),
+        aspect_height: timeline.aspect().height(),
     }
     .encode_to_vec()
 }
@@ -117,6 +118,12 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         return Err(ProjectError::TooLarge);
     }
     let mut timeline = Timeline::default();
+    // 0:0 is a file from before the aspect ratio was saved: keep the default.
+    if (file.aspect_width, file.aspect_height) != (0, 0) {
+        let aspect = AspectRatio::new(file.aspect_width, file.aspect_height)
+            .ok_or(ProjectError::InvalidAspect)?;
+        timeline.set_aspect(aspect);
+    }
     for saved in file.tracks {
         let kind = match SavedTrackKind::try_from(saved.kind) {
             Ok(SavedTrackKind::Video) => TrackKind::Video,

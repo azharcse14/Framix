@@ -26,6 +26,7 @@ void main() {
   });
 
   test('mirrors the engine through add, undo, and redo', () async {
+    await next(); // the engine's starting state (GetTimeline reply), see P1-010
     cubit.addTrack(TrackKind.TRACK_KIND_AUDIO);
     var state = await next();
     expect(state.tracks.single.kind, TrackKind.TRACK_KIND_AUDIO);

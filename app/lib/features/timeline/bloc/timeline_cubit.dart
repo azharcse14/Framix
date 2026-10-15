@@ -26,6 +26,12 @@ class TimelineCubit extends Cubit<TimelineChanged> {
   void addTrack(TrackKind kind) =>
       _engine.send(Command(addTrack: AddTrack(kind: kind)));
 
+  void setAspectRatio(int width, int height) => _engine.send(
+    Command(
+      setAspectRatio: SetAspectRatio(width: width, height: height),
+    ),
+  );
+
   void undo() => _engine.send(Command(undo: Undo()));
 
   void redo() => _engine.send(Command(redo: Redo()));
