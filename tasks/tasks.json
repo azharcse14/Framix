@@ -12048,6 +12048,10 @@
     {
      "date": "2026-10-15",
      "text": "add an assertion that in-flight events at dispose are delivered or freed (P1-006 review)"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Since ENG-050 every TimelineCubit sends GetTimeline on creation, so an undelivered reply at dispose (leak) now happens in every cubit test teardown and at app shutdown"
     }
    ],
    "source": "added"
@@ -12083,6 +12087,30 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "61fd6c3",
+   "branch": "eng-050-initial-timeline",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Dart placeholder empty state remains until the GetTimeline reply arrives (engine_send only queues); a loading state would change the frozen 'starts with an empty timeline' test, filed as follow-up"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "DS-009",
+   "section": "DS",
+   "group": null,
+   "title": "OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
@@ -12092,10 +12120,10 @@
    "source": "added"
   },
   {
-   "id": "DS-009",
-   "section": "DS",
+   "id": "ENG-051",
+   "section": "ENG",
    "group": null,
-   "title": "OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md",
+   "title": "TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval)",
    "tags": [
     "Dart"
    ],

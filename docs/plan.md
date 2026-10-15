@@ -1113,7 +1113,8 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-047` Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe \[Rust\]
 - [x] `ENG-048` time proptest gula unwrap kore dhore ney je ±1e9 frame shob rate e i64 e fit kore; dhire rate (jemon 1/14 fps) e overflow hoy ar code thik vabe None dey. Test e representable range e prop_assume \[Rust\]
 - [ ] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
-- [ ] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]
+- [x] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]
+- [ ] `ENG-051` TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval) \[Dart\]
 
 **Security**
 
