@@ -991,12 +991,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-011-import",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Plan: docs/plans/P1-011-import.md (also covers P1-013 engine half and P1-028 default photo duration)."
+    }
+   ],
    "source": "plan"
   },
   {
