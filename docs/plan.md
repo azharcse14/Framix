@@ -389,7 +389,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-023` Undo/redo (command pattern) \[Rust\]
 - [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
 - [ ] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
-- [ ] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
+- [x] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
 - [ ] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
 - [ ] `P1-028` **1b:** Photo clip er default duration ar shob photo te ekshathe duration set \[Rust\]
 
@@ -418,6 +418,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]
 - [ ] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
 - [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
+- [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
 
 ## Phase 2: Audio
 
