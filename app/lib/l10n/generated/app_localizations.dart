@@ -163,6 +163,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{width}:{height}'**
   String aspectRatioLabel(int width, int height);
+
+  /// No description provided for @muteTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute track'**
+  String get muteTrack;
+
+  /// No description provided for @hideTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide track'**
+  String get hideTrack;
+
+  /// No description provided for @lockTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock track'**
+  String get lockTrack;
 }
 
 class _AppLocalizationsDelegate

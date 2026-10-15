@@ -14,5 +14,8 @@
   "@clipCount": {"placeholders": {"count": {"type": "int"}}},
   "aspectRatio": "Aspect ratio",
   "aspectRatioLabel": "{width}:{height}",
-  "@aspectRatioLabel": {"placeholders": {"width": {"type": "int"}, "height": {"type": "int"}}}
+  "@aspectRatioLabel": {"placeholders": {"width": {"type": "int"}, "height": {"type": "int"}}},
+  "muteTrack": "Mute track",
+  "hideTrack": "Hide track",
+  "lockTrack": "Lock track"
 }

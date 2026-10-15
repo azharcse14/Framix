@@ -57,4 +57,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String aspectRatioLabel(int width, int height) {
     return '$width:$height';
   }
+
+  @override
+  String get muteTrack => 'Mute track';
+
+  @override
+  String get hideTrack => 'Hide track';
+
+  @override
+  String get lockTrack => 'Lock track';
 }

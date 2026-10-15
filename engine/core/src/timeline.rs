@@ -225,6 +225,9 @@ impl Timeline {
             .iter()
             .position(|t| t.id == track)
             .ok_or(TimelineError::UnknownTrack(track))?;
+        if self.tracks[index].flags.locked {
+            return Err(TimelineError::TrackLocked(track));
+        }
         let clips = &self.tracks[index].clips;
         let at = clips.partition_point(|c| c.start < placement.start);
         if let Some(prev) = clips[..at].last().filter(|c| c.end() > placement.start) {
@@ -249,9 +252,18 @@ impl Timeline {
     /// unlocked).
     pub fn set_track_flags(
         &mut self,
-        _track: TrackId,
-        _flags: TrackFlags,
+        track: TrackId,
+        flags: TrackFlags,
     ) -> Result<(), TimelineError> {
+        let target = self
+            .tracks
+            .iter_mut()
+            .find(|t| t.id == track)
+            .ok_or(TimelineError::UnknownTrack(track))?;
+        if flags.hidden && target.kind == TrackKind::Audio {
+            return Err(TimelineError::NotVisual(track));
+        }
+        target.flags = flags;
         Ok(())
     }
 
@@ -362,10 +374,11 @@ impl Timeline {
         self.insert_clip(self.tracks[t].id, copy)
     }
 
-    /// Track and clip index of `clip`.
+    /// Track and clip index of `clip`, refusing clips on a locked track.
     // ponytail: linear scan over all clips, once per command; index by id if profiles show it.
     fn locate(&self, clip: ClipId) -> Result<(usize, usize), TimelineError> {
-        self.tracks
+        let (t, i) = self
+            .tracks
             .iter()
             .enumerate()
             .find_map(|(t, track)| {
@@ -375,7 +388,12 @@ impl Timeline {
                     .position(|c| c.id == clip)
                     .map(|i| (t, i))
             })
-            .ok_or(TimelineError::UnknownClip(clip))
+            .ok_or(TimelineError::UnknownClip(clip))?;
+        let track = &self.tracks[t];
+        if track.flags.locked {
+            return Err(TimelineError::TrackLocked(track.id));
+        }
+        Ok((t, i))
     }
 
     /// End of the last clip on any track; zero when empty.

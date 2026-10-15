@@ -3,7 +3,7 @@
 use framix_core::aspect::AspectRatio;
 use framix_core::time::Time;
 use framix_core::timeline::{
-    self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackId,
+    self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
 };
 
 use std::path::Path;
@@ -88,7 +88,14 @@ impl Engine {
             command::Kind::DuplicateClip(op) => {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
             }
-            command::Kind::SetTrackFlags(_) => Err("not implemented".to_owned()),
+            command::Kind::SetTrackFlags(op) => {
+                let flags = TrackFlags {
+                    muted: op.muted,
+                    hidden: op.hidden,
+                    locked: op.locked,
+                };
+                timeline(self.edit(|tl| tl.set_track_flags(TrackId(op.track_id), flags)))
+            }
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
@@ -161,9 +168,9 @@ impl Engine {
                         })
                         .collect(),
                     number: *count,
-                    muted: false,
-                    hidden: false,
-                    locked: false,
+                    muted: t.flags().muted,
+                    hidden: t.flags().hidden,
+                    locked: t.flags().locked,
                 }
             })
             .collect();

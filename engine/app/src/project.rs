@@ -2,7 +2,9 @@
 
 use framix_core::aspect::AspectRatio;
 use framix_core::time::Time;
-use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TimelineError, TrackKind};
+use framix_core::timeline::{
+    ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackKind,
+};
 use prost::Message as _;
 use thiserror::Error;
 
@@ -72,9 +74,9 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
                     duration: c.duration.0,
                 })
                 .collect(),
-            muted: false,
-            hidden: false,
-            locked: false,
+            muted: track.flags().muted,
+            hidden: track.flags().hidden,
+            locked: track.flags().locked,
         })
         .collect();
     ProjectFile {
@@ -138,6 +140,11 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         if saved.clips.windows(2).any(|w| w[0].start >= w[1].start) {
             return Err(ProjectError::Unsorted);
         }
+        let flags = TrackFlags {
+            muted: saved.muted,
+            hidden: saved.hidden,
+            locked: saved.locked,
+        };
         for c in saved.clips {
             let placement = ClipPlacement {
                 media: MediaId(c.media_id),
@@ -147,6 +154,8 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
             };
             timeline.insert_clip(track, placement)?;
         }
+        // After the clips: a locked track refuses inserts.
+        timeline.set_track_flags(track, flags)?;
     }
     Ok(timeline)
 }

@@ -10,5 +10,8 @@
   "audioTrackName": "অডিও ট্র্যাক {number}",
   "clipCount": "{count, plural, =0{কোনো ক্লিপ নেই} other{{count}টি ক্লিপ}}",
   "aspectRatio": "অনুপাত",
-  "aspectRatioLabel": "{width}:{height}"
+  "aspectRatioLabel": "{width}:{height}",
+  "muteTrack": "ট্র্যাক মিউট",
+  "hideTrack": "ট্র্যাক লুকান",
+  "lockTrack": "ট্র্যাক লক"
 }
