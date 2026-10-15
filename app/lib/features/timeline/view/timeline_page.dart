@@ -46,8 +46,7 @@ class TimelinePage extends StatelessWidget {
               )
             : ListView.builder(
                 itemCount: state.tracks.length,
-                itemBuilder: (_, i) =>
-                    _TrackTile(track: state.tracks[i], index: i),
+                itemBuilder: (_, i) => _TrackTile(track: state.tracks[i]),
               ),
       ),
       // Primary actions in the lower half (docs/design-system.md, touch).
@@ -80,10 +79,9 @@ class TimelinePage extends StatelessWidget {
 }
 
 class _TrackTile extends StatelessWidget {
-  const _TrackTile({required this.track, required this.index});
+  const _TrackTile({required this.track});
 
   final Track track;
-  final int index;
 
   @override
   Widget build(BuildContext context) {
@@ -93,8 +91,8 @@ class _TrackTile extends StatelessWidget {
       leading: Icon(isAudio ? Icons.audiotrack : Icons.videocam),
       title: Text(
         isAudio
-            ? l10n.audioTrackName(index + 1)
-            : l10n.videoTrackName(index + 1),
+            ? l10n.audioTrackName(track.number)
+            : l10n.videoTrackName(track.number),
       ),
       subtitle: Text(l10n.clipCount(track.clips.length)),
     );

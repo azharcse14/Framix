@@ -55,27 +55,32 @@ impl Engine {
 
     fn timeline_changed(&self) -> Event {
         let timeline = self.history.timeline();
+        let (mut videos, mut audios) = (0, 0);
         let tracks = timeline
             .tracks()
             .iter()
-            .map(|t| proto::Track {
-                id: t.id().0,
-                kind: match t.kind() {
-                    timeline::TrackKind::Video => TrackKind::Video,
-                    timeline::TrackKind::Audio => TrackKind::Audio,
-                } as i32,
-                clips: t
-                    .clips()
-                    .iter()
-                    .map(|c| proto::Clip {
-                        id: c.id.0,
-                        media_id: c.media.0,
-                        source_start: c.source_start.0,
-                        start: c.start.0,
-                        duration: c.duration.0,
-                    })
-                    .collect(),
-                number: 0,
+            .map(|t| {
+                let (kind, count) = match t.kind() {
+                    timeline::TrackKind::Video => (TrackKind::Video, &mut videos),
+                    timeline::TrackKind::Audio => (TrackKind::Audio, &mut audios),
+                };
+                *count += 1;
+                proto::Track {
+                    id: t.id().0,
+                    kind: kind as i32,
+                    clips: t
+                        .clips()
+                        .iter()
+                        .map(|c| proto::Clip {
+                            id: c.id.0,
+                            media_id: c.media.0,
+                            source_start: c.source_start.0,
+                            start: c.start.0,
+                            duration: c.duration.0,
+                        })
+                        .collect(),
+                    number: *count,
+                }
             })
             .collect();
         Event {
