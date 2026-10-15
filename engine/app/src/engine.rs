@@ -90,9 +90,9 @@ impl Engine {
             }
             command::Kind::SetTrackFlags(op) => {
                 let flags = TrackFlags {
-                    muted: op.muted,
-                    hidden: op.hidden,
-                    locked: op.locked,
+                    muted: op.muted.unwrap_or(false),
+                    hidden: op.hidden.unwrap_or(false),
+                    locked: op.locked.unwrap_or(false),
                 };
                 timeline(self.edit(|tl| tl.set_track_flags(TrackId(op.track_id), flags)))
             }

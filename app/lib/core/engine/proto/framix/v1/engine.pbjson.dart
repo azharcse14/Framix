@@ -374,17 +374,22 @@ const SetTrackFlags$json = {
   '1': 'SetTrackFlags',
   '2': [
     {'1': 'track_id', '3': 1, '4': 1, '5': 4, '10': 'trackId'},
-    {'1': 'muted', '3': 2, '4': 1, '5': 8, '10': 'muted'},
-    {'1': 'hidden', '3': 3, '4': 1, '5': 8, '10': 'hidden'},
-    {'1': 'locked', '3': 4, '4': 1, '5': 8, '10': 'locked'},
+    {'1': 'muted', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'muted', '17': true},
+    {'1': 'hidden', '3': 3, '4': 1, '5': 8, '9': 1, '10': 'hidden', '17': true},
+    {'1': 'locked', '3': 4, '4': 1, '5': 8, '9': 2, '10': 'locked', '17': true},
+  ],
+  '8': [
+    {'1': '_muted'},
+    {'1': '_hidden'},
+    {'1': '_locked'},
   ],
 };
 
 /// Descriptor for `SetTrackFlags`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List setTrackFlagsDescriptor = $convert.base64Decode(
-    'Cg1TZXRUcmFja0ZsYWdzEhkKCHRyYWNrX2lkGAEgASgEUgd0cmFja0lkEhQKBW11dGVkGAIgAS'
-    'gIUgVtdXRlZBIWCgZoaWRkZW4YAyABKAhSBmhpZGRlbhIWCgZsb2NrZWQYBCABKAhSBmxvY2tl'
-    'ZA==');
+    'Cg1TZXRUcmFja0ZsYWdzEhkKCHRyYWNrX2lkGAEgASgEUgd0cmFja0lkEhkKBW11dGVkGAIgAS'
+    'gISABSBW11dGVkiAEBEhsKBmhpZGRlbhgDIAEoCEgBUgZoaWRkZW6IAQESGwoGbG9ja2VkGAQg'
+    'ASgISAJSBmxvY2tlZIgBAUIICgZfbXV0ZWRCCQoHX2hpZGRlbkIJCgdfbG9ja2Vk');
 
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {

@@ -19,9 +19,9 @@ fn changed(e: Option<event::Kind>) -> TimelineChanged {
 fn flags(track_id: u64, muted: bool, hidden: bool, locked: bool) -> command::Kind {
     command::Kind::SetTrackFlags(SetTrackFlags {
         track_id,
-        muted,
-        hidden,
-        locked,
+        muted: Some(muted),
+        hidden: Some(hidden),
+        locked: Some(locked),
     })
 }
 

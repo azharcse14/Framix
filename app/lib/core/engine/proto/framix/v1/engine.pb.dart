@@ -1210,8 +1210,9 @@ class DuplicateClip extends $pb.GeneratedMessage {
   void clearClipId() => $_clearField(1);
 }
 
-/// Sets a track's switches (allowed while locked, so it can be unlocked). Only video tracks
-/// can be hidden. A locked track refuses clip edits.
+/// Changes a track's switches; unset fields keep their value, so quick taps on different
+/// switches never undo each other. Allowed while locked (so it can be unlocked). Only video
+/// tracks can be hidden. A locked track refuses clip edits.
 class SetTrackFlags extends $pb.GeneratedMessage {
   factory SetTrackFlags({
     $fixnum.Int64? trackId,

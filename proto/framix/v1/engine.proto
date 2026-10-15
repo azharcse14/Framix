@@ -106,13 +106,14 @@ message DuplicateClip {
   uint64 clip_id = 1;
 }
 
-// Sets a track's switches (allowed while locked, so it can be unlocked). Only video tracks
-// can be hidden. A locked track refuses clip edits.
+// Changes a track's switches; unset fields keep their value, so quick taps on different
+// switches never undo each other. Allowed while locked (so it can be unlocked). Only video
+// tracks can be hidden. A locked track refuses clip edits.
 message SetTrackFlags {
   uint64 track_id = 1;
-  bool muted = 2;
-  bool hidden = 3;
-  bool locked = 4;
+  optional bool muted = 2;
+  optional bool hidden = 3;
+  optional bool locked = 4;
 }
 
 // Sent by the engine. Exactly one kind is set.
