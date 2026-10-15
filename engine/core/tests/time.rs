@@ -61,13 +61,18 @@ fn any_rate() -> impl Strategy<Value = Rate> {
 proptest! {
     #[test]
     fn frame_time_round_trips(r in any_rate(), frame in -1_000_000_000i64..1_000_000_000) {
-        let t = r.frame_to_time(frame).unwrap();
-        prop_assert_eq!(r.time_to_frame(t), Some(frame));
+        // Slow rates (e.g. 1/14 fps) push far frames past i64 ticks; those correctly give
+        // None (see overflow_is_none), so the property covers representable frames only.
+        let t = r.frame_to_time(frame);
+        prop_assume!(t.is_some());
+        prop_assert_eq!(r.time_to_frame(t.unwrap()), Some(frame));
     }
 
     #[test]
     fn frame_starts_strictly_increase(r in any_rate(), frame in -1_000_000_000i64..1_000_000_000) {
-        prop_assert!(r.frame_to_time(frame + 1).unwrap() > r.frame_to_time(frame).unwrap());
+        let (this, next) = (r.frame_to_time(frame), r.frame_to_time(frame + 1));
+        prop_assume!(this.is_some() && next.is_some());
+        prop_assert!(next.unwrap() > this.unwrap());
     }
 
     #[test]

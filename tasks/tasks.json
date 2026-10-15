@@ -11959,6 +11959,25 @@
     }
    ],
    "source": "added"
+  },
+  {
+   "id": "ENG-048",
+   "section": "ENG",
+   "group": null,
+   "title": "time proptest gula unwrap kore dhore ney je ±1e9 frame shob rate e i64 e fit kore; dhire rate (jemon 1/14 fps) e overflow hoy ar code thik vabe None dey. Test e representable range e prop_assume",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
+   "done": null,
+   "commit": null,
+   "branch": "eng-time-proptest-fix",
+   "notes": [],
+   "source": "added"
   }
  ]
 }
