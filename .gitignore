@@ -44,3 +44,6 @@ local.properties
 
 # Stray reviewer memory written when a subagent runs from app/; the real one is .claude/agent-memory
 app/.claude/
+
+# Agent worktrees made by Claude Code subagents
+.claude/worktrees/
