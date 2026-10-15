@@ -11971,12 +11971,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-15",
+   "commit": "e0554ec",
    "branch": "eng-time-proptest-fix",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "frozen ENG-005 proptests edited (user has said not to ask for decisions): prop_assume representable frames, seed saved, no assertion dropped; reviewer approved"
+    }
+   ],
    "source": "added"
   }
  ]
