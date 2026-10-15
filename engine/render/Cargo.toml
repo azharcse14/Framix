@@ -1,0 +1,18 @@
+[package]
+name = "framix_render"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+# SPIKE (P1-001): wgpu output into a Flutter Texture without copies. Off main until reviewed.
+[dependencies]
+wgpu = { version = "=30.0.1", default-features = false, features = ["std", "parking_lot", "metal", "wgsl"] }
+thiserror = "2.0.21"
+pollster = "=0.4.0"
+
+[target.'cfg(target_vendor = "apple")'.dependencies]
+objc2 = "0.6"
+objc2-metal = { version = "=0.3.2", default-features = false, features = ["std", "MTLResource", "MTLTexture", "MTLPixelFormat", "MTLTypes"] }
+
+[target.'cfg(target_vendor = "apple")'.dev-dependencies]
+objc2-metal = { version = "=0.3.2", default-features = false, features = ["std", "MTLResource", "MTLTexture", "MTLPixelFormat", "MTLTypes", "MTLDevice", "objc2-core-foundation"] }
