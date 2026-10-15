@@ -368,10 +368,45 @@ impl Timeline {
     /// the new spot overlaps another clip; on refusal nothing changes.
     pub fn move_clip(
         &mut self,
-        _clip: ClipId,
-        _to: TrackId,
-        _start: Time,
+        clip: ClipId,
+        to: TrackId,
+        start: Time,
     ) -> Result<(), TimelineError> {
+        let (from, i) = self.locate(clip)?;
+        let dest = self
+            .tracks
+            .iter()
+            .position(|t| t.id == to)
+            .ok_or(TimelineError::UnknownTrack(to))?;
+        if self.tracks[dest].flags.locked {
+            return Err(TimelineError::TrackLocked(to));
+        }
+        if self.tracks[dest].kind != self.tracks[from].kind {
+            return Err(TimelineError::WrongTrackKind(to));
+        }
+        if start.0 < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        let moving = self.tracks[from].clips[i];
+        let end = start
+            .0
+            .checked_add(moving.duration.0)
+            .ok_or(TimelineError::TimeOverflow)?;
+        // The moving clip may slide over its own old spot, so skip it when checking neighbours.
+        let others = &self.tracks[dest].clips;
+        let at = others.partition_point(|c| c.start < start);
+        let prev = others[..at].iter().rev().find(|c| c.id != clip);
+        if let Some(prev) = prev.filter(|c| c.end() > start) {
+            return Err(TimelineError::Overlap(prev.id));
+        }
+        let next = others[at..].iter().find(|c| c.id != clip);
+        if let Some(next) = next.filter(|c| c.start.0 < end) {
+            return Err(TimelineError::Overlap(next.id));
+        }
+        self.tracks[from].clips.remove(i);
+        let clips = &mut self.tracks[dest].clips;
+        let at = clips.partition_point(|c| c.start < start);
+        clips.insert(at, Clip { start, ..moving });
         Ok(())
     }
 
