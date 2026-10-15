@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
-# Placeholder until the binding pipeline exists (task P1-007: cbindgen -> ffigen, plus prost).
-echo "gen_ffi.sh is not set up yet; see task P1-007." >&2
-exit 1
+# Regenerates every FFI artifact: C header (cbindgen) and Dart bindings (ffigen).
+# Protobuf codegen joins with P1-006.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+cbindgen --config engine/ffi/cbindgen.toml --crate framix_ffi \
+  --output engine/ffi/include/framix_engine.h engine/ffi
+(cd app && dart run ffigen --config ffigen.yaml)

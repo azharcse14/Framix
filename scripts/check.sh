@@ -35,6 +35,13 @@ if [ -f engine/Cargo.toml ] && touched engine/; then
   run cargo fmt --manifest-path engine/Cargo.toml --all -- --check
   run cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets -- -D warnings
   run cargo test --manifest-path engine/Cargo.toml --workspace
+  # FFI header must match the Rust source (regenerate with scripts/gen_ffi.sh).
+  if command -v cbindgen >/dev/null 2>&1; then
+    run cbindgen --verify --quiet --config engine/ffi/cbindgen.toml --crate framix_ffi \
+      --output engine/ffi/include/framix_engine.h engine/ffi
+  else
+    echo "✗ cbindgen missing: cargo install cbindgen --version 0.29.4 --locked" >&2; fail=1
+  fi
 fi
 
 # Flutter app
