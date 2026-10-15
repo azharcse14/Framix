@@ -36,8 +36,13 @@ impl Gpu {
         });
         let adapter =
             pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default()))?;
+        // Ask only for what this adapter has: the iOS simulator's Metal device is below
+        // wgpu's default limits.
         let (device, queue) =
-            pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default()))?;
+            pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
+                required_limits: adapter.limits(),
+                ..Default::default()
+            }))?;
         let shader = device.create_shader_module(wgpu::include_wgsl!("test_pattern.wgsl"));
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("test pattern"),

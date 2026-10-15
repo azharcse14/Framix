@@ -40,6 +40,11 @@
 #define ENGINE_PROTOCOL_VERSION 3
 
 /**
+ * The GPU could not be opened, or this platform has no preview path yet.
+ */
+#define ENGINE_ERR_GPU -5
+
+/**
  * Opaque engine instance: a channel into the engine thread.
  */
 typedef struct Engine Engine;
@@ -114,5 +119,16 @@ int32_t engine_destroy(struct Engine *engine);
  * must not be freed more than once, and `ptr` must not be read after this call.
  */
 int32_t engine_free_buffer(struct EngineBuffer buf);
+
+/**
+ * SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
+ * the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
+ * Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
+ *
+ * # Safety
+ * `mtl_texture` must be null or a live BGRA8Unorm render-target `id<MTLTexture>` of size
+ * `width` x `height` on the system default Metal device.
+ */
+int32_t engine_spike_render_metal(void *mtl_texture, uint32_t width, uint32_t height);
 
 #endif  /* FRAMIX_ENGINE_H */

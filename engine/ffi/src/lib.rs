@@ -7,6 +7,9 @@ use framix_app::engine::command_failed;
 use framix_app::proto::{Command, Event};
 use prost::Message as _;
 
+mod spike_preview;
+pub use spike_preview::{ENGINE_ERR_GPU, engine_spike_render_metal};
+
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;
 /// The call panicked; the panic was caught at the boundary.

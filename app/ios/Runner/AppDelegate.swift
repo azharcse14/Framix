@@ -12,5 +12,6 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    SpikePreview.register(with: engineBridge.applicationRegistrar)  // SPIKE (P1-001)
   }
 }
