@@ -94,7 +94,8 @@ fn op() -> impl Strategy<Value = Op> {
 proptest! {
     #[test]
     fn matches_a_linear_state_model(ops in proptest::collection::vec(op(), 0..80)) {
-        let mut h = with_track();
+        // Fresh history, so the model's first state really has nothing to undo.
+        let mut h = History::new(with_track().timeline().clone());
         // Model: every committed state, and the index of the current one.
         let mut states = vec![h.timeline().clone()];
         let mut at = 0usize;
