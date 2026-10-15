@@ -371,7 +371,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 - [x] `P1-009` Notun project, project save/load \[Rust\]
 - [x] `P1-010` Aspect ratio select (9:16, 16:9, 1:1, 4:5, 3:4, 21:9) \[Dart\]\[Rust\]
-- [ ] `P1-011` Video/image import (gallery ar Files/iCloud Drive/Google Drive er moto cloud storage), multi-select order shoho, color/blank clip \[Dart\]
+- [x] `P1-011` Video/image import (gallery ar Files/iCloud Drive/Google Drive er moto cloud storage), multi-select order shoho, color/blank clip \[Dart\]
 - [ ] `P1-012` Android e boro file er jonno file descriptor (fd), copy chhara \[Native\]
 - [ ] `P1-013` Metadata read (duration, resolution, codec, rotation) \[Rust\]
 - [x] `P1-014` Timeline data model multi-track ar keyframe mathay rekhe design \[Rust\]
@@ -420,6 +420,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
 - [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
 - [ ] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
+- [ ] `P1-048` Color/blank clip (from P1-011 title) \[Rust\] \[Dart\]
+- [ ] `P1-049` Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet \[Dart\]
+- [ ] `P1-050` Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel \[Native\]
 
 ## Phase 2: Audio
 
@@ -1120,6 +1123,9 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
 - [x] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]
 - [ ] `ENG-051` TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval) \[Dart\]
+- [ ] `ENG-052` InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia) \[Rust\]
+- [ ] `ENG-053` Trims and splits must stay inside the media's duration (P1-011 media registry has durations) \[Rust\]
+- [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 
 **Security**
 

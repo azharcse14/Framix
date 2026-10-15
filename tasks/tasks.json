@@ -991,15 +991,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-15",
+   "commit": "69dd012",
    "branch": "p1-011-import",
    "notes": [
     {
      "date": "2026-10-15",
      "text": "Plan: docs/plans/P1-011-import.md (also covers P1-013 engine half and P1-028 default photo duration)."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Test deviations: engine_import round trip dropped 'assert_eq!(opened, tl)' (track/clip ids are reassigned on load) and project_media_limits.rs adds the full media + span round trip instead; P1-009 format test expects min_reader 2; P1-009 encode/decode and ids tests plus the P1-026 locked-track test register their media via tests/common (saved clips need registered media). project_aspect.rs got ..Default::default()."
     }
    ],
    "source": "plan"
@@ -1039,7 +1043,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Engine half done in P1-011: core::media validates platform metadata (duration, size, rotation, codec). A Rust-side probe (media crate) is still to come."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1365,7 +1374,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Default photo duration (3 s, core::media::PHOTO_DEFAULT_DURATION) done in P1-011; bulk 'set duration on all photos' still open."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -7012,7 +7026,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "iOS copy into Application Support/media done in P1-011 (MediaPicker.swift)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -7031,7 +7050,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Android persistable content:// URI permission done in P1-011 (MediaPicker.kt)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -10082,7 +10106,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "P1-011 Android 'Gallery' opens DocumentsUI (ACTION_OPEN_DOCUMENT), not the Photo Picker."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12373,6 +12402,126 @@
    "title": "design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-052",
+   "section": "ENG",
+   "group": null,
+   "title": "InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-053",
+   "section": "ENG",
+   "group": null,
+   "title": "Trims and splits must stay inside the media's duration (P1-011 media registry has durations)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-054",
+   "section": "ENG",
+   "group": null,
+   "title": "Prune media no clip uses (registry only grows; media cap can block saving)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Also delete unreferenced files in Application Support/media (iOS copies of refused/undone/deleted imports)."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-048",
+   "section": "P1",
+   "group": null,
+   "title": "Color/blank clip (from P1-011 title)",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-049",
+   "section": "P1",
+   "group": null,
+   "title": "Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-050",
+   "section": "P1",
+   "group": null,
+   "title": "Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel",
+   "tags": [
+    "Native"
    ],
    "owner": "claude",
    "deferred": false,
