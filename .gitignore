@@ -41,3 +41,6 @@ local.properties
 .DS_Store
 .idea/
 .vscode/
+
+# Stray reviewer memory written when a subagent runs from app/; the real one is .claude/agent-memory
+app/.claude/
