@@ -1041,7 +1041,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 
 **Timeline ar time**
 
-- [ ] `ENG-005` Time ke integer/rational timebase e rakho, float e na (frame-accurate, drift chhara) \[Rust\]
+- [x] `ENG-005` Time ke integer/rational timebase e rakho, float e na (frame-accurate, drift chhara) \[Rust\]
 - [ ] `ENG-006` GOP-aware seek ar decoder pre-roll (keyframe theke decode kore target frame) \[Rust\]\[Native\]
 - [ ] `ENG-007` Decoder pool ar limit: Android e ekshathe hardware decoder er shonkha simito, PIP e onek video hole proxy ba software fallback \[Rust\]\[Native\]
 - [ ] `ENG-008` Preview quality setting (dhire device e kom resolution preview) \[Rust\]
