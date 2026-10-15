@@ -2,7 +2,9 @@
 
 use framix_core::aspect::AspectRatio;
 use framix_core::time::Time;
-use framix_core::timeline::{self, ClipPlacement, MediaId, Timeline, TimelineError, TrackId};
+use framix_core::timeline::{
+    self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackId,
+};
 
 use std::path::Path;
 
@@ -71,11 +73,21 @@ impl Engine {
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
-            command::Kind::RemoveClip(_)
-            | command::Kind::SplitClip(_)
-            | command::Kind::MergeClips(_)
-            | command::Kind::TrimClip(_)
-            | command::Kind::DuplicateClip(_) => Err("not implemented".to_owned()),
+            command::Kind::RemoveClip(op) => {
+                timeline(self.edit(|tl| tl.remove_clip(ClipId(op.clip_id))))
+            }
+            command::Kind::SplitClip(op) => {
+                timeline(self.edit(|tl| tl.split_clip(ClipId(op.clip_id), Time(op.at))))
+            }
+            command::Kind::MergeClips(op) => {
+                timeline(self.edit(|tl| tl.merge_clips(ClipId(op.left_id), ClipId(op.right_id))))
+            }
+            command::Kind::TrimClip(op) => timeline(
+                self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), Time(op.start), Time(op.end))),
+            ),
+            command::Kind::DuplicateClip(op) => {
+                timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
+            }
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;

@@ -222,19 +222,59 @@ impl Timeline {
     }
 
     /// Removes a clip.
-    pub fn remove_clip(&mut self, _clip: ClipId) -> Result<(), TimelineError> {
+    pub fn remove_clip(&mut self, clip: ClipId) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        self.tracks[t].clips.remove(i);
         Ok(())
     }
 
     /// Splits a clip at timeline time `at` (strictly inside it). The left part keeps the id;
     /// the right part gets a new id and starts its source `at - start` later.
-    pub fn split_clip(&mut self, _clip: ClipId, _at: Time) -> Result<ClipId, TimelineError> {
-        Err(TimelineError::SplitOutside)
+    pub fn split_clip(&mut self, clip: ClipId, at: Time) -> Result<ClipId, TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        let c = self.tracks[t].clips[i];
+        if at <= c.start || at >= c.end() {
+            return Err(TimelineError::SplitOutside);
+        }
+        let cut = at.0 - c.start.0;
+        let source_start = c
+            .source_start
+            .0
+            .checked_add(cut)
+            .ok_or(TimelineError::TimeOverflow)?;
+        let id = ClipId(self.allocate_id());
+        let clips = &mut self.tracks[t].clips;
+        clips[i].duration = Time(cut);
+        let right = Clip {
+            id,
+            media: c.media,
+            source_start: Time(source_start),
+            start: at,
+            duration: Time(c.duration.0 - cut),
+        };
+        clips.insert(i + 1, right);
+        Ok(id)
     }
 
     /// Joins `right` into `left`: neighbours on one track (`left` ends where `right` starts),
     /// same media, and `right`'s source continues `left`'s. `left` keeps its id.
-    pub fn merge_clips(&mut self, _left: ClipId, _right: ClipId) -> Result<(), TimelineError> {
+    pub fn merge_clips(&mut self, left: ClipId, right: ClipId) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(left)?;
+        let (rt, j) = self.locate(right)?;
+        let clips = &mut self.tracks[t].clips;
+        let (l, r) = (clips[i], clips.get(j).copied().filter(|_| rt == t));
+        let continuous = |r: &Clip| {
+            j == i + 1
+                && l.end() == r.start
+                && l.media == r.media
+                && l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0)
+        };
+        let Some(r) = r.filter(continuous) else {
+            return Err(TimelineError::NotMergeable);
+        };
+        // Fits: it is r.end() - l.start, and r.end() fits.
+        clips[i].duration = Time(l.duration.0 + r.duration.0);
+        clips.remove(j);
         Ok(())
     }
 
@@ -242,19 +282,66 @@ impl Timeline {
     /// the same amount, so the frames under the rest of the clip stay put.
     // ponytail: no media-length check yet (P1-013 brings durations); the tail can grow past
     // the end of the media.
-    pub fn trim_clip(
-        &mut self,
-        _clip: ClipId,
-        _start: Time,
-        _end: Time,
-    ) -> Result<(), TimelineError> {
+    pub fn trim_clip(&mut self, clip: ClipId, start: Time, end: Time) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        let clips = &mut self.tracks[t].clips;
+        let c = clips[i];
+        if start.0 < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        if end <= start {
+            return Err(TimelineError::NonPositiveDuration);
+        }
+        // Both starts are non-negative, so the difference cannot overflow.
+        let source_start = c
+            .source_start
+            .0
+            .checked_add(start.0 - c.start.0)
+            .ok_or(TimelineError::TimeOverflow)?;
+        if source_start < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        if let Some(prev) = clips[..i].last().filter(|p| p.end() > start) {
+            return Err(TimelineError::Overlap(prev.id));
+        }
+        if let Some(next) = clips.get(i + 1).filter(|n| n.start < end) {
+            return Err(TimelineError::Overlap(next.id));
+        }
+        let trimmed = &mut clips[i];
+        trimmed.start = start;
+        trimmed.source_start = Time(source_start);
+        trimmed.duration = Time(end.0 - start.0);
         Ok(())
     }
 
     /// Copies a clip to right after itself on the same track (no ripple: refused with
     /// [`TimelineError::Overlap`] if that space is taken).
-    pub fn duplicate_clip(&mut self, _clip: ClipId) -> Result<ClipId, TimelineError> {
-        Err(TimelineError::NotMergeable)
+    pub fn duplicate_clip(&mut self, clip: ClipId) -> Result<ClipId, TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        let c = self.tracks[t].clips[i];
+        let copy = ClipPlacement {
+            media: c.media,
+            source_start: c.source_start,
+            start: c.end(),
+            duration: c.duration,
+        };
+        self.insert_clip(self.tracks[t].id, copy)
+    }
+
+    /// Track and clip index of `clip`.
+    // ponytail: linear scan over all clips, once per command; index by id if profiles show it.
+    fn locate(&self, clip: ClipId) -> Result<(usize, usize), TimelineError> {
+        self.tracks
+            .iter()
+            .enumerate()
+            .find_map(|(t, track)| {
+                track
+                    .clips
+                    .iter()
+                    .position(|c| c.id == clip)
+                    .map(|i| (t, i))
+            })
+            .ok_or(TimelineError::UnknownClip(clip))
     }
 
     /// End of the last clip on any track; zero when empty.
