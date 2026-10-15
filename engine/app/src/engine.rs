@@ -70,6 +70,7 @@ impl Engine {
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
+            command::Kind::SetAspectRatio(_) => Err("not implemented".to_owned()),
         }
     }
 
@@ -143,6 +144,8 @@ impl Engine {
                 duration: timeline.duration().0,
                 can_undo: self.history.can_undo(),
                 can_redo: self.history.can_redo(),
+                aspect_width: 0,
+                aspect_height: 0,
             })),
         }
     }

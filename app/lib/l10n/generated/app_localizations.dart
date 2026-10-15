@@ -151,6 +151,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No clips} =1{1 clip} other{{count} clips}}'**
   String clipCount(int count);
+
+  /// No description provided for @aspectRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'Aspect ratio'**
+  String get aspectRatio;
+
+  /// No description provided for @aspectRatioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{width}:{height}'**
+  String aspectRatioLabel(int width, int height);
 }
 
 class _AppLocalizationsDelegate

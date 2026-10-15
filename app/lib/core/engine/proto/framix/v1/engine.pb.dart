@@ -30,6 +30,7 @@ enum Command_Kind {
   newProject,
   saveProject,
   openProject,
+  setAspectRatio,
   notSet
 }
 
@@ -44,6 +45,7 @@ class Command extends $pb.GeneratedMessage {
     NewProject? newProject,
     SaveProject? saveProject,
     OpenProject? openProject,
+    SetAspectRatio? setAspectRatio,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -54,6 +56,7 @@ class Command extends $pb.GeneratedMessage {
     if (newProject != null) result.newProject = newProject;
     if (saveProject != null) result.saveProject = saveProject;
     if (openProject != null) result.openProject = openProject;
+    if (setAspectRatio != null) result.setAspectRatio = setAspectRatio;
     return result;
   }
 
@@ -75,13 +78,14 @@ class Command extends $pb.GeneratedMessage {
     6: Command_Kind.newProject,
     7: Command_Kind.saveProject,
     8: Command_Kind.openProject,
+    9: Command_Kind.setAspectRatio,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -98,6 +102,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: SaveProject.$_createMessage)
     ..aOM<OpenProject>(8, _omitFieldNames ? '' : 'openProject',
         subBuilder: OpenProject.$_createMessage)
+    ..aOM<SetAspectRatio>(9, _omitFieldNames ? '' : 'setAspectRatio',
+        subBuilder: SetAspectRatio.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -128,6 +134,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -137,6 +144,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -226,6 +234,17 @@ class Command extends $pb.GeneratedMessage {
   void clearOpenProject() => $_clearField(8);
   @$pb.TagNumber(8)
   OpenProject ensureOpenProject() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  SetAspectRatio get setAspectRatio => $_getN(8);
+  @$pb.TagNumber(9)
+  set setAspectRatio(SetAspectRatio value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasSetAspectRatio() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearSetAspectRatio() => $_clearField(9);
+  @$pb.TagNumber(9)
+  SetAspectRatio ensureSetAspectRatio() => $_ensure(8);
 }
 
 /// Appends an empty track.
@@ -670,6 +689,77 @@ class OpenProject extends $pb.GeneratedMessage {
   void clearPath() => $_clearField(1);
 }
 
+/// Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
+/// ratio lies between 1:3 and 3:1. Stored reduced (18:32 becomes 9:16).
+class SetAspectRatio extends $pb.GeneratedMessage {
+  factory SetAspectRatio({
+    $core.int? width,
+    $core.int? height,
+  }) {
+    final result = SetAspectRatio._();
+    if (width != null) result.width = width;
+    if (height != null) result.height = height;
+    return result;
+  }
+
+  SetAspectRatio._();
+
+  factory SetAspectRatio.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetAspectRatio()..mergeFromBuffer(data, registry);
+  factory SetAspectRatio.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetAspectRatio()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetAspectRatio',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SetAspectRatio.$_createMessage)
+    ..aI(1, _omitFieldNames ? '' : 'width', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetAspectRatio clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetAspectRatio copyWith(void Function(SetAspectRatio) updates) =>
+      super.copyWith((message) => updates(message as SetAspectRatio))
+          as SetAspectRatio;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SetAspectRatio() / SetAspectRatio.new instead')
+  static SetAspectRatio create() => SetAspectRatio._();
+  static $pb.GeneratedMessage $_createMessage() => SetAspectRatio._();
+  @$core.override
+  SetAspectRatio createEmptyInstance() => SetAspectRatio._();
+  @$core.pragma('dart2js:noInline')
+  static SetAspectRatio getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetAspectRatio>(
+          SetAspectRatio.$_createMessage);
+  static SetAspectRatio? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get width => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set width($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasWidth() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearWidth() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get height => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set height($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHeight() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHeight() => $_clearField(2);
+}
+
 enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }
 
 /// Sent by the engine. Exactly one kind is set.
@@ -784,12 +874,16 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $fixnum.Int64? duration,
     $core.bool? canUndo,
     $core.bool? canRedo,
+    $core.int? aspectWidth,
+    $core.int? aspectHeight,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
     if (duration != null) result.duration = duration;
     if (canUndo != null) result.canUndo = canUndo;
     if (canRedo != null) result.canRedo = canRedo;
+    if (aspectWidth != null) result.aspectWidth = aspectWidth;
+    if (aspectHeight != null) result.aspectHeight = aspectHeight;
     return result;
   }
 
@@ -811,6 +905,10 @@ class TimelineChanged extends $pb.GeneratedMessage {
     ..aInt64(2, _omitFieldNames ? '' : 'duration')
     ..aOB(3, _omitFieldNames ? '' : 'canUndo')
     ..aOB(4, _omitFieldNames ? '' : 'canRedo')
+    ..aI(5, _omitFieldNames ? '' : 'aspectWidth',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'aspectHeight',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -864,6 +962,25 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasCanRedo() => $_has(3);
   @$pb.TagNumber(4)
   void clearCanRedo() => $_clearField(4);
+
+  /// Canvas aspect ratio, reduced (9:16, 16:9, ...).
+  @$pb.TagNumber(5)
+  $core.int get aspectWidth => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set aspectWidth($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasAspectWidth() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAspectWidth() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get aspectHeight => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set aspectHeight($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasAspectHeight() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearAspectHeight() => $_clearField(6);
 }
 
 /// A track and its clips, sorted by start.

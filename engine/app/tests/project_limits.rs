@@ -11,6 +11,7 @@ fn file(tracks: Vec<SavedTrack>) -> Vec<u8> {
         format_version: 1,
         min_reader_version: 1,
         tracks,
+        ..Default::default()
     }
     .encode_to_vec()
 }
@@ -38,6 +39,7 @@ fn empty_or_unversioned_files_are_refused() {
         format_version: 0,
         min_reader_version: 0,
         tracks: vec![video(vec![clip(0)])],
+        ..Default::default()
     }
     .encode_to_vec();
     assert!(matches!(

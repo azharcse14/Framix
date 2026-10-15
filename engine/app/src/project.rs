@@ -43,6 +43,9 @@ pub enum ProjectError {
     /// More than [`MAX_TRACKS`], [`MAX_CLIPS`] or [`MAX_PROJECT_BYTES`].
     #[error("project too large")]
     TooLarge,
+    /// The aspect ratio is outside what the editor allows.
+    #[error("invalid aspect ratio")]
+    InvalidAspect,
     /// The clips break timeline rules (overlap, non-positive duration, ...).
     #[error("invalid project: {0}")]
     Invalid(#[from] TimelineError),
@@ -74,6 +77,8 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         format_version: FORMAT_VERSION,
         min_reader_version: MIN_READER_VERSION,
         tracks,
+        aspect_width: 0,
+        aspect_height: 0,
     }
     .encode_to_vec()
 }

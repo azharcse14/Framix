@@ -3,6 +3,7 @@
 //! Keyframes (P5-001) are not modelled yet. Clip-local times are relative to the clip, so
 //! keyframes added later stay valid when a clip moves.
 
+use crate::aspect::AspectRatio;
 use crate::time::Time;
 
 /// Stable id of a track within a timeline.
@@ -118,12 +119,13 @@ pub enum TimelineError {
 
 /// The editable timeline of a video project.
 ///
-/// `==` compares content (tracks and clips) only, not the id counter: two equal timelines
+/// `==` compares content (tracks, clips, aspect ratio) only, not the id counter: two equal timelines
 /// can hand out different ids next. Anything that restores a timeline (undo, load) must
 /// keep the counter ahead of every issued id.
 #[derive(Clone, Debug, Default)]
 pub struct Timeline {
     tracks: Vec<Track>,
+    aspect: AspectRatio,
     /// Last id handed out.
     next_id: u64,
 }
@@ -137,6 +139,14 @@ impl PartialEq for Timeline {
 impl Eq for Timeline {}
 
 impl Timeline {
+    /// Canvas aspect ratio.
+    pub fn aspect(&self) -> AspectRatio {
+        self.aspect
+    }
+
+    /// Sets the canvas aspect ratio.
+    pub fn set_aspect(&mut self, _aspect: AspectRatio) {}
+
     /// Tracks in display order.
     pub fn tracks(&self) -> &[Track] {
         &self.tracks

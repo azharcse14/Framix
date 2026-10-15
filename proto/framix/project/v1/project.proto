@@ -13,6 +13,9 @@ message ProjectFile {
   // Oldest reader version that can open it; newer files are refused, not misread.
   uint32 min_reader_version = 2;
   repeated SavedTrack tracks = 3;
+  // Canvas aspect ratio; 0:0 (files from before it existed) means the default 9:16.
+  uint32 aspect_width = 4;
+  uint32 aspect_height = 5;
 }
 
 // What a track carries. Separate from the UI contract's TrackKind so the file format

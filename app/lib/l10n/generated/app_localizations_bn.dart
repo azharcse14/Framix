@@ -48,4 +48,12 @@ class AppLocalizationsBn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get aspectRatio => 'অনুপাত';
+
+  @override
+  String aspectRatioLabel(int width, int height) {
+    return '$width:$height';
+  }
 }

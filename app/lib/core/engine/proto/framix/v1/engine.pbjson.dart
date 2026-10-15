@@ -106,6 +106,15 @@ const Command$json = {
       '9': 0,
       '10': 'openProject'
     },
+    {
+      '1': 'set_aspect_ratio',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SetAspectRatio',
+      '9': 0,
+      '10': 'setAspectRatio'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -121,8 +130,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'ZnJhbWl4LnYxLkdldFRpbWVsaW5lSABSC2dldFRpbWVsaW5lEjgKC25ld19wcm9qZWN0GAYgAS'
     'gLMhUuZnJhbWl4LnYxLk5ld1Byb2plY3RIAFIKbmV3UHJvamVjdBI7CgxzYXZlX3Byb2plY3QY'
     'ByABKAsyFi5mcmFtaXgudjEuU2F2ZVByb2plY3RIAFILc2F2ZVByb2plY3QSOwoMb3Blbl9wcm'
-    '9qZWN0GAggASgLMhYuZnJhbWl4LnYxLk9wZW5Qcm9qZWN0SABSC29wZW5Qcm9qZWN0QgYKBGtp'
-    'bmQ=');
+    '9qZWN0GAggASgLMhYuZnJhbWl4LnYxLk9wZW5Qcm9qZWN0SABSC29wZW5Qcm9qZWN0EkUKEHNl'
+    'dF9hc3BlY3RfcmF0aW8YCSABKAsyGS5mcmFtaXgudjEuU2V0QXNwZWN0UmF0aW9IAFIOc2V0QX'
+    'NwZWN0UmF0aW9CBgoEa2luZA==');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -219,6 +229,20 @@ const OpenProject$json = {
 final $typed_data.Uint8List openProjectDescriptor =
     $convert.base64Decode('CgtPcGVuUHJvamVjdBISCgRwYXRoGAEgASgJUgRwYXRo');
 
+@$core.Deprecated('Use setAspectRatioDescriptor instead')
+const SetAspectRatio$json = {
+  '1': 'SetAspectRatio',
+  '2': [
+    {'1': 'width', '3': 1, '4': 1, '5': 13, '10': 'width'},
+    {'1': 'height', '3': 2, '4': 1, '5': 13, '10': 'height'},
+  ],
+};
+
+/// Descriptor for `SetAspectRatio`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setAspectRatioDescriptor = $convert.base64Decode(
+    'Cg5TZXRBc3BlY3RSYXRpbxIUCgV3aWR0aBgBIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAIgASgNUg'
+    'ZoZWlnaHQ=');
+
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {
   '1': 'Event',
@@ -278,6 +302,8 @@ const TimelineChanged$json = {
     {'1': 'duration', '3': 2, '4': 1, '5': 3, '10': 'duration'},
     {'1': 'can_undo', '3': 3, '4': 1, '5': 8, '10': 'canUndo'},
     {'1': 'can_redo', '3': 4, '4': 1, '5': 8, '10': 'canRedo'},
+    {'1': 'aspect_width', '3': 5, '4': 1, '5': 13, '10': 'aspectWidth'},
+    {'1': 'aspect_height', '3': 6, '4': 1, '5': 13, '10': 'aspectHeight'},
   ],
 };
 
@@ -285,7 +311,8 @@ const TimelineChanged$json = {
 final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'Cg9UaW1lbGluZUNoYW5nZWQSKAoGdHJhY2tzGAEgAygLMhAuZnJhbWl4LnYxLlRyYWNrUgZ0cm'
     'Fja3MSGgoIZHVyYXRpb24YAiABKANSCGR1cmF0aW9uEhkKCGNhbl91bmRvGAMgASgIUgdjYW5V'
-    'bmRvEhkKCGNhbl9yZWRvGAQgASgIUgdjYW5SZWRv');
+    'bmRvEhkKCGNhbl9yZWRvGAQgASgIUgdjYW5SZWRvEiEKDGFzcGVjdF93aWR0aBgFIAEoDVILYX'
+    'NwZWN0V2lkdGgSIwoNYXNwZWN0X2hlaWdodBgGIAEoDVIMYXNwZWN0SGVpZ2h0');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {

@@ -76,6 +76,7 @@ fn file(min_reader_version: u32, tracks: Vec<SavedTrack>) -> Vec<u8> {
         format_version: min_reader_version.max(1),
         min_reader_version,
         tracks,
+        ..Default::default()
     }
     .encode_to_vec()
 }
