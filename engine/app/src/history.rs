@@ -58,7 +58,10 @@ impl History {
         let Some(previous) = from.pop() else {
             return false;
         };
-        to.push(std::mem::replace(current, previous));
+        let replaced = std::mem::replace(current, previous);
+        // Ids only go forward, even when the content goes back (P1-043).
+        current.keep_ids_newer_than(&replaced);
+        to.push(replaced);
         true
     }
 }

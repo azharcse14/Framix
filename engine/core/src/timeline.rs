@@ -117,11 +117,20 @@ pub enum TimelineError {
 }
 
 /// The editable timeline of a video project.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default)]
 pub struct Timeline {
     tracks: Vec<Track>,
+    /// Last id handed out. Not content: equality ignores it.
     next_id: u64,
 }
+
+impl PartialEq for Timeline {
+    fn eq(&self, other: &Self) -> bool {
+        self.tracks == other.tracks
+    }
+}
+
+impl Eq for Timeline {}
 
 impl Timeline {
     /// Tracks in display order.
@@ -195,6 +204,12 @@ impl Timeline {
             .filter_map(|t| t.clips.last().map(Clip::end))
             .max()
             .unwrap_or(Time(0))
+    }
+
+    /// Makes every id this timeline hands out from now on newer than any id `other`
+    /// handed out. Undo uses it so a restored snapshot never reissues an id.
+    pub fn keep_ids_newer_than(&mut self, other: &Timeline) {
+        self.next_id = self.next_id.max(other.next_id);
     }
 
     fn allocate_id(&mut self) -> u64 {
