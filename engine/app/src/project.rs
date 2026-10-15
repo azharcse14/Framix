@@ -25,6 +25,15 @@ pub enum ProjectError {
     /// A track kind this engine does not know.
     #[error("unknown track kind {0}")]
     UnknownTrackKind(i32),
+    /// No format version: an empty or truncated file, not a project.
+    #[error("project file has no format version")]
+    MissingVersion,
+    /// A track's clips are not in ascending start order (the encoder always sorts them).
+    #[error("clips out of order")]
+    Unsorted,
+    /// More tracks or clips than [`MAX_TRACKS`] / [`MAX_CLIPS`].
+    #[error("project too large")]
+    TooLarge,
     /// The clips break timeline rules (overlap, non-positive duration, ...).
     #[error("invalid project: {0}")]
     Invalid(#[from] TimelineError),
@@ -87,3 +96,8 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
     }
     Ok(timeline)
 }
+
+/// Most tracks a project file may hold.
+pub const MAX_TRACKS: usize = 0;
+/// Most clips (all tracks together) a project file may hold.
+pub const MAX_CLIPS: usize = 0;
