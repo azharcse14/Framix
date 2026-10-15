@@ -929,6 +929,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [ ] `DS-006` Material You (dynamic color), Android 12+ (optional): shudhu accent preset hishebe, surface e na, Editor e kokhono na; contrast check fail korle fallback \[Dart\]
 - [ ] `DS-007` Notun theme mane screenshot test, contrast check, icon duita version, tai pura custom background theme pore \[—\]
 - [ ] `DS-008` bn locale e screenshot test: button, chip, tab, toolbar label e Bangla upore-niche kata jacche kina \[Dart\]
+- [ ] `DS-009` OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md \[Dart\]
 
 **Font**
 
@@ -1038,7 +1039,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 
 - [ ] `ENG-001` Routing: go\_router (Navigator 2.0 based, deep link ready) \[Dart\]
 - [ ] `ENG-002` State management: Bloc (flutter\_bloc, bloc\_concurrency, hydrated\_bloc); dependency injection: get\_it \[Dart\]
-- [ ] `ENG-003` UI state engine er event theke mirror hobe; source of truth Rust e \[Dart\]\[Rust\]
+- [x] `ENG-003` UI state engine er event theke mirror hobe; source of truth Rust e \[Dart\]\[Rust\]
 - [ ] `ENG-004` Reusable bottom sheet/panel component (shob tool panel er jonno) \[Dart\]
 
 **Timeline ar time**
@@ -1111,6 +1112,8 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-046` Project file schema o eki niyom: notun field optional ar thik default; protita purono version er fixture project diye migration test \[Rust\]
 - [ ] `ENG-047` Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe \[Rust\]
 - [x] `ENG-048` time proptest gula unwrap kore dhore ney je ±1e9 frame shob rate e i64 e fit kore; dhire rate (jemon 1/14 fps) e overflow hoy ar code thik vabe None dey. Test e representable range e prop_assume \[Rust\]
+- [ ] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
+- [ ] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]
 
 **Security**
 
