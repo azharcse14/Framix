@@ -8,6 +8,7 @@ class FramixColors extends ThemeExtension<FramixColors> {
     required this.surface,
     required this.elevated,
     required this.border,
+    required this.outline,
     required this.textMuted,
     required this.text,
     required this.accentFill,
@@ -23,6 +24,7 @@ class FramixColors extends ThemeExtension<FramixColors> {
     surface: Color(0xFF17171B),
     elevated: Color(0xFF222228),
     border: Color(0xFF2E2E36),
+    outline: Color(0xFF2E2E36),
     textMuted: Color(0xFF9A9AA5),
     text: Color(0xFFF4F4F6),
     accentFill: Color(0xFF6E4CF5),
@@ -37,6 +39,10 @@ class FramixColors extends ThemeExtension<FramixColors> {
   final Color surface;
   final Color elevated;
   final Color border;
+
+  /// Boundary of interactive controls (outlined button, chip, canvas edge); 3:1 on
+  /// background, surface and elevated. [border] is for decorative dividers only.
+  final Color outline;
   final Color textMuted;
   final Color text;
   final Color accentFill;
