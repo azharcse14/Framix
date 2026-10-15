@@ -105,6 +105,8 @@ pub enum TimelineError {
     TimeOverflow,
     #[error("clip overlaps clip {0:?}")]
     Overlap(ClipId),
+    #[error("clip start and source offset must not be negative")]
+    NegativeTime,
 }
 
 /// The editable timeline of a video project.

@@ -1,1 +1,1 @@
-- [Review patterns](review_patterns.md) — recurring findings: scope creep, safe extern fns deref'ing pointers, stub-passing tests, constructor domain > invariants
+- [Review patterns](review_patterns.md) — recurring: scope creep, safe extern fns deref ptrs, stub-passing tests, wide constructor domain, pub-field invariants, vacuous proptests

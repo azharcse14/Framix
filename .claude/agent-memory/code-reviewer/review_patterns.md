@@ -20,3 +20,9 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
 - Constructors accept a wider domain than the invariants hold for; proptests only sample the narrow "sane" range, so the gap is invisible. ENG-005: Rate::new allowed num > den*TICKS_PER_SECOND, breaking monotonic/round-trip; a frozen test even used such a rate.
   **Why:** frozen tests then lock in the invalid value, so the proper fix needs user approval.
   **How to apply:** for every validating constructor, check the property-test ranges cover the full accepted domain; compute a counterexample at the boundary.
+  Seen again P1-014: insert_clip accepted negative start/source_start, so Timeline::duration() could go negative (testing.md "durations never negative").
+
+- Pub-field structs whose methods rely on an invariant "checked at insert" (P1-014 Clip::end assumes start+duration fits). External code can build the struct literally and break it; release has no overflow-checks.
+  **How to apply:** suggest `#[non_exhaustive]` (keeps pub reads, blocks outside literals, does not break frozen tests that read fields).
+
+- Proptests that drop results (`let _ = op(...)`) and only check invariants pass trivially if the op rejects everything; ask for an Ok-iff-model check in a new test.
