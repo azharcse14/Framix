@@ -80,10 +80,8 @@ ThemeData framixDarkTheme() {
     scaffoldBackgroundColor: c.background,
     // Accent belongs to the one primary action; secondary actions stay neutral.
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: c.text,
-        side: BorderSide(color: c.border),
-      ),
+      // Outline comes from ColorScheme.outline (border), keeping the M3 disabled side.
+      style: OutlinedButton.styleFrom(foregroundColor: c.text),
     ),
     extensions: const [c],
   );
