@@ -75,6 +75,7 @@ impl Engine {
                         duration: c.duration.0,
                     })
                     .collect(),
+                number: 0,
             })
             .collect();
         Event {

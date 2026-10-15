@@ -633,11 +633,13 @@ class Track extends $pb.GeneratedMessage {
     $fixnum.Int64? id,
     TrackKind? kind,
     $core.Iterable<Clip>? clips,
+    $core.int? number,
   }) {
     final result = Track._();
     if (id != null) result.id = id;
     if (kind != null) result.kind = kind;
     if (clips != null) result.clips.addAll(clips);
+    if (number != null) result.number = number;
     return result;
   }
 
@@ -660,6 +662,7 @@ class Track extends $pb.GeneratedMessage {
         enumValues: TrackKind.values)
     ..pPM<Clip>(3, _omitFieldNames ? '' : 'clips',
         subBuilder: Clip.$_createMessage)
+    ..aI(4, _omitFieldNames ? '' : 'number', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -702,6 +705,16 @@ class Track extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $pb.PbList<Clip> get clips => $_getList(2);
+
+  /// 1-based position among tracks of the same kind (Video 1, Video 2, Audio 1).
+  @$pb.TagNumber(4)
+  $core.int get number => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set number($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasNumber() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearNumber() => $_clearField(4);
 }
 
 /// A clip on a track.

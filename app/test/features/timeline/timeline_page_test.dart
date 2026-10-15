@@ -50,4 +50,17 @@ void main() {
     await pumpUntil(tester, find.text(bn.audioTrackName(1)));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('tracks are numbered per kind by the engine', (tester) async {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    await tester.pumpWidget(
+      FramixApp(engine: engine, locale: const Locale('en')),
+    );
+    await tester.tap(find.text(l10n.addAudioTrack));
+    await pumpUntil(tester, find.text(l10n.audioTrackName(1)));
+    await tester.tap(find.text(l10n.addVideoTrack));
+    await pumpUntil(tester, find.byIcon(Icons.videocam).at(1));
+    expect(find.text(l10n.videoTrackName(1)), findsOneWidget);
+    expect(find.text(l10n.videoTrackName(2)), findsNothing);
+  });
 }

@@ -234,13 +234,15 @@ const Track$json = {
       '6': '.framix.v1.Clip',
       '10': 'clips'
     },
+    {'1': 'number', '3': 4, '4': 1, '5': 13, '10': 'number'},
   ],
 };
 
 /// Descriptor for `Track`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackDescriptor = $convert.base64Decode(
     'CgVUcmFjaxIOCgJpZBgBIAEoBFICaWQSKAoEa2luZBgCIAEoDjIULmZyYW1peC52MS5UcmFja0'
-    'tpbmRSBGtpbmQSJQoFY2xpcHMYAyADKAsyDy5mcmFtaXgudjEuQ2xpcFIFY2xpcHM=');
+    'tpbmRSBGtpbmQSJQoFY2xpcHMYAyADKAsyDy5mcmFtaXgudjEuQ2xpcFIFY2xpcHMSFgoGbnVt'
+    'YmVyGAQgASgNUgZudW1iZXI=');
 
 @$core.Deprecated('Use clipDescriptor instead')
 const Clip$json = {

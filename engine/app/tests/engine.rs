@@ -113,3 +113,19 @@ fn get_timeline_reports_state_without_an_undo_step() {
     assert!(!t.can_undo);
     assert!(t.can_redo, "GetTimeline must not drop the redo step");
 }
+
+#[test]
+fn tracks_are_numbered_per_kind() {
+    let mut engine = Engine::default();
+    let add = |engine: &mut Engine, kind: TrackKind| {
+        changed(run(
+            engine,
+            command::Kind::AddTrack(AddTrack { kind: kind as i32 }),
+        ))
+    };
+    add(&mut engine, TrackKind::Audio);
+    add(&mut engine, TrackKind::Video);
+    let t = add(&mut engine, TrackKind::Video);
+    let numbers: Vec<u32> = t.tracks.iter().map(|t| t.number).collect();
+    assert_eq!(numbers, [1, 1, 2]);
+}

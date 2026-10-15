@@ -67,6 +67,8 @@ message Track {
   uint64 id = 1;
   TrackKind kind = 2;
   repeated Clip clips = 3;
+  // 1-based position among tracks of the same kind (Video 1, Video 2, Audio 1).
+  uint32 number = 4;
 }
 
 // A clip on a track.
