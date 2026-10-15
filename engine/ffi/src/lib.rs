@@ -1,4 +1,11 @@
-//! C ABI boundary of the Framix engine.
+//! C ABI boundary of the Framix engine: decode command -> `framix_app` -> encode event.
+
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::thread::JoinHandle;
+
+use framix_app::engine::command_failed;
+use framix_app::proto::{Command, Event};
+use prost::Message as _;
 
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;
@@ -19,9 +26,15 @@ pub const ENGINE_PROTOCOL_VERSION: u32 = 1;
 /// with [`engine_free_buffer`]. Called on the engine thread.
 pub type EngineEventCallback = Option<unsafe extern "C" fn(ptr: *mut u8, len: usize)>;
 
-/// Opaque engine instance.
+/// Opaque engine instance: a channel into the engine thread.
 pub struct Engine {
-    _private: (),
+    messages: Sender<EngineMessage>,
+    thread: JoinHandle<()>,
+}
+
+enum EngineMessage {
+    Command(Vec<u8>),
+    SetCallback(EngineEventCallback),
 }
 
 /// Creates an engine if `protocol_version` matches [`ENGINE_PROTOCOL_VERSION`] and writes it
@@ -31,8 +44,26 @@ pub struct Engine {
 /// `out` must be null or valid for one pointer write.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_create(protocol_version: u32, out: *mut *mut Engine) -> i32 {
-    let _ = (protocol_version, out);
-    ENGINE_OK
+    ffi_guard(|| {
+        if out.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        // SAFETY: `out` is non-null and, per the contract, valid for a pointer write.
+        unsafe { *out = std::ptr::null_mut() };
+        if protocol_version != ENGINE_PROTOCOL_VERSION {
+            return ENGINE_ERR_PROTOCOL;
+        }
+        let (messages, inbox) = channel();
+        let Ok(thread) = std::thread::Builder::new()
+            .name("framix-engine".into())
+            .spawn(move || run_engine(inbox))
+        else {
+            return ENGINE_ERR_STOPPED;
+        };
+        // SAFETY: as above.
+        unsafe { *out = Box::into_raw(Box::new(Engine { messages, thread })) };
+        ENGINE_OK
+    })
 }
 
 /// Sets where events go. Events produced while no callback is set are dropped.
@@ -45,8 +76,13 @@ pub unsafe extern "C" fn engine_set_event_callback(
     engine: *const Engine,
     callback: EngineEventCallback,
 ) -> i32 {
-    let _ = (engine, callback);
-    ENGINE_OK
+    // SAFETY: per the contract, a non-null `engine` is live.
+    ffi_guard(|| {
+        post(
+            unsafe { engine.as_ref() },
+            EngineMessage::SetCallback(callback),
+        )
+    })
 }
 
 /// Queues one encoded `framix.v1.Command`. Copies the bytes and returns at once; the
@@ -57,8 +93,18 @@ pub unsafe extern "C" fn engine_set_event_callback(
 /// for `len` reads (or null with `len == 0`).
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_send(engine: *const Engine, bytes: *const u8, len: usize) -> i32 {
-    let _ = (engine, bytes, len);
-    ENGINE_OK
+    ffi_guard(|| {
+        let command = if len == 0 {
+            Vec::new()
+        } else if bytes.is_null() {
+            return ENGINE_ERR_NULL;
+        } else {
+            // SAFETY: per the contract, `bytes` is valid for `len` reads.
+            unsafe { std::slice::from_raw_parts(bytes, len) }.to_vec()
+        };
+        // SAFETY: per the contract, a non-null `engine` is live.
+        post(unsafe { engine.as_ref() }, EngineMessage::Command(command))
+    })
 }
 
 /// Stops the engine thread after it finishes queued commands, then frees the engine.
@@ -68,8 +114,59 @@ pub unsafe extern "C" fn engine_send(engine: *const Engine, bytes: *const u8, le
 /// during or after this one.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_destroy(engine: *mut Engine) -> i32 {
-    let _ = engine;
-    ENGINE_OK
+    ffi_guard(|| {
+        if engine.is_null() {
+            return ENGINE_OK;
+        }
+        // SAFETY: per the contract, `engine` came from engine_create (Box::into_raw) and
+        // nothing else uses it, so ownership returns here exactly once.
+        let Engine { messages, thread } = *unsafe { Box::from_raw(engine) };
+        drop(messages); // Closing the channel ends the engine loop after queued commands.
+        match thread.join() {
+            Ok(()) => ENGINE_OK,
+            Err(_) => ENGINE_ERR_PANIC,
+        }
+    })
+}
+
+fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
+    let Some(engine) = engine else {
+        return ENGINE_ERR_NULL;
+    };
+    match engine.messages.send(message) {
+        Ok(()) => ENGINE_OK,
+        Err(_) => ENGINE_ERR_STOPPED,
+    }
+}
+
+/// The engine thread: answers every command with one event, in order.
+fn run_engine(inbox: Receiver<EngineMessage>) {
+    let mut engine = framix_app::engine::Engine::default();
+    let mut callback: EngineEventCallback = None;
+    for message in inbox {
+        match message {
+            EngineMessage::SetCallback(new) => callback = new,
+            EngineMessage::Command(bytes) => {
+                let event = answer(&mut engine, &bytes);
+                if let Some(deliver) = callback {
+                    let buf = EngineBuffer::from_vec(event.encode_to_vec());
+                    // SAFETY: engine_set_event_callback's contract keeps `deliver` callable
+                    // until engine_destroy, which joins this thread first.
+                    unsafe { deliver(buf.ptr, buf.len) };
+                }
+            }
+        }
+    }
+}
+
+fn answer(engine: &mut framix_app::engine::Engine, bytes: &[u8]) -> Event {
+    let Ok(command) = Command::decode(bytes) else {
+        return command_failed("undecodable command");
+    };
+    // A panic in one command becomes an event instead of killing the engine thread.
+    // History::apply edits a copy, so a panicking edit leaves the timeline as it was.
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.handle(command)))
+        .unwrap_or_else(|_| command_failed("internal error"))
 }
 
 /// Runs `f`, turning a panic into [`ENGINE_ERR_PANIC`]. Every exported fn goes through this.

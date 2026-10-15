@@ -40,7 +40,7 @@
 #define ENGINE_PROTOCOL_VERSION 1
 
 /**
- * Opaque engine instance.
+ * Opaque engine instance: a channel into the engine thread.
  */
 typedef struct Engine Engine;
 

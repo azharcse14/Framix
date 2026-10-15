@@ -45,12 +45,12 @@ impl History {
 
     /// Whether [`History::undo`] would do anything.
     pub fn can_undo(&self) -> bool {
-        false
+        !self.undo.is_empty()
     }
 
     /// Whether [`History::redo`] would do anything.
     pub fn can_redo(&self) -> bool {
-        false
+        !self.redo.is_empty()
     }
 
     /// Reverts the last applied step. Returns `false` when there is nothing to undo.
