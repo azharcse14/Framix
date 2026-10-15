@@ -60,3 +60,8 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
 - Reviewer memory written to app/.claude/agent-memory/ when a run's cwd was app/ (found untracked 2026-10-15). Always write memory by absolute path under the repo-root .claude/; flag stray copies so they are not committed. Still untracked at ENG-049 review (2026-10-15): implementer runs flutter from app/, so it recurs; ask the implementer to delete it. Still there at TC-005 (2026-10-15).
 
 - Overlapping tooling tasks: security/dependency tooling (cargo audit, cargo-deny, lockfile cooldown) is split across TC-003, TC-005, SEC-028, GOT-006. When one lands a piece, ask for task.py notes on the others so it is not rebuilt.
+
+- Warning-gate scripts (TC-006 native_warnings.sh): check the allowlist for summary lines that stand in for many warnings. Gradle's default warning-mode is summary, so allowlisting "Deprecated Gradle features were used" hides every Gradle API deprecation, ours included; require `--warning-mode all` / org.gradle.warning.mode=all. Also check `grep ... || true` does not swallow grep exit 2 (bad regex = silent pass), and that a build failure prints the log before the trap deletes it.
+  TC-006 re-review: ~/.gradle/gradle.properties and GRADLE_OPTS override the project file, so a dev-machine warning.mode=none silently passes the gate.
+
+- User rewrites main history (trailer strip, 2026-10-15; backup/main-before-* branches). Branches forked before that have NO merge base with main (`git diff main...HEAD` fails). Check `git merge-base main HEAD` first; if empty, find the old fork commit with an identical tree on main and ask for `git rebase --onto main <old-fork>`.

@@ -295,6 +295,10 @@
     {
      "date": "2026-10-15",
      "text": "app/ uses Gradle 9.3.1 / AGP 9.1.0 from flutter create; align with docs/toolchain.md (Gradle 9.6.0)"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Gradle 9.6.0 / AGP 9.4.0 pinned in TC-006; distributionSha256Sum still open"
     }
    ],
    "source": "plan"
@@ -379,12 +383,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "38aee26",
+   "branch": "tc-006-warning-zero",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Allowlist tuned on Xcode 17C52/iOS 26.2 SDK and JDK 17, not the pinned Xcode 27.1/JDK 21; recheck the JVM restricted-method lines on the pinned toolchain"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -11621,7 +11630,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Run scripts/native_warnings.sh in CI (TC-006 gate; also add a release build there)"
+    }
+   ],
    "source": "plan"
   },
   {
