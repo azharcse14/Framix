@@ -757,6 +757,10 @@
     {
      "date": "2026-10-15",
      "text": "iOS part works on the simulator (branch p1-001-ios-texture-spike, SPIKE, off main): IOSurface CVPixelBuffer as FlutterTexture + MTLTexture on the same IOSurface, wgpu draws via wgpu-hal, no CPU copy. Pending: real iPhone, Android HardwareBuffer path, an IOSurface-backed host test. Known spike limits: single frame (continuous preview needs double buffering or MTLSharedEvent sync), textures never unregistered."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "iOS zero-copy confirmed on the host too: engine/render/tests/iosurface_wrap.rs (IOSurface-backed texture, pixels read from the IOSurface). Remaining: Android half, real iPhone check."
     }
    ],
    "source": "plan"
