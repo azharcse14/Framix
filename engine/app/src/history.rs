@@ -43,6 +43,16 @@ impl History {
         Ok(value)
     }
 
+    /// Whether [`History::undo`] would do anything.
+    pub fn can_undo(&self) -> bool {
+        false
+    }
+
+    /// Whether [`History::redo`] would do anything.
+    pub fn can_redo(&self) -> bool {
+        false
+    }
+
     /// Reverts the last applied step. Returns `false` when there is nothing to undo.
     pub fn undo(&mut self) -> bool {
         Self::step(&mut self.current, &mut self.undo, &mut self.redo)

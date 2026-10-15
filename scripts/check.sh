@@ -45,15 +45,16 @@ if [ -f app/pubspec.yaml ] && touched app/; then
 fi
 
 # Generated FFI code must match its sources (header from engine/ffi, Dart from the header).
-if touched engine/ || touched app/; then
+if touched engine/ || touched app/ || touched proto/; then
   run scripts/gen_ffi.sh
-  run git diff --exit-code -- engine/ffi/include app/lib/core/engine/engine_bindings.g.dart
+  run git diff --exit-code -- engine/ffi/include app/lib/core/engine/engine_bindings.g.dart app/lib/core/engine/proto
 fi
 
 # Protobuf contract
 if [ -f proto/buf.yaml ] && touched proto/; then
   run_in proto buf lint
-  if git rev-parse --verify main >/dev/null 2>&1; then
+  # Compare with main only once main has a contract to break.
+  if git cat-file -e main:proto/buf.yaml 2>/dev/null; then
     run buf breaking proto --against '.git#branch=main,subdir=proto'
   fi
 fi

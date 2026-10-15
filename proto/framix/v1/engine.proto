@@ -1,0 +1,80 @@
+// Command/event contract between the Flutter UI and the Rust engine.
+// Times are integer ticks (705,600,000 per second, engine core::time). Never reuse or
+// renumber a field; reserve removed ones. Bump ENGINE_PROTOCOL_VERSION on contract changes.
+syntax = "proto3";
+
+package framix.v1;
+
+// Sent by the UI. Exactly one kind is set.
+message Command {
+  oneof kind {
+    AddTrack add_track = 1;
+    InsertClip insert_clip = 2;
+    Undo undo = 3;
+    Redo redo = 4;
+  }
+}
+
+// What a track carries.
+enum TrackKind {
+  TRACK_KIND_UNSPECIFIED = 0;
+  TRACK_KIND_VIDEO = 1;
+  TRACK_KIND_AUDIO = 2;
+}
+
+// Appends an empty track.
+message AddTrack {
+  TrackKind kind = 1;
+}
+
+// Places a clip on a track; fails if it would overlap another clip.
+message InsertClip {
+  uint64 track_id = 1;
+  uint64 media_id = 2;
+  int64 source_start = 3;
+  int64 start = 4;
+  int64 duration = 5;
+}
+
+// Reverts the last edit.
+message Undo {}
+
+// Re-applies the last undone edit.
+message Redo {}
+
+// Sent by the engine. Exactly one kind is set.
+message Event {
+  oneof kind {
+    TimelineChanged timeline_changed = 1;
+    CommandFailed command_failed = 2;
+  }
+}
+
+// Full timeline state after a successful command.
+message TimelineChanged {
+  repeated Track tracks = 1;
+  int64 duration = 2;
+  bool can_undo = 3;
+  bool can_redo = 4;
+}
+
+// A track and its clips, sorted by start.
+message Track {
+  uint64 id = 1;
+  TrackKind kind = 2;
+  repeated Clip clips = 3;
+}
+
+// A clip on a track.
+message Clip {
+  uint64 id = 1;
+  uint64 media_id = 2;
+  int64 source_start = 3;
+  int64 start = 4;
+  int64 duration = 5;
+}
+
+// A command was rejected; the timeline is unchanged.
+message CommandFailed {
+  string reason = 1;
+}

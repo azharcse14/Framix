@@ -20,6 +20,37 @@
 #define ENGINE_ERR_PANIC -1
 
 /**
+ * The engine handle or an argument pointer was null.
+ */
+#define ENGINE_ERR_NULL -2
+
+/**
+ * `engine_create` got a protocol version this engine does not speak.
+ */
+#define ENGINE_ERR_PROTOCOL -3
+
+/**
+ * The engine thread has stopped; the handle only accepts `engine_destroy`.
+ */
+#define ENGINE_ERR_STOPPED -4
+
+/**
+ * Version of the command/event contract (proto/framix/v1/engine.proto).
+ */
+#define ENGINE_PROTOCOL_VERSION 1
+
+/**
+ * Opaque engine instance.
+ */
+typedef struct Engine Engine;
+
+/**
+ * Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
+ * with [`engine_free_buffer`]. Called on the engine thread.
+ */
+typedef void (*EngineEventCallback)(uint8_t *ptr, size_t len);
+
+/**
  * Rust-owned bytes handed across the boundary; release with [`engine_free_buffer`].
  */
 typedef struct EngineBuffer {
@@ -32,6 +63,43 @@ typedef struct EngineBuffer {
    */
   size_t len;
 } EngineBuffer;
+
+/**
+ * Creates an engine if `protocol_version` matches [`ENGINE_PROTOCOL_VERSION`] and writes it
+ * to `*out`.
+ *
+ * # Safety
+ * `out` must be null or valid for one pointer write.
+ */
+int32_t engine_create(uint32_t protocol_version, struct Engine **out);
+
+/**
+ * Sets where events go. Events produced while no callback is set are dropped.
+ *
+ * # Safety
+ * `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
+ * callable until [`engine_destroy`] returns.
+ */
+int32_t engine_set_event_callback(const struct Engine *engine, EngineEventCallback callback);
+
+/**
+ * Queues one encoded `framix.v1.Command`. Copies the bytes and returns at once; the
+ * engine thread answers with exactly one event.
+ *
+ * # Safety
+ * `engine` must come from [`engine_create`] and not be destroyed; `bytes` must be valid
+ * for `len` reads (or null with `len == 0`).
+ */
+int32_t engine_send(const struct Engine *engine, const uint8_t *bytes, size_t len);
+
+/**
+ * Stops the engine thread after it finishes queued commands, then frees the engine.
+ *
+ * # Safety
+ * `engine` must be null or come from [`engine_create`], and no other call may use it
+ * during or after this one.
+ */
+int32_t engine_destroy(struct Engine *engine);
 
 /**
  * Frees a buffer from [`EngineBuffer::from_vec`]. A null buffer is a no-op.

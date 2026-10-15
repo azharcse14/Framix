@@ -9,6 +9,25 @@ library;
 
 import 'dart:ffi' as ffi;
 
+/// Creates an engine if `protocol_version` matches [`ENGINE_PROTOCOL_VERSION`] and writes it
+/// to `*out`.
+///
+/// # Safety
+/// `out` must be null or valid for one pointer write.
+@ffi.Native<ffi.Int32 Function(ffi.Uint32, ffi.Pointer<ffi.Pointer<Engine>>)>()
+external int engine_create(
+  int protocol_version,
+  ffi.Pointer<ffi.Pointer<Engine>> out,
+);
+
+/// Stops the engine thread after it finishes queued commands, then frees the engine.
+///
+/// # Safety
+/// `engine` must be null or come from [`engine_create`], and no other call may use it
+/// during or after this one.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<Engine>)>()
+external int engine_destroy(ffi.Pointer<Engine> engine);
+
 /// Frees a buffer from [`EngineBuffer::from_vec`]. A null buffer is a no-op.
 ///
 /// # Safety
@@ -17,9 +36,45 @@ import 'dart:ffi' as ffi;
 @ffi.Native<ffi.Int32 Function(EngineBuffer)>()
 external int engine_free_buffer(EngineBuffer buf);
 
+/// Queues one encoded `framix.v1.Command`. Copies the bytes and returns at once; the
+/// engine thread answers with exactly one event.
+///
+/// # Safety
+/// `engine` must come from [`engine_create`] and not be destroyed; `bytes` must be valid
+/// for `len` reads (or null with `len == 0`).
+@ffi.Native<
+  ffi.Int32 Function(ffi.Pointer<Engine>, ffi.Pointer<ffi.Uint8>, ffi.Size)
+>()
+external int engine_send(
+  ffi.Pointer<Engine> engine,
+  ffi.Pointer<ffi.Uint8> bytes,
+  int len,
+);
+
+/// Sets where events go. Events produced while no callback is set are dropped.
+///
+/// # Safety
+/// `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
+/// callable until [`engine_destroy`] returns.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<Engine>, EngineEventCallback)>()
+external int engine_set_event_callback(
+  ffi.Pointer<Engine> engine,
+  EngineEventCallback callback,
+);
+
+const int ENGINE_ERR_NULL = -2;
+
 const int ENGINE_ERR_PANIC = -1;
 
+const int ENGINE_ERR_PROTOCOL = -3;
+
+const int ENGINE_ERR_STOPPED = -4;
+
 const int ENGINE_OK = 0;
+
+const int ENGINE_PROTOCOL_VERSION = 1;
+
+final class Engine extends ffi.Opaque {}
 
 /// Rust-owned bytes handed across the boundary; release with [`engine_free_buffer`].
 final class EngineBuffer extends ffi.Struct {
@@ -38,3 +93,16 @@ final class EngineBuffer extends ffi.Struct {
     ..ref.ptr = ptr
     ..ref.len = len;
 }
+
+/// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
+/// with [`engine_free_buffer`]. Called on the engine thread.
+typedef EngineEventCallback =
+    ffi.Pointer<ffi.NativeFunction<EngineEventCallbackFunction>>;
+typedef EngineEventCallbackFunction = ffi.Void Function(
+  ffi.Pointer<ffi.Uint8> ptr,
+  ffi.Size len,
+);
+typedef DartEngineEventCallbackFunction = void Function(
+  ffi.Pointer<ffi.Uint8> ptr,
+  int len,
+);

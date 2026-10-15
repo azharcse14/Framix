@@ -6,6 +6,12 @@ publish.workspace = true
 
 [dependencies]
 framix_core = { path = "../core" }
+prost = "0.14.4"
+
+[build-dependencies]
+# protox compiles the .proto in pure Rust, so app builds (Xcode, Gradle) need no protoc.
+prost-build = "0.14.4"
+protox = "0.9.1"
 
 [dev-dependencies]
 proptest = "~1.11"
