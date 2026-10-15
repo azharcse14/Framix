@@ -13,7 +13,9 @@ pub fn ffi_guard(f: impl FnOnce() -> i32) -> i32 {
 /// Rust-owned bytes handed across the boundary; release with [`engine_free_buffer`].
 #[repr(C)]
 pub struct EngineBuffer {
+    /// Start of the bytes; null means nothing to free.
     pub ptr: *mut u8,
+    /// Number of bytes at `ptr`.
     pub len: usize,
 }
 

@@ -1,0 +1,1 @@
+- [Review patterns](review_patterns.md) — recurring findings: scope creep into planned tasks, safe extern fns deref'ing struct pointers

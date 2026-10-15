@@ -11864,6 +11864,25 @@
    "branch": null,
    "notes": [],
    "source": "plan"
+  },
+  {
+   "id": "P1-042",
+   "section": "P1",
+   "group": null,
+   "title": "engine_free_buffer ke unsafe extern \"C\" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
