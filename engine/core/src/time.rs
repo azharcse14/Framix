@@ -9,6 +9,9 @@ pub const TICKS_PER_SECOND: i64 = 705_600_000;
 pub struct Time(pub i64);
 
 /// Frames (or samples) per second as an exact fraction `num / den`, e.g. 30000/1001.
+///
+/// Conversions are exact only while `num <= den * TICKS_PER_SECOND`; faster rates make a
+/// frame shorter than one tick (rejecting them in `new` is ENG-047).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Rate {
     num: u32,

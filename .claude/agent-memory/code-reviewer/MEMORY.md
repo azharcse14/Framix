@@ -1,1 +1,1 @@
-- [Review patterns](review_patterns.md) — recurring findings: scope creep into planned tasks, safe extern fns deref'ing struct pointers
+- [Review patterns](review_patterns.md) — recurring findings: scope creep, safe extern fns deref'ing pointers, stub-passing tests, constructor domain > invariants

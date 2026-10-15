@@ -1,6 +1,6 @@
 ---
 name: review-patterns
-description: Recurring issues seen when reviewing Framix branches (FFI soundness, scope creep into other planned tasks)
+description: Recurring issues seen when reviewing Framix branches (FFI soundness, scope creep, stub tests passing, constructor domain wider than invariants)
 metadata:
   type: project
 ---
@@ -15,4 +15,8 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
   **Why:** ffi crate is also an rlib, so safe Rust can trigger UB.
   **How to apply:** check every exported fn taking pointer-bearing structs is `unsafe extern "C"` with a `# Safety` doc; note if fixing it would touch frozen tests (needs user approval).
 
-- Stub-first test commits: verify each test actually fails against the stub; some (null/empty cases) pass on stubs.
+- Stub-first test commits: verify each test actually fails against the stub; some (null/empty/None cases) pass on stubs. Seen again ENG-005 (Rate::new stub returned None, so the zero-parts test passed).
+
+- Constructors accept a wider domain than the invariants hold for; proptests only sample the narrow "sane" range, so the gap is invisible. ENG-005: Rate::new allowed num > den*TICKS_PER_SECOND, breaking monotonic/round-trip; a frozen test even used such a rate.
+  **Why:** frozen tests then lock in the invalid value, so the proper fix needs user approval.
+  **How to apply:** for every validating constructor, check the property-test ranges cover the full accepted domain; compute a counterexample at the boundary.

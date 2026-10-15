@@ -11888,6 +11888,25 @@
    "branch": "p1-008-ffi-panic-free",
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "ENG-047",
+   "section": "ENG",
+   "group": null,
+   "title": "Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

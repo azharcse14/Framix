@@ -1107,6 +1107,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-044` CI te buf lint ar buf breaking: proto/ er protita change main er sathe compare \[—\]
 - [ ] `ENG-045` engine\_create e protocol version handshake; na mile debug e shathe shathe fail, release e error event ar Sentry report \[Rust\]\[Dart\]
 - [ ] `ENG-046` Project file schema o eki niyom: notun field optional ar thik default; protita purono version er fixture project diye migration test \[Rust\]
+- [ ] `ENG-047` Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe \[Rust\]
 
 **Security**
 
