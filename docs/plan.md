@@ -382,7 +382,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 **Timeline basics**
 
 - [x] `P1-018` Trim, split, merge, delete, duplicate \[Rust\]\[Dart\]
-- [ ] `P1-019` Drag kore reorder \[Dart\]
+- [x] `P1-019` Drag kore reorder \[Dart\]
 - [ ] `P1-020` Timeline zoom in/out, scrubbing preview \[Dart\]\[Rust\]
 - [ ] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
 - [ ] `P1-022` Snapping ar haptic feedback \[Dart\]
@@ -419,6 +419,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
 - [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
 - [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
+- [ ] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
 
 ## Phase 2: Audio
 
