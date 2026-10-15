@@ -17,5 +17,7 @@
   "@aspectRatioLabel": {"placeholders": {"width": {"type": "int"}, "height": {"type": "int"}}},
   "muteTrack": "Mute track",
   "hideTrack": "Hide track",
-  "lockTrack": "Lock track"
+  "lockTrack": "Lock track",
+  "importFromGallery": "Import from gallery",
+  "importFromFiles": "Import from files"
 }

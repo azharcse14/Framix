@@ -181,6 +181,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lock track'**
   String get lockTrack;
+
+  /// No description provided for @importFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from gallery'**
+  String get importFromGallery;
+
+  /// No description provided for @importFromFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from files'**
+  String get importFromFiles;
 }
 
 class _AppLocalizationsDelegate

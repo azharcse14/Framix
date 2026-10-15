@@ -66,4 +66,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockTrack => 'Lock track';
+
+  @override
+  String get importFromGallery => 'Import from gallery';
+
+  @override
+  String get importFromFiles => 'Import from files';
 }

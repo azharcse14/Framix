@@ -65,4 +65,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get lockTrack => 'ট্র্যাক লক';
+
+  @override
+  String get importFromGallery => 'গ্যালারি থেকে আনুন';
+
+  @override
+  String get importFromFiles => 'ফাইল থেকে আনুন';
 }
