@@ -963,12 +963,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "799c073",
+   "branch": "p1-010-aspect-ratio",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "The ENG-003 cubit test 'mirrors the engine...' got one line, await next(), because the engine's starting state (aspect 9:16) no longer equals Dart's empty placeholder; no assertion changed. Earlier P1-009 tests got ..Default::default() in ProjectFile literals for the new fields."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12215,7 +12220,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "When the loading state replaces the Dart placeholder, remove the 'await next()' added to timeline_cubit_test.dart by P1-010, and recheck 'a cubit created after edits' (its first now resolves on the GetTimeline reply, not the add reply)."
+    }
+   ],
    "source": "added"
   },
   {
