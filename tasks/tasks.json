@@ -850,10 +850,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-15",
+   "commit": "6149763",
    "branch": "p1-007-bindings",
    "notes": [
     {
