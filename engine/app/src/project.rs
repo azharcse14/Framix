@@ -13,6 +13,11 @@ pub const FORMAT_VERSION: u32 = 1;
 /// Oldest reader that can open what this engine writes.
 const MIN_READER_VERSION: u32 = 1;
 
+/// Most tracks a project file may hold.
+pub const MAX_TRACKS: usize = 256;
+/// Most clips (all tracks together) a project file may hold.
+pub const MAX_CLIPS: usize = 100_000;
+
 /// Why a project file could not be opened.
 #[derive(Debug, Error)]
 pub enum ProjectError {
@@ -73,8 +78,16 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
 /// timeline's own checks, and ids are assigned fresh.
 pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
     let file = ProjectFile::decode(bytes)?;
+    // proto3 decodes empty bytes as all-zero fields; a real file always has a version.
+    if file.format_version == 0 || file.min_reader_version == 0 {
+        return Err(ProjectError::MissingVersion);
+    }
     if file.min_reader_version > FORMAT_VERSION {
         return Err(ProjectError::TooNew(file.min_reader_version));
+    }
+    let clips: usize = file.tracks.iter().map(|t| t.clips.len()).sum();
+    if file.tracks.len() > MAX_TRACKS || clips > MAX_CLIPS {
+        return Err(ProjectError::TooLarge);
     }
     let mut timeline = Timeline::default();
     for saved in file.tracks {
@@ -84,6 +97,10 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
             _ => return Err(ProjectError::UnknownTrackKind(saved.kind)),
         };
         let track = timeline.add_track(kind);
+        // Ascending starts make every insert an append, so loading stays linear.
+        if saved.clips.windows(2).any(|w| w[0].start >= w[1].start) {
+            return Err(ProjectError::Unsorted);
+        }
         for c in saved.clips {
             let placement = ClipPlacement {
                 media: MediaId(c.media_id),
@@ -96,8 +113,3 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
     }
     Ok(timeline)
 }
-
-/// Most tracks a project file may hold.
-pub const MAX_TRACKS: usize = 0;
-/// Most clips (all tracks together) a project file may hold.
-pub const MAX_CLIPS: usize = 0;

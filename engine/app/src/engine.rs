@@ -33,11 +33,10 @@ impl Engine {
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
-        let kind = command.kind.ok_or("command has no kind");
-        match kind
-            .map_err(str::to_owned)
-            .and_then(|kind| self.apply(kind))
-        {
+        let Some(kind) = command.kind else {
+            return command_failed("command has no kind");
+        };
+        match self.apply(kind) {
             Ok(Reply::Timeline) => self.timeline_changed(),
             Ok(Reply::Saved) => Event {
                 kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
@@ -47,18 +46,11 @@ impl Engine {
     }
 
     fn apply(&mut self, kind: command::Kind) -> Result<Reply, String> {
-        match kind {
-            command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
-            other => self.change(other).map(|()| Reply::Timeline),
-        }
-    }
-
-    /// Commands answered with the (possibly unchanged) timeline.
-    fn change(&mut self, kind: command::Kind) -> Result<(), String> {
+        let timeline = |r: Result<(), String>| r.map(|()| Reply::Timeline);
         match kind {
             command::Kind::AddTrack(add) => {
                 let kind = track_kind(add.kind)?;
-                self.edit(|tl| Ok(tl.add_track(kind)))
+                timeline(self.edit(|tl| Ok(tl.add_track(kind))))
             }
             command::Kind::InsertClip(insert) => {
                 let placement = ClipPlacement {
@@ -67,17 +59,17 @@ impl Engine {
                     start: Time(insert.start),
                     duration: Time(insert.duration),
                 };
-                self.edit(|tl| tl.insert_clip(TrackId(insert.track_id), placement))
+                timeline(self.edit(|tl| tl.insert_clip(TrackId(insert.track_id), placement)))
             }
-            command::Kind::Undo(_) => step(self.history.undo(), "nothing to undo"),
-            command::Kind::Redo(_) => step(self.history.redo(), "nothing to redo"),
-            command::Kind::GetTimeline(_) => Ok(()),
+            command::Kind::Undo(_) => timeline(step(self.history.undo(), "nothing to undo")),
+            command::Kind::Redo(_) => timeline(step(self.history.redo(), "nothing to redo")),
+            command::Kind::GetTimeline(_) => Ok(Reply::Timeline),
             command::Kind::NewProject(_) => {
                 self.history = History::default();
-                Ok(())
+                Ok(Reply::Timeline)
             }
-            command::Kind::OpenProject(open) => self.open(&open.path),
-            command::Kind::SaveProject(_) => Err("SaveProject reports ProjectSaved".to_owned()),
+            command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
+            command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
         }
     }
 

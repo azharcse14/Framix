@@ -8,7 +8,10 @@ use std::path::{Path, PathBuf};
 use framix_app::store::ProjectStore;
 
 /// Largest project file [`FileStore::load`] reads; anything bigger is refused as not ours.
-pub const MAX_PROJECT_BYTES: u64 = 64 * 1024 * 1024;
+/// Small on purpose: the decoder holds the whole file's messages in memory before its track
+/// and clip caps apply (2-byte empty tracks would otherwise multiply into gigabytes).
+// ponytail: fixed cap; raise it together with project::MAX_CLIPS when real projects need it.
+pub const MAX_PROJECT_BYTES: u64 = 4 * 1024 * 1024;
 
 /// How many previous saves are kept next to the project (`<file>.bak1` is the newest).
 pub const BACKUPS: usize = 2;
@@ -23,12 +26,14 @@ impl ProjectStore for FileStore {
     /// to the old file, and the rename replaces it atomically.
     fn save(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
         let tmp = sibling(path, ".tmp");
-        let mut file = File::create(&tmp)?;
-        file.write_all(bytes)?;
-        file.sync_all()?;
-        drop(file);
-        rotate_backups(path)?;
-        fs::rename(&tmp, path)?;
+        let written = write_synced(&tmp, bytes)
+            .and_then(|()| rotate_backups(path))
+            .and_then(|()| fs::rename(&tmp, path));
+        if written.is_err() {
+            // Don't leave a large orphan behind (e.g. after a disk-full failure).
+            let _ = fs::remove_file(&tmp);
+        }
+        written?;
         sync_parent(path)
     }
 
@@ -45,6 +50,12 @@ impl ProjectStore for FileStore {
         }
         Ok(bytes)
     }
+}
+
+fn write_synced(path: &Path, bytes: &[u8]) -> io::Result<()> {
+    let mut file = File::create(path)?;
+    file.write_all(bytes)?;
+    file.sync_all()
 }
 
 /// `path` with `suffix` appended to its file name (`p.framix` -> `p.framix.bak1`).
