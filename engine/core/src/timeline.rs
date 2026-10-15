@@ -231,14 +231,7 @@ impl Timeline {
         if self.tracks[index].flags.locked {
             return Err(TimelineError::TrackLocked(track));
         }
-        let clips = &self.tracks[index].clips;
-        let at = clips.partition_point(|c| c.start < placement.start);
-        if let Some(prev) = clips[..at].last().filter(|c| c.end() > placement.start) {
-            return Err(TimelineError::Overlap(prev.id));
-        }
-        if let Some(next) = clips.get(at).filter(|c| c.start.0 < end) {
-            return Err(TimelineError::Overlap(next.id));
-        }
+        let at = free_slot(&self.tracks[index].clips, placement.start, end, None)?;
         let id = ClipId(self.allocate_id());
         let clip = Clip {
             id,
@@ -350,6 +343,7 @@ impl Timeline {
         if source_start < 0 {
             return Err(TimelineError::NegativeTime);
         }
+        // A trim moves edges but never past a neighbour, so the track stays sorted.
         if let Some(prev) = clips[..i].last().filter(|p| p.end() > start) {
             return Err(TimelineError::Overlap(prev.id));
         }
@@ -392,17 +386,8 @@ impl Timeline {
             .0
             .checked_add(moving.duration.0)
             .ok_or(TimelineError::TimeOverflow)?;
-        // The moving clip may slide over its own old spot, so skip it when checking neighbours.
-        let others = &self.tracks[dest].clips;
-        let at = others.partition_point(|c| c.start < start);
-        let prev = others[..at].iter().rev().find(|c| c.id != clip);
-        if let Some(prev) = prev.filter(|c| c.end() > start) {
-            return Err(TimelineError::Overlap(prev.id));
-        }
-        let next = others[at..].iter().find(|c| c.id != clip);
-        if let Some(next) = next.filter(|c| c.start.0 < end) {
-            return Err(TimelineError::Overlap(next.id));
-        }
+        // The moving clip may slide over its own old spot.
+        free_slot(&self.tracks[dest].clips, start, end, Some(clip))?;
         self.tracks[from].clips.remove(i);
         let clips = &mut self.tracks[dest].clips;
         let at = clips.partition_point(|c| c.start < start);
@@ -466,4 +451,29 @@ impl Timeline {
         self.next_id += 1;
         self.next_id
     }
+}
+
+/// Index where a clip spanning `[start, end)` goes in the sorted, non-overlapping `clips`, or
+/// the nearest clip it would overlap. `skip` is ignored: the clip being moved. Used where a
+/// clip may land anywhere free (insert, move); trim instead stays between its neighbours.
+fn free_slot(
+    clips: &[Clip],
+    start: Time,
+    end: i64,
+    skip: Option<ClipId>,
+) -> Result<usize, TimelineError> {
+    let at = clips.partition_point(|c| c.start < start);
+    let other = |c: &&Clip| Some(c.id) != skip;
+    if let Some(prev) = clips[..at]
+        .iter()
+        .rev()
+        .find(other)
+        .filter(|c| c.end() > start)
+    {
+        return Err(TimelineError::Overlap(prev.id));
+    }
+    if let Some(next) = clips[at..].iter().find(other).filter(|c| c.start.0 < end) {
+        return Err(TimelineError::Overlap(next.id));
+    }
+    Ok(at)
 }

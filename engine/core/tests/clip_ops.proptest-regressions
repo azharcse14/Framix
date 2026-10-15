@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc 02c1c15bad5ffa04b1e9546cf4f0230561b5ee5f5380f881b91a1a6f467c2980 # shrinks to source = 0, start = 0, duration = 2, cut = 1
+cc 5cf33c84f07b6618c207b3ca07b7f495f196c56eea986a9b93f52c662234ebe6 # shrinks to ops = [(0, 0, 0, 0), (0, 0, 66, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (1, 2, 100, 101)]
