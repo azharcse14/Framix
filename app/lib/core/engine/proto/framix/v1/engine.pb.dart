@@ -750,7 +750,8 @@ class Clip extends $pb.GeneratedMessage {
   void clearDuration() => $_clearField(5);
 }
 
-/// A command was rejected; the timeline is unchanged.
+/// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
+/// never shown to users; add a code enum when the UI needs to explain failures.
 class CommandFailed extends $pb.GeneratedMessage {
   factory CommandFailed({
     $core.String? reason,

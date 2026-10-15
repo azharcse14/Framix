@@ -23,7 +23,9 @@ pub const ENGINE_ERR_STOPPED: i32 = -4;
 pub const ENGINE_PROTOCOL_VERSION: u32 = 1;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
-/// with [`engine_free_buffer`]. Called on the engine thread.
+/// with [`engine_free_buffer`]. Called on the engine thread, so it must not call
+/// [`engine_destroy`] (that would join the engine thread from itself). Dart's
+/// `NativeCallable.listener` posts to the isolate, so it is safe there.
 pub type EngineEventCallback = Option<unsafe extern "C" fn(ptr: *mut u8, len: usize)>;
 
 /// Opaque engine instance: a channel into the engine thread.
@@ -76,8 +78,8 @@ pub unsafe extern "C" fn engine_set_event_callback(
     engine: *const Engine,
     callback: EngineEventCallback,
 ) -> i32 {
-    // SAFETY: per the contract, a non-null `engine` is live.
     ffi_guard(|| {
+        // SAFETY: per the contract, a non-null `engine` is live.
         post(
             unsafe { engine.as_ref() },
             EngineMessage::SetCallback(callback),
@@ -109,9 +111,12 @@ pub unsafe extern "C" fn engine_send(engine: *const Engine, bytes: *const u8, le
 
 /// Stops the engine thread after it finishes queued commands, then frees the engine.
 ///
+/// Exception to "every exported fn returns immediately": this blocks until queued
+/// commands are answered, which is what lets callbacks stop safely. P1-044 removes it.
+///
 /// # Safety
 /// `engine` must be null or come from [`engine_create`], and no other call may use it
-/// during or after this one.
+/// during or after this one. Never call it from the event callback.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_destroy(engine: *mut Engine) -> i32 {
     ffi_guard(|| {

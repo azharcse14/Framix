@@ -10,6 +10,11 @@ if [ "$(cbindgen --version 2>/dev/null)" != "cbindgen $CBINDGEN_VERSION" ]; then
   echo "need cbindgen $CBINDGEN_VERSION: cargo install cbindgen --version $CBINDGEN_VERSION --locked" >&2
   exit 1
 fi
+PROTOC_VERSION=36.2
+if [ "$(protoc --version 2>/dev/null)" != "libprotoc $PROTOC_VERSION" ]; then
+  echo "need protoc $PROTOC_VERSION (brew install protobuf)" >&2
+  exit 1
+fi
 PROTOC_PLUGIN_VERSION=25.1.0
 if ! dart pub global list 2>/dev/null | grep -qx "protoc_plugin $PROTOC_PLUGIN_VERSION"; then
   echo "need protoc_plugin $PROTOC_PLUGIN_VERSION: dart pub global activate protoc_plugin $PROTOC_PLUGIN_VERSION" >&2

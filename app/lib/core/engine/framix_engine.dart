@@ -14,6 +14,7 @@ class FramixEngine {
   final Pointer<Engine> _engine;
   final NativeCallable<EngineEventCallbackFunction> _listener;
   final StreamController<Event> _events;
+  bool _disposed = false;
 
   /// Starts the engine. Throws [StateError] if the native side refuses (for example a
   /// protocol version mismatch between these bindings and the bundled library).
@@ -40,6 +41,7 @@ class FramixEngine {
 
   /// Queues [command]; returns at once.
   void send(Command command) {
+    if (_disposed) throw StateError('FramixEngine used after dispose');
     final bytes = command.writeToBuffer();
     final native = malloc<Uint8>(bytes.length);
     try {
@@ -51,11 +53,15 @@ class FramixEngine {
     }
   }
 
-  /// Stops the engine (after queued commands) and closes [events].
+  /// Stops the engine (after queued commands) and closes [events]. Safe to call twice.
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+    // Blocks until queued commands finish (engine_destroy joins the engine thread).
     engine_destroy(_engine);
-    // ponytail: events still in flight to this isolate are dropped with their buffers;
-    // a small leak once per engine lifetime, fix if engines get recreated often.
+    // ponytail: every event not yet delivered to this isolate (each a full timeline
+    // snapshot) is dropped and its buffer leaked; P1-044 makes destroy non-blocking with
+    // an end-of-stream marker so in-flight events are freed.
     _listener.close();
     _events.close();
   }

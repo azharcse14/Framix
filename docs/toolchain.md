@@ -14,7 +14,7 @@ Pin everything; upgrade at the first patch 1-2 weeks after a major release; new 
 | Android NDK | r28c (28.2), pinned explicitly | 16 KB alignment default |
 | Minimum OS | iOS 17.0, Android 10 (API 29) | docs/adr/0001-product-basics.md; confirmed by the low-end device test (P1-004) |
 | Android ABIs | arm64-v8a, x86_64 | No armeabi-v7a; build with --target-platform android-arm64,android-x64 |
-| FFI codegen | cbindgen 0.29.4 (`cargo install --locked`), ffigen 22.0.0 (dev dependency) | Pinned in scripts/gen_ffi.sh and app/pubspec.yaml; check.sh fails on stale generated code |
+| FFI codegen | cbindgen 0.29.4 (`cargo install --locked`), ffigen 22.0.0 (dev dependency), protoc 36.2, protoc_plugin 25.1.0 (`dart pub global activate`), prost-build 0.14.4 + protox 0.9.1 (Rust build deps), buf 1.74.0 | Pinned in scripts/gen_ffi.sh, app/pubspec.yaml, engine/app/Cargo.toml; check.sh fails on stale generated code |
 
 ## Policy
 - Lock files committed (Cargo.lock, pubspec.lock).

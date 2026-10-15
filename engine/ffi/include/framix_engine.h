@@ -46,7 +46,9 @@ typedef struct Engine Engine;
 
 /**
  * Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
- * with [`engine_free_buffer`]. Called on the engine thread.
+ * with [`engine_free_buffer`]. Called on the engine thread, so it must not call
+ * [`engine_destroy`] (that would join the engine thread from itself). Dart's
+ * `NativeCallable.listener` posts to the isolate, so it is safe there.
  */
 typedef void (*EngineEventCallback)(uint8_t *ptr, size_t len);
 
@@ -95,9 +97,12 @@ int32_t engine_send(const struct Engine *engine, const uint8_t *bytes, size_t le
 /**
  * Stops the engine thread after it finishes queued commands, then frees the engine.
  *
+ * Exception to "every exported fn returns immediately": this blocks until queued
+ * commands are answered, which is what lets callbacks stop safely. P1-044 removes it.
+ *
  * # Safety
  * `engine` must be null or come from [`engine_create`], and no other call may use it
- * during or after this one.
+ * during or after this one. Never call it from the event callback.
  */
 int32_t engine_destroy(struct Engine *engine);
 

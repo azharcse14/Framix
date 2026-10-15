@@ -74,7 +74,8 @@ message Clip {
   int64 duration = 5;
 }
 
-// A command was rejected; the timeline is unchanged.
+// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
+// never shown to users; add a code enum when the UI needs to explain failures.
 message CommandFailed {
   string reason = 1;
 }

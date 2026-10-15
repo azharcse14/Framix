@@ -11998,6 +11998,26 @@
     }
    ],
    "source": "added"
+  },
+  {
+   "id": "P1-044",
+   "section": "P1",
+   "group": null,
+   "title": "engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
