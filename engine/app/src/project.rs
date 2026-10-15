@@ -17,6 +17,10 @@ const MIN_READER_VERSION: u32 = 1;
 pub const MAX_TRACKS: usize = 256;
 /// Most clips (all tracks together) a project file may hold.
 pub const MAX_CLIPS: usize = 100_000;
+/// Largest project file. Small on purpose: prost holds a file's decoded messages in memory
+/// before the track and clip caps apply (2-byte empty tracks would otherwise multiply).
+// ponytail: fixed caps; raise them together when real projects need it.
+pub const MAX_PROJECT_BYTES: u64 = 4 * 1024 * 1024;
 
 /// Why a project file could not be opened.
 #[derive(Debug, Error)]
@@ -36,7 +40,7 @@ pub enum ProjectError {
     /// A track's clips are not in ascending start order (the encoder always sorts them).
     #[error("clips out of order")]
     Unsorted,
-    /// More tracks or clips than [`MAX_TRACKS`] / [`MAX_CLIPS`].
+    /// More than [`MAX_TRACKS`], [`MAX_CLIPS`] or [`MAX_PROJECT_BYTES`].
     #[error("project too large")]
     TooLarge,
     /// The clips break timeline rules (overlap, non-positive duration, ...).
@@ -74,9 +78,27 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
     .encode_to_vec()
 }
 
+/// Encodes `timeline` for saving, refusing anything [`decode`] would refuse to open again
+/// (more than [`MAX_TRACKS`], [`MAX_CLIPS`], or [`MAX_PROJECT_BYTES`]).
+pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
+    let tracks = timeline.tracks();
+    let clips: usize = tracks.iter().map(|t| t.clips().len()).sum();
+    if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS {
+        return Err(ProjectError::TooLarge);
+    }
+    let bytes = encode(timeline);
+    if bytes.len() as u64 > MAX_PROJECT_BYTES {
+        return Err(ProjectError::TooLarge);
+    }
+    Ok(bytes)
+}
+
 /// Decodes a project file. The bytes are untrusted: every clip is re-inserted through the
 /// timeline's own checks, and ids are assigned fresh.
 pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
+    if bytes.len() as u64 > MAX_PROJECT_BYTES {
+        return Err(ProjectError::TooLarge);
+    }
     let file = ProjectFile::decode(bytes)?;
     // proto3 decodes empty bytes as all-zero fields; a real file always has a version.
     if file.format_version == 0 || file.min_reader_version == 0 {

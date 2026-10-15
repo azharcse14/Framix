@@ -80,7 +80,7 @@ impl Engine {
     }
 
     fn save(&self, path: &str) -> Result<(), String> {
-        let bytes = project::encode(self.history.timeline());
+        let bytes = project::encode_for_save(self.history.timeline()).map_err(|e| e.to_string())?;
         self.store()?
             .save(Path::new(path), &bytes)
             .map_err(|e| e.to_string())

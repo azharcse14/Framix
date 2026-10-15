@@ -7,11 +7,8 @@ use std::path::{Path, PathBuf};
 
 use framix_app::store::ProjectStore;
 
-/// Largest project file [`FileStore::load`] reads; anything bigger is refused as not ours.
-/// Small on purpose: the decoder holds the whole file's messages in memory before its track
-/// and clip caps apply (2-byte empty tracks would otherwise multiply into gigabytes).
-// ponytail: fixed cap; raise it together with project::MAX_CLIPS when real projects need it.
-pub const MAX_PROJECT_BYTES: u64 = 4 * 1024 * 1024;
+/// Largest project file [`FileStore::load`] reads (defined with the format's other limits).
+pub use framix_app::project::MAX_PROJECT_BYTES;
 
 /// How many previous saves are kept next to the project (`<file>.bak1` is the newest).
 pub const BACKUPS: usize = 2;
