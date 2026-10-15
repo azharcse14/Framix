@@ -6,6 +6,7 @@ import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/timeline_cubit.dart';
 import 'aspect_ratio_bar.dart';
+import 'import_buttons.dart';
 
 /// The timeline: track list, undo/redo, and add-track actions.
 class TimelinePage extends StatelessWidget {
@@ -19,6 +20,7 @@ class TimelinePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          const ImportButtons(),
           BlocSelector<TimelineCubit, TimelineChanged, bool>(
             selector: (s) => s.canUndo,
             builder: (_, canUndo) => IconButton(

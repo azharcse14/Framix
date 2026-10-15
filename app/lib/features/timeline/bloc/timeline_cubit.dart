@@ -47,7 +47,11 @@ class TimelineCubit extends Cubit<TimelineChanged> {
       );
 
   /// Waits for [pick] and sends what came back; a cancelled pick sends nothing.
-  Future<void> importMedia(Future<List<MediaItem>> Function() pick) async {}
+  Future<void> importMedia(Future<List<MediaItem>> Function() pick) async {
+    final items = await pick();
+    if (items.isEmpty || isClosed) return;
+    _engine.send(Command(importMedia: ImportMedia(items: items)));
+  }
 
   void undo() => _engine.send(Command(undo: Undo()));
 

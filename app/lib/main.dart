@@ -46,9 +46,12 @@ class FramixApp extends StatelessWidget {
         ...GlobalMaterialLocalizations.delegates,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider(
-        create: (_) => TimelineCubit(engine),
-        child: const TimelinePage(),
+      home: RepositoryProvider.value(
+        value: mediaImporter,
+        child: BlocProvider(
+          create: (_) => TimelineCubit(engine),
+          child: const TimelinePage(),
+        ),
       ),
     );
   }
