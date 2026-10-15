@@ -748,11 +748,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "p1-001-ios-texture-spike",
    "notes": [],
    "source": "plan"
   },
@@ -11840,7 +11840,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "User asked (2026-10-15) for an app icon now; a first-pass icon is being made under a separate claude task from this idea. Final logo/icon decision stays here."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12177,6 +12182,25 @@
    "title": "border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule)",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "REL-024",
+   "section": "REL",
+   "group": null,
+   "title": "App icon v1 (iOS + Android) from the REL-020 idea: two overlapping frames forming an F; final logo stays REL-020",
+   "tags": [
+    "Native"
    ],
    "owner": "claude",
    "deferred": false,

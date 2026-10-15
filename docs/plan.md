@@ -1607,6 +1607,7 @@ Video editor er bug onek shomoy device ar file specific, tai test plan ar releas
 - [ ] `REL-021` Store description, keyword (ASO), screenshot, preview video \[—\]
 - [x] `REL-022` Naam conflict: eki category te "Filmix" video editor (shunte prai eki); "Fram-" naam e onek photo/frame app (FramMe AI photo editor, Framie, Framory); "iFramix" photo frame app; "Framix" Framer plugin (useframix.com, paid plan shoho). Tai naam bodlano recommended. Proposal "Rongo" (রঙ্গ: rong ar khela/natok, Hindi/Urdu te rang = colour); quick search e photo/video editor e conflict pawa jay ni; final er age trademark ar store search \[—\]
 - [ ] `REL-023` Domain (framix.app, getframix.com, ba ja available) ar social handle \[—\]
+- [ ] `REL-024` App icon v1 (iOS + Android) from the REL-020 idea: two overlapping frames forming an F; final logo stays REL-020 \[Native\]
 
 ## Backend: ki kaj hobe ar keno lagbe
 
