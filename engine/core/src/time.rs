@@ -18,19 +18,26 @@ pub struct Rate {
 impl Rate {
     /// Returns `None` unless both parts are non-zero.
     pub fn new(num: u32, den: u32) -> Option<Self> {
-        let _ = (num, den);
-        None
+        (num != 0 && den != 0).then_some(Self { num, den })
     }
 
     /// Start time of frame `frame`. `None` if it does not fit in [`Time`].
     pub fn frame_to_time(self, frame: i64) -> Option<Time> {
-        let _ = frame;
-        None
+        // Ceil, so a frame never starts before its exact instant and time_to_frame round-trips.
+        let exact = i128::from(frame) * self.ticks_per_frame_num();
+        let ticks = -(-exact).div_euclid(i128::from(self.num));
+        i64::try_from(ticks).ok().map(Time)
     }
 
     /// Index of the frame showing at `time`. `None` if it does not fit in an i64.
     pub fn time_to_frame(self, time: Time) -> Option<i64> {
-        let _ = time;
-        None
+        let frame =
+            (i128::from(time.0) * i128::from(self.num)).div_euclid(self.ticks_per_frame_num());
+        i64::try_from(frame).ok()
+    }
+
+    /// Numerator of ticks per frame (`den * TICKS_PER_SECOND / num`); fits easily in i128.
+    fn ticks_per_frame_num(self) -> i128 {
+        i128::from(self.den) * i128::from(TICKS_PER_SECOND)
     }
 }
