@@ -11876,10 +11876,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-15",
+   "commit": "bcdd6c9",
    "branch": "p1-008-ffi-panic-free",
    "notes": [],
    "source": "added"
