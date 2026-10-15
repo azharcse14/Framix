@@ -369,7 +369,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Project ar import**
 
-- [ ] `P1-009` Notun project, project save/load \[Rust\]
+- [x] `P1-009` Notun project, project save/load \[Rust\]
 - [ ] `P1-010` Aspect ratio select (9:16, 16:9, 1:1, 4:5, 3:4, 21:9) \[Dart\]\[Rust\]
 - [ ] `P1-011` Video/image import (gallery ar Files/iCloud Drive/Google Drive er moto cloud storage), multi-select order shoho, color/blank clip \[Dart\]
 - [ ] `P1-012` Android e boro file er jonno file descriptor (fd), copy chhara \[Native\]
