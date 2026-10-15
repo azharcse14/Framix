@@ -7,8 +7,7 @@ pub const ENGINE_ERR_PANIC: i32 = -1;
 
 /// Runs `f`, turning a panic into [`ENGINE_ERR_PANIC`]. Every exported fn goes through this.
 pub fn ffi_guard(f: impl FnOnce() -> i32) -> i32 {
-    let _ = f;
-    ENGINE_OK
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).unwrap_or(ENGINE_ERR_PANIC)
 }
 
 /// Rust-owned bytes handed across the boundary; release with [`engine_free_buffer`].
@@ -21,17 +20,23 @@ pub struct EngineBuffer {
 impl EngineBuffer {
     /// Moves `bytes` into a buffer the caller must free with [`engine_free_buffer`].
     pub fn from_vec(bytes: Vec<u8>) -> Self {
-        let _ = bytes;
-        Self {
-            ptr: std::ptr::null_mut(),
-            len: 0,
-        }
+        // A boxed slice has capacity == len, so `len` alone is enough to rebuild it on free.
+        let len = bytes.len();
+        let ptr = Box::into_raw(bytes.into_boxed_slice()).cast::<u8>();
+        Self { ptr, len }
     }
 }
 
 /// Frees a buffer from [`EngineBuffer::from_vec`]. A null buffer is a no-op.
 #[unsafe(no_mangle)]
 pub extern "C" fn engine_free_buffer(buf: EngineBuffer) -> i32 {
-    let _ = buf;
-    ENGINE_OK
+    ffi_guard(|| {
+        if !buf.ptr.is_null() {
+            let slice = std::ptr::slice_from_raw_parts_mut(buf.ptr, buf.len);
+            // SAFETY: a non-null buffer comes only from `from_vec`, which leaked a Box<[u8]> of
+            // exactly `len` bytes; the caller frees each buffer once, so ownership returns here.
+            drop(unsafe { Box::from_raw(slice) });
+        }
+        ENGINE_OK
+    })
 }
