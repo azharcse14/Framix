@@ -1,3 +1,11 @@
 [toolchain]
 channel = "1.99.0"
 components = ["rustfmt", "clippy"]
+# Host (flutter test), iOS device + Apple-silicon simulator, Android ABIs from ADR 0001.
+targets = [
+  "aarch64-apple-darwin",
+  "aarch64-apple-ios",
+  "aarch64-apple-ios-sim",
+  "aarch64-linux-android",
+  "x86_64-linux-android",
+]

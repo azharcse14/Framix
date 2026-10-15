@@ -1,0 +1,22 @@
+name: framix
+description: "Framix photo and video editor."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+# Exact pins (docs/toolchain.md): every version is at least 14 days old.
+dependencies:
+  flutter:
+    sdk: flutter
+  hooks: 2.2.0
+  native_toolchain_rust: 1.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+
+flutter:
+  uses-material-design: true

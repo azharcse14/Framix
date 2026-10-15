@@ -5,5 +5,6 @@ version.workspace = true
 publish.workspace = true
 
 [lib]
-# cdylib for the app, rlib so integration tests can link it.
-crate-type = ["cdylib", "rlib"]
+# cdylib + staticlib for the Flutter build hook (native_toolchain_rust requires both),
+# rlib so integration tests can link it.
+crate-type = ["cdylib", "staticlib", "rlib"]
