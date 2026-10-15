@@ -291,7 +291,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "app/ uses Gradle 9.3.1 / AGP 9.1.0 from flutter create; align with docs/toolchain.md (Gradle 9.6.0)"
+    }
+   ],
    "source": "plan"
   },
   {

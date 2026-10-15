@@ -32,7 +32,10 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
   **How to apply:** diff test-commit..fix-commit, then fix-commit..HEAD on test paths must be empty.
 
 - `prop_assume!(f(x).is_some())` gates on the function under test (ENG-048). OK only if (a) rejection rate is computed and tiny, (b) another test unwraps f over a provably-representable range (spurious None caught), (c) all-None still fails via proptest's global reject limit. Better: an independent oracle for the None condition.
-  Also ENG-048: no app/.gitignore on main, so `flutter` runs leave generated app/ios, app/android files (absolute paths, gradle-wrapper.jar) that get swept into commits. Always check `git show --stat` for app/ generated files.
+  Also ENG-048: no app/.gitignore on main, so `flutter` runs leave generated app/ios, app/android files (absolute paths, gradle-wrapper.jar) that get swept into commits. Always check `git show --stat` for app/ generated files. (GOT-004 adds app/.gitignore from flutter create; still check for local.properties / Generated.xcconfig leaks.)
+
+- `flutter create` template defaults committed unreviewed (GOT-004): Android label lowercase "framix" (app name is Framix), Gradle wrapper/AGP from the template not docs/toolchain.md, boilerplate README, `package:flutter/material.dart` + `uses-material-design` although toolchain.md says new code uses material_ui/cupertino_ui.
+  **How to apply:** for any app/ scaffold or Gradle/Xcode change, diff versions and names against docs/toolchain.md and ADR 0001; pins belong to TC-002.
 
 - Design drift from docs/architecture.md crate table without an ADR (P1-023: memento undo, while the table says core owns "undo commands"). Flag as Warning: update the table via a short ADR.
 
