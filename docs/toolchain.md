@@ -20,6 +20,6 @@ Pin everything; upgrade at the first patch 1-2 weeks after a major release; new 
 ## Policy
 - Lock files committed (Cargo.lock, pubspec.lock).
 - Renovate or Dependabot weekly, with a 14-day minimum release age.
-- Zero warnings: dart analyze, cargo clippy -D warnings, Xcode and Gradle deprecations.
+- Zero warnings: dart analyze, cargo clippy -D warnings (check.sh), Xcode and Gradle deprecations (`scripts/native_warnings.sh`; its allowlist holds only upstream Flutter/Gradle warnings).
 - Before any upgrade, check the compatibility matrix: Flutter, AGP, Kotlin, plugins, Xcode.
 - If an API you know looks different here, trust this file and the official docs over memory.
