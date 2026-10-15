@@ -12267,12 +12267,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "4499ead",
+   "branch": "ds-010-border-contrast",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "The DS-009 theme test (framix_theme_test.dart) changed its side-color assertion from border to outline in the impl commit (the old test encoded the non-compliant design), plus a comment fix; no assertion weakened."
+    }
+   ],
    "source": "added"
   },
   {
@@ -12342,6 +12347,25 @@
    "section": "P1",
    "group": null,
    "title": "Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "DS-011",
+   "section": "DS",
+   "group": null,
+   "title": "design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette",
    "tags": [
     "Dart"
    ],
