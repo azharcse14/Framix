@@ -753,7 +753,12 @@
    "done": null,
    "commit": null,
    "branch": "p1-001-ios-texture-spike",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "iOS part works on the simulator (branch p1-001-ios-texture-spike, SPIKE, off main): IOSurface CVPixelBuffer as FlutterTexture + MTLTexture on the same IOSurface, wgpu draws via wgpu-hal, no CPU copy. Pending: real iPhone, Android HardwareBuffer path, an IOSurface-backed host test. Known spike limits: single frame (continuous preview needs double buffering or MTLSharedEvent sync), textures never unregistered."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -833,7 +838,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "From the P1-001 spike: move rendering off the UI isolate to the render thread with a fence (spike blocks the UI isolate in engine_spike_render_metal); move ENGINE_ERR_GPU next to the other error codes; replace the method channel with C ABI callbacks."
+    }
+   ],
    "source": "plan"
   },
   {
