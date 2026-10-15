@@ -1,8 +1,8 @@
 # Architecture
 
 ## Rust engine layers (dependencies point inward only)
-- `core`: timeline model, time, keyframes, project format, undo commands. Pure Rust: no I/O, no wgpu, no FFI, no threads.
-- `app`: command handling, undo stack, autosave, export orchestration, entitlement and watermark. Depends on `core` and on port traits only.
+- `core`: timeline model, time, keyframes, project format. Pure Rust: no I/O, no wgpu, no FFI, no threads.
+- `app`: command handling, undo (snapshot history, ADR 0002), autosave, export orchestration, entitlement and watermark. Depends on `core` and on port traits only.
 - Adapters `render` (wgpu), `media` (platform decoder/encoder callbacks, FFmpeg fallback), `audio` (cpal), `storage` (files): implement the ports.
 - `ffi`: thin boundary. Decode Protobuf command -> call `app` -> encode event. No logic.
 - Ports are traits owned by core/app (Decoder, Encoder, Clock, Storage, Renderer). Tests use in-memory fakes.

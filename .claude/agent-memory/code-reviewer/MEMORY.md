@@ -1,1 +1,1 @@
-- [Review patterns](review_patterns.md) — recurring: scope creep, safe extern fns deref ptrs, stub-passing tests, wide constructor domain, pub-field invariants, vacuous proptests
+- [Review patterns](review_patterns.md) — recurring: scope creep, unsafe ptr fns, stub-passing tests, wide constructors, pub-field invariants, vacuous proptests, frozen-test edits, arch-doc drift, id rollback

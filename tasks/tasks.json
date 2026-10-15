@@ -1174,6 +1174,10 @@
     {
      "date": "2026-10-15",
      "text": "plan: new app crate (architecture: undo stack lives in app). History owns the Timeline; every edit is a command applied through History::apply(|tl| ...). Undo entry = pre-edit snapshot (memento): a timeline is small, and it can't go wrong like a hand-written inverse can. Failed edits leave no entry. Memory limit stays in GOT-051."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "frozen proptest setup changed in fca062e (model assumed an empty history, but with_track() records a step); every assertion unchanged, seed still fails on the stub. User has said not to ask for decisions."
     }
    ],
    "source": "plan"
@@ -11914,6 +11918,25 @@
    "section": "ENG",
    "group": null,
    "title": "Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-043",
+   "section": "P1",
+   "group": null,
+   "title": "Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare)",
    "tags": [
     "Rust"
    ],

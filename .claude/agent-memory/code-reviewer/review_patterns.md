@@ -27,3 +27,10 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
   **How to apply:** suggest `#[non_exhaustive]` (keeps pub reads, blocks outside literals, does not break frozen tests that read fields).
 
 - Proptests that drop results (`let _ = op(...)`) and only check invariants pass trivially if the op rejects everything; ask for an Ok-iff-model check in a new test.
+
+- Frozen-test edits: the user told the implementer not to ask for decisions, so testing.md "stop and ask" conflicts get resolved by a separate test-only commit before the impl commit (seen P1-023). Accept it only if the edit corrects a wrong model without dropping assertions AND the test still fails on the stub (a committed proptest-regressions seed that fails on the stub proves this deterministically). Require a task.py note so the human sees it.
+  **How to apply:** diff test-commit..fix-commit, then fix-commit..HEAD on test paths must be empty.
+
+- Design drift from docs/architecture.md crate table without an ADR (P1-023: memento undo, while the table says core owns "undo commands"). Flag as Warning: update the table via a short ADR.
+
+- Memento/snapshot undo also restores id allocators inside the snapshot (Timeline::next_id), so ids get reused after undo + new edit. Check any snapshot-restore code for allocator rollback.

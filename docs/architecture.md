@@ -26,8 +26,8 @@ flowchart TB
 ## Engine crates (dependencies point inward)
 | Crate | Owns | Must not depend on |
 | --- | --- | --- |
-| core | timeline, rational time, keyframes, project format, undo commands | I/O, wgpu, FFI, threads |
-| app | command handling, undo stack, autosave, export orchestration, entitlement, watermark | concrete adapters (only port traits) |
+| core | timeline, rational time, keyframes, project format | I/O, wgpu, FFI, threads |
+| app | command handling, undo (snapshot history, ADR 0002), autosave, export orchestration, entitlement, watermark | concrete adapters (only port traits) |
 | render | wgpu pipelines, shaders, compositing, texture pools | ffi |
 | media | decode/encode via platform callbacks, FFmpeg fallback, demux/mux | ffi |
 | audio | cpal output, mixing, resampling, time-stretch, loudness | ffi |
