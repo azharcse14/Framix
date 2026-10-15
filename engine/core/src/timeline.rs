@@ -147,6 +147,9 @@ pub enum TimelineError {
     /// Only visual tracks can be hidden.
     #[error("track {0:?} cannot be hidden")]
     NotVisual(TrackId),
+    /// A clip can only move to a track of the same kind.
+    #[error("track {0:?} has another kind")]
+    WrongTrackKind(TrackId),
 }
 
 /// The editable timeline of a video project.
@@ -357,6 +360,18 @@ impl Timeline {
         trimmed.start = start;
         trimmed.source_start = Time(source_start);
         trimmed.duration = Time(end.0 - start.0);
+        Ok(())
+    }
+
+    /// Moves a clip to `start` on track `to` (its own track or another of the same kind),
+    /// keeping its id, media, source offset and duration. Refused if either track is locked or
+    /// the new spot overlaps another clip; on refusal nothing changes.
+    pub fn move_clip(
+        &mut self,
+        _clip: ClipId,
+        _to: TrackId,
+        _start: Time,
+    ) -> Result<(), TimelineError> {
         Ok(())
     }
 

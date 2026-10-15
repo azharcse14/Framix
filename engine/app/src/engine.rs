@@ -103,6 +103,7 @@ impl Engine {
                     tl.set_track_flags(track, flags)
                 }))
             }
+            command::Kind::MoveClip(_) => Err("not implemented".to_owned()),
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;

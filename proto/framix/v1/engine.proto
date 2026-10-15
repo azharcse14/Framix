@@ -23,6 +23,7 @@ message Command {
     TrimClip trim_clip = 13;
     DuplicateClip duplicate_clip = 14;
     SetTrackFlags set_track_flags = 15;
+    MoveClip move_clip = 16;
   }
 }
 
@@ -114,6 +115,14 @@ message SetTrackFlags {
   optional bool muted = 2;
   optional bool hidden = 3;
   optional bool locked = 4;
+}
+
+// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
+// if either track is locked or the spot is taken.
+message MoveClip {
+  uint64 clip_id = 1;
+  uint64 track_id = 2;
+  int64 start = 3;
 }
 
 // Sent by the engine. Exactly one kind is set.

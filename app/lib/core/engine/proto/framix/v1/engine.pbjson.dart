@@ -169,6 +169,15 @@ const Command$json = {
       '9': 0,
       '10': 'setTrackFlags'
     },
+    {
+      '1': 'move_clip',
+      '3': 16,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.MoveClip',
+      '9': 0,
+      '10': 'moveClip'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -192,7 +201,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'SABSCm1lcmdlQ2xpcHMSMgoJdHJpbV9jbGlwGA0gASgLMhMuZnJhbWl4LnYxLlRyaW1DbGlwSA'
     'BSCHRyaW1DbGlwEkEKDmR1cGxpY2F0ZV9jbGlwGA4gASgLMhguZnJhbWl4LnYxLkR1cGxpY2F0'
     'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcBJCCg9zZXRfdHJhY2tfZmxhZ3MYDyABKAsyGC5mcmFtaX'
-    'gudjEuU2V0VHJhY2tGbGFnc0gAUg1zZXRUcmFja0ZsYWdzQgYKBGtpbmQ=');
+    'gudjEuU2V0VHJhY2tGbGFnc0gAUg1zZXRUcmFja0ZsYWdzEjIKCW1vdmVfY2xpcBgQIAEoCzIT'
+    'LmZyYW1peC52MS5Nb3ZlQ2xpcEgAUghtb3ZlQ2xpcEIGCgRraW5k');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -390,6 +400,21 @@ final $typed_data.Uint8List setTrackFlagsDescriptor = $convert.base64Decode(
     'Cg1TZXRUcmFja0ZsYWdzEhkKCHRyYWNrX2lkGAEgASgEUgd0cmFja0lkEhkKBW11dGVkGAIgAS'
     'gISABSBW11dGVkiAEBEhsKBmhpZGRlbhgDIAEoCEgBUgZoaWRkZW6IAQESGwoGbG9ja2VkGAQg'
     'ASgISAJSBmxvY2tlZIgBAUIICgZfbXV0ZWRCCQoHX2hpZGRlbkIJCgdfbG9ja2Vk');
+
+@$core.Deprecated('Use moveClipDescriptor instead')
+const MoveClip$json = {
+  '1': 'MoveClip',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {'1': 'track_id', '3': 2, '4': 1, '5': 4, '10': 'trackId'},
+    {'1': 'start', '3': 3, '4': 1, '5': 3, '10': 'start'},
+  ],
+};
+
+/// Descriptor for `MoveClip`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List moveClipDescriptor = $convert.base64Decode(
+    'CghNb3ZlQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSGQoIdHJhY2tfaWQYAiABKARSB3'
+    'RyYWNrSWQSFAoFc3RhcnQYAyABKANSBXN0YXJ0');
 
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {

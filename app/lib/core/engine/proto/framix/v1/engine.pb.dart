@@ -37,6 +37,7 @@ enum Command_Kind {
   trimClip,
   duplicateClip,
   setTrackFlags,
+  moveClip,
   notSet
 }
 
@@ -58,6 +59,7 @@ class Command extends $pb.GeneratedMessage {
     TrimClip? trimClip,
     DuplicateClip? duplicateClip,
     SetTrackFlags? setTrackFlags,
+    MoveClip? moveClip,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -75,6 +77,7 @@ class Command extends $pb.GeneratedMessage {
     if (trimClip != null) result.trimClip = trimClip;
     if (duplicateClip != null) result.duplicateClip = duplicateClip;
     if (setTrackFlags != null) result.setTrackFlags = setTrackFlags;
+    if (moveClip != null) result.moveClip = moveClip;
     return result;
   }
 
@@ -103,13 +106,14 @@ class Command extends $pb.GeneratedMessage {
     13: Command_Kind.trimClip,
     14: Command_Kind.duplicateClip,
     15: Command_Kind.setTrackFlags,
+    16: Command_Kind.moveClip,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -140,6 +144,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: DuplicateClip.$_createMessage)
     ..aOM<SetTrackFlags>(15, _omitFieldNames ? '' : 'setTrackFlags',
         subBuilder: SetTrackFlags.$_createMessage)
+    ..aOM<MoveClip>(16, _omitFieldNames ? '' : 'moveClip',
+        subBuilder: MoveClip.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -177,6 +183,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -193,6 +200,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
+  @$pb.TagNumber(16)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -359,6 +367,17 @@ class Command extends $pb.GeneratedMessage {
   void clearSetTrackFlags() => $_clearField(15);
   @$pb.TagNumber(15)
   SetTrackFlags ensureSetTrackFlags() => $_ensure(14);
+
+  @$pb.TagNumber(16)
+  MoveClip get moveClip => $_getN(15);
+  @$pb.TagNumber(16)
+  set moveClip(MoveClip value) => $_setField(16, value);
+  @$pb.TagNumber(16)
+  $core.bool hasMoveClip() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearMoveClip() => $_clearField(16);
+  @$pb.TagNumber(16)
+  MoveClip ensureMoveClip() => $_ensure(15);
 }
 
 /// Appends an empty track.
@@ -1305,6 +1324,89 @@ class SetTrackFlags extends $pb.GeneratedMessage {
   $core.bool hasLocked() => $_has(3);
   @$pb.TagNumber(4)
   void clearLocked() => $_clearField(4);
+}
+
+/// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
+/// if either track is locked or the spot is taken.
+class MoveClip extends $pb.GeneratedMessage {
+  factory MoveClip({
+    $fixnum.Int64? clipId,
+    $fixnum.Int64? trackId,
+    $fixnum.Int64? start,
+  }) {
+    final result = MoveClip._();
+    if (clipId != null) result.clipId = clipId;
+    if (trackId != null) result.trackId = trackId;
+    if (start != null) result.start = start;
+    return result;
+  }
+
+  MoveClip._();
+
+  factory MoveClip.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClip()..mergeFromBuffer(data, registry);
+  factory MoveClip.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClip()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MoveClip',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MoveClip.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'trackId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(3, _omitFieldNames ? '' : 'start')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClip clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClip copyWith(void Function(MoveClip) updates) =>
+      super.copyWith((message) => updates(message as MoveClip)) as MoveClip;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MoveClip() / MoveClip.new instead')
+  static MoveClip create() => MoveClip._();
+  static $pb.GeneratedMessage $_createMessage() => MoveClip._();
+  @$core.override
+  MoveClip createEmptyInstance() => MoveClip._();
+  @$core.pragma('dart2js:noInline')
+  static MoveClip getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MoveClip>(MoveClip.$_createMessage);
+  static MoveClip? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get trackId => $_getI64(1);
+  @$pb.TagNumber(2)
+  set trackId($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTrackId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTrackId() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get start => $_getI64(2);
+  @$pb.TagNumber(3)
+  set start($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasStart() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStart() => $_clearField(3);
 }
 
 enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }
