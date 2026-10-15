@@ -22,9 +22,8 @@ suppressAgpWarnings=DEPRECATED_DSL
 # Flutter Gradle plugin source and its old variant API (flutter_tools/gradle).
 flutter_tools/gradle/src/main/kotlin/.* is deprecated
 API .(applicationVariants|testVariants|unitTestVariants). is obsolete
-Deprecated Gradle features were used in this build
---warning-mode all
-# Gradle native-platform on a newer JVM (Gradle tooling, not the app).
+# Gradle native-platform on a newer JVM. Only the rubygrapefruit line names the caller; the
+# other three are generic JVM lines it triggers, so recheck them on the pinned JDK 21.
 System::load has been called by net\.rubygrapefruit
 --enable-native-access=ALL-UNNAMED
 Restricted methods will be blocked in a future release
@@ -34,17 +33,28 @@ Not considering ANDROID_NDK_HOME
 '
 allowed=$(grep -v -e '^#' -e '^$' <<<"$ALLOWED")
 
+# Gradle lists each deprecation only with warning mode "all" (app/android/gradle.properties);
+# otherwise one summary line hides them, and that line is never allowed.
+grep -qx 'org.gradle.warning.mode=all' android/gradle.properties ||
+  { echo "app/android/gradle.properties needs org.gradle.warning.mode=all" >&2; exit 1; }
+
 log=$(mktemp)
-trap 'rm -f "$log"' EXIT
-echo "▶ (app) flutter build ios --simulator --debug"
-"${FLUTTER[@]}" build ios --simulator --debug -v >>"$log" 2>&1
-echo "▶ (app) flutter build apk --debug"
-"${FLUTTER[@]}" build apk --debug --target-platform android-arm64,android-x64 -v >>"$log" 2>&1
+build() {
+  echo "▶ (app) flutter build $*"
+  "${FLUTTER[@]}" build "$@" -v >>"$log" 2>&1 ||
+    { tail -100 "$log" >&2; echo "✗ build failed; full log: $log" >&2; exit 1; }
+}
+build ios --simulator --debug
+build apk --debug --target-platform android-arm64,android-x64
 
 # Real diagnostics only: skip Xcode's echoed build settings (export FOO_WARN_...=YES).
-found=$(grep -E '(^|[^A-Za-z_])([Ww]arning:|WARNING:|^.*\] w: |\bw: |[Dd]eprecated)' "$log" \
-  | grep -vE '(^|\s)export |^\s*\[[^]]*\]\s+[A-Z_]+ = ' \
-  | grep -vE -f <(printf '%s\n' "$allowed") | sort -u || true)
+diagnostics=$(grep -E '(^|[^A-Za-z_])([Ww]arning:|WARNING:|\bw: |[Dd]eprecated)' "$log" |
+  grep -vE '^\s*(\[[^]]*\]\s*)?export |^\s*\[[^]]*\]\s+[A-Z_]+ = ' || true)
+# grep -v exits 1 when every line is allowed (fine) and 2 on a bad allowlist regex (fail).
+status=0
+found=$(grep -vE -f <(printf '%s\n' "$allowed") <<<"$diagnostics" | sort -u) || status=$?
+[ "$status" -le 1 ] || { echo "allowlist regex error" >&2; exit 1; }
+rm -f "$log"
 if [ -n "$found" ]; then
   echo "✗ new platform build warnings:" >&2
   echo "$found" >&2
