@@ -24,6 +24,9 @@ const MIN_READER_VERSION: u32 = 2;
 pub const MAX_TRACKS: usize = 256;
 /// Most clips (all tracks together) a project file may hold.
 pub const MAX_CLIPS: usize = 100_000;
+/// Largest id a project file may carry; keeps the id counter far from overflow.
+pub const MAX_ID: u64 = 0;
+
 /// Largest project file. Small on purpose: prost holds a file's decoded messages in memory
 /// before the track and clip caps apply (2-byte empty tracks would otherwise multiply).
 // ponytail: fixed caps; raise them together when real projects need it.
@@ -53,6 +56,12 @@ pub enum ProjectError {
     /// A media entry breaks the import rules (bad reference, size, duration, ...).
     #[error("invalid media: {0}")]
     InvalidMedia(#[from] framix_core::media::MediaError),
+    /// A media id (or a clip's media id) is above [`MAX_ID`].
+    #[error("id {0} out of range")]
+    IdOutOfRange(u64),
+    /// A clip refers to media the file does not list (format 2+).
+    #[error("clip refers to unlisted media {0}")]
+    UnknownMedia(u64),
     /// A media kind this engine does not know.
     #[error("unknown media kind {0}")]
     UnknownMediaKind(i32),
