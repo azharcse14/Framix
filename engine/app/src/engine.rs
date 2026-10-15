@@ -39,7 +39,7 @@ impl Engine {
             }
             command::Kind::Undo(_) => step(self.history.undo(), "nothing to undo"),
             command::Kind::Redo(_) => step(self.history.redo(), "nothing to redo"),
-            command::Kind::GetTimeline(_) => Err("not implemented".to_owned()),
+            command::Kind::GetTimeline(_) => Ok(()),
         }
     }
 

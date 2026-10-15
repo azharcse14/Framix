@@ -12,11 +12,16 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     // add-track cannot fail. Failure messages arrive with a code enum later.
     _events = _engine.events
         .where((e) => e.hasTimelineChanged())
-        .listen((e) => emit(e.timelineChanged..freeze()));
+        .map((e) => e.timelineChanged..freeze())
+        // Cubit always lets the first emit through, even if equal; skip no-op replies.
+        .where((t) => t != state)
+        .listen(emit);
+    // The engine may already hold edits; ask for them instead of trusting the empty start.
+    _engine.send(Command(getTimeline: GetTimeline()));
   }
 
   final FramixEngine _engine;
-  late final StreamSubscription<Event> _events;
+  late final StreamSubscription<TimelineChanged> _events;
 
   void addTrack(TrackKind kind) =>
       _engine.send(Command(addTrack: AddTrack(kind: kind)));
