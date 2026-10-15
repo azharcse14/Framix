@@ -20,7 +20,9 @@ pub struct MediaId(pub u64);
 /// What a track carries.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TrackKind {
+    /// Video, photo, or other visual clips.
     Video,
+    /// Audio-only clips.
     Audio,
 }
 
@@ -40,16 +42,22 @@ pub struct ClipPlacement {
 /// A clip on a track. Covers the half-open range `[start, start + duration)`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Clip {
+    /// Stable id.
     pub id: ClipId,
+    /// Media the clip plays.
     pub media: MediaId,
+    /// Offset into the media where playback starts.
     pub source_start: Time,
+    /// Timeline position of the first tick.
     pub start: Time,
+    /// Length on the timeline; always positive.
     pub duration: Time,
 }
 
 impl Clip {
     /// First tick after the clip.
     pub fn end(&self) -> Time {
+        // Timeline::insert_clip checked that start + duration fits in i64.
         Time(self.start.0 + self.duration.0)
     }
 }
@@ -63,10 +71,12 @@ pub struct Track {
 }
 
 impl Track {
+    /// Stable id.
     pub fn id(&self) -> TrackId {
         self.id
     }
 
+    /// What the track carries.
     pub fn kind(&self) -> TrackKind {
         self.kind
     }
@@ -78,8 +88,9 @@ impl Track {
 
     /// The clip covering `time`, if any.
     pub fn clip_at(&self, time: Time) -> Option<&Clip> {
-        let _ = time;
-        None
+        let after = self.clips.partition_point(|c| c.start <= time);
+        let clip = self.clips[..after].last()?;
+        (time < clip.end()).then_some(clip)
     }
 }
 
@@ -116,8 +127,13 @@ impl Timeline {
 
     /// Appends an empty track and returns its id.
     pub fn add_track(&mut self, kind: TrackKind) -> TrackId {
-        let _ = kind;
-        TrackId(0)
+        let id = TrackId(self.allocate_id());
+        self.tracks.push(Track {
+            id,
+            kind,
+            clips: Vec::new(),
+        });
+        id
     }
 
     /// Places a clip on `track`. Fails if it would overlap a clip already there.
@@ -126,12 +142,51 @@ impl Timeline {
         track: TrackId,
         placement: ClipPlacement,
     ) -> Result<ClipId, TimelineError> {
-        let _ = (track, placement);
-        Ok(ClipId(0))
+        if placement.duration.0 <= 0 {
+            return Err(TimelineError::NonPositiveDuration);
+        }
+        let end = placement
+            .start
+            .0
+            .checked_add(placement.duration.0)
+            .ok_or(TimelineError::TimeOverflow)?;
+        let index = self
+            .tracks
+            .iter()
+            .position(|t| t.id == track)
+            .ok_or(TimelineError::UnknownTrack(track))?;
+        let clips = &self.tracks[index].clips;
+        let at = clips.partition_point(|c| c.start < placement.start);
+        if let Some(prev) = clips[..at].last().filter(|c| c.end() > placement.start) {
+            return Err(TimelineError::Overlap(prev.id));
+        }
+        if let Some(next) = clips.get(at).filter(|c| c.start.0 < end) {
+            return Err(TimelineError::Overlap(next.id));
+        }
+        let id = ClipId(self.allocate_id());
+        let clip = Clip {
+            id,
+            media: placement.media,
+            source_start: placement.source_start,
+            start: placement.start,
+            duration: placement.duration,
+        };
+        self.tracks[index].clips.insert(at, clip);
+        Ok(id)
     }
 
     /// End of the last clip on any track; zero when empty.
     pub fn duration(&self) -> Time {
-        Time(0)
+        // Clips are sorted and never overlap, so a track's last clip ends last.
+        self.tracks
+            .iter()
+            .filter_map(|t| t.clips.last().map(Clip::end))
+            .max()
+            .unwrap_or(Time(0))
+    }
+
+    fn allocate_id(&mut self) -> u64 {
+        self.next_id += 1;
+        self.next_id
     }
 }
