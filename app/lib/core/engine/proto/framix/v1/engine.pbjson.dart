@@ -30,6 +30,21 @@ final $typed_data.Uint8List trackKindDescriptor = $convert.base64Decode(
     'CglUcmFja0tpbmQSGgoWVFJBQ0tfS0lORF9VTlNQRUNJRklFRBAAEhQKEFRSQUNLX0tJTkRfVk'
     'lERU8QARIUChBUUkFDS19LSU5EX0FVRElPEAI=');
 
+@$core.Deprecated('Use mediaKindDescriptor instead')
+const MediaKind$json = {
+  '1': 'MediaKind',
+  '2': [
+    {'1': 'MEDIA_KIND_UNSPECIFIED', '2': 0},
+    {'1': 'MEDIA_KIND_VIDEO', '2': 1},
+    {'1': 'MEDIA_KIND_IMAGE', '2': 2},
+  ],
+};
+
+/// Descriptor for `MediaKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List mediaKindDescriptor = $convert.base64Decode(
+    'CglNZWRpYUtpbmQSGgoWTUVESUFfS0lORF9VTlNQRUNJRklFRBAAEhQKEE1FRElBX0tJTkRfVk'
+    'lERU8QARIUChBNRURJQV9LSU5EX0lNQUdFEAI=');
+
 @$core.Deprecated('Use commandDescriptor instead')
 const Command$json = {
   '1': 'Command',
@@ -178,6 +193,15 @@ const Command$json = {
       '9': 0,
       '10': 'moveClip'
     },
+    {
+      '1': 'import_media',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ImportMedia',
+      '9': 0,
+      '10': 'importMedia'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -202,7 +226,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'BSCHRyaW1DbGlwEkEKDmR1cGxpY2F0ZV9jbGlwGA4gASgLMhguZnJhbWl4LnYxLkR1cGxpY2F0'
     'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcBJCCg9zZXRfdHJhY2tfZmxhZ3MYDyABKAsyGC5mcmFtaX'
     'gudjEuU2V0VHJhY2tGbGFnc0gAUg1zZXRUcmFja0ZsYWdzEjIKCW1vdmVfY2xpcBgQIAEoCzIT'
-    'LmZyYW1peC52MS5Nb3ZlQ2xpcEgAUghtb3ZlQ2xpcEIGCgRraW5k');
+    'LmZyYW1peC52MS5Nb3ZlQ2xpcEgAUghtb3ZlQ2xpcBI7CgxpbXBvcnRfbWVkaWEYESABKAsyFi'
+    '5mcmFtaXgudjEuSW1wb3J0TWVkaWFIAFILaW1wb3J0TWVkaWFCBgoEa2luZA==');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -415,6 +440,62 @@ const MoveClip$json = {
 final $typed_data.Uint8List moveClipDescriptor = $convert.base64Decode(
     'CghNb3ZlQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSGQoIdHJhY2tfaWQYAiABKARSB3'
     'RyYWNrSWQSFAoFc3RhcnQYAyABKANSBXN0YXJ0');
+
+@$core.Deprecated('Use importMediaDescriptor instead')
+const ImportMedia$json = {
+  '1': 'ImportMedia',
+  '2': [
+    {
+      '1': 'items',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.framix.v1.MediaItem',
+      '10': 'items'
+    },
+  ],
+};
+
+/// Descriptor for `ImportMedia`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List importMediaDescriptor = $convert.base64Decode(
+    'CgtJbXBvcnRNZWRpYRIqCgVpdGVtcxgBIAMoCzIULmZyYW1peC52MS5NZWRpYUl0ZW1SBWl0ZW'
+    '1z');
+
+@$core.Deprecated('Use mediaItemDescriptor instead')
+const MediaItem$json = {
+  '1': 'MediaItem',
+  '2': [
+    {'1': 'uri', '3': 1, '4': 1, '5': 9, '10': 'uri'},
+    {
+      '1': 'kind',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.MediaKind',
+      '10': 'kind'
+    },
+    {'1': 'duration_value', '3': 3, '4': 1, '5': 3, '10': 'durationValue'},
+    {
+      '1': 'duration_timescale',
+      '3': 4,
+      '4': 1,
+      '5': 13,
+      '10': 'durationTimescale'
+    },
+    {'1': 'width', '3': 5, '4': 1, '5': 13, '10': 'width'},
+    {'1': 'height', '3': 6, '4': 1, '5': 13, '10': 'height'},
+    {'1': 'rotation', '3': 7, '4': 1, '5': 13, '10': 'rotation'},
+    {'1': 'codec', '3': 8, '4': 1, '5': 9, '10': 'codec'},
+  ],
+};
+
+/// Descriptor for `MediaItem`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List mediaItemDescriptor = $convert.base64Decode(
+    'CglNZWRpYUl0ZW0SEAoDdXJpGAEgASgJUgN1cmkSKAoEa2luZBgCIAEoDjIULmZyYW1peC52MS'
+    '5NZWRpYUtpbmRSBGtpbmQSJQoOZHVyYXRpb25fdmFsdWUYAyABKANSDWR1cmF0aW9uVmFsdWUS'
+    'LQoSZHVyYXRpb25fdGltZXNjYWxlGAQgASgNUhFkdXJhdGlvblRpbWVzY2FsZRIUCgV3aWR0aB'
+    'gFIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAYgASgNUgZoZWlnaHQSGgoIcm90YXRpb24YByABKA1S'
+    'CHJvdGF0aW9uEhQKBWNvZGVjGAggASgJUgVjb2RlYw==');
 
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {

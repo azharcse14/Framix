@@ -46,6 +46,9 @@ pub enum ProjectError {
     /// More than [`MAX_TRACKS`], [`MAX_CLIPS`] or [`MAX_PROJECT_BYTES`].
     #[error("project too large")]
     TooLarge,
+    /// A media entry breaks the import rules (bad reference, size, duration, ...).
+    #[error("invalid media: {0}")]
+    InvalidMedia(#[from] framix_core::media::MediaError),
     /// The aspect ratio is outside what the editor allows.
     #[error("invalid aspect ratio")]
     InvalidAspect,
@@ -85,6 +88,7 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         tracks,
         aspect_width: timeline.aspect().width(),
         aspect_height: timeline.aspect().height(),
+        media: Vec::new(),
     }
     .encode_to_vec()
 }

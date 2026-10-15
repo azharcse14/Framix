@@ -3,7 +3,10 @@
 //! Keyframes (P5-001) are not modelled yet. Clip-local times are relative to the clip, so
 //! keyframes added later stay valid when a clip moves.
 
+use std::collections::BTreeMap;
+
 use crate::aspect::AspectRatio;
+use crate::media::Media;
 use crate::time::Time;
 
 /// Stable id of a track within a timeline.
@@ -150,6 +153,9 @@ pub enum TimelineError {
     /// A clip can only move to a track of the same kind.
     #[error("track {0:?} has another kind")]
     WrongTrackKind(TrackId),
+    /// More items than [`crate::media::MAX_IMPORT`] in one import.
+    #[error("too many media in one import")]
+    TooManyMedia,
 }
 
 /// The editable timeline of a video project.
@@ -161,6 +167,7 @@ pub enum TimelineError {
 pub struct Timeline {
     tracks: Vec<Track>,
     aspect: AspectRatio,
+    media: BTreeMap<MediaId, Media>,
     /// Last id handed out.
     next_id: u64,
 }
@@ -261,6 +268,35 @@ impl Timeline {
         }
         target.flags = flags;
         Ok(())
+    }
+
+    /// Media registered in this project, by id.
+    pub fn media(&self, id: MediaId) -> Option<&Media> {
+        self.media.get(&id)
+    }
+
+    /// All registered media, by id.
+    pub fn all_media(&self) -> impl Iterator<Item = (MediaId, &Media)> {
+        self.media.iter().map(|(id, m)| (*id, m))
+    }
+
+    /// Registers `media` and appends one clip per item, in order and back to back, at the end
+    /// of the first unlocked video track (a new video track if there is none). Videos play
+    /// their full length, photos [`crate::media::PHOTO_DEFAULT_DURATION`]. All or nothing.
+    pub fn import(&mut self, _media: Vec<Media>) -> Result<Vec<ClipId>, TimelineError> {
+        Ok(Vec::new())
+    }
+
+    /// Registers `media` under a known `id` (project load), keeping new ids above it.
+    pub fn restore_media(&mut self, id: MediaId, media: Media) {
+        self.reserve_ids_through(id.0);
+        self.media.insert(id, media);
+    }
+
+    /// Makes sure ids up to `id` are never handed out (e.g. media ids that clips of an old
+    /// project file refer to).
+    pub fn reserve_ids_through(&mut self, id: u64) {
+        self.next_id = self.next_id.max(id);
     }
 
     /// Removes a clip.

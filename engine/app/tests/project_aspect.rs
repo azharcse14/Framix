@@ -29,6 +29,7 @@ fn invalid_aspect_ratios_in_files_are_refused() {
         tracks: vec![],
         aspect_width: 5,
         aspect_height: 0,
+        ..Default::default()
     }
     .encode_to_vec();
     assert!(matches!(decode(&bytes), Err(ProjectError::InvalidAspect)));

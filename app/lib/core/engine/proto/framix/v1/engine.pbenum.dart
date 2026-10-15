@@ -37,5 +37,28 @@ class TrackKind extends $pb.ProtobufEnum {
   const TrackKind._(super.value, super.name);
 }
 
+/// What a picked file is.
+class MediaKind extends $pb.ProtobufEnum {
+  static const MediaKind MEDIA_KIND_UNSPECIFIED =
+      MediaKind._(0, _omitEnumNames ? '' : 'MEDIA_KIND_UNSPECIFIED');
+  static const MediaKind MEDIA_KIND_VIDEO =
+      MediaKind._(1, _omitEnumNames ? '' : 'MEDIA_KIND_VIDEO');
+  static const MediaKind MEDIA_KIND_IMAGE =
+      MediaKind._(2, _omitEnumNames ? '' : 'MEDIA_KIND_IMAGE');
+
+  static const $core.List<MediaKind> values = <MediaKind>[
+    MEDIA_KIND_UNSPECIFIED,
+    MEDIA_KIND_VIDEO,
+    MEDIA_KIND_IMAGE,
+  ];
+
+  static final $core.List<MediaKind?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static MediaKind? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MediaKind._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames =
     $core.bool.fromEnvironment('protobuf.omit_enum_names');

@@ -38,6 +38,7 @@ enum Command_Kind {
   duplicateClip,
   setTrackFlags,
   moveClip,
+  importMedia,
   notSet
 }
 
@@ -60,6 +61,7 @@ class Command extends $pb.GeneratedMessage {
     DuplicateClip? duplicateClip,
     SetTrackFlags? setTrackFlags,
     MoveClip? moveClip,
+    ImportMedia? importMedia,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -78,6 +80,7 @@ class Command extends $pb.GeneratedMessage {
     if (duplicateClip != null) result.duplicateClip = duplicateClip;
     if (setTrackFlags != null) result.setTrackFlags = setTrackFlags;
     if (moveClip != null) result.moveClip = moveClip;
+    if (importMedia != null) result.importMedia = importMedia;
     return result;
   }
 
@@ -107,13 +110,14 @@ class Command extends $pb.GeneratedMessage {
     14: Command_Kind.duplicateClip,
     15: Command_Kind.setTrackFlags,
     16: Command_Kind.moveClip,
+    17: Command_Kind.importMedia,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -146,6 +150,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: SetTrackFlags.$_createMessage)
     ..aOM<MoveClip>(16, _omitFieldNames ? '' : 'moveClip',
         subBuilder: MoveClip.$_createMessage)
+    ..aOM<ImportMedia>(17, _omitFieldNames ? '' : 'importMedia',
+        subBuilder: ImportMedia.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -184,6 +190,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
   @$pb.TagNumber(16)
+  @$pb.TagNumber(17)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -201,6 +208,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   @$pb.TagNumber(15)
   @$pb.TagNumber(16)
+  @$pb.TagNumber(17)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -378,6 +386,17 @@ class Command extends $pb.GeneratedMessage {
   void clearMoveClip() => $_clearField(16);
   @$pb.TagNumber(16)
   MoveClip ensureMoveClip() => $_ensure(15);
+
+  @$pb.TagNumber(17)
+  ImportMedia get importMedia => $_getN(16);
+  @$pb.TagNumber(17)
+  set importMedia(ImportMedia value) => $_setField(17, value);
+  @$pb.TagNumber(17)
+  $core.bool hasImportMedia() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearImportMedia() => $_clearField(17);
+  @$pb.TagNumber(17)
+  ImportMedia ensureImportMedia() => $_ensure(16);
 }
 
 /// Appends an empty track.
@@ -1407,6 +1426,207 @@ class MoveClip extends $pb.GeneratedMessage {
   $core.bool hasStart() => $_has(2);
   @$pb.TagNumber(3)
   void clearStart() => $_clearField(3);
+}
+
+/// Adds picked media, in pick order, back to back at the end of the first unlocked video track
+/// (a new one if none). All or nothing: one bad item refuses the whole import. Photos get the
+/// default photo duration.
+class ImportMedia extends $pb.GeneratedMessage {
+  factory ImportMedia({
+    $core.Iterable<MediaItem>? items,
+  }) {
+    final result = ImportMedia._();
+    if (items != null) result.items.addAll(items);
+    return result;
+  }
+
+  ImportMedia._();
+
+  factory ImportMedia.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ImportMedia()..mergeFromBuffer(data, registry);
+  factory ImportMedia.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ImportMedia()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ImportMedia',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ImportMedia.$_createMessage)
+    ..pPM<MediaItem>(1, _omitFieldNames ? '' : 'items',
+        subBuilder: MediaItem.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ImportMedia clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ImportMedia copyWith(void Function(ImportMedia) updates) =>
+      super.copyWith((message) => updates(message as ImportMedia))
+          as ImportMedia;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ImportMedia() / ImportMedia.new instead')
+  static ImportMedia create() => ImportMedia._();
+  static $pb.GeneratedMessage $_createMessage() => ImportMedia._();
+  @$core.override
+  ImportMedia createEmptyInstance() => ImportMedia._();
+  @$core.pragma('dart2js:noInline')
+  static ImportMedia getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ImportMedia>(
+          ImportMedia.$_createMessage);
+  static ImportMedia? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<MediaItem> get items => $_getList(0);
+}
+
+/// One picked file, as reported by the platform layer (untrusted). `uri` is opaque to the
+/// engine: content://... on Android, a path relative to the app's media folder on iOS.
+class MediaItem extends $pb.GeneratedMessage {
+  factory MediaItem({
+    $core.String? uri,
+    MediaKind? kind,
+    $fixnum.Int64? durationValue,
+    $core.int? durationTimescale,
+    $core.int? width,
+    $core.int? height,
+    $core.int? rotation,
+    $core.String? codec,
+  }) {
+    final result = MediaItem._();
+    if (uri != null) result.uri = uri;
+    if (kind != null) result.kind = kind;
+    if (durationValue != null) result.durationValue = durationValue;
+    if (durationTimescale != null) result.durationTimescale = durationTimescale;
+    if (width != null) result.width = width;
+    if (height != null) result.height = height;
+    if (rotation != null) result.rotation = rotation;
+    if (codec != null) result.codec = codec;
+    return result;
+  }
+
+  MediaItem._();
+
+  factory MediaItem.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MediaItem()..mergeFromBuffer(data, registry);
+  factory MediaItem.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MediaItem()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MediaItem',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MediaItem.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'uri')
+    ..aE<MediaKind>(2, _omitFieldNames ? '' : 'kind',
+        enumValues: MediaKind.values)
+    ..aInt64(3, _omitFieldNames ? '' : 'durationValue')
+    ..aI(4, _omitFieldNames ? '' : 'durationTimescale',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'width', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'rotation', fieldType: $pb.PbFieldType.OU3)
+    ..aOS(8, _omitFieldNames ? '' : 'codec')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaItem clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaItem copyWith(void Function(MediaItem) updates) =>
+      super.copyWith((message) => updates(message as MediaItem)) as MediaItem;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MediaItem() / MediaItem.new instead')
+  static MediaItem create() => MediaItem._();
+  static $pb.GeneratedMessage $_createMessage() => MediaItem._();
+  @$core.override
+  MediaItem createEmptyInstance() => MediaItem._();
+  @$core.pragma('dart2js:noInline')
+  static MediaItem getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MediaItem>(MediaItem.$_createMessage);
+  static MediaItem? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get uri => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set uri($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUri() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUri() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  MediaKind get kind => $_getN(1);
+  @$pb.TagNumber(2)
+  set kind(MediaKind value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasKind() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearKind() => $_clearField(2);
+
+  /// Video duration = duration_value / duration_timescale seconds; ignored for images.
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get durationValue => $_getI64(2);
+  @$pb.TagNumber(3)
+  set durationValue($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDurationValue() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDurationValue() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get durationTimescale => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set durationTimescale($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDurationTimescale() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDurationTimescale() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get width => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set width($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasWidth() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearWidth() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get height => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set height($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasHeight() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearHeight() => $_clearField(6);
+
+  /// Clockwise display rotation: 0, 90, 180 or 270.
+  @$pb.TagNumber(7)
+  $core.int get rotation => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set rotation($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasRotation() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearRotation() => $_clearField(7);
+
+  /// Short codec tag (e.g. "avc1", "hvc1"), at most 16 ASCII characters.
+  @$pb.TagNumber(8)
+  $core.String get codec => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set codec($core.String value) => $_setString(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasCodec() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearCodec() => $_clearField(8);
 }
 
 enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }

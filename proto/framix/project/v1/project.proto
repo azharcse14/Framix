@@ -16,6 +16,28 @@ message ProjectFile {
   // Canvas aspect ratio; 0:0 (files from before it existed) means the default 9:16.
   uint32 aspect_width = 4;
   uint32 aspect_height = 5;
+  // Media the clips play (format 2+). Clips refer to these ids.
+  repeated SavedMedia media = 6;
+}
+
+// What a saved media entry is.
+enum SavedMediaKind {
+  SAVED_MEDIA_KIND_UNSPECIFIED = 0;
+  SAVED_MEDIA_KIND_VIDEO = 1;
+  SAVED_MEDIA_KIND_IMAGE = 2;
+}
+
+// Imported media, validated again on load (the file is untrusted).
+message SavedMedia {
+  uint64 id = 1;
+  string uri = 2;
+  SavedMediaKind kind = 3;
+  // Ticks; 0 for images.
+  int64 duration = 4;
+  uint32 width = 5;
+  uint32 height = 6;
+  uint32 rotation = 7;
+  string codec = 8;
 }
 
 // What a track carries. Separate from the UI contract's TrackKind so the file format
