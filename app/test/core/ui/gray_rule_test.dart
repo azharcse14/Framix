@@ -6,6 +6,7 @@ void main() {
   // cool bias), so they never tint the user's colors.
   test('every gray token follows the near-neutral rule', () {
     const c = FramixColors.dark;
+    // Add every new gray token here (and the light theme's grays when it exists).
     final grays = {
       'background': c.background,
       'surface': c.surface,
