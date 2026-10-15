@@ -40,4 +40,16 @@ void main() {
     state = await next();
     expect(state.tracks, hasLength(1));
   });
+
+  test('a cubit created after edits mirrors the existing timeline', () async {
+    final first = next();
+    cubit.addTrack(TrackKind.TRACK_KIND_VIDEO);
+    await first;
+
+    final late = TimelineCubit(engine);
+    addTearDown(late.close);
+    final state = await late.stream.first.timeout(const Duration(seconds: 5));
+    expect(state.tracks.single.kind, TrackKind.TRACK_KIND_VIDEO);
+    expect(state.canUndo, isTrue);
+  });
 }

@@ -12,6 +12,7 @@ message Command {
     InsertClip insert_clip = 2;
     Undo undo = 3;
     Redo redo = 4;
+    GetTimeline get_timeline = 5;
   }
 }
 
@@ -42,6 +43,9 @@ message Undo {}
 // Re-applies the last undone edit.
 message Redo {}
 
+// Asks for the current timeline; answered with TimelineChanged, nothing is edited.
+message GetTimeline {}
+
 // Sent by the engine. Exactly one kind is set.
 message Event {
   oneof kind {
@@ -50,7 +54,7 @@ message Event {
   }
 }
 
-// Full timeline state after a successful command.
+// Full timeline state after a successful command or GetTimeline.
 message TimelineChanged {
   repeated Track tracks = 1;
   int64 duration = 2;

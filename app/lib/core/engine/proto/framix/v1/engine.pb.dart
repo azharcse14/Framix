@@ -21,7 +21,7 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 export 'engine.pbenum.dart';
 
-enum Command_Kind { addTrack, insertClip, undo, redo, notSet }
+enum Command_Kind { addTrack, insertClip, undo, redo, getTimeline, notSet }
 
 /// Sent by the UI. Exactly one kind is set.
 class Command extends $pb.GeneratedMessage {
@@ -30,12 +30,14 @@ class Command extends $pb.GeneratedMessage {
     InsertClip? insertClip,
     Undo? undo,
     Redo? redo,
+    GetTimeline? getTimeline,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
     if (insertClip != null) result.insertClip = insertClip;
     if (undo != null) result.undo = undo;
     if (redo != null) result.redo = redo;
+    if (getTimeline != null) result.getTimeline = getTimeline;
     return result;
   }
 
@@ -53,13 +55,14 @@ class Command extends $pb.GeneratedMessage {
     2: Command_Kind.insertClip,
     3: Command_Kind.undo,
     4: Command_Kind.redo,
+    5: Command_Kind.getTimeline,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4])
+    ..oo(0, [1, 2, 3, 4, 5])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -68,6 +71,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Undo.$_createMessage)
     ..aOM<Redo>(4, _omitFieldNames ? '' : 'redo',
         subBuilder: Redo.$_createMessage)
+    ..aOM<GetTimeline>(5, _omitFieldNames ? '' : 'getTimeline',
+        subBuilder: GetTimeline.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -94,11 +99,13 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -144,6 +151,17 @@ class Command extends $pb.GeneratedMessage {
   void clearRedo() => $_clearField(4);
   @$pb.TagNumber(4)
   Redo ensureRedo() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  GetTimeline get getTimeline => $_getN(4);
+  @$pb.TagNumber(5)
+  set getTimeline(GetTimeline value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasGetTimeline() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearGetTimeline() => $_clearField(5);
+  @$pb.TagNumber(5)
+  GetTimeline ensureGetTimeline() => $_ensure(4);
 }
 
 /// Appends an empty track.
@@ -389,6 +407,48 @@ class Redo extends $pb.GeneratedMessage {
   static Redo? _defaultInstance;
 }
 
+/// Asks for the current timeline; answered with TimelineChanged, nothing is edited.
+class GetTimeline extends $pb.GeneratedMessage {
+  factory GetTimeline() => GetTimeline._();
+
+  GetTimeline._();
+
+  factory GetTimeline.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      GetTimeline()..mergeFromBuffer(data, registry);
+  factory GetTimeline.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      GetTimeline()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetTimeline',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: GetTimeline.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetTimeline clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetTimeline copyWith(void Function(GetTimeline) updates) =>
+      super.copyWith((message) => updates(message as GetTimeline))
+          as GetTimeline;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use GetTimeline() / GetTimeline.new instead')
+  static GetTimeline create() => GetTimeline._();
+  static $pb.GeneratedMessage $_createMessage() => GetTimeline._();
+  @$core.override
+  GetTimeline createEmptyInstance() => GetTimeline._();
+  @$core.pragma('dart2js:noInline')
+  static GetTimeline getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetTimeline>(
+          GetTimeline.$_createMessage);
+  static GetTimeline? _defaultInstance;
+}
+
 enum Event_Kind { timelineChanged, commandFailed, notSet }
 
 /// Sent by the engine. Exactly one kind is set.
@@ -478,7 +538,7 @@ class Event extends $pb.GeneratedMessage {
   CommandFailed ensureCommandFailed() => $_ensure(1);
 }
 
-/// Full timeline state after a successful command.
+/// Full timeline state after a successful command or GetTimeline.
 class TimelineChanged extends $pb.GeneratedMessage {
   factory TimelineChanged({
     $core.Iterable<Track>? tracks,

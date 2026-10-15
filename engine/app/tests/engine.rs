@@ -1,6 +1,7 @@
 use framix_app::engine::Engine;
 use framix_app::proto::{
-    AddTrack, Command, Event, InsertClip, Redo, TimelineChanged, TrackKind, Undo, command, event,
+    AddTrack, Command, Event, GetTimeline, InsertClip, Redo, TimelineChanged, TrackKind, Undo,
+    command, event,
 };
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
@@ -100,4 +101,15 @@ fn undo_with_nothing_to_undo_fails() {
     let mut engine = Engine::default();
     assert!(!failed(run(&mut engine, command::Kind::Undo(Undo {}))).is_empty());
     assert!(!failed(run(&mut engine, command::Kind::Redo(Redo {}))).is_empty());
+}
+
+#[test]
+fn get_timeline_reports_state_without_an_undo_step() {
+    let mut engine = Engine::default();
+    add_video_track(&mut engine);
+    run(&mut engine, command::Kind::Undo(Undo {}));
+    let t = changed(run(&mut engine, command::Kind::GetTimeline(GetTimeline {})));
+    assert!(t.tracks.is_empty());
+    assert!(!t.can_undo);
+    assert!(t.can_redo, "GetTimeline must not drop the redo step");
 }

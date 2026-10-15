@@ -70,6 +70,15 @@ const Command$json = {
       '9': 0,
       '10': 'redo'
     },
+    {
+      '1': 'get_timeline',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.GetTimeline',
+      '9': 0,
+      '10': 'getTimeline'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -81,7 +90,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'CgdDb21tYW5kEjIKCWFkZF90cmFjaxgBIAEoCzITLmZyYW1peC52MS5BZGRUcmFja0gAUghhZG'
     'RUcmFjaxI4CgtpbnNlcnRfY2xpcBgCIAEoCzIVLmZyYW1peC52MS5JbnNlcnRDbGlwSABSCmlu'
     'c2VydENsaXASJQoEdW5kbxgDIAEoCzIPLmZyYW1peC52MS5VbmRvSABSBHVuZG8SJQoEcmVkbx'
-    'gEIAEoCzIPLmZyYW1peC52MS5SZWRvSABSBHJlZG9CBgoEa2luZA==');
+    'gEIAEoCzIPLmZyYW1peC52MS5SZWRvSABSBHJlZG8SOwoMZ2V0X3RpbWVsaW5lGAUgASgLMhYu'
+    'ZnJhbWl4LnYxLkdldFRpbWVsaW5lSABSC2dldFRpbWVsaW5lQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -135,6 +145,15 @@ const Redo$json = {
 
 /// Descriptor for `Redo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List redoDescriptor = $convert.base64Decode('CgRSZWRv');
+
+@$core.Deprecated('Use getTimelineDescriptor instead')
+const GetTimeline$json = {
+  '1': 'GetTimeline',
+};
+
+/// Descriptor for `GetTimeline`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getTimelineDescriptor =
+    $convert.base64Decode('CgtHZXRUaW1lbGluZQ==');
 
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {
