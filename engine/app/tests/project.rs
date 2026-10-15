@@ -4,8 +4,11 @@ use framix_core::time::Time;
 use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TrackKind};
 use prost::Message as _;
 
-/// Kind and clip placements of every track, ignoring ids (they are reassigned on load).
-fn shape(t: &Timeline) -> Vec<(TrackKind, Vec<(u64, i64, i64, i64)>)> {
+/// Kind and clip placements (media, source start, start, duration) of every track.
+type Shape = Vec<(TrackKind, Vec<(u64, i64, i64, i64)>)>;
+
+/// The timeline's shape, ignoring ids (they are reassigned on load).
+fn shape(t: &Timeline) -> Shape {
     t.tracks()
         .iter()
         .map(|track| {

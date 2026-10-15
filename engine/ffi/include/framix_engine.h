@@ -37,7 +37,7 @@
 /**
  * Version of the command/event contract (proto/framix/v1/engine.proto).
  */
-#define ENGINE_PROTOCOL_VERSION 3
+#define ENGINE_PROTOCOL_VERSION 4
 
 /**
  * Opaque engine instance: a channel into the engine thread.

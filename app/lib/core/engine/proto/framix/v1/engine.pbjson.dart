@@ -79,6 +79,33 @@ const Command$json = {
       '9': 0,
       '10': 'getTimeline'
     },
+    {
+      '1': 'new_project',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.NewProject',
+      '9': 0,
+      '10': 'newProject'
+    },
+    {
+      '1': 'save_project',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SaveProject',
+      '9': 0,
+      '10': 'saveProject'
+    },
+    {
+      '1': 'open_project',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.OpenProject',
+      '9': 0,
+      '10': 'openProject'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -91,7 +118,11 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'RUcmFjaxI4CgtpbnNlcnRfY2xpcBgCIAEoCzIVLmZyYW1peC52MS5JbnNlcnRDbGlwSABSCmlu'
     'c2VydENsaXASJQoEdW5kbxgDIAEoCzIPLmZyYW1peC52MS5VbmRvSABSBHVuZG8SJQoEcmVkbx'
     'gEIAEoCzIPLmZyYW1peC52MS5SZWRvSABSBHJlZG8SOwoMZ2V0X3RpbWVsaW5lGAUgASgLMhYu'
-    'ZnJhbWl4LnYxLkdldFRpbWVsaW5lSABSC2dldFRpbWVsaW5lQgYKBGtpbmQ=');
+    'ZnJhbWl4LnYxLkdldFRpbWVsaW5lSABSC2dldFRpbWVsaW5lEjgKC25ld19wcm9qZWN0GAYgAS'
+    'gLMhUuZnJhbWl4LnYxLk5ld1Byb2plY3RIAFIKbmV3UHJvamVjdBI7CgxzYXZlX3Byb2plY3QY'
+    'ByABKAsyFi5mcmFtaXgudjEuU2F2ZVByb2plY3RIAFILc2F2ZVByb2plY3QSOwoMb3Blbl9wcm'
+    '9qZWN0GAggASgLMhYuZnJhbWl4LnYxLk9wZW5Qcm9qZWN0SABSC29wZW5Qcm9qZWN0QgYKBGtp'
+    'bmQ=');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -155,6 +186,39 @@ const GetTimeline$json = {
 final $typed_data.Uint8List getTimelineDescriptor =
     $convert.base64Decode('CgtHZXRUaW1lbGluZQ==');
 
+@$core.Deprecated('Use newProjectDescriptor instead')
+const NewProject$json = {
+  '1': 'NewProject',
+};
+
+/// Descriptor for `NewProject`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List newProjectDescriptor =
+    $convert.base64Decode('CgpOZXdQcm9qZWN0');
+
+@$core.Deprecated('Use saveProjectDescriptor instead')
+const SaveProject$json = {
+  '1': 'SaveProject',
+  '2': [
+    {'1': 'path', '3': 1, '4': 1, '5': 9, '10': 'path'},
+  ],
+};
+
+/// Descriptor for `SaveProject`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List saveProjectDescriptor =
+    $convert.base64Decode('CgtTYXZlUHJvamVjdBISCgRwYXRoGAEgASgJUgRwYXRo');
+
+@$core.Deprecated('Use openProjectDescriptor instead')
+const OpenProject$json = {
+  '1': 'OpenProject',
+  '2': [
+    {'1': 'path', '3': 1, '4': 1, '5': 9, '10': 'path'},
+  ],
+};
+
+/// Descriptor for `OpenProject`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List openProjectDescriptor =
+    $convert.base64Decode('CgtPcGVuUHJvamVjdBISCgRwYXRoGAEgASgJUgRwYXRo');
+
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {
   '1': 'Event',
@@ -177,6 +241,15 @@ const Event$json = {
       '9': 0,
       '10': 'commandFailed'
     },
+    {
+      '1': 'project_saved',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ProjectSaved',
+      '9': 0,
+      '10': 'projectSaved'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -187,7 +260,8 @@ const Event$json = {
 final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     'CgVFdmVudBJHChB0aW1lbGluZV9jaGFuZ2VkGAEgASgLMhouZnJhbWl4LnYxLlRpbWVsaW5lQ2'
     'hhbmdlZEgAUg90aW1lbGluZUNoYW5nZWQSQQoOY29tbWFuZF9mYWlsZWQYAiABKAsyGC5mcmFt'
-    'aXgudjEuQ29tbWFuZEZhaWxlZEgAUg1jb21tYW5kRmFpbGVkQgYKBGtpbmQ=');
+    'aXgudjEuQ29tbWFuZEZhaWxlZEgAUg1jb21tYW5kRmFpbGVkEj4KDXByb2plY3Rfc2F2ZWQYAy'
+    'ABKAsyFy5mcmFtaXgudjEuUHJvamVjdFNhdmVkSABSDHByb2plY3RTYXZlZEIGCgRraW5k');
 
 @$core.Deprecated('Use timelineChangedDescriptor instead')
 const TimelineChanged$json = {
@@ -261,6 +335,15 @@ final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     'CgRDbGlwEg4KAmlkGAEgASgEUgJpZBIZCghtZWRpYV9pZBgCIAEoBFIHbWVkaWFJZBIhCgxzb3'
     'VyY2Vfc3RhcnQYAyABKANSC3NvdXJjZVN0YXJ0EhQKBXN0YXJ0GAQgASgDUgVzdGFydBIaCghk'
     'dXJhdGlvbhgFIAEoA1IIZHVyYXRpb24=');
+
+@$core.Deprecated('Use projectSavedDescriptor instead')
+const ProjectSaved$json = {
+  '1': 'ProjectSaved',
+};
+
+/// Descriptor for `ProjectSaved`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List projectSavedDescriptor =
+    $convert.base64Decode('CgxQcm9qZWN0U2F2ZWQ=');
 
 @$core.Deprecated('Use commandFailedDescriptor instead')
 const CommandFailed$json = {

@@ -133,6 +133,7 @@ name = "framix_ffi"
 version = "0.1.0"
 dependencies = [
  "framix_app",
+ "framix_storage",
  "prost",
 ]
 

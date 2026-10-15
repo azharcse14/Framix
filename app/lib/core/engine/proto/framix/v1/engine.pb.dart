@@ -21,7 +21,17 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 export 'engine.pbenum.dart';
 
-enum Command_Kind { addTrack, insertClip, undo, redo, getTimeline, notSet }
+enum Command_Kind {
+  addTrack,
+  insertClip,
+  undo,
+  redo,
+  getTimeline,
+  newProject,
+  saveProject,
+  openProject,
+  notSet
+}
 
 /// Sent by the UI. Exactly one kind is set.
 class Command extends $pb.GeneratedMessage {
@@ -31,6 +41,9 @@ class Command extends $pb.GeneratedMessage {
     Undo? undo,
     Redo? redo,
     GetTimeline? getTimeline,
+    NewProject? newProject,
+    SaveProject? saveProject,
+    OpenProject? openProject,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -38,6 +51,9 @@ class Command extends $pb.GeneratedMessage {
     if (undo != null) result.undo = undo;
     if (redo != null) result.redo = redo;
     if (getTimeline != null) result.getTimeline = getTimeline;
+    if (newProject != null) result.newProject = newProject;
+    if (saveProject != null) result.saveProject = saveProject;
+    if (openProject != null) result.openProject = openProject;
     return result;
   }
 
@@ -56,13 +72,16 @@ class Command extends $pb.GeneratedMessage {
     3: Command_Kind.undo,
     4: Command_Kind.redo,
     5: Command_Kind.getTimeline,
+    6: Command_Kind.newProject,
+    7: Command_Kind.saveProject,
+    8: Command_Kind.openProject,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -73,6 +92,12 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Redo.$_createMessage)
     ..aOM<GetTimeline>(5, _omitFieldNames ? '' : 'getTimeline',
         subBuilder: GetTimeline.$_createMessage)
+    ..aOM<NewProject>(6, _omitFieldNames ? '' : 'newProject',
+        subBuilder: NewProject.$_createMessage)
+    ..aOM<SaveProject>(7, _omitFieldNames ? '' : 'saveProject',
+        subBuilder: SaveProject.$_createMessage)
+    ..aOM<OpenProject>(8, _omitFieldNames ? '' : 'openProject',
+        subBuilder: OpenProject.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -100,12 +125,18 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -162,6 +193,39 @@ class Command extends $pb.GeneratedMessage {
   void clearGetTimeline() => $_clearField(5);
   @$pb.TagNumber(5)
   GetTimeline ensureGetTimeline() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  NewProject get newProject => $_getN(5);
+  @$pb.TagNumber(6)
+  set newProject(NewProject value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasNewProject() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearNewProject() => $_clearField(6);
+  @$pb.TagNumber(6)
+  NewProject ensureNewProject() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  SaveProject get saveProject => $_getN(6);
+  @$pb.TagNumber(7)
+  set saveProject(SaveProject value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasSaveProject() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearSaveProject() => $_clearField(7);
+  @$pb.TagNumber(7)
+  SaveProject ensureSaveProject() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  OpenProject get openProject => $_getN(7);
+  @$pb.TagNumber(8)
+  set openProject(OpenProject value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasOpenProject() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearOpenProject() => $_clearField(8);
+  @$pb.TagNumber(8)
+  OpenProject ensureOpenProject() => $_ensure(7);
 }
 
 /// Appends an empty track.
@@ -449,17 +513,176 @@ class GetTimeline extends $pb.GeneratedMessage {
   static GetTimeline? _defaultInstance;
 }
 
-enum Event_Kind { timelineChanged, commandFailed, notSet }
+/// Starts an empty project; the old one is dropped (save it first) and undo is cleared.
+class NewProject extends $pb.GeneratedMessage {
+  factory NewProject() => NewProject._();
+
+  NewProject._();
+
+  factory NewProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      NewProject()..mergeFromBuffer(data, registry);
+  factory NewProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      NewProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'NewProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: NewProject.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NewProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  NewProject copyWith(void Function(NewProject) updates) =>
+      super.copyWith((message) => updates(message as NewProject)) as NewProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use NewProject() / NewProject.new instead')
+  static NewProject create() => NewProject._();
+  static $pb.GeneratedMessage $_createMessage() => NewProject._();
+  @$core.override
+  NewProject createEmptyInstance() => NewProject._();
+  @$core.pragma('dart2js:noInline')
+  static NewProject getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<NewProject>(NewProject.$_createMessage);
+  static NewProject? _defaultInstance;
+}
+
+/// Saves the project to `path` atomically, keeping the previous saves as backups.
+class SaveProject extends $pb.GeneratedMessage {
+  factory SaveProject({
+    $core.String? path,
+  }) {
+    final result = SaveProject._();
+    if (path != null) result.path = path;
+    return result;
+  }
+
+  SaveProject._();
+
+  factory SaveProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SaveProject()..mergeFromBuffer(data, registry);
+  factory SaveProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SaveProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SaveProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SaveProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SaveProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SaveProject copyWith(void Function(SaveProject) updates) =>
+      super.copyWith((message) => updates(message as SaveProject))
+          as SaveProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SaveProject() / SaveProject.new instead')
+  static SaveProject create() => SaveProject._();
+  static $pb.GeneratedMessage $_createMessage() => SaveProject._();
+  @$core.override
+  SaveProject createEmptyInstance() => SaveProject._();
+  @$core.pragma('dart2js:noInline')
+  static SaveProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SaveProject>(
+          SaveProject.$_createMessage);
+  static SaveProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
+}
+
+/// Replaces the project with the one at `path`; undo is cleared. A file that is unreadable,
+/// from a newer app, or invalid is refused and the current project stays.
+class OpenProject extends $pb.GeneratedMessage {
+  factory OpenProject({
+    $core.String? path,
+  }) {
+    final result = OpenProject._();
+    if (path != null) result.path = path;
+    return result;
+  }
+
+  OpenProject._();
+
+  factory OpenProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      OpenProject()..mergeFromBuffer(data, registry);
+  factory OpenProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      OpenProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'OpenProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: OpenProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  OpenProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  OpenProject copyWith(void Function(OpenProject) updates) =>
+      super.copyWith((message) => updates(message as OpenProject))
+          as OpenProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use OpenProject() / OpenProject.new instead')
+  static OpenProject create() => OpenProject._();
+  static $pb.GeneratedMessage $_createMessage() => OpenProject._();
+  @$core.override
+  OpenProject createEmptyInstance() => OpenProject._();
+  @$core.pragma('dart2js:noInline')
+  static OpenProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OpenProject>(
+          OpenProject.$_createMessage);
+  static OpenProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
+}
+
+enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }
 
 /// Sent by the engine. Exactly one kind is set.
 class Event extends $pb.GeneratedMessage {
   factory Event({
     TimelineChanged? timelineChanged,
     CommandFailed? commandFailed,
+    ProjectSaved? projectSaved,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
     if (commandFailed != null) result.commandFailed = commandFailed;
+    if (projectSaved != null) result.projectSaved = projectSaved;
     return result;
   }
 
@@ -475,17 +698,20 @@ class Event extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, Event_Kind> _Event_KindByTag = {
     1: Event_Kind.timelineChanged,
     2: Event_Kind.commandFailed,
+    3: Event_Kind.projectSaved,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2])
+    ..oo(0, [1, 2, 3])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
         subBuilder: CommandFailed.$_createMessage)
+    ..aOM<ProjectSaved>(3, _omitFieldNames ? '' : 'projectSaved',
+        subBuilder: ProjectSaved.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -510,9 +736,11 @@ class Event extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -536,6 +764,17 @@ class Event extends $pb.GeneratedMessage {
   void clearCommandFailed() => $_clearField(2);
   @$pb.TagNumber(2)
   CommandFailed ensureCommandFailed() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  ProjectSaved get projectSaved => $_getN(2);
+  @$pb.TagNumber(3)
+  set projectSaved(ProjectSaved value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasProjectSaved() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearProjectSaved() => $_clearField(3);
+  @$pb.TagNumber(3)
+  ProjectSaved ensureProjectSaved() => $_ensure(2);
 }
 
 /// Full timeline state after a successful command or GetTimeline.
@@ -821,6 +1060,48 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasDuration() => $_has(4);
   @$pb.TagNumber(5)
   void clearDuration() => $_clearField(5);
+}
+
+/// SaveProject finished.
+class ProjectSaved extends $pb.GeneratedMessage {
+  factory ProjectSaved() => ProjectSaved._();
+
+  ProjectSaved._();
+
+  factory ProjectSaved.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ProjectSaved()..mergeFromBuffer(data, registry);
+  factory ProjectSaved.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ProjectSaved()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ProjectSaved',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ProjectSaved.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ProjectSaved clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ProjectSaved copyWith(void Function(ProjectSaved) updates) =>
+      super.copyWith((message) => updates(message as ProjectSaved))
+          as ProjectSaved;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ProjectSaved() / ProjectSaved.new instead')
+  static ProjectSaved create() => ProjectSaved._();
+  static $pb.GeneratedMessage $_createMessage() => ProjectSaved._();
+  @$core.override
+  ProjectSaved createEmptyInstance() => ProjectSaved._();
+  @$core.pragma('dart2js:noInline')
+  static ProjectSaved getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ProjectSaved>(
+          ProjectSaved.$_createMessage);
+  static ProjectSaved? _defaultInstance;
 }
 
 /// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

@@ -3,8 +3,13 @@
 use framix_core::time::Time;
 use framix_core::timeline::{self, ClipPlacement, MediaId, Timeline, TimelineError, TrackId};
 
+use std::path::Path;
+
 use crate::history::History;
-use crate::proto::{self, Command, CommandFailed, Event, TimelineChanged, TrackKind, command};
+use crate::project;
+use crate::proto::{
+    self, Command, CommandFailed, Event, ProjectSaved, TimelineChanged, TrackKind, command,
+};
 use crate::store::ProjectStore;
 
 /// Engine state behind the FFI boundary: one project's timeline, its undo history, and where
@@ -28,14 +33,29 @@ impl Engine {
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
-        match self.apply(command) {
-            Ok(()) => self.timeline_changed(),
+        let kind = command.kind.ok_or("command has no kind");
+        match kind
+            .map_err(str::to_owned)
+            .and_then(|kind| self.apply(kind))
+        {
+            Ok(Reply::Timeline) => self.timeline_changed(),
+            Ok(Reply::Saved) => Event {
+                kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
+            },
             Err(reason) => command_failed(reason),
         }
     }
 
-    fn apply(&mut self, command: Command) -> Result<(), String> {
-        match command.kind.ok_or("command has no kind")? {
+    fn apply(&mut self, kind: command::Kind) -> Result<Reply, String> {
+        match kind {
+            command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
+            other => self.change(other).map(|()| Reply::Timeline),
+        }
+    }
+
+    /// Commands answered with the (possibly unchanged) timeline.
+    fn change(&mut self, kind: command::Kind) -> Result<(), String> {
+        match kind {
             command::Kind::AddTrack(add) => {
                 let kind = track_kind(add.kind)?;
                 self.edit(|tl| Ok(tl.add_track(kind)))
@@ -52,10 +72,37 @@ impl Engine {
             command::Kind::Undo(_) => step(self.history.undo(), "nothing to undo"),
             command::Kind::Redo(_) => step(self.history.redo(), "nothing to redo"),
             command::Kind::GetTimeline(_) => Ok(()),
-            command::Kind::NewProject(_)
-            | command::Kind::SaveProject(_)
-            | command::Kind::OpenProject(_) => Err("not implemented".to_owned()),
+            command::Kind::NewProject(_) => {
+                self.history = History::default();
+                Ok(())
+            }
+            command::Kind::OpenProject(open) => self.open(&open.path),
+            command::Kind::SaveProject(_) => Err("SaveProject reports ProjectSaved".to_owned()),
         }
+    }
+
+    fn store(&self) -> Result<&dyn ProjectStore, String> {
+        self.store
+            .as_deref()
+            .ok_or_else(|| "no project store".to_owned())
+    }
+
+    fn save(&self, path: &str) -> Result<(), String> {
+        let bytes = project::encode(self.history.timeline());
+        self.store()?
+            .save(Path::new(path), &bytes)
+            .map_err(|e| e.to_string())
+    }
+
+    /// Replaces the project only if the file loads and decodes; otherwise nothing changes.
+    fn open(&mut self, path: &str) -> Result<(), String> {
+        let bytes = self
+            .store()?
+            .load(Path::new(path))
+            .map_err(|e| e.to_string())?;
+        let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
+        self.history = History::new(timeline);
+        Ok(())
     }
 
     fn edit<T>(
@@ -107,6 +154,14 @@ impl Engine {
             })),
         }
     }
+}
+
+/// What a successful command reports.
+enum Reply {
+    /// The timeline (changed or not).
+    Timeline,
+    /// The project was saved.
+    Saved,
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.
