@@ -161,7 +161,8 @@ fn uri_allowed(uri: &str) -> bool {
             .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
 }
 
-/// `value / timescale` seconds in ticks (exact for milliseconds), within (0, 24 h].
+/// `value / timescale` seconds in ticks, rounded toward zero (exact for milliseconds), within
+/// (0, 24 h].
 fn video_duration(value: i64, timescale: u32) -> Result<Time, MediaError> {
     if value <= 0 || timescale == 0 {
         return Err(MediaError::BadDuration);

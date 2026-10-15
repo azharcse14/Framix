@@ -1,3 +1,5 @@
+mod common;
+
 use framix_app::project::{FORMAT_VERSION, ProjectError, decode, encode};
 use framix_app::project_proto::{ProjectFile, SavedClip, SavedTrack, SavedTrackKind};
 use framix_core::time::Time;
@@ -36,6 +38,7 @@ fn encode_then_decode_keeps_tracks_and_clips() {
     let mut t = Timeline::default();
     let video = t.add_track(TrackKind::Video);
     let audio = t.add_track(TrackKind::Audio);
+    common::register(&mut t, &[7, 8, 9]); // P1-011: saved clips need registered media
     t.insert_clip(video, place(7, 0, 0, 100)).unwrap();
     t.insert_clip(audio, place(9, 5, 20, 30)).unwrap();
     t.insert_clip(video, place(8, 10, 100, 50)).unwrap();

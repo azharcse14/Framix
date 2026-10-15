@@ -1,5 +1,7 @@
 //! Review fixes for P1-009: untrusted project files must not open as empty projects or make
 //! loading slow or huge.
+mod common;
+
 use framix_app::project::{MAX_CLIPS, MAX_TRACKS, ProjectError, decode, encode};
 use framix_app::project_proto::{ProjectFile, SavedClip, SavedTrack, SavedTrackKind};
 use framix_core::time::Time;
@@ -73,6 +75,7 @@ fn ids_after_open_never_collide_with_loaded_ones() {
         start: Time(start),
         duration: Time(1),
     };
+    common::register(&mut t, &[1]); // P1-011: saved clips need registered media
     t.insert_clip(track, placement(0)).unwrap();
     t.insert_clip(track, placement(1)).unwrap();
 

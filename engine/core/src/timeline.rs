@@ -160,7 +160,7 @@ pub enum TimelineError {
 
 /// The editable timeline of a video project.
 ///
-/// `==` compares content (tracks, clips, aspect ratio) only, not the id counter: two equal timelines
+/// `==` compares content (tracks, clips, aspect ratio, media) only, not the id counter: two equal timelines
 /// can hand out different ids next. Anything that restores a timeline (undo, load) must
 /// keep the counter ahead of every issued id.
 #[derive(Clone, Debug, Default)]

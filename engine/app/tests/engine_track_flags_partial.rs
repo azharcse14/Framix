@@ -1,4 +1,6 @@
 //! P1-026 review: partial flag updates and lock restore order.
+mod common;
+
 use framix_app::engine::Engine;
 use framix_app::project::{decode, encode};
 use framix_app::proto::{
@@ -49,6 +51,7 @@ fn unset_fields_keep_their_value() {
 fn a_locked_track_with_clips_reopens_with_clips_and_lock() {
     let mut tl = Timeline::default();
     let t = tl.add_track(CoreKind::Video);
+    common::register(&mut tl, &[1]); // P1-011: saved clips need registered media
     let clip = ClipPlacement {
         media: MediaId(1),
         source_start: Time(0),

@@ -110,6 +110,10 @@ impl Engine {
                 }))
             }
             command::Kind::ImportMedia(op) => {
+                // Fail fast before validating a huge list; Timeline::import holds the rule.
+                if op.items.len() > media::MAX_IMPORT {
+                    return Err(TimelineError::TooManyMedia.to_string());
+                }
                 let media = op
                     .items
                     .into_iter()

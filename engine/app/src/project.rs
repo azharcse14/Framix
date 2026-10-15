@@ -25,7 +25,7 @@ pub const MAX_TRACKS: usize = 256;
 /// Most clips (all tracks together) a project file may hold.
 pub const MAX_CLIPS: usize = 100_000;
 /// Largest id a project file may carry; keeps the id counter far from overflow.
-pub const MAX_ID: u64 = 0;
+pub const MAX_ID: u64 = 1 << 53;
 
 /// Largest project file. Small on purpose: prost holds a file's decoded messages in memory
 /// before the track and clip caps apply (2-byte empty tracks would otherwise multiply).
@@ -117,8 +117,17 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
 pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
     let tracks = timeline.tracks();
     let clips: usize = tracks.iter().map(|t| t.clips().len()).sum();
-    if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS {
+    let media = timeline.all_media().count();
+    if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || media > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
+    }
+    // Open refuses format-2 clips whose media is not listed, so never write one.
+    if let Some(clip) = tracks
+        .iter()
+        .flat_map(|t| t.clips())
+        .find(|c| timeline.media(c.media).is_none())
+    {
+        return Err(ProjectError::UnknownMedia(clip.media.0));
     }
     let bytes = encode(timeline);
     if bytes.len() as u64 > MAX_PROJECT_BYTES {
@@ -151,6 +160,20 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         let aspect = AspectRatio::new(file.aspect_width, file.aspect_height)
             .ok_or(ProjectError::InvalidAspect)?;
         timeline.set_aspect(aspect);
+    }
+    let clip_media = file
+        .tracks
+        .iter()
+        .flat_map(|t| &t.clips)
+        .map(|c| c.media_id);
+    if let Some(id) = file
+        .media
+        .iter()
+        .map(|m| m.id)
+        .chain(clip_media)
+        .find(|&id| id > MAX_ID)
+    {
+        return Err(ProjectError::IdOutOfRange(id));
     }
     for saved in file.media {
         let id = MediaId(saved.id);
@@ -190,6 +213,10 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                 start: Time(c.start),
                 duration: Time(c.duration),
             };
+            // Format 1 had no media list; from format 2 on every clip's media is listed.
+            if file.format_version >= 2 && timeline.media(placement.media).is_none() {
+                return Err(ProjectError::UnknownMedia(c.media_id));
+            }
             timeline.insert_clip(track, placement)?;
         }
         // After the clips: a locked track refuses inserts.
