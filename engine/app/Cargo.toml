@@ -1,0 +1,11 @@
+[package]
+name = "framix_app"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+framix_core = { path = "../core" }
+
+[dev-dependencies]
+proptest = "~1.11"

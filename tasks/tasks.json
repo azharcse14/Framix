@@ -1165,12 +1165,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-023-undo-redo",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "plan: new app crate (architecture: undo stack lives in app). History owns the Timeline; every edit is a command applied through History::apply(|tl| ...). Undo entry = pre-edit snapshot (memento): a timeline is small, and it can't go wrong like a hand-written inverse can. Failed edits leave no entry. Memory limit stays in GOT-051."
+    }
+   ],
    "source": "plan"
   },
   {
