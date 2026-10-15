@@ -18,18 +18,19 @@ fn buffer_holds_bytes_and_frees() {
     // SAFETY: from_vec returned a live allocation of exactly `len` bytes.
     let bytes = unsafe { std::slice::from_raw_parts(buf.ptr, buf.len) };
     assert_eq!(bytes, &[1, 2, 3]);
-    assert_eq!(engine_free_buffer(buf), ENGINE_OK);
+    // SAFETY: `buf` came from from_vec and is freed once.
+    assert_eq!(unsafe { engine_free_buffer(buf) }, ENGINE_OK);
 }
 
 #[test]
 fn empty_and_null_buffers_free_cleanly() {
-    assert_eq!(
-        engine_free_buffer(EngineBuffer::from_vec(Vec::new())),
-        ENGINE_OK
-    );
+    let empty = EngineBuffer::from_vec(Vec::new());
+    // SAFETY: `empty` came from from_vec and is freed once.
+    assert_eq!(unsafe { engine_free_buffer(empty) }, ENGINE_OK);
     let null = EngineBuffer {
         ptr: std::ptr::null_mut(),
         len: 0,
     };
-    assert_eq!(engine_free_buffer(null), ENGINE_OK);
+    // SAFETY: a null buffer is documented as a no-op.
+    assert_eq!(unsafe { engine_free_buffer(null) }, ENGINE_OK);
 }
