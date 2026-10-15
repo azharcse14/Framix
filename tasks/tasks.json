@@ -842,6 +842,10 @@
     {
      "date": "2026-10-15",
      "text": "From the P1-001 spike: move rendering off the UI isolate to the render thread with a fence (spike blocks the UI isolate in engine_spike_render_metal); move ENGINE_ERR_GPU next to the other error codes; replace the method channel with C ABI callbacks."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Plan drafted: docs/plans/P1-005-platform-callbacks.md. Blocked on promoting the render crate from the P1-001 spike (user decision)."
     }
    ],
    "source": "plan"
