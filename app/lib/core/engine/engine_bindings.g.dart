@@ -75,7 +75,7 @@ const int ENGINE_ERR_STOPPED = -4;
 
 const int ENGINE_OK = 0;
 
-const int ENGINE_PROTOCOL_VERSION = 8;
+const int ENGINE_PROTOCOL_VERSION = 9;
 
 final class Engine extends ffi.Opaque {}
 

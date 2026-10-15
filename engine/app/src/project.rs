@@ -1,20 +1,24 @@
 //! Project file encoding (proto/framix/project/v1/project.proto). Pure: bytes in, bytes out.
 
 use framix_core::aspect::AspectRatio;
-use framix_core::time::Time;
+use framix_core::media::{Media, MediaKind, RawMedia};
+use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
     ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackKind,
 };
 use prost::Message as _;
 use thiserror::Error;
 
-use crate::project_proto::{ProjectFile, SavedClip, SavedTrack, SavedTrackKind};
+use crate::project_proto::{
+    ProjectFile, SavedClip, SavedMedia, SavedMediaKind, SavedTrack, SavedTrackKind,
+};
 
 /// Format version this engine writes and the newest it reads.
-pub const FORMAT_VERSION: u32 = 1;
+pub const FORMAT_VERSION: u32 = 2;
 
-/// Oldest reader that can open what this engine writes.
-const MIN_READER_VERSION: u32 = 1;
+/// Oldest reader that can open what this engine writes: 2, because a format-1 reader would
+/// drop the media list when it saves again.
+const MIN_READER_VERSION: u32 = 2;
 
 /// Most tracks a project file may hold.
 pub const MAX_TRACKS: usize = 256;
@@ -49,6 +53,12 @@ pub enum ProjectError {
     /// A media entry breaks the import rules (bad reference, size, duration, ...).
     #[error("invalid media: {0}")]
     InvalidMedia(#[from] framix_core::media::MediaError),
+    /// A media kind this engine does not know.
+    #[error("unknown media kind {0}")]
+    UnknownMediaKind(i32),
+    /// Two media entries share an id.
+    #[error("duplicate media id {0}")]
+    DuplicateMedia(u64),
     /// The aspect ratio is outside what the editor allows.
     #[error("invalid aspect ratio")]
     InvalidAspect,
@@ -88,7 +98,7 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         tracks,
         aspect_width: timeline.aspect().width(),
         aspect_height: timeline.aspect().height(),
-        media: Vec::new(),
+        media: timeline.all_media().map(saved_media).collect(),
     }
     .encode_to_vec()
 }
@@ -123,7 +133,7 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         return Err(ProjectError::TooNew(file.min_reader_version));
     }
     let clips: usize = file.tracks.iter().map(|t| t.clips.len()).sum();
-    if file.tracks.len() > MAX_TRACKS || clips > MAX_CLIPS {
+    if file.tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || file.media.len() > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
     }
     let mut timeline = Timeline::default();
@@ -133,6 +143,21 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
             .ok_or(ProjectError::InvalidAspect)?;
         timeline.set_aspect(aspect);
     }
+    for saved in file.media {
+        let id = MediaId(saved.id);
+        if timeline.media(id).is_some() {
+            return Err(ProjectError::DuplicateMedia(saved.id));
+        }
+        timeline.restore_media(id, restore_media(saved)?);
+    }
+    // Clips of format-1 files refer to media the file does not list; never reuse those ids.
+    let referenced = file
+        .tracks
+        .iter()
+        .flat_map(|t| &t.clips)
+        .map(|c| c.media_id)
+        .max();
+    timeline.reserve_ids_through(referenced.unwrap_or(0));
     for saved in file.tracks {
         let kind = match SavedTrackKind::try_from(saved.kind) {
             Ok(SavedTrackKind::Video) => TrackKind::Video,
@@ -163,3 +188,43 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
     }
     Ok(timeline)
 }
+
+fn saved_media((id, media): (MediaId, &Media)) -> SavedMedia {
+    let (width, height) = media.size();
+    SavedMedia {
+        id: id.0,
+        uri: media.uri().to_owned(),
+        kind: match media.kind() {
+            MediaKind::Video => SavedMediaKind::Video,
+            MediaKind::Image => SavedMediaKind::Image,
+        } as i32,
+        duration: media.duration().0,
+        width,
+        height,
+        rotation: media.rotation(),
+        codec: media.codec().to_owned(),
+    }
+}
+
+/// Re-validates a saved media entry with the same rules as an import (the file is untrusted).
+fn restore_media(saved: SavedMedia) -> Result<Media, ProjectError> {
+    let kind = match SavedMediaKind::try_from(saved.kind) {
+        Ok(SavedMediaKind::Video) => MediaKind::Video,
+        Ok(SavedMediaKind::Image) => MediaKind::Image,
+        _ => return Err(ProjectError::UnknownMediaKind(saved.kind)),
+    };
+    let raw = RawMedia {
+        uri: saved.uri,
+        kind,
+        duration_value: saved.duration,
+        duration_timescale: TICKS_PER_SECOND_U32,
+        width: saved.width,
+        height: saved.height,
+        rotation: saved.rotation,
+        codec: saved.codec,
+    };
+    Ok(Media::validate(raw)?)
+}
+
+/// Saved durations are ticks, so their timescale is ticks per second (fits in u32).
+const TICKS_PER_SECOND_U32: u32 = TICKS_PER_SECOND as u32;

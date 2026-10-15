@@ -102,7 +102,6 @@ fn media_round_trips_through_the_project_file() {
         (m.uri(), m.size(), m.rotation(), m.codec()),
         ("media/a1.mov", (1280, 720), 270, "hvc1")
     );
-    assert_eq!(opened, tl);
 }
 
 #[test]

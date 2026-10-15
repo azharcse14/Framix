@@ -1,6 +1,7 @@
 //! Turns UI commands into timeline edits and reports the result as an event.
 
 use framix_core::aspect::AspectRatio;
+use framix_core::media::{self, Media, RawMedia};
 use framix_core::time::Time;
 use framix_core::timeline::{
     self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
@@ -108,7 +109,14 @@ impl Engine {
                     tl.move_clip(ClipId(op.clip_id), TrackId(op.track_id), Time(op.start))
                 }))
             }
-            command::Kind::ImportMedia(_) => Err("not implemented".to_owned()),
+            command::Kind::ImportMedia(op) => {
+                let media = op
+                    .items
+                    .into_iter()
+                    .map(media_from_item)
+                    .collect::<Result<Vec<_>, _>>()?;
+                timeline(self.edit(|tl| tl.import(media).map(drop)))
+            }
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
@@ -227,4 +235,24 @@ fn track_kind(wire: i32) -> Result<timeline::TrackKind, String> {
 
 fn step(done: bool, otherwise: &str) -> Result<(), String> {
     done.then_some(()).ok_or_else(|| otherwise.to_owned())
+}
+
+/// Validates one picked file. Errors never include the uri (no paths in logs).
+fn media_from_item(item: proto::MediaItem) -> Result<Media, String> {
+    let kind = match proto::MediaKind::try_from(item.kind) {
+        Ok(proto::MediaKind::Video) => media::MediaKind::Video,
+        Ok(proto::MediaKind::Image) => media::MediaKind::Image,
+        _ => return Err(format!("unknown media kind {}", item.kind)),
+    };
+    let raw = RawMedia {
+        uri: item.uri,
+        kind,
+        duration_value: item.duration_value,
+        duration_timescale: item.duration_timescale,
+        width: item.width,
+        height: item.height,
+        rotation: item.rotation,
+        codec: item.codec,
+    };
+    Media::validate(raw).map_err(|e| e.to_string())
 }

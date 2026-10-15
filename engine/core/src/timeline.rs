@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 
 use crate::aspect::AspectRatio;
-use crate::media::Media;
+use crate::media::{MAX_IMPORT, Media, MediaKind, PHOTO_DEFAULT_DURATION};
 use crate::time::Time;
 
 /// Stable id of a track within a timeline.
@@ -174,7 +174,7 @@ pub struct Timeline {
 
 impl PartialEq for Timeline {
     fn eq(&self, other: &Self) -> bool {
-        self.tracks == other.tracks && self.aspect == other.aspect
+        self.tracks == other.tracks && self.aspect == other.aspect && self.media == other.media
     }
 }
 
@@ -283,8 +283,45 @@ impl Timeline {
     /// Registers `media` and appends one clip per item, in order and back to back, at the end
     /// of the first unlocked video track (a new video track if there is none). Videos play
     /// their full length, photos [`crate::media::PHOTO_DEFAULT_DURATION`]. All or nothing.
-    pub fn import(&mut self, _media: Vec<Media>) -> Result<Vec<ClipId>, TimelineError> {
-        Ok(Vec::new())
+    pub fn import(&mut self, media: Vec<Media>) -> Result<Vec<ClipId>, TimelineError> {
+        if media.len() > MAX_IMPORT {
+            return Err(TimelineError::TooManyMedia);
+        }
+        if media.is_empty() {
+            return Ok(Vec::new());
+        }
+        // Work on a copy so a failure part-way leaves `self` untouched.
+        let mut next = self.clone();
+        let target = next
+            .tracks
+            .iter()
+            .find(|t| t.kind == TrackKind::Video && !t.flags.locked)
+            .map(|t| t.id);
+        let track = target.unwrap_or_else(|| next.add_track(TrackKind::Video));
+        let mut start = next
+            .track(track)
+            .and_then(|t| t.clips.last())
+            .map_or(Time(0), Clip::end);
+        let mut clips = Vec::with_capacity(media.len());
+        for item in media {
+            let duration = match item.kind() {
+                MediaKind::Video => item.duration(),
+                MediaKind::Image => PHOTO_DEFAULT_DURATION,
+            };
+            let id = MediaId(next.allocate_id());
+            next.media.insert(id, item);
+            let placement = ClipPlacement {
+                media: id,
+                source_start: Time(0),
+                start,
+                duration,
+            };
+            clips.push(next.insert_clip(track, placement)?);
+            // insert_clip checked that start + duration fits.
+            start = Time(start.0 + duration.0);
+        }
+        *self = next;
+        Ok(clips)
     }
 
     /// Registers `media` under a known `id` (project load), keeping new ids above it.

@@ -57,9 +57,10 @@ fn the_v1_fixture_opens() {
 #[test]
 fn encoded_files_carry_the_format_version() {
     let file = ProjectFile::decode(encode(&Timeline::default()).as_slice()).unwrap();
+    // P1-011: format 2 needs reader 2 (a format-1 reader would drop the media list).
     assert_eq!(
         (file.format_version, file.min_reader_version),
-        (FORMAT_VERSION, 1)
+        (FORMAT_VERSION, 2)
     );
 }
 
