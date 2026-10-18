@@ -93,34 +93,38 @@ pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRender(
         if surface.is_null() {
             return ENGINE_ERR_NULL;
         }
+        /// One owned `ANativeWindow` reference, released on drop (also when a panic unwinds).
+        struct Window(std::ptr::NonNull<c_void>);
+        impl Drop for Window {
+            fn drop(&mut self) {
+                // SAFETY: we own exactly one reference, from ANativeWindow_fromSurface.
+                unsafe { ANativeWindow_release(self.0.as_ptr()) };
+            }
+        }
         // SAFETY: env and surface come from the JVM per this fn's contract; the returned
-        // window holds its own reference, released below.
+        // window holds its own reference, owned by `Window`.
         let Some(window) =
-            std::ptr::NonNull::new(unsafe { ANativeWindow_fromSurface(env, surface) })
+            std::ptr::NonNull::new(unsafe { ANativeWindow_fromSurface(env, surface) }).map(Window)
         else {
             return ENGINE_ERR_NULL;
         };
         let Some(gpu) = gpu() else {
-            // SAFETY: we own one reference from ANativeWindow_fromSurface.
-            unsafe { ANativeWindow_release(window.as_ptr()) };
             return ENGINE_ERR_GPU;
         };
-        // SAFETY: window is live until released below.
+        // SAFETY: window is live while `window` is in scope.
         let (width, height) = unsafe {
             (
-                ANativeWindow_getWidth(window.as_ptr()),
-                ANativeWindow_getHeight(window.as_ptr()),
+                ANativeWindow_getWidth(window.0.as_ptr()),
+                ANativeWindow_getHeight(window.0.as_ptr()),
             )
         };
         let drawn = match (u32::try_from(width), u32::try_from(height)) {
             (Ok(w), Ok(h)) if w > 0 && h > 0 => {
-                // SAFETY: window stays live until released below.
-                unsafe { gpu.draw_to_android_window(window, w, h) }
+                // SAFETY: `window` outlives the call; wgpu's surface is dropped inside it.
+                unsafe { gpu.draw_to_android_window(window.0, w, h) }
             }
             _ => Err(framix_render::RenderError::SurfaceUnusable),
         };
-        // SAFETY: the surface wgpu made from window was dropped inside the draw call.
-        unsafe { ANativeWindow_release(window.as_ptr()) };
         report(drawn)
     })
 }

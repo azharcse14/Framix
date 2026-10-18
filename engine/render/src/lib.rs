@@ -159,8 +159,9 @@ impl Gpu {
             .ok_or(RenderError::SurfaceUnusable)?;
         // Same look as iOS: write the shader output as is, no sRGB encode.
         let caps = surface.get_capabilities(&self.adapter);
-        if let Some(linear) = caps.formats.iter().find(|f| !f.is_srgb()) {
-            config.format = *linear;
+        let linear = config.format.remove_srgb_suffix();
+        if caps.formats.contains(&linear) {
+            config.format = linear;
         }
         surface.configure(&self.device, &config);
         let frame = match surface.get_current_texture() {
