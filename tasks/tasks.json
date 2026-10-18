@@ -748,10 +748,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-18",
+   "commit": "b8d5af8",
    "branch": "p1-001-ios-texture-spike",
    "notes": [
     {
@@ -765,6 +765,10 @@
     {
      "date": "2026-10-18",
      "text": "iOS zero-copy confirmed on the host too: engine/render/tests/iosurface_wrap.rs (IOSurface-backed texture, pixels read from the IOSurface). Remaining: Android half, real iPhone check."
+    },
+    {
+     "date": "2026-10-18",
+     "text": "Android half works on the arm64 API 36 emulator: SurfaceProducer Surface -> JNI -> ANativeWindow -> wgpu (Vulkan) surface, Flutter Impeller (GLES) shows it, no CPU copy. Android clippy -D warnings clean (aarch64/x86_64). Unverified: real iPhone, real Android phone; the frame survives the swapchain drop after present only by observation, so P1-005 must keep the surface alive while the producer lives."
     }
    ],
    "source": "plan"
@@ -11748,6 +11752,10 @@
     {
      "date": "2026-10-15",
      "text": "Run scripts/native_warnings.sh in CI (TC-006 gate; also add a release build there)"
+    },
+    {
+     "date": "2026-10-18",
+     "text": "CI cross-compile must also run clippy -D warnings for aarch64-linux-android and x86_64-linux-android: the Android-only spike code (engine/ffi/src/spike_preview.rs JNI entry, render draw_to_android_window) is not linted by check.sh on macOS."
     }
    ],
    "source": "plan"
@@ -12528,6 +12536,25 @@
    "section": "P1",
    "group": null,
    "title": "Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-051",
+   "section": "P1",
+   "group": null,
+   "title": "Device check: P1-001 zero-copy preview on a real iPhone and a real Android phone (branch p1-001-ios-texture-spike)",
    "tags": [
     "Native"
    ],

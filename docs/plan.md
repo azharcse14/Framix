@@ -358,7 +358,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Architecture risk test (prototype)**
 
-- [ ] `P1-001` wgpu output ke copy chhara Flutter Texture e dekhano (iOS IOSurface/CVPixelBuffer, Android HardwareBuffer) \[Rust\]\[Native\]
+- [x] `P1-001` wgpu output ke copy chhara Flutter Texture e dekhano (iOS IOSurface/CVPixelBuffer, Android HardwareBuffer) \[Rust\]\[Native\]
 - [ ] `P1-002` Hardware decoder theke GPU te zero-copy frame. Android e MediaCodec output prai opaque YCbCr AHardwareBuffer, Vulkan e YCbCr sampler lage; wgpu te support na thakle Plan B: native pass (Vulkan YCbCr sampler ba GLES samplerExternalOES) diye RGBA te convert, tarpor wgpu te import (ek GPU copy, CPU copy na) \[Native\]\[Rust\]
 - [ ] `P1-003` Android preview output: SurfaceProducer er Surface theke ANativeWindow baniye sorasori wgpu surface e render; AHardwareBuffer path er sathe tulona \[Native\]\[Rust\]
 - [ ] `P1-004` Low-end Android e GLES fallback: Texture output ar decoder import dui backend e kaj kore kina (GLES 3.0 e compute shader nai) \[Rust\]\[Native\]
@@ -423,6 +423,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-048` Color/blank clip (from P1-011 title) \[Rust\] \[Dart\]
 - [ ] `P1-049` Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet \[Dart\]
 - [ ] `P1-050` Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel \[Native\]
+- [ ] `P1-051` Device check: P1-001 zero-copy preview on a real iPhone and a real Android phone (branch p1-001-ios-texture-spike) \[Native\]
 
 ## Phase 2: Audio
 
