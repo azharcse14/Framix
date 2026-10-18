@@ -3,6 +3,10 @@
 //! Keyframes (P5-001) are not modelled yet. Clip-local times are relative to the clip, so
 //! keyframes added later stay valid when a clip moves.
 
+use std::collections::BTreeMap;
+
+use crate::aspect::AspectRatio;
+use crate::media::{MAX_IMPORT, Media, MediaKind, PHOTO_DEFAULT_DURATION};
 use crate::time::Time;
 
 /// Stable id of a track within a timeline.
@@ -64,12 +68,24 @@ impl Clip {
     }
 }
 
+/// Per-track switches. All off by default.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct TrackFlags {
+    /// Silent in preview and export.
+    pub muted: bool,
+    /// Not drawn in preview and export (visual tracks only).
+    pub hidden: bool,
+    /// Clips on the track cannot be edited.
+    pub locked: bool,
+}
+
 /// One track: clips sorted by start, never overlapping.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Track {
     id: TrackId,
     kind: TrackKind,
     clips: Vec<Clip>,
+    flags: TrackFlags,
 }
 
 impl Track {
@@ -81,6 +97,11 @@ impl Track {
     /// What the track carries.
     pub fn kind(&self) -> TrackKind {
         self.kind
+    }
+
+    /// Mute, hide and lock switches.
+    pub fn flags(&self) -> TrackFlags {
+        self.flags
     }
 
     /// Clips sorted by start time.
@@ -114,29 +135,62 @@ pub enum TimelineError {
     /// Start or source offset is before zero.
     #[error("clip start and source offset must not be negative")]
     NegativeTime,
+    /// No clip has this id.
+    #[error("clip {0:?} does not exist")]
+    UnknownClip(ClipId),
+    /// A split point must lie strictly inside the clip.
+    #[error("split point is not inside the clip")]
+    SplitOutside,
+    /// Merge needs two neighbouring clips on one track, same media, continuous source.
+    #[error("clips cannot be merged")]
+    NotMergeable,
+    /// The track is locked; its clips cannot be edited.
+    #[error("track {0:?} is locked")]
+    TrackLocked(TrackId),
+    /// Only visual tracks can be hidden.
+    #[error("track {0:?} cannot be hidden")]
+    NotVisual(TrackId),
+    /// A clip can only move to a track of the same kind.
+    #[error("track {0:?} has another kind")]
+    WrongTrackKind(TrackId),
+    /// More items than [`crate::media::MAX_IMPORT`] in one import.
+    #[error("too many media in one import")]
+    TooManyMedia,
 }
 
 /// The editable timeline of a video project.
 ///
-/// `==` compares content (tracks and clips) only, not the id counter: two equal timelines
+/// `==` compares content (tracks, clips, aspect ratio, media) only, not the id counter: two equal timelines
 /// can hand out different ids next. Anything that restores a timeline (undo, load) must
 /// keep the counter ahead of every issued id.
 #[derive(Clone, Debug, Default)]
 pub struct Timeline {
     tracks: Vec<Track>,
+    aspect: AspectRatio,
+    media: BTreeMap<MediaId, Media>,
     /// Last id handed out.
     next_id: u64,
 }
 
 impl PartialEq for Timeline {
     fn eq(&self, other: &Self) -> bool {
-        self.tracks == other.tracks
+        self.tracks == other.tracks && self.aspect == other.aspect && self.media == other.media
     }
 }
 
 impl Eq for Timeline {}
 
 impl Timeline {
+    /// Canvas aspect ratio.
+    pub fn aspect(&self) -> AspectRatio {
+        self.aspect
+    }
+
+    /// Sets the canvas aspect ratio.
+    pub fn set_aspect(&mut self, aspect: AspectRatio) {
+        self.aspect = aspect;
+    }
+
     /// Tracks in display order.
     pub fn tracks(&self) -> &[Track] {
         &self.tracks
@@ -154,6 +208,7 @@ impl Timeline {
             id,
             kind,
             clips: Vec::new(),
+            flags: TrackFlags::default(),
         });
         id
     }
@@ -180,14 +235,10 @@ impl Timeline {
             .iter()
             .position(|t| t.id == track)
             .ok_or(TimelineError::UnknownTrack(track))?;
-        let clips = &self.tracks[index].clips;
-        let at = clips.partition_point(|c| c.start < placement.start);
-        if let Some(prev) = clips[..at].last().filter(|c| c.end() > placement.start) {
-            return Err(TimelineError::Overlap(prev.id));
+        if self.tracks[index].flags.locked {
+            return Err(TimelineError::TrackLocked(track));
         }
-        if let Some(next) = clips.get(at).filter(|c| c.start.0 < end) {
-            return Err(TimelineError::Overlap(next.id));
-        }
+        let at = free_slot(&self.tracks[index].clips, placement.start, end, None)?;
         let id = ClipId(self.allocate_id());
         let clip = Clip {
             id,
@@ -198,6 +249,259 @@ impl Timeline {
         };
         self.tracks[index].clips.insert(at, clip);
         Ok(id)
+    }
+
+    /// Sets a track's mute, hide and lock switches (allowed on a locked track, so it can be
+    /// unlocked).
+    pub fn set_track_flags(
+        &mut self,
+        track: TrackId,
+        flags: TrackFlags,
+    ) -> Result<(), TimelineError> {
+        let target = self
+            .tracks
+            .iter_mut()
+            .find(|t| t.id == track)
+            .ok_or(TimelineError::UnknownTrack(track))?;
+        if flags.hidden && target.kind == TrackKind::Audio {
+            return Err(TimelineError::NotVisual(track));
+        }
+        target.flags = flags;
+        Ok(())
+    }
+
+    /// Media registered in this project, by id.
+    pub fn media(&self, id: MediaId) -> Option<&Media> {
+        self.media.get(&id)
+    }
+
+    /// All registered media, by id.
+    pub fn all_media(&self) -> impl Iterator<Item = (MediaId, &Media)> {
+        self.media.iter().map(|(id, m)| (*id, m))
+    }
+
+    /// Registers `media` and appends one clip per item, in order and back to back, at the end
+    /// of the first unlocked video track (a new video track if there is none). Videos play
+    /// their full length, photos [`crate::media::PHOTO_DEFAULT_DURATION`]. All or nothing.
+    pub fn import(&mut self, media: Vec<Media>) -> Result<Vec<ClipId>, TimelineError> {
+        if media.len() > MAX_IMPORT {
+            return Err(TimelineError::TooManyMedia);
+        }
+        if media.is_empty() {
+            return Ok(Vec::new());
+        }
+        // Work on a copy so a failure part-way leaves `self` untouched.
+        let mut next = self.clone();
+        let target = next
+            .tracks
+            .iter()
+            .find(|t| t.kind == TrackKind::Video && !t.flags.locked)
+            .map(|t| t.id);
+        let track = target.unwrap_or_else(|| next.add_track(TrackKind::Video));
+        let mut start = next
+            .track(track)
+            .and_then(|t| t.clips.last())
+            .map_or(Time(0), Clip::end);
+        let mut clips = Vec::with_capacity(media.len());
+        for item in media {
+            let duration = match item.kind() {
+                MediaKind::Video => item.duration(),
+                MediaKind::Image => PHOTO_DEFAULT_DURATION,
+            };
+            let id = MediaId(next.allocate_id());
+            next.media.insert(id, item);
+            let placement = ClipPlacement {
+                media: id,
+                source_start: Time(0),
+                start,
+                duration,
+            };
+            clips.push(next.insert_clip(track, placement)?);
+            // insert_clip checked that start + duration fits.
+            start = Time(start.0 + duration.0);
+        }
+        *self = next;
+        Ok(clips)
+    }
+
+    /// Registers `media` under a known `id` (project load), keeping new ids above it.
+    pub fn restore_media(&mut self, id: MediaId, media: Media) {
+        self.reserve_ids_through(id.0);
+        self.media.insert(id, media);
+    }
+
+    /// Makes sure ids up to `id` are never handed out (e.g. media ids that clips of an old
+    /// project file refer to).
+    pub fn reserve_ids_through(&mut self, id: u64) {
+        self.next_id = self.next_id.max(id);
+    }
+
+    /// Removes a clip.
+    pub fn remove_clip(&mut self, clip: ClipId) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        self.tracks[t].clips.remove(i);
+        Ok(())
+    }
+
+    /// Splits a clip at timeline time `at` (strictly inside it). The left part keeps the id;
+    /// the right part gets a new id and starts its source `at - start` later.
+    pub fn split_clip(&mut self, clip: ClipId, at: Time) -> Result<ClipId, TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        let c = self.tracks[t].clips[i];
+        if at <= c.start || at >= c.end() {
+            return Err(TimelineError::SplitOutside);
+        }
+        let cut = at.0 - c.start.0;
+        let source_start = c
+            .source_start
+            .0
+            .checked_add(cut)
+            .ok_or(TimelineError::TimeOverflow)?;
+        let id = ClipId(self.allocate_id());
+        let clips = &mut self.tracks[t].clips;
+        clips[i].duration = Time(cut);
+        let right = Clip {
+            id,
+            media: c.media,
+            source_start: Time(source_start),
+            start: at,
+            duration: Time(c.duration.0 - cut),
+        };
+        clips.insert(i + 1, right);
+        Ok(id)
+    }
+
+    /// Joins `right` into `left`: neighbours on one track (`left` ends where `right` starts),
+    /// same media, and `right`'s source continues `left`'s. `left` keeps its id.
+    pub fn merge_clips(&mut self, left: ClipId, right: ClipId) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(left)?;
+        let (rt, j) = self.locate(right)?;
+        let clips = &mut self.tracks[t].clips;
+        let (l, r) = (clips[i], clips.get(j).copied().filter(|_| rt == t));
+        let continuous = |r: &Clip| {
+            j == i + 1
+                && l.end() == r.start
+                && l.media == r.media
+                && l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0)
+        };
+        let Some(r) = r.filter(continuous) else {
+            return Err(TimelineError::NotMergeable);
+        };
+        // Fits: it is r.end() - l.start, and r.end() fits.
+        clips[i].duration = Time(l.duration.0 + r.duration.0);
+        clips.remove(j);
+        Ok(())
+    }
+
+    /// Moves a clip's edges to `[start, end)`. Moving the start also moves the source offset by
+    /// the same amount, so the frames under the rest of the clip stay put.
+    // ponytail: no media-length check yet (P1-013 brings durations); the tail can grow past
+    // the end of the media.
+    pub fn trim_clip(&mut self, clip: ClipId, start: Time, end: Time) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        let clips = &mut self.tracks[t].clips;
+        let c = clips[i];
+        if start.0 < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        if end <= start {
+            return Err(TimelineError::NonPositiveDuration);
+        }
+        // Both starts are non-negative, so the difference cannot overflow.
+        let source_start = c
+            .source_start
+            .0
+            .checked_add(start.0 - c.start.0)
+            .ok_or(TimelineError::TimeOverflow)?;
+        if source_start < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        // A trim moves edges but never past a neighbour, so the track stays sorted.
+        if let Some(prev) = clips[..i].last().filter(|p| p.end() > start) {
+            return Err(TimelineError::Overlap(prev.id));
+        }
+        if let Some(next) = clips.get(i + 1).filter(|n| n.start < end) {
+            return Err(TimelineError::Overlap(next.id));
+        }
+        let trimmed = &mut clips[i];
+        trimmed.start = start;
+        trimmed.source_start = Time(source_start);
+        trimmed.duration = Time(end.0 - start.0);
+        Ok(())
+    }
+
+    /// Moves a clip to `start` on track `to` (its own track or another of the same kind),
+    /// keeping its id, media, source offset and duration. Refused if either track is locked or
+    /// the new spot overlaps another clip; on refusal nothing changes.
+    pub fn move_clip(
+        &mut self,
+        clip: ClipId,
+        to: TrackId,
+        start: Time,
+    ) -> Result<(), TimelineError> {
+        let (from, i) = self.locate(clip)?;
+        let dest = self
+            .tracks
+            .iter()
+            .position(|t| t.id == to)
+            .ok_or(TimelineError::UnknownTrack(to))?;
+        if self.tracks[dest].flags.locked {
+            return Err(TimelineError::TrackLocked(to));
+        }
+        if self.tracks[dest].kind != self.tracks[from].kind {
+            return Err(TimelineError::WrongTrackKind(to));
+        }
+        if start.0 < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        let moving = self.tracks[from].clips[i];
+        let end = start
+            .0
+            .checked_add(moving.duration.0)
+            .ok_or(TimelineError::TimeOverflow)?;
+        // The moving clip may slide over its own old spot.
+        free_slot(&self.tracks[dest].clips, start, end, Some(clip))?;
+        self.tracks[from].clips.remove(i);
+        let clips = &mut self.tracks[dest].clips;
+        let at = clips.partition_point(|c| c.start < start);
+        clips.insert(at, Clip { start, ..moving });
+        Ok(())
+    }
+
+    /// Copies a clip to right after itself on the same track (no ripple: refused with
+    /// [`TimelineError::Overlap`] if that space is taken).
+    pub fn duplicate_clip(&mut self, clip: ClipId) -> Result<ClipId, TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        let c = self.tracks[t].clips[i];
+        let copy = ClipPlacement {
+            media: c.media,
+            source_start: c.source_start,
+            start: c.end(),
+            duration: c.duration,
+        };
+        self.insert_clip(self.tracks[t].id, copy)
+    }
+
+    /// Track and clip index of `clip`, refusing clips on a locked track.
+    // ponytail: linear scan over all clips, once per command; index by id if profiles show it.
+    fn locate(&self, clip: ClipId) -> Result<(usize, usize), TimelineError> {
+        let (t, i) = self
+            .tracks
+            .iter()
+            .enumerate()
+            .find_map(|(t, track)| {
+                track
+                    .clips
+                    .iter()
+                    .position(|c| c.id == clip)
+                    .map(|i| (t, i))
+            })
+            .ok_or(TimelineError::UnknownClip(clip))?;
+        let track = &self.tracks[t];
+        if track.flags.locked {
+            return Err(TimelineError::TrackLocked(track.id));
+        }
+        Ok((t, i))
     }
 
     /// End of the last clip on any track; zero when empty.
@@ -220,4 +524,29 @@ impl Timeline {
         self.next_id += 1;
         self.next_id
     }
+}
+
+/// Index where a clip spanning `[start, end)` goes in the sorted, non-overlapping `clips`, or
+/// the nearest clip it would overlap. `skip` is ignored: the clip being moved. Used where a
+/// clip may land anywhere free (insert, move); trim instead stays between its neighbours.
+fn free_slot(
+    clips: &[Clip],
+    start: Time,
+    end: i64,
+    skip: Option<ClipId>,
+) -> Result<usize, TimelineError> {
+    let at = clips.partition_point(|c| c.start < start);
+    let other = |c: &&Clip| Some(c.id) != skip;
+    if let Some(prev) = clips[..at]
+        .iter()
+        .rev()
+        .find(other)
+        .filter(|c| c.end() > start)
+    {
+        return Err(TimelineError::Overlap(prev.id));
+    }
+    if let Some(next) = clips[at..].iter().find(other).filter(|c| c.start.0 < end) {
+        return Err(TimelineError::Overlap(next.id));
+    }
+    Ok(at)
 }

@@ -151,6 +151,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No clips} =1{1 clip} other{{count} clips}}'**
   String clipCount(int count);
+
+  /// No description provided for @aspectRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'Aspect ratio'**
+  String get aspectRatio;
+
+  /// No description provided for @aspectRatioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{width}:{height}'**
+  String aspectRatioLabel(int width, int height);
+
+  /// No description provided for @muteTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute track'**
+  String get muteTrack;
+
+  /// No description provided for @hideTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide track'**
+  String get hideTrack;
+
+  /// No description provided for @lockTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock track'**
+  String get lockTrack;
+
+  /// No description provided for @importFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from gallery'**
+  String get importFromGallery;
+
+  /// No description provided for @importFromFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from files'**
+  String get importFromFiles;
+
+  /// No description provided for @importing.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing media'**
+  String get importing;
 }
 
 class _AppLocalizationsDelegate

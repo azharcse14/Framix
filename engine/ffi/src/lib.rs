@@ -23,7 +23,7 @@ pub const ENGINE_ERR_PROTOCOL: i32 = -3;
 pub const ENGINE_ERR_STOPPED: i32 = -4;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 3;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 9;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread, so it must not call
@@ -149,7 +149,7 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
 
 /// The engine thread: answers every command with one event, in order.
 fn run_engine(inbox: Receiver<EngineMessage>) {
-    let mut engine = framix_app::engine::Engine::default();
+    let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore));
     let mut callback: EngineEventCallback = None;
     for message in inbox {
         match message {

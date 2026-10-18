@@ -8,6 +8,7 @@ class FramixColors extends ThemeExtension<FramixColors> {
     required this.surface,
     required this.elevated,
     required this.border,
+    required this.outline,
     required this.textMuted,
     required this.text,
     required this.accentFill,
@@ -23,6 +24,7 @@ class FramixColors extends ThemeExtension<FramixColors> {
     surface: Color(0xFF17171B),
     elevated: Color(0xFF222228),
     border: Color(0xFF2E2E36),
+    outline: Color(0xFF6C6C75),
     textMuted: Color(0xFF9A9AA5),
     text: Color(0xFFF4F4F6),
     accentFill: Color(0xFF6E4CF5),
@@ -37,6 +39,10 @@ class FramixColors extends ThemeExtension<FramixColors> {
   final Color surface;
   final Color elevated;
   final Color border;
+
+  /// Boundary of interactive controls (outlined button, chip, canvas edge); 3:1 on
+  /// background, surface and elevated. [border] is for decorative dividers only.
+  final Color outline;
   final Color textMuted;
   final Color text;
   final Color accentFill;
@@ -74,13 +80,25 @@ ThemeData framixDarkTheme() {
       surface: c.surface,
       onSurface: c.text,
       onSurfaceVariant: c.textMuted,
-      outline: c.border,
+      outline: c.outline,
+      outlineVariant: c.border,
       surfaceContainerHighest: c.elevated,
     ),
     scaffoldBackgroundColor: c.background,
     // Accent belongs to the one primary action; secondary actions stay neutral.
+    // M3 chips edge unselected chips with outlineVariant (the divider border); a chip is a
+    // control, so use the 3:1 outline. Selected stays transparent, disabled keeps M3's side.
+    chipTheme: ChipThemeData(
+      side: WidgetStateBorderSide.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return null;
+        if (states.contains(WidgetState.selected)) {
+          return const BorderSide(color: Colors.transparent);
+        }
+        return BorderSide(color: c.outline);
+      }),
+    ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      // Outline comes from ColorScheme.outline (border), keeping the M3 disabled side.
+      // Outline comes from ColorScheme.outline (outline token), keeping the M3 disabled side.
       style: OutlinedButton.styleFrom(foregroundColor: c.text),
     ),
     extensions: const [c],

@@ -37,7 +37,7 @@
 /**
  * Version of the command/event contract (proto/framix/v1/engine.proto).
  */
-#define ENGINE_PROTOCOL_VERSION 3
+#define ENGINE_PROTOCOL_VERSION 9
 
 /**
  * The GPU could not be opened, or this platform has no preview path yet.

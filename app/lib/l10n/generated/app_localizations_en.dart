@@ -49,4 +49,30 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get aspectRatio => 'Aspect ratio';
+
+  @override
+  String aspectRatioLabel(int width, int height) {
+    return '$width:$height';
+  }
+
+  @override
+  String get muteTrack => 'Mute track';
+
+  @override
+  String get hideTrack => 'Hide track';
+
+  @override
+  String get lockTrack => 'Lock track';
+
+  @override
+  String get importFromGallery => 'Import from gallery';
+
+  @override
+  String get importFromFiles => 'Import from files';
+
+  @override
+  String get importing => 'Importing media';
 }

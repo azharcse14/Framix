@@ -13,4 +13,5 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 framix_app = { path = "../app" }
 # SPIKE (P1-001): preview test pattern.
 framix_render = { path = "../render" }
+framix_storage = { path = "../storage" }
 prost = "0.14.4"

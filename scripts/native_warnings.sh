@@ -24,6 +24,10 @@ suppressAgpWarnings=DEPRECATED_DSL
 # Flutter Gradle plugin source and its old variant API (flutter_tools/gradle).
 flutter_tools/gradle/src/main/kotlin/.* is deprecated
 API .(applicationVariants|testVariants|unitTestVariants). is obsolete
+# The Flutter Gradle plugin FlutterTask reads Task.project at execution time (com.flutter.gradle,
+# Flutter 3.47); printed with a DeprecatedFeaturesListener stack whenever that task runs.
+Invocation of Task\.project at execution time has been deprecated
+org\.gradle\.internal\.cc\.impl\.DeprecatedFeaturesListener
 # Gradle native-platform on a newer JVM. Only the rubygrapefruit line names the caller; the
 # other three are generic JVM lines it triggers, so recheck them on the pinned JDK 21.
 System::load has been called by net\.rubygrapefruit
@@ -50,7 +54,10 @@ build ios --simulator --debug
 build apk --debug --target-platform android-arm64,android-x64
 
 # Real diagnostics only: skip Xcode's echoed build settings (export FOO_WARN_...=YES).
-diagnostics=$(grep -E '(^|[^A-Za-z_])([Ww]arning:|WARNING:|\bw: |[Dd]eprecated)' "$log" |
+# Clean builds echo compiler command lines; drop their -W flags (-Wdeprecated-declarations, ...)
+# so flag names are not mistaken for diagnostics.
+diagnostics=$(sed -E 's/(^|[[:space:]])-W[^[:space:]]*//g' "$log" |
+  grep -E '(^|[^A-Za-z_])([Ww]arning:|WARNING:|\bw: |[Dd]eprecated)' |
   grep -vE '^\s*(\[[^]]*\]\s*)?export |^\s*\[[^]]*\]\s+[A-Z_]+ = ' || true)
 # grep -v exits 1 when every line is allowed (fine) and 2 on a bad allowlist regex (fail).
 status=0

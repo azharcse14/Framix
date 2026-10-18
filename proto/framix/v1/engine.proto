@@ -13,6 +13,18 @@ message Command {
     Undo undo = 3;
     Redo redo = 4;
     GetTimeline get_timeline = 5;
+    NewProject new_project = 6;
+    SaveProject save_project = 7;
+    OpenProject open_project = 8;
+    SetAspectRatio set_aspect_ratio = 9;
+    RemoveClip remove_clip = 10;
+    SplitClip split_clip = 11;
+    MergeClips merge_clips = 12;
+    TrimClip trim_clip = 13;
+    DuplicateClip duplicate_clip = 14;
+    SetTrackFlags set_track_flags = 15;
+    MoveClip move_clip = 16;
+    ImportMedia import_media = 17;
   }
 }
 
@@ -46,11 +58,111 @@ message Redo {}
 // Asks for the current timeline; answered with TimelineChanged, nothing is edited.
 message GetTimeline {}
 
+// Starts an empty project; the old one is dropped (save it first) and undo is cleared.
+message NewProject {}
+
+// Saves the project to `path` atomically, keeping the previous saves as backups.
+message SaveProject {
+  string path = 1;
+}
+
+// Replaces the project with the one at `path`; undo is cleared. A file that is unreadable,
+// from a newer app, or invalid is refused and the current project stays.
+message OpenProject {
+  string path = 1;
+}
+
+// Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
+// ratio lies between 1:3 and 3:1. Stored reduced (18:32 becomes 9:16).
+message SetAspectRatio {
+  uint32 width = 1;
+  uint32 height = 2;
+}
+
+// Removes a clip.
+message RemoveClip {
+  uint64 clip_id = 1;
+}
+
+// Splits a clip at timeline time `at` (strictly inside it); the right part gets a new id.
+message SplitClip {
+  uint64 clip_id = 1;
+  int64 at = 2;
+}
+
+// Joins `right_id` into `left_id`: neighbours on one track, same media, continuous source.
+message MergeClips {
+  uint64 left_id = 1;
+  uint64 right_id = 2;
+}
+
+// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+message TrimClip {
+  uint64 clip_id = 1;
+  int64 start = 2;
+  int64 end = 3;
+}
+
+// Copies a clip to right after itself; refused if that space is taken.
+message DuplicateClip {
+  uint64 clip_id = 1;
+}
+
+// Changes a track's switches; unset fields keep their value, so quick taps on different
+// switches never undo each other. Allowed while locked (so it can be unlocked). Only video
+// tracks can be hidden. A locked track refuses clip edits.
+message SetTrackFlags {
+  uint64 track_id = 1;
+  optional bool muted = 2;
+  optional bool hidden = 3;
+  optional bool locked = 4;
+}
+
+// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
+// if either track is locked or the spot is taken.
+message MoveClip {
+  uint64 clip_id = 1;
+  uint64 track_id = 2;
+  int64 start = 3;
+}
+
+// What a picked file is.
+enum MediaKind {
+  MEDIA_KIND_UNSPECIFIED = 0;
+  MEDIA_KIND_VIDEO = 1;
+  MEDIA_KIND_IMAGE = 2;
+}
+
+// Adds picked media, in pick order, back to back at the end of the first unlocked video track
+// (a new one if none). All or nothing: one bad item refuses the whole import. Photos get the
+// default photo duration.
+message ImportMedia {
+  repeated MediaItem items = 1;
+}
+
+// One picked file, as reported by the platform layer (untrusted). `uri` is opaque to the
+// engine: content://... on Android, a path relative to the app's media folder on iOS.
+message MediaItem {
+  string uri = 1;
+  MediaKind kind = 2;
+  // Video duration = duration_value / duration_timescale seconds; ignored for images.
+  int64 duration_value = 3;
+  uint32 duration_timescale = 4;
+  uint32 width = 5;
+  uint32 height = 6;
+  // Clockwise display rotation: 0, 90, 180 or 270.
+  uint32 rotation = 7;
+  // Informational codec tag, at most 16 ASCII characters: the fourCC on iOS ("avc1", "hvc1"),
+  // the MIME subtype on Android ("avc", "hevc", "x-vnd.on2.vp9"); empty when unknown.
+  string codec = 8;
+}
+
 // Sent by the engine. Exactly one kind is set.
 message Event {
   oneof kind {
     TimelineChanged timeline_changed = 1;
     CommandFailed command_failed = 2;
+    ProjectSaved project_saved = 3;
   }
 }
 
@@ -60,6 +172,9 @@ message TimelineChanged {
   int64 duration = 2;
   bool can_undo = 3;
   bool can_redo = 4;
+  // Canvas aspect ratio, reduced (9:16, 16:9, ...).
+  uint32 aspect_width = 5;
+  uint32 aspect_height = 6;
 }
 
 // A track and its clips, sorted by start.
@@ -69,6 +184,9 @@ message Track {
   repeated Clip clips = 3;
   // 1-based position among tracks of the same kind (Video 1, Video 2, Audio 1).
   uint32 number = 4;
+  bool muted = 5;
+  bool hidden = 6;
+  bool locked = 7;
 }
 
 // A clip on a track.
@@ -79,6 +197,9 @@ message Clip {
   int64 start = 4;
   int64 duration = 5;
 }
+
+// SaveProject finished.
+message ProjectSaved {}
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
 // never shown to users; add a code enum when the UI needs to explain failures.

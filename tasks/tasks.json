@@ -760,6 +760,10 @@
     },
     {
      "date": "2026-10-15",
+     "text": "blocked: Android half (HardwareBuffer/SurfaceProducer) needs an Android emulator or device and more free disk (~2.8 GB free). iOS half works on the simulator on branch p1-001-ios-texture-spike (SPIKE, off main)."
+    },
+    {
+     "date": "2026-10-18",
      "text": "iOS zero-copy confirmed on the host too: engine/render/tests/iosurface_wrap.rs (IOSurface-backed texture, pixels read from the IOSurface). Remaining: Android half, real iPhone check."
     }
    ],
@@ -846,6 +850,10 @@
     {
      "date": "2026-10-15",
      "text": "From the P1-001 spike: move rendering off the UI isolate to the render thread with a fence (spike blocks the UI isolate in engine_spike_render_metal); move ENGINE_ERR_GPU next to the other error codes; replace the method channel with C ABI callbacks."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Plan drafted: docs/plans/P1-005-platform-callbacks.md. Blocked on promoting the render crate from the P1-001 spike (user decision)."
     }
    ],
    "source": "plan"
@@ -934,11 +942,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "16d3226",
+   "branch": "p1-009-project-save",
    "notes": [
     {
      "date": "2026-10-15",
@@ -947,6 +955,10 @@
     {
      "date": "2026-10-15",
      "text": "round-trip test must also check id allocation (add_track on the original and on the loaded timeline gives the same new id); Timeline == ignores next_id (P1-043)"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Frozen test engine/app/tests/project.rs got a type alias (Shape) in the impl commit, no assertion change, for clippy type_complexity. Ids are not persisted (reassigned on load), so the id-allocation round-trip concern is covered by project_limits.rs ids_after_open_never_collide_with_loaded_ones."
     }
    ],
    "source": "plan"
@@ -963,12 +975,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "799c073",
+   "branch": "p1-010-aspect-ratio",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "The ENG-003 cubit test 'mirrors the engine...' got one line, await next(), because the engine's starting state (aspect 9:16) no longer equals Dart's empty placeholder; no assertion changed. Earlier P1-009 tests got ..Default::default() in ProjectFile literals for the new fields."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -982,12 +999,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "69dd012",
+   "branch": "p1-011-import",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Plan: docs/plans/P1-011-import.md (also covers P1-013 engine half and P1-028 default photo duration)."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Test deviations: engine_import round trip dropped 'assert_eq!(opened, tl)' (track/clip ids are reassigned on load) and project_media_limits.rs adds the full media + span round trip instead; P1-009 format test expects min_reader 2; P1-009 encode/decode and ids tests plus the P1-026 locked-track test register their media via tests/common (saved clips need registered media). project_aspect.rs got ..Default::default()."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1025,7 +1051,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Engine half done in P1-011: core::media validates platform metadata (duration, size, rotation, codec). A Rust-side probe (media crate) is still to come."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1124,12 +1155,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "b554d66",
+   "branch": "p1-018-clip-ops",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Engine part only; the Dart clip UI is P1-045 (no clips exist in the app before P1-011 import). Branch also carries the docs-only P1-005 plan commit (a308cf1), kept to avoid rewriting history."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1143,12 +1179,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "16a1b10",
+   "branch": "p1-019-move-clip",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Engine part: Timeline::move_clip + MoveClip command. Drag UI is P1-047 (no clips exist in the app before P1-011)."
+    },
+    {
+     "date": "2026-10-15",
+     "text": "The refactor commit added one proptest regression seed to engine/core/tests/clip_ops.proptest-regressions (from the caught trim regression); additive only."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1289,12 +1334,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "12338c9",
+   "branch": "p1-026-track-flags",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Mute/hide are stored and shown but nothing renders or mixes yet; consumer task filed. Frozen engine_track_flags test got Some(...) wrappers when SetTrackFlags fields became optional (no assertion change). Dart widget test was committed with the engine impl (c2d8106), before the Dart UI."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1332,7 +1382,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Default photo duration (3 s, core::media::PHOTO_DEFAULT_DURATION) done in P1-011; bulk 'set duration on all photos' still open."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -5056,7 +5111,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Long-press clip drag should send the MoveClip engine command (P1-019)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -5946,7 +6006,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Atomic save (temp+fsync+rename+dir fsync) with 2 backups done in P1-009 (framix_storage::FileStore, af9f085)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6969,7 +7034,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "iOS copy into Application Support/media done in P1-011 (MediaPicker.swift)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6988,7 +7058,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Android persistable content:// URI permission done in P1-011 (MediaPicker.kt)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -8657,7 +8732,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Do not ship autosave before P1-044: project I/O runs on the command thread (P1-009)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -8676,7 +8756,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Atomic save (temp+fsync+rename+dir fsync) with 2 backups done in P1-009 (framix_storage::FileStore, af9f085)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -8716,7 +8801,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "min_reader_version field and refusal of newer files done in P1-009 (proto/framix/project/v1)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -9240,7 +9330,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Project file validation partly done in P1-009: 4 MiB cap, version required, MAX_TRACKS/MAX_CLIPS, sorted clips, timeline rules on replay."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -10019,7 +10114,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "P1-011 Android 'Gallery' opens DocumentsUI (ACTION_OPEN_DOCUMENT), not the Photo Picker."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12103,6 +12203,10 @@
     {
      "date": "2026-10-15",
      "text": "Since ENG-050 every TimelineCubit sends GetTimeline on creation, so an undelivered reply at dispose (leak) now happens in every cubit test teardown and at app shutdown"
+    },
+    {
+     "date": "2026-10-15",
+     "text": "Since P1-009, SaveProject/OpenProject do file I/O (up to 4 MiB + fsyncs) on the engine command thread; engine_destroy joins behind it. Land this before autosave (OVL-028)."
     }
    ],
    "source": "added"
@@ -12186,7 +12290,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "When the loading state replaces the Dart placeholder, remove the 'await next()' added to timeline_cubit_test.dart by P1-010, and recheck 'a cubit created after edits' (its first now resolves on the GetTimeline reply, not the add reply)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -12194,6 +12303,54 @@
    "section": "DS",
    "group": null,
    "title": "border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "4499ead",
+   "branch": "ds-010-border-contrast",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "The DS-009 theme test (framix_theme_test.dart) changed its side-color assertion from border to outline in the impl commit (the old test encoded the non-compliant design), plus a comment fix; no assertion weakened."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "REL-024",
+   "section": "REL",
+   "group": null,
+   "title": "App icon v1 (iOS + Android) from the REL-020 idea: two overlapping frames forming an F; final logo stays REL-020",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "d36417a",
+   "branch": "rel-024-app-icon",
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "review fixes: safe-zone circle, rounded stem, legacy PNGs removed, moved to scripts/app_icon (a79dc7f)"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-045",
+   "section": "P1",
+   "group": null,
+   "title": "Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub",
    "tags": [
     "Dart"
    ],
@@ -12209,10 +12366,168 @@
    "source": "added"
   },
   {
-   "id": "REL-024",
-   "section": "REL",
+   "id": "P1-046",
+   "section": "P1",
    "group": null,
-   "title": "App icon v1 (iOS + Android) from the REL-020 idea: two overlapping frames forming an F; final logo stays REL-020",
+   "title": "Preview, export and audio mix honor track mute and hide (flags from P1-026)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-047",
+   "section": "P1",
+   "group": null,
+   "title": "Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "DS-011",
+   "section": "DS",
+   "group": null,
+   "title": "design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-10-15",
+   "done": "2026-10-15",
+   "commit": "53b92dd",
+   "branch": "ds-011-gray-rule",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-052",
+   "section": "ENG",
+   "group": null,
+   "title": "InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-053",
+   "section": "ENG",
+   "group": null,
+   "title": "Trims and splits must stay inside the media's duration (P1-011 media registry has durations)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-054",
+   "section": "ENG",
+   "group": null,
+   "title": "Prune media no clip uses (registry only grows; media cap can block saving)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-10-15",
+     "text": "Also delete unreferenced files in Application Support/media (iOS copies of refused/undone/deleted imports)."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-048",
+   "section": "P1",
+   "group": null,
+   "title": "Color/blank clip (from P1-011 title)",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-049",
+   "section": "P1",
+   "group": null,
+   "title": "Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-050",
+   "section": "P1",
+   "group": null,
+   "title": "Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel",
    "tags": [
     "Native"
    ],

@@ -369,9 +369,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Project ar import**
 
-- [ ] `P1-009` Notun project, project save/load \[Rust\]
-- [ ] `P1-010` Aspect ratio select (9:16, 16:9, 1:1, 4:5, 3:4, 21:9) \[Dart\]\[Rust\]
-- [ ] `P1-011` Video/image import (gallery ar Files/iCloud Drive/Google Drive er moto cloud storage), multi-select order shoho, color/blank clip \[Dart\]
+- [x] `P1-009` Notun project, project save/load \[Rust\]
+- [x] `P1-010` Aspect ratio select (9:16, 16:9, 1:1, 4:5, 3:4, 21:9) \[Dart\]\[Rust\]
+- [x] `P1-011` Video/image import (gallery ar Files/iCloud Drive/Google Drive er moto cloud storage), multi-select order shoho, color/blank clip \[Dart\]
 - [ ] `P1-012` Android e boro file er jonno file descriptor (fd), copy chhara \[Native\]
 - [ ] `P1-013` Metadata read (duration, resolution, codec, rotation) \[Rust\]
 - [x] `P1-014` Timeline data model multi-track ar keyframe mathay rekhe design \[Rust\]
@@ -381,15 +381,15 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Timeline basics**
 
-- [ ] `P1-018` Trim, split, merge, delete, duplicate \[Rust\]\[Dart\]
-- [ ] `P1-019` Drag kore reorder \[Dart\]
+- [x] `P1-018` Trim, split, merge, delete, duplicate \[Rust\]\[Dart\]
+- [x] `P1-019` Drag kore reorder \[Dart\]
 - [ ] `P1-020` Timeline zoom in/out, scrubbing preview \[Dart\]\[Rust\]
 - [ ] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
 - [ ] `P1-022` Snapping ar haptic feedback \[Dart\]
 - [x] `P1-023` Undo/redo (command pattern) \[Rust\]
 - [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
 - [ ] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
-- [ ] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
+- [x] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
 - [ ] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
 - [ ] `P1-028` **1b:** Photo clip er default duration ar shob photo te ekshathe duration set \[Rust\]
 
@@ -417,6 +417,12 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-042` engine_free_buffer ke unsafe extern "C" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai \[Rust\]
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]
 - [ ] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
+- [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
+- [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
+- [ ] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
+- [ ] `P1-048` Color/blank clip (from P1-011 title) \[Rust\] \[Dart\]
+- [ ] `P1-049` Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet \[Dart\]
+- [ ] `P1-050` Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel \[Native\]
 
 ## Phase 2: Audio
 
@@ -911,7 +917,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 | Accent text | #A271FF | Dark surface e accent text, active tool icon/label, selected clip outline, link (Elevated e 4.78:1) |
 | On accent | #FFFFFF | Accent fill er upor text/icon |
 
-- Base gray ekdom neutral (kono tint na), jate color grading e user er chokh vul rong na dekhe; pure black (#000) na, jate layer bojha jay.
+- Base gray prai neutral: red = green, blue sorbochcho +12 (halka cool bhab), onno kono tint na, jate color grading e user er chokh vul rong na dekhe; pure black (#000) na, jate layer bojha jay.
 - Accent shudhu gurutto purno jaygay; baki shob gray.
 - Accent preset (custom theme er jonno): protita preset e tinta token (fill, text, onAccent). Electric violet: fill #6E4CF5, text #A271FF, onAccent shada (default). Sunset coral #FF6B4A ar Fresh aqua #22C7B8 e fill er upor shada text fail (2.82:1, 2.11:1), tai onAccent #0E0E11 (6.84:1, 9.11:1); dark surface e text hishebe eki rong chole (Elevated e 5.62:1, 7.48:1). Aro 3-5 ta preset ei niyom e test kore. Free colour picker na.
 - Timeline track category colour (accent theke alada): video neutral (thumbnail), audio sobuj, text amber, sticker golapi, effect teal, overlay nil. Hex design phase e final.
@@ -930,7 +936,8 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [ ] `DS-007` Notun theme mane screenshot test, contrast check, icon duita version, tai pura custom background theme pore \[—\]
 - [ ] `DS-008` bn locale e screenshot test: button, chip, tab, toolbar label e Bangla upore-niche kata jacche kina \[Dart\]
 - [x] `DS-009` OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md \[Dart\]
-- [ ] `DS-010` border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule) \[Dart\]
+- [x] `DS-010` border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule) \[Dart\]
+- [x] `DS-011` design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette \[Dart\]
 
 **Font**
 
@@ -1116,6 +1123,9 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
 - [x] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]
 - [ ] `ENG-051` TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval) \[Dart\]
+- [ ] `ENG-052` InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia) \[Rust\]
+- [ ] `ENG-053` Trims and splits must stay inside the media's duration (P1-011 media registry has durations) \[Rust\]
+- [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 
 **Security**
 
@@ -1607,7 +1617,7 @@ Video editor er bug onek shomoy device ar file specific, tai test plan ar releas
 - [ ] `REL-021` Store description, keyword (ASO), screenshot, preview video \[—\]
 - [x] `REL-022` Naam conflict: eki category te "Filmix" video editor (shunte prai eki); "Fram-" naam e onek photo/frame app (FramMe AI photo editor, Framie, Framory); "iFramix" photo frame app; "Framix" Framer plugin (useframix.com, paid plan shoho). Tai naam bodlano recommended. Proposal "Rongo" (রঙ্গ: rong ar khela/natok, Hindi/Urdu te rang = colour); quick search e photo/video editor e conflict pawa jay ni; final er age trademark ar store search \[—\]
 - [ ] `REL-023` Domain (framix.app, getframix.com, ba ja available) ar social handle \[—\]
-- [ ] `REL-024` App icon v1 (iOS + Android) from the REL-020 idea: two overlapping frames forming an F; final logo stays REL-020 \[Native\]
+- [x] `REL-024` App icon v1 (iOS + Android) from the REL-020 idea: two overlapping frames forming an F; final logo stays REL-020 \[Native\]
 
 ## Backend: ki kaj hobe ar keno lagbe
 

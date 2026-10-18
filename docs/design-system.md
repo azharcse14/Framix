@@ -8,7 +8,8 @@ Full version: docs/plan.md (Design system). Widgets use tokens only, never hex l
 | background | #0E0E11 | Screen background |
 | surface | #17171B | Card, panel |
 | elevated | #222228 | Bottom sheet, popup, clip |
-| border | #2E2E36 | Divider, outline |
+| border | #2E2E36 | Decorative divider (no contrast requirement); ColorScheme.outlineVariant |
+| outline | #6C6C75 | Boundary of interactive controls: outlined button, chip, canvas edge (3:1 on background, surface, elevated); ColorScheme.outline |
 | textMuted | #9A9AA5 | Secondary text |
 | text | #F4F4F6 | Main text |
 | accentFill | #6E4CF5 | Primary button, toggle, slider fill (white text 5.23:1) |
@@ -18,7 +19,7 @@ Full version: docs/plan.md (Design system). Widgets use tokens only, never hex l
 Light theme (Home, Settings only): textMuted #666670; accentText = accentFill #6E4CF5.
 
 ## Rules
-- Neutral grays with no tint, so users judge color correctly. No pure black.
+- Near-neutral grays: red = green, blue at most +12 (a slight cool bias), no other tint, so users judge color correctly. No pure black. app/test/core/ui/gray_rule_test.dart enforces it.
 - ColorScheme built by hand from tokens (no fromSeed); extra tokens in the FramixColors ThemeExtension.
 - Accent only on the one primary action per screen and selected state.
 - Track colors (audio green, text amber, sticker pink, effect teal, overlay blue) always come with an icon.

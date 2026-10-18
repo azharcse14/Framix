@@ -11,5 +11,14 @@
   "audioTrackName": "Audio track {number}",
   "@audioTrackName": {"placeholders": {"number": {"type": "int"}}},
   "clipCount": "{count, plural, =0{No clips} =1{1 clip} other{{count} clips}}",
-  "@clipCount": {"placeholders": {"count": {"type": "int"}}}
+  "@clipCount": {"placeholders": {"count": {"type": "int"}}},
+  "aspectRatio": "Aspect ratio",
+  "aspectRatioLabel": "{width}:{height}",
+  "@aspectRatioLabel": {"placeholders": {"width": {"type": "int"}, "height": {"type": "int"}}},
+  "muteTrack": "Mute track",
+  "hideTrack": "Hide track",
+  "lockTrack": "Lock track",
+  "importFromGallery": "Import from gallery",
+  "importFromFiles": "Import from files",
+  "importing": "Importing media"
 }

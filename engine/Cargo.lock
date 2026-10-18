@@ -219,6 +219,7 @@ dependencies = [
  "prost",
  "prost-build",
  "protox",
+ "thiserror",
 ]
 
 [[package]]
@@ -235,6 +236,7 @@ version = "0.1.0"
 dependencies = [
  "framix_app",
  "framix_render",
+ "framix_storage",
  "prost",
 ]
 
@@ -249,6 +251,13 @@ dependencies = [
  "pollster",
  "thiserror",
  "wgpu",
+]
+
+[[package]]
+name = "framix_storage"
+version = "0.1.0"
+dependencies = [
+ "framix_app",
 ]
 
 [[package]]

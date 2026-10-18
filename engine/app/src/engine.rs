@@ -1,32 +1,60 @@
 //! Turns UI commands into timeline edits and reports the result as an event.
 
+use framix_core::aspect::AspectRatio;
+use framix_core::media::{self, Media, RawMedia};
 use framix_core::time::Time;
-use framix_core::timeline::{self, ClipPlacement, MediaId, Timeline, TimelineError, TrackId};
+use framix_core::timeline::{
+    self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
+};
+
+use std::path::Path;
 
 use crate::history::History;
-use crate::proto::{self, Command, CommandFailed, Event, TimelineChanged, TrackKind, command};
+use crate::project;
+use crate::proto::{
+    self, Command, CommandFailed, Event, ProjectSaved, TimelineChanged, TrackKind, command,
+};
+use crate::store::ProjectStore;
 
-/// Engine state behind the FFI boundary: one project's timeline and its undo history.
-#[derive(Debug, Default)]
+/// Engine state behind the FFI boundary: one project's timeline, its undo history, and where
+/// projects are saved.
+#[derive(Default)]
 pub struct Engine {
     history: History,
+    store: Option<Box<dyn ProjectStore>>,
 }
 
 impl Engine {
+    /// An engine that saves and opens projects through `store`. [`Engine::default`] has no
+    /// store and refuses SaveProject/OpenProject.
+    pub fn with_store(store: Box<dyn ProjectStore>) -> Self {
+        Self {
+            history: History::default(),
+            store: Some(store),
+        }
+    }
+
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
-        match self.apply(command) {
-            Ok(()) => self.timeline_changed(),
+        let Some(kind) = command.kind else {
+            return command_failed("command has no kind");
+        };
+        match self.apply(kind) {
+            Ok(Reply::Timeline) => self.timeline_changed(),
+            Ok(Reply::Saved) => Event {
+                kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
+            },
             Err(reason) => command_failed(reason),
         }
     }
 
-    fn apply(&mut self, command: Command) -> Result<(), String> {
-        match command.kind.ok_or("command has no kind")? {
+    fn apply(&mut self, kind: command::Kind) -> Result<Reply, String> {
+        let timeline = |r: Result<(), String>| r.map(|()| Reply::Timeline);
+        match kind {
             command::Kind::AddTrack(add) => {
                 let kind = track_kind(add.kind)?;
-                self.edit(|tl| Ok(tl.add_track(kind)))
+                timeline(self.edit(|tl| Ok(tl.add_track(kind))))
             }
             command::Kind::InsertClip(insert) => {
                 let placement = ClipPlacement {
@@ -35,12 +63,97 @@ impl Engine {
                     start: Time(insert.start),
                     duration: Time(insert.duration),
                 };
-                self.edit(|tl| tl.insert_clip(TrackId(insert.track_id), placement))
+                timeline(self.edit(|tl| tl.insert_clip(TrackId(insert.track_id), placement)))
             }
-            command::Kind::Undo(_) => step(self.history.undo(), "nothing to undo"),
-            command::Kind::Redo(_) => step(self.history.redo(), "nothing to redo"),
-            command::Kind::GetTimeline(_) => Ok(()),
+            command::Kind::Undo(_) => timeline(step(self.history.undo(), "nothing to undo")),
+            command::Kind::Redo(_) => timeline(step(self.history.redo(), "nothing to redo")),
+            command::Kind::GetTimeline(_) => Ok(Reply::Timeline),
+            command::Kind::NewProject(_) => {
+                self.history = History::default();
+                Ok(Reply::Timeline)
+            }
+            command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
+            command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
+            command::Kind::RemoveClip(op) => {
+                timeline(self.edit(|tl| tl.remove_clip(ClipId(op.clip_id))))
+            }
+            command::Kind::SplitClip(op) => {
+                timeline(self.edit(|tl| tl.split_clip(ClipId(op.clip_id), Time(op.at))))
+            }
+            command::Kind::MergeClips(op) => {
+                timeline(self.edit(|tl| tl.merge_clips(ClipId(op.left_id), ClipId(op.right_id))))
+            }
+            command::Kind::TrimClip(op) => timeline(
+                self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), Time(op.start), Time(op.end))),
+            ),
+            command::Kind::DuplicateClip(op) => {
+                timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
+            }
+            command::Kind::SetTrackFlags(op) => {
+                let track = TrackId(op.track_id);
+                timeline(self.edit(|tl| {
+                    let current = tl
+                        .track(track)
+                        .ok_or(TimelineError::UnknownTrack(track))?
+                        .flags();
+                    let flags = TrackFlags {
+                        muted: op.muted.unwrap_or(current.muted),
+                        hidden: op.hidden.unwrap_or(current.hidden),
+                        locked: op.locked.unwrap_or(current.locked),
+                    };
+                    tl.set_track_flags(track, flags)
+                }))
+            }
+            command::Kind::MoveClip(op) => {
+                timeline(self.edit(|tl| {
+                    tl.move_clip(ClipId(op.clip_id), TrackId(op.track_id), Time(op.start))
+                }))
+            }
+            command::Kind::ImportMedia(op) => {
+                // Fail fast before validating a huge list; Timeline::import holds the rule.
+                if op.items.len() > media::MAX_IMPORT {
+                    return Err(TimelineError::TooManyMedia.to_string());
+                }
+                let media = op
+                    .items
+                    .into_iter()
+                    .map(media_from_item)
+                    .collect::<Result<Vec<_>, _>>()?;
+                timeline(self.edit(|tl| tl.import(media).map(drop)))
+            }
+            command::Kind::SetAspectRatio(set) => {
+                let aspect = AspectRatio::new(set.width, set.height)
+                    .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
+                timeline(self.edit(|tl| {
+                    tl.set_aspect(aspect);
+                    Ok::<_, TimelineError>(())
+                }))
+            }
         }
+    }
+
+    fn store(&self) -> Result<&dyn ProjectStore, String> {
+        self.store
+            .as_deref()
+            .ok_or_else(|| "no project store".to_owned())
+    }
+
+    fn save(&self, path: &str) -> Result<(), String> {
+        let bytes = project::encode_for_save(self.history.timeline()).map_err(|e| e.to_string())?;
+        self.store()?
+            .save(Path::new(path), &bytes)
+            .map_err(|e| e.to_string())
+    }
+
+    /// Replaces the project only if the file loads and decodes; otherwise nothing changes.
+    fn open(&mut self, path: &str) -> Result<(), String> {
+        let bytes = self
+            .store()?
+            .load(Path::new(path))
+            .map_err(|e| e.to_string())?;
+        let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
+        self.history = History::new(timeline);
+        Ok(())
     }
 
     fn edit<T>(
@@ -80,6 +193,9 @@ impl Engine {
                         })
                         .collect(),
                     number: *count,
+                    muted: t.flags().muted,
+                    hidden: t.flags().hidden,
+                    locked: t.flags().locked,
                 }
             })
             .collect();
@@ -89,9 +205,19 @@ impl Engine {
                 duration: timeline.duration().0,
                 can_undo: self.history.can_undo(),
                 can_redo: self.history.can_redo(),
+                aspect_width: timeline.aspect().width(),
+                aspect_height: timeline.aspect().height(),
             })),
         }
     }
+}
+
+/// What a successful command reports.
+enum Reply {
+    /// The timeline (changed or not).
+    Timeline,
+    /// The project was saved.
+    Saved,
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.
@@ -113,4 +239,24 @@ fn track_kind(wire: i32) -> Result<timeline::TrackKind, String> {
 
 fn step(done: bool, otherwise: &str) -> Result<(), String> {
     done.then_some(()).ok_or_else(|| otherwise.to_owned())
+}
+
+/// Validates one picked file. Errors never include the uri (no paths in logs).
+fn media_from_item(item: proto::MediaItem) -> Result<Media, String> {
+    let kind = match proto::MediaKind::try_from(item.kind) {
+        Ok(proto::MediaKind::Video) => media::MediaKind::Video,
+        Ok(proto::MediaKind::Image) => media::MediaKind::Image,
+        _ => return Err(format!("unknown media kind {}", item.kind)),
+    };
+    let raw = RawMedia {
+        uri: item.uri,
+        kind,
+        duration_value: item.duration_value,
+        duration_timescale: item.duration_timescale,
+        width: item.width,
+        height: item.height,
+        rotation: item.rotation,
+        codec: item.codec,
+    };
+    Media::validate(raw).map_err(|e| e.to_string())
 }

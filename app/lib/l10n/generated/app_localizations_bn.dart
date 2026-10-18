@@ -48,4 +48,30 @@ class AppLocalizationsBn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get aspectRatio => 'অনুপাত';
+
+  @override
+  String aspectRatioLabel(int width, int height) {
+    return '$width:$height';
+  }
+
+  @override
+  String get muteTrack => 'ট্র্যাক মিউট';
+
+  @override
+  String get hideTrack => 'ট্র্যাক লুকান';
+
+  @override
+  String get lockTrack => 'ট্র্যাক লক';
+
+  @override
+  String get importFromGallery => 'গ্যালারি থেকে আনুন';
+
+  @override
+  String get importFromFiles => 'ফাইল থেকে আনুন';
+
+  @override
+  String get importing => 'মিডিয়া আনা হচ্ছে';
 }
