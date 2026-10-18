@@ -173,7 +173,11 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
     let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
         .with_preview(
             Box::new(host),
-            Box::new(framix_render::GpuRenderer::default()),
+            Box::new(
+                // SAFETY: app::Engine draws only textures from preview_texture_done, which passes
+                // on only non-null handles the platform reported as made (EnginePreviewTextureDone).
+                unsafe { framix_render::GpuRenderer::new() },
+            ),
         );
     let mut callback: EngineEventCallback = None;
     for message in inbox {

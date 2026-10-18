@@ -4,7 +4,7 @@ edition.workspace = true
 version.workspace = true
 publish.workspace = true
 
-# SPIKE (P1-001): wgpu output into a Flutter Texture without copies. Off main until reviewed.
+# wgpu rendering; implements app's PreviewRenderer. The test pattern is still the P1-001 spike.
 [dependencies]
 # Implements app's PreviewRenderer port, like storage implements ProjectStore.
 framix_app = { path = "../app" }

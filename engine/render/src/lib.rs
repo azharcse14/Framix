@@ -294,9 +294,19 @@ fn test_pattern_pipeline(
 
 /// [`PreviewRenderer`] on [`Gpu`]: draws the test pattern into the platform's texture. Opens
 /// the GPU on first use.
-#[derive(Default)]
 pub struct GpuRenderer {
     gpu: Option<Gpu>,
+}
+
+impl GpuRenderer {
+    /// A renderer that has not opened the GPU yet.
+    ///
+    /// # Safety
+    /// `draw` must only get textures whose `handle` came from a successful
+    /// `EnginePreviewTextureDone` (a live `id<MTLTexture>` on Apple) and stays alive for the call.
+    pub unsafe fn new() -> Self {
+        Self { gpu: None }
+    }
 }
 
 impl PreviewRenderer for GpuRenderer {
@@ -311,8 +321,8 @@ impl PreviewRenderer for GpuRenderer {
 
 #[cfg(target_vendor = "apple")]
 fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
-    // SAFETY: PreviewRenderer gets only textures the platform reported as made; on Apple
-    // platforms the handle is a live id<MTLTexture> (EnginePreviewTextureDone's contract).
+    // SAFETY: GpuRenderer::new's contract: the handle is a live id<MTLTexture> the platform
+    // reported as made.
     let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut std::ffi::c_void) }
         .map_err(|e| e.to_string())?;
     gpu.draw_test_pattern(&texture).map_err(|e| e.to_string())
