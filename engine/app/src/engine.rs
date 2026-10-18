@@ -30,7 +30,12 @@ pub struct Engine {
 struct Preview {
     host: Box<dyn PreviewHost>,
     renderer: Box<dyn PreviewRenderer>,
+    /// Texture requests the platform has not answered yet.
+    pending: u32,
 }
+
+/// Largest preview side; also the smallest max texture size of supported GPUs.
+const MAX_PREVIEW_SIDE: u32 = 8192;
 
 impl Engine {
     /// An engine that saves and opens projects through `store`. [`Engine::default`] has no
@@ -50,15 +55,50 @@ impl Engine {
         renderer: Box<dyn PreviewRenderer>,
     ) -> Self {
         Self {
-            preview: Some(Preview { host, renderer }),
+            preview: Some(Preview {
+                host,
+                renderer,
+                pending: 0,
+            }),
             ..self
         }
     }
 
     /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
     /// and returns PreviewReady, or CommandFailed if the platform or the GPU failed.
-    pub fn preview_texture_ready(&mut self, _texture: Result<PlatformTexture, String>) -> Event {
-        command_failed("not implemented")
+    pub fn preview_texture_ready(&mut self, texture: Result<PlatformTexture, String>) -> Event {
+        match self.show_preview(texture) {
+            Ok(texture_id) => Event {
+                kind: Some(proto::event::Kind::PreviewReady(proto::PreviewReady {
+                    texture_id,
+                })),
+            },
+            Err(reason) => command_failed(reason),
+        }
+    }
+
+    fn request_preview(&mut self, width: u32, height: u32) -> Result<(), String> {
+        let side = 1..=MAX_PREVIEW_SIDE;
+        if !side.contains(&width) || !side.contains(&height) {
+            return Err(format!("invalid preview size {width}x{height}"));
+        }
+        let preview = self.preview.as_mut().ok_or("no preview on this platform")?;
+        preview.host.create_texture(width, height)?;
+        preview.pending += 1;
+        Ok(())
+    }
+
+    fn show_preview(&mut self, texture: Result<PlatformTexture, String>) -> Result<i64, String> {
+        let preview = self
+            .preview
+            .as_mut()
+            .filter(|p| p.pending > 0)
+            .ok_or("no preview was requested")?;
+        preview.pending -= 1;
+        let texture = texture?;
+        preview.renderer.draw(texture)?;
+        preview.host.frame_available(texture.id);
+        Ok(texture.id)
     }
 
     /// Applies `command` and returns the single event describing the outcome: the new
@@ -71,6 +111,11 @@ impl Engine {
             Ok(Reply::Timeline) => self.timeline_changed(),
             Ok(Reply::Saved) => Event {
                 kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
+            },
+            Ok(Reply::Accepted) => Event {
+                kind: Some(proto::event::Kind::CommandAccepted(
+                    proto::CommandAccepted {},
+                )),
             },
             Err(reason) => command_failed(reason),
         }
@@ -148,7 +193,9 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
-            command::Kind::CreatePreview(_) => Err("not implemented".to_owned()),
+            command::Kind::CreatePreview(size) => self
+                .request_preview(size.width, size.height)
+                .map(|()| Reply::Accepted),
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;
@@ -246,6 +293,8 @@ enum Reply {
     Timeline,
     /// The project was saved.
     Saved,
+    /// Work started; its result comes later as its own event.
+    Accepted,
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.

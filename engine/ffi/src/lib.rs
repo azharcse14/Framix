@@ -4,15 +4,18 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread::JoinHandle;
 
 use framix_app::engine::command_failed;
+use framix_app::preview::PlatformTexture;
 use framix_app::proto::{Command, Event};
 use prost::Message as _;
 
 mod platform;
+#[cfg(target_os = "android")]
 mod spike_preview;
 pub use platform::{
     ENGINE_PLATFORM_VERSION, EnginePlatform, EnginePreviewTextureDone, engine_platform_register,
 };
-pub use spike_preview::{ENGINE_ERR_GPU, engine_spike_render_metal};
+#[cfg(target_os = "android")]
+pub use spike_preview::Java_com_travela_framix_SpikePreview_nativeRender;
 
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;
@@ -25,6 +28,8 @@ pub const ENGINE_ERR_NULL: i32 = -2;
 pub const ENGINE_ERR_PROTOCOL: i32 = -3;
 /// The engine thread has stopped; the handle only accepts `engine_destroy`.
 pub const ENGINE_ERR_STOPPED: i32 = -4;
+/// The GPU could not be opened, or this platform has no preview path yet.
+pub const ENGINE_ERR_GPU: i32 = -5;
 /// Something that may happen only once already happened (`engine_platform_register`).
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
@@ -46,6 +51,11 @@ pub struct Engine {
 enum EngineMessage {
     Command(Vec<u8>),
     SetCallback(EngineEventCallback),
+    /// The platform's answer to a preview texture request.
+    PreviewTexture(Result<PlatformTexture, String>),
+    /// Stop after the messages queued before this one. Needed because pending platform
+    /// answers hold senders, so the queue never closes by itself.
+    Shutdown,
 }
 
 /// Creates an engine if `protocol_version` matches [`ENGINE_PROTOCOL_VERSION`] and writes it
@@ -65,9 +75,12 @@ pub unsafe extern "C" fn engine_create(protocol_version: u32, out: *mut *mut Eng
             return ENGINE_ERR_PROTOCOL;
         }
         let (messages, inbox) = channel();
+        let host = platform::PlatformHost {
+            engine: messages.clone(),
+        };
         let Ok(thread) = std::thread::Builder::new()
             .name("framix-engine".into())
-            .spawn(move || run_engine(inbox))
+            .spawn(move || run_engine(inbox, host))
         else {
             return ENGINE_ERR_STOPPED;
         };
@@ -135,7 +148,8 @@ pub unsafe extern "C" fn engine_destroy(engine: *mut Engine) -> i32 {
         // SAFETY: per the contract, `engine` came from engine_create (Box::into_raw) and
         // nothing else uses it, so ownership returns here exactly once.
         let Engine { messages, thread } = *unsafe { Box::from_raw(engine) };
-        drop(messages); // Closing the channel ends the engine loop after queued commands.
+        // Ends the engine loop after queued commands. A send error means it already ended.
+        let _ = messages.send(EngineMessage::Shutdown);
         match thread.join() {
             Ok(()) => ENGINE_OK,
             Err(_) => ENGINE_ERR_PANIC,
@@ -153,33 +167,40 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
     }
 }
 
-/// The engine thread: answers every command with one event, in order.
-fn run_engine(inbox: Receiver<EngineMessage>) {
-    let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore));
+/// The engine thread: answers every command with one event, in order, plus the results of
+/// platform work as they arrive.
+fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
+    let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
+        .with_preview(Box::new(host), Box::new(platform::GpuRenderer::default()));
     let mut callback: EngineEventCallback = None;
     for message in inbox {
-        match message {
-            EngineMessage::SetCallback(new) => callback = new,
-            EngineMessage::Command(bytes) => {
-                let event = answer(&mut engine, &bytes);
-                if let Some(deliver) = callback {
-                    let buf = EngineBuffer::from_vec(event.encode_to_vec());
-                    // SAFETY: engine_set_event_callback's contract keeps `deliver` callable
-                    // until engine_destroy, which joins this thread first.
-                    unsafe { deliver(buf.ptr, buf.len) };
-                }
+        let event = match message {
+            EngineMessage::SetCallback(new) => {
+                callback = new;
+                continue;
             }
+            EngineMessage::Shutdown => break,
+            EngineMessage::Command(bytes) => match Command::decode(bytes.as_slice()) {
+                Ok(command) => guarded(|| engine.handle(command)),
+                Err(_) => command_failed("undecodable command"),
+            },
+            EngineMessage::PreviewTexture(texture) => {
+                guarded(|| engine.preview_texture_ready(texture))
+            }
+        };
+        if let Some(deliver) = callback {
+            let buf = EngineBuffer::from_vec(event.encode_to_vec());
+            // SAFETY: engine_set_event_callback's contract keeps `deliver` callable
+            // until engine_destroy, which joins this thread first.
+            unsafe { deliver(buf.ptr, buf.len) };
         }
     }
 }
 
-fn answer(engine: &mut framix_app::engine::Engine, bytes: &[u8]) -> Event {
-    let Ok(command) = Command::decode(bytes) else {
-        return command_failed("undecodable command");
-    };
-    // A panic in one command becomes an event instead of killing the engine thread.
-    // History::apply edits a copy, so a panicking edit leaves the timeline as it was.
-    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.handle(command)))
+/// A panic while handling one message becomes an event instead of killing the engine thread.
+/// History::apply edits a copy, so a panicking edit leaves the timeline as it was.
+fn guarded(f: impl FnOnce() -> Event) -> Event {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(f))
         .unwrap_or_else(|_| command_failed("internal error"))
 }
 

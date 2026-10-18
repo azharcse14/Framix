@@ -1,18 +1,14 @@
-// SPIKE (P1-001): shows the engine's wgpu test pattern through a Flutter Texture.
-// Off main until reviewed; the real preview path comes with P1-005.
-import 'dart:ffi';
-import 'dart:io';
-
+// SPIKE (P1-001): Android only. Kotlin draws the engine's test pattern through a method
+// channel; Android moves to the platform callbacks (PreviewCubit) once it has a vtable.
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/engine/engine_bindings.g.dart';
+import '../bloc/preview_cubit.dart';
 
-/// Preview size the engine renders at.
-const _width = 1280;
-const _height = 720;
+const _width = PreviewCubit.width;
+const _height = PreviewCubit.height;
 
-/// The engine's preview, or nothing where the zero-copy path is not built yet.
+/// The Android spike preview.
 class SpikePreview extends StatefulWidget {
   const SpikePreview({super.key});
 
@@ -27,29 +23,7 @@ class _SpikePreviewState extends State<SpikePreview> {
   @override
   void initState() {
     super.initState();
-    if (Platform.isIOS) _startIos();
-    if (Platform.isAndroid) _startAndroid();
-  }
-
-  Future<void> _startIos() async {
-    try {
-      final created = await _channel.invokeMapMethod<String, Object?>(
-        'create',
-        {'width': _width, 'height': _height},
-      );
-      final textureId = created!['textureId']! as int;
-      final metalTexture = created['metalTexture']! as int;
-      // The handle is an opaque id<MTLTexture>; the frame itself never reaches Dart.
-      final code = engine_spike_render_metal(Pointer.fromAddress(metalTexture));
-      if (code != ENGINE_OK) {
-        debugPrint('spike preview: render failed ($code)');
-        return;
-      }
-      await _channel.invokeMethod('frameAvailable', {'textureId': textureId});
-      if (mounted) setState(() => _textureId = textureId);
-    } on PlatformException catch (e) {
-      debugPrint('spike preview: ${e.code}');
-    }
+    _startAndroid();
   }
 
   /// Kotlin makes a SurfaceProducer and the engine draws into its Surface (JNI), so Dart only

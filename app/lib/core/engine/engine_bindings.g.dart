@@ -48,7 +48,7 @@ external int engine_free_buffer(EngineBuffer buf);
 /// `platform` must be null or point to a valid [`EnginePlatform`]; it is copied, and its
 /// callbacks and `ctx` must stay valid for the rest of the process.
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<EnginePlatform>)>()
-external int engine_platform_register(ffi.Pointer<EnginePlatform> _platform);
+external int engine_platform_register(ffi.Pointer<EnginePlatform> platform);
 
 /// Queues one encoded `framix.v1.Command`. Copies the bytes and returns at once; the
 /// engine thread answers with exactly one event.
@@ -75,17 +75,6 @@ external int engine_set_event_callback(
   ffi.Pointer<Engine> engine,
   EngineEventCallback callback,
 );
-
-/// SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
-/// the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
-/// Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
-/// Size, format and device are read from the texture; anything unusable gives
-/// [`ENGINE_ERR_GPU`].
-///
-/// # Safety
-/// `mtl_texture` must be null or a live `id<MTLTexture>`.
-@ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Void>)>()
-external int engine_spike_render_metal(ffi.Pointer<ffi.Void> mtl_texture);
 
 const int ENGINE_ERR_ALREADY = -6;
 

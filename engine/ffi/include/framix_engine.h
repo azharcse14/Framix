@@ -35,6 +35,11 @@
 #define ENGINE_ERR_STOPPED -4
 
 /**
+ * The GPU could not be opened, or this platform has no preview path yet.
+ */
+#define ENGINE_ERR_GPU -5
+
+/**
  * Something that may happen only once already happened (`engine_platform_register`).
  */
 #define ENGINE_ERR_ALREADY -6
@@ -48,11 +53,6 @@
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
 #define ENGINE_PLATFORM_VERSION 1
-
-/**
- * The GPU could not be opened, or this platform has no preview path yet.
- */
-#define ENGINE_ERR_GPU -5
 
 /**
  * Opaque engine instance: a channel into the engine thread.
@@ -178,18 +178,6 @@ int32_t engine_free_buffer(struct EngineBuffer buf);
  * `platform` must be null or point to a valid [`EnginePlatform`]; it is copied, and its
  * callbacks and `ctx` must stay valid for the rest of the process.
  */
-int32_t engine_platform_register(const struct EnginePlatform *_platform);
-
-/**
- * SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
- * the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
- * Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
- * Size, format and device are read from the texture; anything unusable gives
- * [`ENGINE_ERR_GPU`].
- *
- * # Safety
- * `mtl_texture` must be null or a live `id<MTLTexture>`.
- */
-int32_t engine_spike_render_metal(void *mtl_texture);
+int32_t engine_platform_register(const struct EnginePlatform *platform);
 
 #endif  /* FRAMIX_ENGINE_H */

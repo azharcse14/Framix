@@ -1,34 +1,12 @@
-//! SPIKE (P1-001): draws the wgpu test pattern into a texture Flutter shows. Bypasses the
-//! command queue and blocks the caller until the GPU is done; the real path (render thread,
-//! fences, platform callbacks) comes with P1-005.
+//! SPIKE (P1-001): Android only. Draws the wgpu test pattern into a Flutter SurfaceProducer's
+//! Surface over JNI. iOS uses the platform callbacks (platform.rs); Android moves there once it
+//! has a vtable.
 
 use std::ffi::c_void;
 
-use crate::{ENGINE_ERR_NULL, ffi_guard};
-
-/// The GPU could not be opened, or this platform has no preview path yet.
-pub const ENGINE_ERR_GPU: i32 = -5;
-
-/// SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by
-/// the IOSurface of the CVPixelBuffer that the iOS layer registered as a Flutter texture.
-/// Returns after the GPU finished, so the caller can mark the Flutter texture frame available.
-/// Size, format and device are read from the texture; anything unusable gives
-/// [`ENGINE_ERR_GPU`].
-///
-/// # Safety
-/// `mtl_texture` must be null or a live `id<MTLTexture>`.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn engine_spike_render_metal(mtl_texture: *mut c_void) -> i32 {
-    ffi_guard(|| {
-        if mtl_texture.is_null() {
-            return ENGINE_ERR_NULL;
-        }
-        render(mtl_texture)
-    })
-}
+use crate::{ENGINE_ERR_GPU, ENGINE_ERR_NULL, ffi_guard};
 
 /// The engine's one GPU, opened on first use; None if it could not be opened.
-#[cfg(any(target_vendor = "apple", target_os = "android"))]
 fn gpu() -> Option<&'static framix_render::Gpu> {
     use std::sync::OnceLock;
     static GPU: OnceLock<Option<framix_render::Gpu>> = OnceLock::new();
@@ -41,7 +19,6 @@ fn gpu() -> Option<&'static framix_render::Gpu> {
 }
 
 /// Maps a draw result to an FFI code, logging the reason on failure.
-#[cfg(any(target_vendor = "apple", target_os = "android"))]
 fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
     match drawn {
         Ok(()) => crate::ENGINE_OK,
@@ -52,22 +29,6 @@ fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
     }
 }
 
-#[cfg(target_vendor = "apple")]
-fn render(mtl_texture: *mut c_void) -> i32 {
-    let Some(gpu) = gpu() else {
-        return ENGINE_ERR_GPU;
-    };
-    // SAFETY: forwarded from engine_spike_render_metal's contract.
-    let drawn = unsafe { gpu.wrap_metal_texture(mtl_texture) }
-        .and_then(|target| gpu.draw_test_pattern(&target));
-    report(drawn)
-}
-
-#[cfg(not(target_vendor = "apple"))]
-fn render(_: *mut c_void) -> i32 {
-    ENGINE_ERR_GPU
-}
-
 /// SPIKE (P1-001): JNI entry for `SpikePreview.nativeRender(surface)` in the Android app. Draws
 /// one test-pattern frame into `surface`, the Surface of a Flutter SurfaceProducer, and
 /// presents it; Flutter samples the window's HardwareBuffers directly. Returns an engine code.
@@ -75,7 +36,6 @@ fn render(_: *mut c_void) -> i32 {
 /// # Safety
 /// Called by the JVM: `env` is the calling thread's `JNIEnv*` and `surface` a live local
 /// reference to an `android.view.Surface` (or null).
-#[cfg(target_os = "android")]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRender(
     env: *mut c_void,

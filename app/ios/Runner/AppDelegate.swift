@@ -12,7 +12,7 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    SpikePreview.register(with: engineBridge.applicationRegistrar)  // SPIKE (P1-001)
+    PlatformCallbacks.register(with: engineBridge.applicationRegistrar)
     MediaPicker.register(with: engineBridge.applicationRegistrar)
   }
 }

@@ -6,6 +6,7 @@ import 'core/engine/framix_engine.dart';
 import 'core/media/channel_media_importer.dart';
 import 'core/media/media_importer.dart';
 import 'core/ui/framix_theme.dart';
+import 'features/preview/bloc/preview_cubit.dart';
 import 'features/timeline/bloc/timeline_cubit.dart';
 import 'features/timeline/view/timeline_page.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -48,8 +49,11 @@ class FramixApp extends StatelessWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       home: RepositoryProvider.value(
         value: mediaImporter,
-        child: BlocProvider(
-          create: (_) => TimelineCubit(engine),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => TimelineCubit(engine)),
+            BlocProvider(create: (_) => PreviewCubit(engine)),
+          ],
           child: const TimelinePage(),
         ),
       ),
