@@ -858,6 +858,10 @@
     {
      "date": "2026-10-15",
      "text": "Plan drafted: docs/plans/P1-005-platform-callbacks.md. Blocked on promoting the render crate from the P1-001 spike (user decision)."
+    },
+    {
+     "date": "2026-10-18",
+     "text": "Unblocked: user had the P1-001 spike (render crate, iOS + Android preview) merged into main on 2026-10-18. Spike code is still marked // SPIKE; P1-005 replaces it."
     }
    ],
    "source": "plan"
