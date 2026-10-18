@@ -9,26 +9,6 @@ library;
 
 import 'dart:ffi' as ffi;
 
-/// SPIKE (P1-001): JNI entry for `SpikePreview.nativeRender(surface)` in the Android app. Draws
-/// one test-pattern frame into `surface`, the Surface of a Flutter SurfaceProducer, and
-/// presents it; Flutter samples the window's HardwareBuffers directly. Returns an engine code.
-///
-/// # Safety
-/// Called by the JVM: `env` is the calling thread's `JNIEnv*` and `surface` a live local
-/// reference to an `android.view.Surface` (or null).
-@ffi.Native<
-  ffi.Int32 Function(
-    ffi.Pointer<ffi.Void>,
-    ffi.Pointer<ffi.Void>,
-    ffi.Pointer<ffi.Void>,
-  )
->()
-external int Java_com_travela_framix_SpikePreview_nativeRender(
-  ffi.Pointer<ffi.Void> env,
-  ffi.Pointer<ffi.Void> _class,
-  ffi.Pointer<ffi.Void> surface,
-);
-
 /// Creates an engine if `protocol_version` matches [`ENGINE_PROTOCOL_VERSION`] and writes it
 /// to `*out`.
 ///

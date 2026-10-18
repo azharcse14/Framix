@@ -132,15 +132,4 @@ int32_t engine_free_buffer(struct EngineBuffer buf);
  */
 int32_t engine_spike_render_metal(void *mtl_texture);
 
-/**
- * SPIKE (P1-001): JNI entry for `SpikePreview.nativeRender(surface)` in the Android app. Draws
- * one test-pattern frame into `surface`, the Surface of a Flutter SurfaceProducer, and
- * presents it; Flutter samples the window's HardwareBuffers directly. Returns an engine code.
- *
- * # Safety
- * Called by the JVM: `env` is the calling thread's `JNIEnv*` and `surface` a live local
- * reference to an `android.view.Surface` (or null).
- */
-int32_t Java_com_travela_framix_SpikePreview_nativeRender(void *env, void *_class, void *surface);
-
 #endif  /* FRAMIX_ENGINE_H */
