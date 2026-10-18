@@ -10,6 +10,10 @@ wgpu = { version = "=30.0.1", default-features = false, features = ["std", "park
 thiserror = "2.0.21"
 pollster = "=0.4.0"
 
+# Same crate, Android backends on top.
+[target.'cfg(target_os = "android")'.dependencies]
+wgpu = { version = "=30.0.1", default-features = false, features = ["vulkan", "gles"] }
+
 [target.'cfg(target_vendor = "apple")'.dependencies]
 objc2 = "=0.6.4"
 objc2-metal = { version = "=0.3.2", default-features = false, features = ["std", "MTLResource", "MTLTexture", "MTLPixelFormat", "MTLTypes"] }

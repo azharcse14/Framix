@@ -1,5 +1,6 @@
-//! GPU rendering with wgpu. SPIKE (P1-001): renders a test pattern straight into a texture the
-//! platform layer owns (an IOSurface-backed Metal texture that Flutter shows), with no copies.
+//! GPU rendering with wgpu. SPIKE (P1-001): renders a test pattern straight into memory Flutter
+//! shows, with no copies: on iOS an IOSurface-backed Metal texture, on Android the window of a
+//! Flutter SurfaceProducer (its buffers are the HardwareBuffers Flutter samples).
 
 use thiserror::Error;
 
@@ -9,7 +10,7 @@ pub const PREVIEW_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8Unorm;
 /// Why the GPU could not be set up.
 #[derive(Debug, Error)]
 pub enum RenderError {
-    /// No Metal adapter (or no GPU at all).
+    /// No usable adapter for this platform's backends (or no GPU at all).
     #[error("no GPU adapter: {0}")]
     NoAdapter(#[from] wgpu::RequestAdapterError),
     /// The adapter refused a device.
@@ -22,20 +23,42 @@ pub enum RenderError {
     /// Waiting for the GPU failed (timeout or device lost).
     #[error("GPU wait failed: {0}")]
     Wait(#[from] wgpu::PollError),
+    /// The platform window could not become a wgpu surface.
+    #[error("no surface: {0}")]
+    Surface(#[from] wgpu::CreateSurfaceError),
+    /// The surface is not usable by this adapter, or gave no frame to draw into.
+    #[error("surface unusable")]
+    SurfaceUnusable,
 }
 
 /// A GPU device plus the test-pattern pipeline. One per engine.
 pub struct Gpu {
+    // Only the Android path makes surfaces; iOS renders into textures it is handed.
+    #[cfg_attr(
+        not(target_os = "android"),
+        expect(dead_code, reason = "Android surfaces only")
+    )]
+    instance: wgpu::Instance,
+    #[cfg_attr(
+        not(target_os = "android"),
+        expect(dead_code, reason = "Android surfaces only")
+    )]
+    adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
     pipeline: wgpu::RenderPipeline,
 }
 
 impl Gpu {
-    /// Opens the default Metal device.
+    /// Opens the default GPU: Metal on Apple platforms, Vulkan (GLES fallback) on Android.
     pub fn new() -> Result<Self, RenderError> {
+        let backends = if cfg!(target_os = "android") {
+            wgpu::Backends::VULKAN | wgpu::Backends::GL
+        } else {
+            wgpu::Backends::METAL
+        };
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::METAL,
+            backends,
             ..wgpu::InstanceDescriptor::new_without_display_handle()
         });
         let adapter =
@@ -47,29 +70,10 @@ impl Gpu {
                 required_limits: adapter.limits(),
                 ..Default::default()
             }))?;
-        let shader = device.create_shader_module(wgpu::include_wgsl!("test_pattern.wgsl"));
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("test pattern"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vs"),
-                compilation_options: Default::default(),
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fs"),
-                compilation_options: Default::default(),
-                targets: &[Some(PREVIEW_FORMAT.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: None,
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
+        let pipeline = test_pattern_pipeline(&device, PREVIEW_FORMAT);
         Ok(Self {
+            instance,
+            adapter,
             device,
             queue,
             pipeline,
@@ -89,6 +93,14 @@ impl Gpu {
     /// Draws the test pattern into `target` and waits until the GPU is done, so the platform
     /// layer can tell Flutter a new frame is ready right after this returns.
     pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
+        self.draw(target, &self.pipeline)
+    }
+
+    fn draw(
+        &self,
+        target: &wgpu::Texture,
+        pipeline: &wgpu::RenderPipeline,
+    ) -> Result<(), RenderError> {
         let view = target.create_view(&Default::default());
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
@@ -105,12 +117,63 @@ impl Gpu {
                 })],
                 ..Default::default()
             });
-            pass.set_pipeline(&self.pipeline);
+            pass.set_pipeline(pipeline);
             pass.draw(0..3, 0..1);
         }
         self.queue.submit([encoder.finish()]);
         // SPIKE: blocking wait; the real render thread will signal via a fence instead.
         self.device.poll(wgpu::PollType::wait_indefinitely())?;
+        Ok(())
+    }
+
+    /// Draws one test-pattern frame into an Android window and presents it. The window's
+    /// buffers are what Flutter's SurfaceProducer samples, so nothing is copied.
+    ///
+    /// # Safety
+    /// `window` must be a live `ANativeWindow*` that outlives this call.
+    #[cfg(target_os = "android")]
+    pub unsafe fn draw_to_android_window(
+        &self,
+        window: std::ptr::NonNull<std::ffi::c_void>,
+        width: u32,
+        height: u32,
+    ) -> Result<(), RenderError> {
+        use wgpu::rwh::{
+            AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
+        };
+        // SAFETY: the caller guarantees a live window for the whole call, and the surface is
+        // dropped before returning.
+        let surface = unsafe {
+            self.instance
+                .create_surface_unsafe(wgpu::SurfaceTargetUnsafe::RawHandle {
+                    raw_display_handle: Some(
+                        RawDisplayHandle::Android(AndroidDisplayHandle::new()),
+                    ),
+                    raw_window_handle: RawWindowHandle::AndroidNdk(AndroidNdkWindowHandle::new(
+                        window,
+                    )),
+                })
+        }?;
+        let mut config = surface
+            .get_default_config(&self.adapter, width, height)
+            .ok_or(RenderError::SurfaceUnusable)?;
+        // Same look as iOS: write the shader output as is, no sRGB encode.
+        let caps = surface.get_capabilities(&self.adapter);
+        if let Some(linear) = caps.formats.iter().find(|f| !f.is_srgb()) {
+            config.format = *linear;
+        }
+        surface.configure(&self.device, &config);
+        let frame = match surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(frame)
+            | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+            _ => return Err(RenderError::SurfaceUnusable),
+        };
+        // SPIKE: one frame, so the pipeline is built per call.
+        self.draw(
+            &frame.texture,
+            &test_pattern_pipeline(&self.device, config.format),
+        )?;
+        self.queue.present(frame);
         Ok(())
     }
 
@@ -196,4 +259,33 @@ impl Gpu {
             )
         })
     }
+}
+
+/// The fullscreen test-pattern pipeline for render targets of `format`.
+fn test_pattern_pipeline(
+    device: &wgpu::Device,
+    format: wgpu::TextureFormat,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::include_wgsl!("test_pattern.wgsl"));
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("test pattern"),
+        layout: None,
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs"),
+            compilation_options: Default::default(),
+            buffers: &[],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs"),
+            compilation_options: Default::default(),
+            targets: &[Some(format.into())],
+        }),
+        primitive: Default::default(),
+        depth_stencil: None,
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
 }

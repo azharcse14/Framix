@@ -1,4 +1,4 @@
-// SPIKE (P1-001): shows the engine's wgpu test pattern through a Flutter Texture (iOS only).
+// SPIKE (P1-001): shows the engine's wgpu test pattern through a Flutter Texture.
 // Off main until reviewed; the real preview path comes with P1-005.
 import 'dart:ffi';
 import 'dart:io';
@@ -27,10 +27,11 @@ class _SpikePreviewState extends State<SpikePreview> {
   @override
   void initState() {
     super.initState();
-    if (Platform.isIOS) _start();
+    if (Platform.isIOS) _startIos();
+    if (Platform.isAndroid) _startAndroid();
   }
 
-  Future<void> _start() async {
+  Future<void> _startIos() async {
     try {
       final created = await _channel.invokeMapMethod<String, Object?>(
         'create',
@@ -48,6 +49,21 @@ class _SpikePreviewState extends State<SpikePreview> {
       if (mounted) setState(() => _textureId = textureId);
     } on PlatformException catch (e) {
       debugPrint('spike preview: ${e.code}');
+    }
+  }
+
+  /// Kotlin makes a SurfaceProducer and the engine draws into its Surface (JNI), so Dart only
+  /// gets the texture id; Flutter picks the frame up when it is presented.
+  Future<void> _startAndroid() async {
+    try {
+      final created = await _channel.invokeMapMethod<String, Object?>(
+        'create',
+        {'width': _width, 'height': _height},
+      );
+      final textureId = created!['textureId']! as int;
+      if (mounted) setState(() => _textureId = textureId);
+    } on PlatformException catch (e) {
+      debugPrint('spike preview: ${e.code} ${e.message}');
     }
   }
 

@@ -27,20 +27,22 @@ pub unsafe extern "C" fn engine_spike_render_metal(mtl_texture: *mut c_void) -> 
     })
 }
 
-#[cfg(target_vendor = "apple")]
-fn render(mtl_texture: *mut c_void) -> i32 {
+/// The engine's one GPU, opened on first use; None if it could not be opened.
+#[cfg(any(target_vendor = "apple", target_os = "android"))]
+fn gpu() -> Option<&'static framix_render::Gpu> {
     use std::sync::OnceLock;
     static GPU: OnceLock<Option<framix_render::Gpu>> = OnceLock::new();
-    let Some(gpu) = GPU.get_or_init(|| {
+    GPU.get_or_init(|| {
         framix_render::Gpu::new()
             .inspect_err(|e| eprintln!("framix spike: {e}"))
             .ok()
-    }) else {
-        return ENGINE_ERR_GPU;
-    };
-    // SAFETY: forwarded from engine_spike_render_metal's contract.
-    let drawn = unsafe { gpu.wrap_metal_texture(mtl_texture) }
-        .and_then(|target| gpu.draw_test_pattern(&target));
+    })
+    .as_ref()
+}
+
+/// Maps a draw result to an FFI code, logging the reason on failure.
+#[cfg(any(target_vendor = "apple", target_os = "android"))]
+fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
     match drawn {
         Ok(()) => crate::ENGINE_OK,
         Err(e) => {
@@ -50,7 +52,75 @@ fn render(mtl_texture: *mut c_void) -> i32 {
     }
 }
 
+#[cfg(target_vendor = "apple")]
+fn render(mtl_texture: *mut c_void) -> i32 {
+    let Some(gpu) = gpu() else {
+        return ENGINE_ERR_GPU;
+    };
+    // SAFETY: forwarded from engine_spike_render_metal's contract.
+    let drawn = unsafe { gpu.wrap_metal_texture(mtl_texture) }
+        .and_then(|target| gpu.draw_test_pattern(&target));
+    report(drawn)
+}
+
 #[cfg(not(target_vendor = "apple"))]
 fn render(_: *mut c_void) -> i32 {
     ENGINE_ERR_GPU
+}
+
+/// SPIKE (P1-001): JNI entry for `SpikePreview.nativeRender(surface)` in the Android app. Draws
+/// one test-pattern frame into `surface`, the Surface of a Flutter SurfaceProducer, and
+/// presents it; Flutter samples the window's HardwareBuffers directly. Returns an engine code.
+///
+/// # Safety
+/// Called by the JVM: `env` is the calling thread's `JNIEnv*` and `surface` a live local
+/// reference to an `android.view.Surface` (or null).
+#[cfg(target_os = "android")]
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRender(
+    env: *mut c_void,
+    _class: *mut c_void,
+    surface: *mut c_void,
+) -> i32 {
+    #[link(name = "android")]
+    unsafe extern "C" {
+        fn ANativeWindow_fromSurface(env: *mut c_void, surface: *mut c_void) -> *mut c_void;
+        fn ANativeWindow_getWidth(window: *mut c_void) -> i32;
+        fn ANativeWindow_getHeight(window: *mut c_void) -> i32;
+        fn ANativeWindow_release(window: *mut c_void);
+    }
+    ffi_guard(|| {
+        if surface.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        // SAFETY: env and surface come from the JVM per this fn's contract; the returned
+        // window holds its own reference, released below.
+        let Some(window) =
+            std::ptr::NonNull::new(unsafe { ANativeWindow_fromSurface(env, surface) })
+        else {
+            return ENGINE_ERR_NULL;
+        };
+        let Some(gpu) = gpu() else {
+            // SAFETY: we own one reference from ANativeWindow_fromSurface.
+            unsafe { ANativeWindow_release(window.as_ptr()) };
+            return ENGINE_ERR_GPU;
+        };
+        // SAFETY: window is live until released below.
+        let (width, height) = unsafe {
+            (
+                ANativeWindow_getWidth(window.as_ptr()),
+                ANativeWindow_getHeight(window.as_ptr()),
+            )
+        };
+        let drawn = match (u32::try_from(width), u32::try_from(height)) {
+            (Ok(w), Ok(h)) if w > 0 && h > 0 => {
+                // SAFETY: window stays live until released below.
+                unsafe { gpu.draw_to_android_window(window, w, h) }
+            }
+            _ => Err(framix_render::RenderError::SurfaceUnusable),
+        };
+        // SAFETY: the surface wgpu made from window was dropped inside the draw call.
+        unsafe { ANativeWindow_release(window.as_ptr()) };
+        report(drawn)
+    })
 }
