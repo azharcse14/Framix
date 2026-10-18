@@ -277,6 +277,7 @@ dependencies = [
 name = "framix_render"
 version = "0.1.0"
 dependencies = [
+ "framix_app",
  "objc2",
  "objc2-core-foundation",
  "objc2-io-surface",

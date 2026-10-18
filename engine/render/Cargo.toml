@@ -6,6 +6,8 @@ publish.workspace = true
 
 # SPIKE (P1-001): wgpu output into a Flutter Texture without copies. Off main until reviewed.
 [dependencies]
+# Implements app's PreviewRenderer port, like storage implements ProjectStore.
+framix_app = { path = "../app" }
 wgpu = { version = "=30.0.1", default-features = false, features = ["std", "parking_lot", "metal", "wgsl"] }
 thiserror = "2.0.21"
 pollster = "=0.4.0"

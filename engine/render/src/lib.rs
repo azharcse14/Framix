@@ -2,6 +2,7 @@
 //! shows, with no copies: on iOS an IOSurface-backed Metal texture, on Android the window of a
 //! Flutter SurfaceProducer (its buffers are the HardwareBuffers Flutter samples).
 
+use framix_app::preview::{PlatformTexture, PreviewRenderer};
 use thiserror::Error;
 
 /// Preview texture format: what the platform layer allocates (kCVPixelFormatType_32BGRA).
@@ -289,4 +290,35 @@ fn test_pattern_pipeline(
         multiview_mask: None,
         cache: None,
     })
+}
+
+/// [`PreviewRenderer`] on [`Gpu`]: draws the test pattern into the platform's texture. Opens
+/// the GPU on first use.
+#[derive(Default)]
+pub struct GpuRenderer {
+    gpu: Option<Gpu>,
+}
+
+impl PreviewRenderer for GpuRenderer {
+    fn draw(&mut self, target: PlatformTexture) -> Result<(), String> {
+        let gpu = match &mut self.gpu {
+            Some(gpu) => gpu,
+            empty => empty.insert(Gpu::new().map_err(|e| e.to_string())?),
+        };
+        draw_into(gpu, target)
+    }
+}
+
+#[cfg(target_vendor = "apple")]
+fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
+    // SAFETY: PreviewRenderer gets only textures the platform reported as made; on Apple
+    // platforms the handle is a live id<MTLTexture> (EnginePreviewTextureDone's contract).
+    let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut std::ffi::c_void) }
+        .map_err(|e| e.to_string())?;
+    gpu.draw_test_pattern(&texture).map_err(|e| e.to_string())
+}
+
+#[cfg(not(target_vendor = "apple"))]
+fn draw_into(_: &Gpu, _: PlatformTexture) -> Result<(), String> {
+    Err("no platform texture support on this OS yet".to_owned())
 }

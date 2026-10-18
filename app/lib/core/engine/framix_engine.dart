@@ -36,7 +36,8 @@ class FramixEngine {
     }
   }
 
-  /// Engine events, one per command, in command order.
+  /// Engine events: exactly one per command, in command order; results of accepted platform
+  /// work (PreviewReady, or CommandFailed) arrive later on their own.
   Stream<Event> get events => _events.stream;
 
   /// Queues [command]; returns at once.

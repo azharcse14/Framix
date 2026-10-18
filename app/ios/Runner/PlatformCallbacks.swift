@@ -74,7 +74,7 @@ enum PlatformCallbacks {
     guard
       let registry, let device = MTLCreateSystemDefaultDevice(),
       let texture = PreviewTexture(device: device, width: width, height: height)
-    else { return done(doneCtx, -1, 0, nil) }
+    else { return done(doneCtx, ENGINE_ERR_GPU, 0, nil) }
     let id = registry.register(texture)
     textures[id] = texture
     done(doneCtx, ENGINE_OK, id, Unmanaged.passUnretained(texture.metalTexture).toOpaque())

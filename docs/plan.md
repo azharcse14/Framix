@@ -424,6 +424,10 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-049` Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet \[Dart\]
 - [ ] `P1-050` Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel \[Native\]
 - [ ] `P1-051` Device check: P1-001 zero-copy preview on a real iPhone and a real Android phone (branch p1-001-ios-texture-spike) \[Native\]
+- [ ] `P1-052` Android platform vtable: Kotlin fills EnginePlatform through a Rust JNI shim (ADR 0003); delete the P1-001 JNI spike and SpikePreview channel \[Rust\] \[Native\]
+- [ ] `P1-053` Preview renders on a render thread with GPU sync (MTLSharedEvent / fences) and double buffering; today it draws on the engine thread (P1-005) \[Rust\] \[Native\]
+- [ ] `P1-054` iOS Runner to Swift 6 language mode (SWIFT_VERSION is still 5.0 in project.pbxproj; docs/toolchain.md wants Swift 6 strict concurrency) \[Native\]
+- [ ] `P1-055` Unregister preview textures (iOS FlutterTextureRegistry, Android SurfaceProducer) when the preview goes away; release only after the engine stops drawing into them (P1-005 review) \[Native\] \[Rust\]
 
 ## Phase 2: Audio
 

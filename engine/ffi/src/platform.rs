@@ -4,7 +4,7 @@ use std::ffi::c_void;
 use std::sync::OnceLock;
 use std::sync::mpsc::Sender;
 
-use framix_app::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
+use framix_app::preview::{PlatformTexture, PreviewHost};
 
 use crate::{
     ENGINE_ERR_ALREADY, ENGINE_ERR_NULL, ENGINE_ERR_PROTOCOL, ENGINE_OK, EngineMessage, ffi_guard,
@@ -155,34 +155,4 @@ unsafe extern "C" fn preview_texture_done(
         let _ = engine.send(EngineMessage::PreviewTexture(texture));
         ENGINE_OK
     });
-}
-
-/// [`PreviewRenderer`] on the render crate; opens the GPU on first use.
-#[derive(Default)]
-pub(crate) struct GpuRenderer {
-    gpu: Option<framix_render::Gpu>,
-}
-
-impl PreviewRenderer for GpuRenderer {
-    fn draw(&mut self, target: PlatformTexture) -> Result<(), String> {
-        let gpu = match &mut self.gpu {
-            Some(gpu) => gpu,
-            empty => empty.insert(framix_render::Gpu::new().map_err(|e| e.to_string())?),
-        };
-        draw_into(gpu, target)
-    }
-}
-
-#[cfg(target_vendor = "apple")]
-fn draw_into(gpu: &framix_render::Gpu, target: PlatformTexture) -> Result<(), String> {
-    // SAFETY: the handle came from a successful `done`, whose contract makes it a live
-    // id<MTLTexture> on Apple platforms.
-    let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut c_void) }
-        .map_err(|e| e.to_string())?;
-    gpu.draw_test_pattern(&texture).map_err(|e| e.to_string())
-}
-
-#[cfg(not(target_vendor = "apple"))]
-fn draw_into(_: &framix_render::Gpu, _: PlatformTexture) -> Result<(), String> {
-    Err("no platform texture support on this OS yet".to_owned())
 }

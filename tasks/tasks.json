@@ -12572,6 +12572,85 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "P1-052",
+   "section": "P1",
+   "group": null,
+   "title": "Android platform vtable: Kotlin fills EnginePlatform through a Rust JNI shim (ADR 0003); delete the P1-001 JNI spike and SpikePreview channel",
+   "tags": [
+    "Rust",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-053",
+   "section": "P1",
+   "group": null,
+   "title": "Preview renders on a render thread with GPU sync (MTLSharedEvent / fences) and double buffering; today it draws on the engine thread (P1-005)",
+   "tags": [
+    "Rust",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-054",
+   "section": "P1",
+   "group": null,
+   "title": "iOS Runner to Swift 6 language mode (SWIFT_VERSION is still 5.0 in project.pbxproj; docs/toolchain.md wants Swift 6 strict concurrency)",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-055",
+   "section": "P1",
+   "group": null,
+   "title": "Unregister preview textures (iOS FlutterTextureRegistry, Android SurfaceProducer) when the preview goes away; release only after the engine stops drawing into them (P1-005 review)",
+   "tags": [
+    "Native",
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

@@ -34,7 +34,7 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 9;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 10;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread, so it must not call
@@ -171,7 +171,10 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
 /// platform work as they arrive.
 fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
     let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
-        .with_preview(Box::new(host), Box::new(platform::GpuRenderer::default()));
+        .with_preview(
+            Box::new(host),
+            Box::new(framix_render::GpuRenderer::default()),
+        );
     let mut callback: EngineEventCallback = None;
     for message in inbox {
         let event = match message {
