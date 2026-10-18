@@ -7,7 +7,11 @@ use framix_app::engine::command_failed;
 use framix_app::proto::{Command, Event};
 use prost::Message as _;
 
+mod platform;
 mod spike_preview;
+pub use platform::{
+    ENGINE_PLATFORM_VERSION, EnginePlatform, EnginePreviewTextureDone, engine_platform_register,
+};
 pub use spike_preview::{ENGINE_ERR_GPU, engine_spike_render_metal};
 
 /// Call succeeded.
@@ -21,6 +25,8 @@ pub const ENGINE_ERR_NULL: i32 = -2;
 pub const ENGINE_ERR_PROTOCOL: i32 = -3;
 /// The engine thread has stopped; the handle only accepts `engine_destroy`.
 pub const ENGINE_ERR_STOPPED: i32 = -4;
+/// Something that may happen only once already happened (`engine_platform_register`).
+pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
 pub const ENGINE_PROTOCOL_VERSION: u32 = 9;

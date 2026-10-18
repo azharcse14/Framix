@@ -845,11 +845,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-18",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "p1-005-platform-callbacks",
    "notes": [
     {
      "date": "2026-10-15",

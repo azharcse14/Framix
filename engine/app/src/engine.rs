@@ -10,6 +10,7 @@ use framix_core::timeline::{
 use std::path::Path;
 
 use crate::history::History;
+use crate::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
 use crate::project;
 use crate::proto::{
     self, Command, CommandFailed, Event, ProjectSaved, TimelineChanged, TrackKind, command,
@@ -22,6 +23,13 @@ use crate::store::ProjectStore;
 pub struct Engine {
     history: History,
     store: Option<Box<dyn ProjectStore>>,
+    preview: Option<Preview>,
+}
+
+/// Where the preview comes from: the platform's texture and the GPU that draws into it.
+struct Preview {
+    host: Box<dyn PreviewHost>,
+    renderer: Box<dyn PreviewRenderer>,
 }
 
 impl Engine {
@@ -29,9 +37,28 @@ impl Engine {
     /// store and refuses SaveProject/OpenProject.
     pub fn with_store(store: Box<dyn ProjectStore>) -> Self {
         Self {
-            history: History::default(),
             store: Some(store),
+            ..Self::default()
         }
+    }
+
+    /// Lets this engine answer CreatePreview through `host` and `renderer`; without them it
+    /// refuses CreatePreview.
+    pub fn with_preview(
+        self,
+        host: Box<dyn PreviewHost>,
+        renderer: Box<dyn PreviewRenderer>,
+    ) -> Self {
+        Self {
+            preview: Some(Preview { host, renderer }),
+            ..self
+        }
+    }
+
+    /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
+    /// and returns PreviewReady, or CommandFailed if the platform or the GPU failed.
+    pub fn preview_texture_ready(&mut self, _texture: Result<PlatformTexture, String>) -> Event {
+        command_failed("not implemented")
     }
 
     /// Applies `command` and returns the single event describing the outcome: the new
@@ -121,6 +148,7 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
+            command::Kind::CreatePreview(_) => Err("not implemented".to_owned()),
             command::Kind::SetAspectRatio(set) => {
                 let aspect = AspectRatio::new(set.width, set.height)
                     .ok_or_else(|| format!("invalid aspect ratio {}:{}", set.width, set.height))?;

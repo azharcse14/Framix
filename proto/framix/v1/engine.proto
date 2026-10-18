@@ -25,6 +25,7 @@ message Command {
     SetTrackFlags set_track_flags = 15;
     MoveClip move_clip = 16;
     ImportMedia import_media = 17;
+    CreatePreview create_preview = 18;
   }
 }
 
@@ -157,13 +158,33 @@ message MediaItem {
   string codec = 8;
 }
 
-// Sent by the engine. Exactly one kind is set.
+// Asks the platform layer for a preview texture of this size (each side 1..=8192) and draws
+// into it. Answered at once with CommandAccepted (or CommandFailed); the result follows later
+// as PreviewReady or CommandFailed (docs/adr/0003-platform-callbacks.md).
+message CreatePreview {
+  uint32 width = 1;
+  uint32 height = 2;
+}
+
+// Sent by the engine. Exactly one kind is set. Every command is answered by exactly one event,
+// in command order; results of accepted platform work (PreviewReady, or CommandFailed) arrive
+// later on their own.
 message Event {
   oneof kind {
     TimelineChanged timeline_changed = 1;
     CommandFailed command_failed = 2;
     ProjectSaved project_saved = 3;
+    CommandAccepted command_accepted = 4;
+    PreviewReady preview_ready = 5;
   }
+}
+
+// The command started work whose result comes later as its own event.
+message CommandAccepted {}
+
+// The preview texture exists and holds a frame; show it with Flutter's Texture widget.
+message PreviewReady {
+  int64 texture_id = 1;
 }
 
 // Full timeline state after a successful command or GetTimeline.

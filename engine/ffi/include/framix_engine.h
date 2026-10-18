@@ -35,9 +35,19 @@
 #define ENGINE_ERR_STOPPED -4
 
 /**
+ * Something that may happen only once already happened (`engine_platform_register`).
+ */
+#define ENGINE_ERR_ALREADY -6
+
+/**
  * Version of the command/event contract (proto/framix/v1/engine.proto).
  */
 #define ENGINE_PROTOCOL_VERSION 9
+
+/**
+ * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
+ */
+#define ENGINE_PLATFORM_VERSION 1
 
 /**
  * The GPU could not be opened, or this platform has no preview path yet.
@@ -70,6 +80,44 @@ typedef struct EngineBuffer {
    */
   size_t len;
 } EngineBuffer;
+
+/**
+ * The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
+ * with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
+ * other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
+ * iOS) and must stay alive while Flutter may show `texture_id`.
+ */
+typedef void (*EnginePreviewTextureDone)(void *done_ctx,
+                                         int32_t status,
+                                         int64_t texture_id,
+                                         void *texture);
+
+/**
+ * Callbacks the platform layer gives the engine once at startup. Each is called on an engine
+ * thread and must return at once; `ctx` is passed back unchanged and must live for the process.
+ */
+typedef struct EnginePlatform {
+  /**
+   * Must be [`ENGINE_PLATFORM_VERSION`].
+   */
+  uint32_t version;
+  /**
+   * Opaque platform state.
+   */
+  void *ctx;
+  /**
+   * Makes a `width` x `height` BGRA preview texture Flutter can show, then calls `done`.
+   */
+  void (*create_preview_texture)(void *ctx,
+                                 uint32_t width,
+                                 uint32_t height,
+                                 EnginePreviewTextureDone done,
+                                 void *done_ctx);
+  /**
+   * Tells Flutter that `texture_id` holds a new frame.
+   */
+  void (*frame_available)(void *ctx, int64_t texture_id);
+} EnginePlatform;
 
 /**
  * Creates an engine if `protocol_version` matches [`ENGINE_PROTOCOL_VERSION`] and writes it
@@ -119,6 +167,18 @@ int32_t engine_destroy(struct Engine *engine);
  * must not be freed more than once, and `ptr` must not be read after this call.
  */
 int32_t engine_free_buffer(struct EngineBuffer buf);
+
+/**
+ * Registers the platform callbacks for the whole process. Only the first valid call counts.
+ * Returns [`crate::ENGINE_ERR_NULL`] for null (or a null callback),
+ * [`crate::ENGINE_ERR_PROTOCOL`] for another version, [`crate::ENGINE_ERR_ALREADY`] after a
+ * successful call.
+ *
+ * # Safety
+ * `platform` must be null or point to a valid [`EnginePlatform`]; it is copied, and its
+ * callbacks and `ctx` must stay valid for the rest of the process.
+ */
+int32_t engine_platform_register(const struct EnginePlatform *_platform);
 
 /**
  * SPIKE (P1-001): renders the test pattern into `mtl_texture`, an `id<MTLTexture>` backed by

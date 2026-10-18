@@ -39,6 +39,17 @@ external int engine_destroy(ffi.Pointer<Engine> engine);
 @ffi.Native<ffi.Int32 Function(EngineBuffer)>()
 external int engine_free_buffer(EngineBuffer buf);
 
+/// Registers the platform callbacks for the whole process. Only the first valid call counts.
+/// Returns [`crate::ENGINE_ERR_NULL`] for null (or a null callback),
+/// [`crate::ENGINE_ERR_PROTOCOL`] for another version, [`crate::ENGINE_ERR_ALREADY`] after a
+/// successful call.
+///
+/// # Safety
+/// `platform` must be null or point to a valid [`EnginePlatform`]; it is copied, and its
+/// callbacks and `ctx` must stay valid for the rest of the process.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<EnginePlatform>)>()
+external int engine_platform_register(ffi.Pointer<EnginePlatform> _platform);
+
 /// Queues one encoded `framix.v1.Command`. Copies the bytes and returns at once; the
 /// engine thread answers with exactly one event.
 ///
@@ -76,6 +87,8 @@ external int engine_set_event_callback(
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Void>)>()
 external int engine_spike_render_metal(ffi.Pointer<ffi.Void> mtl_texture);
 
+const int ENGINE_ERR_ALREADY = -6;
+
 const int ENGINE_ERR_GPU = -5;
 
 const int ENGINE_ERR_NULL = -2;
@@ -87,6 +100,8 @@ const int ENGINE_ERR_PROTOCOL = -3;
 const int ENGINE_ERR_STOPPED = -4;
 
 const int ENGINE_OK = 0;
+
+const int ENGINE_PLATFORM_VERSION = 1;
 
 const int ENGINE_PROTOCOL_VERSION = 9;
 
@@ -123,4 +138,84 @@ typedef EngineEventCallbackFunction = ffi.Void Function(
 typedef DartEngineEventCallbackFunction = void Function(
   ffi.Pointer<ffi.Uint8> ptr,
   int len,
+);
+
+/// Callbacks the platform layer gives the engine once at startup. Each is called on an engine
+/// thread and must return at once; `ctx` is passed back unchanged and must live for the process.
+final class EnginePlatform extends ffi.Struct {
+  /// Must be [`ENGINE_PLATFORM_VERSION`].
+  @ffi.Uint32()
+  external int version;
+
+  /// Opaque platform state.
+  external ffi.Pointer<ffi.Void> ctx;
+
+  /// Makes a `width` x `height` BGRA preview texture Flutter can show, then calls `done`.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Void Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Uint32 width,
+        ffi.Uint32 height,
+        EnginePreviewTextureDone done,
+        ffi.Pointer<ffi.Void> done_ctx,
+      )
+    >
+  >
+  create_preview_texture;
+
+  /// Tells Flutter that `texture_id` holds a new frame.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Void Function(ffi.Pointer<ffi.Void> ctx, ffi.Int64 texture_id)
+    >
+  >
+  frame_available;
+
+  static ffi.Pointer<EnginePlatform> $allocate(
+    ffi.Allocator $allocator, {
+    required int version,
+    required ffi.Pointer<ffi.Void> ctx,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Void Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Uint32 width,
+          ffi.Uint32 height,
+          EnginePreviewTextureDone done,
+          ffi.Pointer<ffi.Void> done_ctx,
+        )
+      >
+    >
+    create_preview_texture,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Void Function(ffi.Pointer<ffi.Void> ctx, ffi.Int64 texture_id)
+      >
+    >
+    frame_available,
+  }) => $allocator<EnginePlatform>()
+    ..ref.version = version
+    ..ref.ctx = ctx
+    ..ref.create_preview_texture = create_preview_texture
+    ..ref.frame_available = frame_available;
+}
+
+/// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
+/// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
+/// other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
+/// iOS) and must stay alive while Flutter may show `texture_id`.
+typedef EnginePreviewTextureDone =
+    ffi.Pointer<ffi.NativeFunction<EnginePreviewTextureDoneFunction>>;
+typedef EnginePreviewTextureDoneFunction = ffi.Void Function(
+  ffi.Pointer<ffi.Void> done_ctx,
+  ffi.Int32 status,
+  ffi.Int64 texture_id,
+  ffi.Pointer<ffi.Void> texture,
+);
+typedef DartEnginePreviewTextureDoneFunction = void Function(
+  ffi.Pointer<ffi.Void> done_ctx,
+  int status,
+  int texture_id,
+  ffi.Pointer<ffi.Void> texture,
 );

@@ -202,6 +202,15 @@ const Command$json = {
       '9': 0,
       '10': 'importMedia'
     },
+    {
+      '1': 'create_preview',
+      '3': 18,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.CreatePreview',
+      '9': 0,
+      '10': 'createPreview'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -227,7 +236,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcBJCCg9zZXRfdHJhY2tfZmxhZ3MYDyABKAsyGC5mcmFtaX'
     'gudjEuU2V0VHJhY2tGbGFnc0gAUg1zZXRUcmFja0ZsYWdzEjIKCW1vdmVfY2xpcBgQIAEoCzIT'
     'LmZyYW1peC52MS5Nb3ZlQ2xpcEgAUghtb3ZlQ2xpcBI7CgxpbXBvcnRfbWVkaWEYESABKAsyFi'
-    '5mcmFtaXgudjEuSW1wb3J0TWVkaWFIAFILaW1wb3J0TWVkaWFCBgoEa2luZA==');
+    '5mcmFtaXgudjEuSW1wb3J0TWVkaWFIAFILaW1wb3J0TWVkaWESQQoOY3JlYXRlX3ByZXZpZXcY'
+    'EiABKAsyGC5mcmFtaXgudjEuQ3JlYXRlUHJldmlld0gAUg1jcmVhdGVQcmV2aWV3QgYKBGtpbm'
+    'Q=');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -497,6 +508,20 @@ final $typed_data.Uint8List mediaItemDescriptor = $convert.base64Decode(
     'gFIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAYgASgNUgZoZWlnaHQSGgoIcm90YXRpb24YByABKA1S'
     'CHJvdGF0aW9uEhQKBWNvZGVjGAggASgJUgVjb2RlYw==');
 
+@$core.Deprecated('Use createPreviewDescriptor instead')
+const CreatePreview$json = {
+  '1': 'CreatePreview',
+  '2': [
+    {'1': 'width', '3': 1, '4': 1, '5': 13, '10': 'width'},
+    {'1': 'height', '3': 2, '4': 1, '5': 13, '10': 'height'},
+  ],
+};
+
+/// Descriptor for `CreatePreview`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List createPreviewDescriptor = $convert.base64Decode(
+    'Cg1DcmVhdGVQcmV2aWV3EhQKBXdpZHRoGAEgASgNUgV3aWR0aBIWCgZoZWlnaHQYAiABKA1SBm'
+    'hlaWdodA==');
+
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {
   '1': 'Event',
@@ -528,6 +553,24 @@ const Event$json = {
       '9': 0,
       '10': 'projectSaved'
     },
+    {
+      '1': 'command_accepted',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.CommandAccepted',
+      '9': 0,
+      '10': 'commandAccepted'
+    },
+    {
+      '1': 'preview_ready',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.PreviewReady',
+      '9': 0,
+      '10': 'previewReady'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -539,7 +582,31 @@ final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     'CgVFdmVudBJHChB0aW1lbGluZV9jaGFuZ2VkGAEgASgLMhouZnJhbWl4LnYxLlRpbWVsaW5lQ2'
     'hhbmdlZEgAUg90aW1lbGluZUNoYW5nZWQSQQoOY29tbWFuZF9mYWlsZWQYAiABKAsyGC5mcmFt'
     'aXgudjEuQ29tbWFuZEZhaWxlZEgAUg1jb21tYW5kRmFpbGVkEj4KDXByb2plY3Rfc2F2ZWQYAy'
-    'ABKAsyFy5mcmFtaXgudjEuUHJvamVjdFNhdmVkSABSDHByb2plY3RTYXZlZEIGCgRraW5k');
+    'ABKAsyFy5mcmFtaXgudjEuUHJvamVjdFNhdmVkSABSDHByb2plY3RTYXZlZBJHChBjb21tYW5k'
+    'X2FjY2VwdGVkGAQgASgLMhouZnJhbWl4LnYxLkNvbW1hbmRBY2NlcHRlZEgAUg9jb21tYW5kQW'
+    'NjZXB0ZWQSPgoNcHJldmlld19yZWFkeRgFIAEoCzIXLmZyYW1peC52MS5QcmV2aWV3UmVhZHlI'
+    'AFIMcHJldmlld1JlYWR5QgYKBGtpbmQ=');
+
+@$core.Deprecated('Use commandAcceptedDescriptor instead')
+const CommandAccepted$json = {
+  '1': 'CommandAccepted',
+};
+
+/// Descriptor for `CommandAccepted`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List commandAcceptedDescriptor =
+    $convert.base64Decode('Cg9Db21tYW5kQWNjZXB0ZWQ=');
+
+@$core.Deprecated('Use previewReadyDescriptor instead')
+const PreviewReady$json = {
+  '1': 'PreviewReady',
+  '2': [
+    {'1': 'texture_id', '3': 1, '4': 1, '5': 3, '10': 'textureId'},
+  ],
+};
+
+/// Descriptor for `PreviewReady`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List previewReadyDescriptor = $convert.base64Decode(
+    'CgxQcmV2aWV3UmVhZHkSHQoKdGV4dHVyZV9pZBgBIAEoA1IJdGV4dHVyZUlk');
 
 @$core.Deprecated('Use timelineChangedDescriptor instead')
 const TimelineChanged$json = {

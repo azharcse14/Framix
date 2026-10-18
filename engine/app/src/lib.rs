@@ -2,6 +2,7 @@
 
 pub mod engine;
 pub mod history;
+pub mod preview;
 pub mod project;
 pub mod store;
 

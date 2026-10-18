@@ -39,6 +39,7 @@ enum Command_Kind {
   setTrackFlags,
   moveClip,
   importMedia,
+  createPreview,
   notSet
 }
 
@@ -62,6 +63,7 @@ class Command extends $pb.GeneratedMessage {
     SetTrackFlags? setTrackFlags,
     MoveClip? moveClip,
     ImportMedia? importMedia,
+    CreatePreview? createPreview,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -81,6 +83,7 @@ class Command extends $pb.GeneratedMessage {
     if (setTrackFlags != null) result.setTrackFlags = setTrackFlags;
     if (moveClip != null) result.moveClip = moveClip;
     if (importMedia != null) result.importMedia = importMedia;
+    if (createPreview != null) result.createPreview = createPreview;
     return result;
   }
 
@@ -111,13 +114,14 @@ class Command extends $pb.GeneratedMessage {
     15: Command_Kind.setTrackFlags,
     16: Command_Kind.moveClip,
     17: Command_Kind.importMedia,
+    18: Command_Kind.createPreview,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -152,6 +156,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: MoveClip.$_createMessage)
     ..aOM<ImportMedia>(17, _omitFieldNames ? '' : 'importMedia',
         subBuilder: ImportMedia.$_createMessage)
+    ..aOM<CreatePreview>(18, _omitFieldNames ? '' : 'createPreview',
+        subBuilder: CreatePreview.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -191,6 +197,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
+  @$pb.TagNumber(18)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -209,6 +216,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
+  @$pb.TagNumber(18)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -397,6 +405,17 @@ class Command extends $pb.GeneratedMessage {
   void clearImportMedia() => $_clearField(17);
   @$pb.TagNumber(17)
   ImportMedia ensureImportMedia() => $_ensure(16);
+
+  @$pb.TagNumber(18)
+  CreatePreview get createPreview => $_getN(17);
+  @$pb.TagNumber(18)
+  set createPreview(CreatePreview value) => $_setField(18, value);
+  @$pb.TagNumber(18)
+  $core.bool hasCreatePreview() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearCreatePreview() => $_clearField(18);
+  @$pb.TagNumber(18)
+  CreatePreview ensureCreatePreview() => $_ensure(17);
 }
 
 /// Appends an empty track.
@@ -1630,19 +1649,104 @@ class MediaItem extends $pb.GeneratedMessage {
   void clearCodec() => $_clearField(8);
 }
 
-enum Event_Kind { timelineChanged, commandFailed, projectSaved, notSet }
+/// Asks the platform layer for a preview texture of this size (each side 1..=8192) and draws
+/// into it. Answered at once with CommandAccepted (or CommandFailed); the result follows later
+/// as PreviewReady or CommandFailed (docs/adr/0003-platform-callbacks.md).
+class CreatePreview extends $pb.GeneratedMessage {
+  factory CreatePreview({
+    $core.int? width,
+    $core.int? height,
+  }) {
+    final result = CreatePreview._();
+    if (width != null) result.width = width;
+    if (height != null) result.height = height;
+    return result;
+  }
 
-/// Sent by the engine. Exactly one kind is set.
+  CreatePreview._();
+
+  factory CreatePreview.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CreatePreview()..mergeFromBuffer(data, registry);
+  factory CreatePreview.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CreatePreview()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CreatePreview',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: CreatePreview.$_createMessage)
+    ..aI(1, _omitFieldNames ? '' : 'width', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CreatePreview clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CreatePreview copyWith(void Function(CreatePreview) updates) =>
+      super.copyWith((message) => updates(message as CreatePreview))
+          as CreatePreview;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use CreatePreview() / CreatePreview.new instead')
+  static CreatePreview create() => CreatePreview._();
+  static $pb.GeneratedMessage $_createMessage() => CreatePreview._();
+  @$core.override
+  CreatePreview createEmptyInstance() => CreatePreview._();
+  @$core.pragma('dart2js:noInline')
+  static CreatePreview getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CreatePreview>(
+          CreatePreview.$_createMessage);
+  static CreatePreview? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get width => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set width($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasWidth() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearWidth() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get height => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set height($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHeight() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHeight() => $_clearField(2);
+}
+
+enum Event_Kind {
+  timelineChanged,
+  commandFailed,
+  projectSaved,
+  commandAccepted,
+  previewReady,
+  notSet
+}
+
+/// Sent by the engine. Exactly one kind is set. Every command is answered by exactly one event,
+/// in command order; results of accepted platform work (PreviewReady, or CommandFailed) arrive
+/// later on their own.
 class Event extends $pb.GeneratedMessage {
   factory Event({
     TimelineChanged? timelineChanged,
     CommandFailed? commandFailed,
     ProjectSaved? projectSaved,
+    CommandAccepted? commandAccepted,
+    PreviewReady? previewReady,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
     if (commandFailed != null) result.commandFailed = commandFailed;
     if (projectSaved != null) result.projectSaved = projectSaved;
+    if (commandAccepted != null) result.commandAccepted = commandAccepted;
+    if (previewReady != null) result.previewReady = previewReady;
     return result;
   }
 
@@ -1659,19 +1763,25 @@ class Event extends $pb.GeneratedMessage {
     1: Event_Kind.timelineChanged,
     2: Event_Kind.commandFailed,
     3: Event_Kind.projectSaved,
+    4: Event_Kind.commandAccepted,
+    5: Event_Kind.previewReady,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3])
+    ..oo(0, [1, 2, 3, 4, 5])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
         subBuilder: CommandFailed.$_createMessage)
     ..aOM<ProjectSaved>(3, _omitFieldNames ? '' : 'projectSaved',
         subBuilder: ProjectSaved.$_createMessage)
+    ..aOM<CommandAccepted>(4, _omitFieldNames ? '' : 'commandAccepted',
+        subBuilder: CommandAccepted.$_createMessage)
+    ..aOM<PreviewReady>(5, _omitFieldNames ? '' : 'previewReady',
+        subBuilder: PreviewReady.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1697,10 +1807,14 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1735,6 +1849,128 @@ class Event extends $pb.GeneratedMessage {
   void clearProjectSaved() => $_clearField(3);
   @$pb.TagNumber(3)
   ProjectSaved ensureProjectSaved() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  CommandAccepted get commandAccepted => $_getN(3);
+  @$pb.TagNumber(4)
+  set commandAccepted(CommandAccepted value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasCommandAccepted() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCommandAccepted() => $_clearField(4);
+  @$pb.TagNumber(4)
+  CommandAccepted ensureCommandAccepted() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  PreviewReady get previewReady => $_getN(4);
+  @$pb.TagNumber(5)
+  set previewReady(PreviewReady value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasPreviewReady() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPreviewReady() => $_clearField(5);
+  @$pb.TagNumber(5)
+  PreviewReady ensurePreviewReady() => $_ensure(4);
+}
+
+/// The command started work whose result comes later as its own event.
+class CommandAccepted extends $pb.GeneratedMessage {
+  factory CommandAccepted() => CommandAccepted._();
+
+  CommandAccepted._();
+
+  factory CommandAccepted.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CommandAccepted()..mergeFromBuffer(data, registry);
+  factory CommandAccepted.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CommandAccepted()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CommandAccepted',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: CommandAccepted.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CommandAccepted clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CommandAccepted copyWith(void Function(CommandAccepted) updates) =>
+      super.copyWith((message) => updates(message as CommandAccepted))
+          as CommandAccepted;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use CommandAccepted() / CommandAccepted.new instead')
+  static CommandAccepted create() => CommandAccepted._();
+  static $pb.GeneratedMessage $_createMessage() => CommandAccepted._();
+  @$core.override
+  CommandAccepted createEmptyInstance() => CommandAccepted._();
+  @$core.pragma('dart2js:noInline')
+  static CommandAccepted getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommandAccepted>(
+          CommandAccepted.$_createMessage);
+  static CommandAccepted? _defaultInstance;
+}
+
+/// The preview texture exists and holds a frame; show it with Flutter's Texture widget.
+class PreviewReady extends $pb.GeneratedMessage {
+  factory PreviewReady({
+    $fixnum.Int64? textureId,
+  }) {
+    final result = PreviewReady._();
+    if (textureId != null) result.textureId = textureId;
+    return result;
+  }
+
+  PreviewReady._();
+
+  factory PreviewReady.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      PreviewReady()..mergeFromBuffer(data, registry);
+  factory PreviewReady.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      PreviewReady()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'PreviewReady',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: PreviewReady.$_createMessage)
+    ..aInt64(1, _omitFieldNames ? '' : 'textureId')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PreviewReady clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PreviewReady copyWith(void Function(PreviewReady) updates) =>
+      super.copyWith((message) => updates(message as PreviewReady))
+          as PreviewReady;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use PreviewReady() / PreviewReady.new instead')
+  static PreviewReady create() => PreviewReady._();
+  static $pb.GeneratedMessage $_createMessage() => PreviewReady._();
+  @$core.override
+  PreviewReady createEmptyInstance() => PreviewReady._();
+  @$core.pragma('dart2js:noInline')
+  static PreviewReady getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PreviewReady>(
+          PreviewReady.$_createMessage);
+  static PreviewReady? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get textureId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set textureId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTextureId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTextureId() => $_clearField(1);
 }
 
 /// Full timeline state after a successful command or GetTimeline.
