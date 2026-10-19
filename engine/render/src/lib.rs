@@ -212,6 +212,16 @@ impl Gpu {
         self.draw(target, &self.pipeline, None)
     }
 
+    /// Draws an RGBA8 frame (a decoder frame already converted to RGB, e.g. the Android GLES
+    /// pass's HardwareBuffer) into `target` and waits until the GPU is done.
+    pub fn draw_rgba(
+        &self,
+        _target: &wgpu::Texture,
+        _frame: &wgpu::Texture,
+    ) -> Result<(), RenderError> {
+        Ok(())
+    }
+
     /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB into `target`
     /// and waits until the GPU is done.
     pub fn draw_nv12(

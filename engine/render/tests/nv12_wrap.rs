@@ -3,9 +3,10 @@
 //! plane, and checks the YCbCr -> RGB pass. Runs on the host GPU (macOS).
 #![cfg(target_vendor = "apple")]
 
+mod common;
+
+use common::{Texture, bgra_target, ptr, rgb};
 use framix_render::{Gpu, YcbcrMatrix, YcbcrRange, YcbcrSpace};
-use objc2::rc::Retained;
-use objc2::runtime::ProtocolObject;
 use objc2_core_foundation::{CFArray, CFDictionary, CFNumber, CFRetained, CFString, CFType};
 use objc2_io_surface::{
     IOSurfaceLockOptions, IOSurfaceRef, kIOSurfaceAllocSize, kIOSurfaceHeight,
@@ -14,8 +15,8 @@ use objc2_io_surface::{
     kIOSurfacePlaneWidth, kIOSurfaceWidth,
 };
 use objc2_metal::{
-    MTLCreateSystemDefaultDevice, MTLDevice, MTLOrigin, MTLPixelFormat, MTLRegion, MTLSize,
-    MTLStorageMode, MTLTexture, MTLTextureDescriptor, MTLTextureUsage,
+    MTLCreateSystemDefaultDevice, MTLDevice, MTLPixelFormat, MTLStorageMode, MTLTextureDescriptor,
+    MTLTextureUsage,
 };
 
 const W: usize = 16;
@@ -24,8 +25,6 @@ const H: usize = 8;
 const NV12_VIDEO: i32 = 0x3432_3076;
 /// '420f', kCVPixelFormatType_420YpCbCr8BiPlanarFullRange.
 const NV12_FULL: i32 = 0x3432_3066;
-
-type Texture = Retained<ProtocolObject<dyn MTLTexture>>;
 
 /// Y, Cb, Cr per quadrant: top-left, top-right, bottom-left, bottom-right.
 type Quadrants = [[u8; 3]; 4];
@@ -122,56 +121,13 @@ fn plane_texture(surface: &IOSurfaceRef, plane: usize, format: MTLPixelFormat) -
     }
 }
 
-fn bgra_target() -> Texture {
-    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
-    // SAFETY: plain descriptor setup on a fresh object.
-    unsafe {
-        let desc = MTLTextureDescriptor::texture2DDescriptorWithPixelFormat_width_height_mipmapped(
-            MTLPixelFormat::BGRA8Unorm,
-            W,
-            H,
-            false,
-        );
-        desc.setUsage(MTLTextureUsage::RenderTarget | MTLTextureUsage::ShaderRead);
-        desc.setStorageMode(MTLStorageMode::Shared);
-        device.newTextureWithDescriptor(&desc).expect("texture")
-    }
-}
-
-fn ptr(texture: &Texture) -> *mut std::ffi::c_void {
-    Retained::as_ptr(texture).cast_mut().cast()
-}
-
-/// RGB of pixel (x, y), read straight from the Metal texture's memory.
-fn rgb(texture: &Texture, x: usize, y: usize) -> [u8; 3] {
-    let mut out = [0u8; 4];
-    let region = MTLRegion {
-        origin: MTLOrigin { x, y, z: 0 },
-        size: MTLSize {
-            width: 1,
-            height: 1,
-            depth: 1,
-        },
-    };
-    // SAFETY: `out` holds exactly one BGRA8 pixel; shared storage is CPU readable.
-    unsafe {
-        texture.getBytes_bytesPerRow_fromRegion_mipmapLevel(
-            std::ptr::NonNull::new(out.as_mut_ptr().cast()).unwrap(),
-            4,
-            region,
-            0,
-        )
-    };
-    [out[2], out[1], out[0]]
-}
-
 /// Draws `quadrants` through the NV12 pass and returns the RGB at each quadrant's center.
 fn convert(format: i32, quadrants: &Quadrants, space: YcbcrSpace) -> [[u8; 3]; 4] {
     let gpu = Gpu::new().expect("gpu");
     let surface = nv12_surface(format, quadrants);
     let luma = plane_texture(&surface, 0, MTLPixelFormat::R8Unorm);
     let chroma = plane_texture(&surface, 1, MTLPixelFormat::RG8Unorm);
-    let target = bgra_target();
+    let target = bgra_target(W, H);
     // SAFETY: all three are live id<MTLTexture>s on the system default device.
     let (y, cbcr, out) = unsafe {
         (
@@ -258,7 +214,7 @@ fn rejects_planes_of_the_wrong_format_or_usage() {
             device.newTextureWithDescriptor(&desc).expect("texture")
         }
     };
-    let bgra = bgra_target();
+    let bgra = bgra_target(W, H);
     // SAFETY: null is rejected before use; the others are live id<MTLTexture>s.
     unsafe {
         assert!(gpu.wrap_metal_plane(std::ptr::null_mut()).is_err());
@@ -269,7 +225,7 @@ fn rejects_planes_of_the_wrong_format_or_usage() {
     // Planes swapped: luma must be R8, chroma RG8.
     let luma = plane_texture(&surface, 0, MTLPixelFormat::R8Unorm);
     let chroma = plane_texture(&surface, 1, MTLPixelFormat::RG8Unorm);
-    let target = bgra_target();
+    let target = bgra_target(W, H);
     // SAFETY: live id<MTLTexture>s on the system default device.
     let (y, cbcr, out) = unsafe {
         (
