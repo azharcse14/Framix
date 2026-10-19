@@ -299,6 +299,10 @@
     {
      "date": "2026-10-15",
      "text": "Gradle 9.6.0 / AGP 9.4.0 pinned in TC-006; distributionSha256Sum still open"
+    },
+    {
+     "date": "2026-10-19",
+     "text": ".fvmrc (Flutter 3.47.7) done in TC-011 (8296044)"
     }
    ],
    "source": "plan"
@@ -12755,12 +12759,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-19",
+   "done": "2026-10-19",
+   "commit": "8296044",
+   "branch": "tc-011-fvm-pin",
+   "notes": [
+    {
+     "date": "2026-10-19",
+     "text": "exception: Flutter 3.47.7 pinned at 11 days old because the pubspec on main already needs Dart 3.13.5; within the 14-day policy from 2026-10-22"
+    }
+   ],
    "source": "added"
   }
  ]

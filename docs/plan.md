@@ -228,7 +228,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [x] `TC-008` Minimum OS (kon purono phone e chole) ar target/compile SDK (kon notun SDK diye build) alada decision \[—\]
 - [ ] `TC-009` Upgrade er age compatibility matrix: Flutter ↔ AGP ↔ Kotlin ↔ plugin, Flutter ↔ Xcode; ekta bodlale baki gula check \[—\]
 - [x] `TC-010` native_warnings.sh allowlist misses Xcode 27.1 wording 'Metadata extraction skipped, no AppIntents.framework dependency found' (allowlist has 'skipped. No'), so the gate fails on every build \[Native\]
-- [ ] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
+- [x] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
 
 ## AI diye code lekha (Claude Code)
 
