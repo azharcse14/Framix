@@ -1,5 +1,6 @@
 // The callbacks only iOS can serve, registered into the engine at startup
 // (docs/adr/0003-platform-callbacks.md). Thin adapter: the engine decides what to draw and when.
+import AVFoundation
 import CoreVideo
 import Flutter
 import IOSurface
@@ -48,6 +49,8 @@ enum PlatformCallbacks {
   private static var registry: FlutterTextureRegistry?
   // ponytail: textures are never unregistered; the preview makes one per launch.
   private static var textures: [Int64: PreviewTexture] = [:]
+  /// The engine library, for symbols the C header leaves out (spike entries).
+  fileprivate static var engineLibrary: UnsafeMutableRawPointer?
 
   /// Registers with the engine library Dart loads (same image, so the same registration).
   static func register(with registrar: FlutterApplicationRegistrar) {
@@ -60,6 +63,7 @@ enum PlatformCallbacks {
     else {
       return assertionFailure("engine library or engine_platform_register not found")
     }
+    engineLibrary = library
     var platform = EnginePlatform(
       version: UInt32(ENGINE_PLATFORM_VERSION), ctx: nil,
       create_preview_texture: createPreviewTexture, frame_available: frameAvailable)
@@ -81,6 +85,17 @@ enum PlatformCallbacks {
   }
 
   fileprivate static func markFrameAvailable(_ id: Int64) {
+    // SPIKE (P1-002): with FRAMIX_SPIKE_CLIP set (simulator: SIMCTL_CHILD_FRAMIX_SPIKE_CLIP),
+    // the clip's first decoded frame replaces the test pattern. Unset in any shipped launch.
+    if #available(iOS 26, *), let texture = textures[id],
+      let clip = ProcessInfo.processInfo.environment["FRAMIX_SPIKE_CLIP"]
+    {
+      Task {
+        await SpikeDecode.drawFirstFrame(of: URL(fileURLWithPath: clip), into: texture.metalTexture)
+        registry?.textureFrameAvailable(id)
+      }
+      return
+    }
     registry?.textureFrameAvailable(id)
   }
 }
@@ -104,5 +119,74 @@ private let createPreviewTexture:
 private let frameAvailable: @convention(c) (UnsafeMutableRawPointer?, Int64) -> Void = { _, id in
   DispatchQueue.main.async {
     MainActor.assumeIsolated { PlatformCallbacks.markFrameAvailable(id) }
+  }
+}
+
+/// SPIKE (P1-002): decodes one frame with AVAssetReader (VideoToolbox) into an IOSurface-backed
+/// NV12 CVPixelBuffer and has the engine convert it into the preview, with no CPU copy: Metal
+/// textures sit on the decoder's own IOSurface planes. The Decoder port replaces this.
+@available(iOS 26, *)
+@MainActor
+enum SpikeDecode {
+  typealias DrawNv12 =
+    @convention(c) (
+      UnsafeMutableRawPointer?, UnsafeMutableRawPointer?, UnsafeMutableRawPointer?, UInt32,
+      UInt32
+    ) -> Int32
+
+  static func drawFirstFrame(of clip: URL, into target: MTLTexture) async {
+    do {
+      let asset = AVURLAsset(url: clip)
+      guard let track = try await asset.loadTracks(withMediaType: .video).first else {
+        return NSLog("framix spike: no video track")
+      }
+      let output = AVAssetReaderTrackOutput(
+        track: track,
+        outputSettings: [
+          kCVPixelBufferPixelFormatTypeKey as String:
+            kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+          kCVPixelBufferMetalCompatibilityKey as String: true,
+          kCVPixelBufferIOSurfacePropertiesKey as String: [String: Any](),
+        ])
+      let reader = try AVAssetReader(asset: asset)
+      let frames = reader.outputProvider(for: output)
+      try reader.start()
+      guard let sample = try await frames.next() else {
+        return NSLog("framix spike: no frame")
+      }
+      let code = sample.withUnsafeSampleBuffer { buffer in
+        guard let pixels = CMSampleBufferGetImageBuffer(buffer) else { return ENGINE_ERR_NULL }
+        return draw(pixels, into: target)
+      }
+      NSLog("framix spike: draw_nv12 -> \(code)")
+    } catch {
+      NSLog("framix spike: decode failed: \(error)")
+    }
+  }
+
+  /// Wraps the frame's two IOSurface planes as Metal textures and calls the engine.
+  private static func draw(_ pixels: CVPixelBuffer, into target: MTLTexture) -> Int32 {
+    guard
+      CVPixelBufferGetPixelFormatType(pixels) == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+      let surface = CVPixelBufferGetIOSurface(pixels)?.takeUnretainedValue(),
+      let library = PlatformCallbacks.engineLibrary,
+      let symbol = dlsym(library, "engine_spike_draw_nv12")
+    else { return ENGINE_ERR_NULL }
+    let device = target.device
+    func plane(_ index: Int, _ format: MTLPixelFormat) -> MTLTexture? {
+      let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+        pixelFormat: format, width: CVPixelBufferGetWidthOfPlane(pixels, index),
+        height: CVPixelBufferGetHeightOfPlane(pixels, index), mipmapped: false)
+      descriptor.usage = .shaderRead
+      return device.makeTexture(descriptor: descriptor, iosurface: surface, plane: index)
+    }
+    guard let luma = plane(0, .r8Unorm), let chroma = plane(1, .rg8Unorm) else {
+      return ENGINE_ERR_GPU
+    }
+    let matrix = CVBufferCopyAttachment(pixels, kCVImageBufferYCbCrMatrixKey, nil)
+    let bt709: UInt32 = (matrix as? String) == (kCVImageBufferYCbCrMatrix_ITU_R_601_4 as String) ? 0 : 1
+    let opaque = { (texture: MTLTexture) in Unmanaged.passUnretained(texture).toOpaque() }
+    return unsafeBitCast(symbol, to: DrawNv12.self)(
+      opaque(target), opaque(luma), opaque(chroma), bt709, 1)
   }
 }

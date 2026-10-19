@@ -7,5 +7,5 @@ usize_is_size_t = true
 
 [export]
 include = ["EngineBuffer"]
-# JNI entries are called by Kotlin, not through this header or Dart.
-exclude = ["Java_com_travela_framix_SpikePreview_nativeRender"]
+# Spike entries are called by Kotlin (JNI) or Swift (dlsym), not through this header or Dart.
+exclude = ["Java_com_travela_framix_SpikePreview_nativeRender", "engine_spike_draw_nv12"]

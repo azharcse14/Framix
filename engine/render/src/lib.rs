@@ -17,8 +17,8 @@ pub enum RenderError {
     /// The adapter refused a device.
     #[error("no GPU device: {0}")]
     NoDevice(#[from] wgpu::RequestDeviceError),
-    /// The external texture was null, empty, not BGRA8Unorm, not a render target, or from
-    /// another GPU than the one wgpu opened.
+    /// The external texture was null, empty, of a format or usage the call does not take, not
+    /// a plain 2D single-mip texture, or from another GPU than the one wgpu opened.
     #[error("invalid external texture")]
     InvalidTexture,
     /// Waiting for the GPU failed (timeout or device lost).
@@ -59,7 +59,68 @@ pub struct YcbcrSpace {
     pub range: YcbcrRange,
 }
 
-/// A GPU device plus the test-pattern pipeline. One per engine.
+impl YcbcrSpace {
+    /// The `Ycbcr` uniform of shaders/common/ycbcr.wgsl: kr, kb (f32), video_range, pad (u32).
+    fn uniform(self) -> [u8; 16] {
+        let (kr, kb): (f32, f32) = match self.matrix {
+            YcbcrMatrix::Bt601 => (0.299, 0.114),
+            YcbcrMatrix::Bt709 => (0.2126, 0.0722),
+        };
+        let video = u32::from(self.range == YcbcrRange::Video);
+        let mut out = [0; 16];
+        out[0..4].copy_from_slice(&kr.to_ne_bytes());
+        out[4..8].copy_from_slice(&kb.to_ne_bytes());
+        out[8..12].copy_from_slice(&video.to_ne_bytes());
+        out
+    }
+}
+
+/// What one Metal wrap accepts and how wgpu sees the result.
+#[cfg(target_vendor = "apple")]
+struct MetalWrap {
+    /// Maps an accepted Metal format to its wgpu format; None rejects it.
+    format: fn(objc2_metal::MTLPixelFormat) -> Option<wgpu::TextureFormat>,
+    /// Metal usage the texture must have.
+    needs: objc2_metal::MTLTextureUsage,
+    usage: wgpu::TextureUsages,
+    state: wgpu::TextureUses,
+    label: &'static str,
+}
+
+/// The NV12 -> RGB pass: pipeline, plane sampler and the YcbcrSpace uniform it rewrites.
+struct Nv12Pass {
+    pipeline: wgpu::RenderPipeline,
+    sampler: wgpu::Sampler,
+    space: wgpu::Buffer,
+}
+
+impl Nv12Pass {
+    fn new(device: &wgpu::Device) -> Self {
+        let source = concat!(
+            include_str!("../shaders/common/fullscreen.wgsl"),
+            include_str!("../shaders/common/ycbcr.wgsl"),
+            include_str!("nv12.wgsl"),
+        );
+        Self {
+            pipeline: fullscreen_pipeline(device, "nv12", source, PREVIEW_FORMAT),
+            // Linear filtering upsamples the half-size chroma plane.
+            sampler: device.create_sampler(&wgpu::SamplerDescriptor {
+                label: Some("nv12 planes"),
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                ..Default::default()
+            }),
+            space: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("nv12 space"),
+                size: 16,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+        }
+    }
+}
+
+/// A GPU device plus its pipelines. One per engine.
 pub struct Gpu {
     // Only the Android path makes surfaces; iOS renders into textures it is handed.
     #[cfg_attr(
@@ -75,6 +136,7 @@ pub struct Gpu {
     device: wgpu::Device,
     queue: wgpu::Queue,
     pipeline: wgpu::RenderPipeline,
+    nv12: Nv12Pass,
 }
 
 impl Gpu {
@@ -99,12 +161,14 @@ impl Gpu {
                 ..Default::default()
             }))?;
         let pipeline = test_pattern_pipeline(&device, PREVIEW_FORMAT);
+        let nv12 = Nv12Pass::new(&device);
         Ok(Self {
             instance,
             adapter,
             device,
             queue,
             pipeline,
+            nv12,
         })
     }
 
@@ -121,31 +185,67 @@ impl Gpu {
     /// Draws the test pattern into `target` and waits until the GPU is done, so the platform
     /// layer can tell Flutter a new frame is ready right after this returns.
     pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
-        self.draw(target, &self.pipeline)
+        self.draw(target, &self.pipeline, None)
     }
 
     /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB into `target`
     /// and waits until the GPU is done.
     pub fn draw_nv12(
         &self,
-        _target: &wgpu::Texture,
-        _y: &wgpu::Texture,
-        _cbcr: &wgpu::Texture,
-        _space: YcbcrSpace,
+        target: &wgpu::Texture,
+        y: &wgpu::Texture,
+        cbcr: &wgpu::Texture,
+        space: YcbcrSpace,
     ) -> Result<(), RenderError> {
-        Ok(())
+        if target.format() != PREVIEW_FORMAT
+            || y.format() != wgpu::TextureFormat::R8Unorm
+            || cbcr.format() != wgpu::TextureFormat::Rg8Unorm
+        {
+            return Err(RenderError::InvalidTexture);
+        }
+        let pass = &self.nv12;
+        self.queue.write_buffer(&pass.space, 0, &space.uniform());
+        // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
+        let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("nv12 frame"),
+            layout: &pass.pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &y.create_view(&Default::default()),
+                    ),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(
+                        &cbcr.create_view(&Default::default()),
+                    ),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&pass.sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: pass.space.as_entire_binding(),
+                },
+            ],
+        });
+        self.draw(target, &pass.pipeline, Some(&bind_group))
     }
 
     fn draw(
         &self,
         target: &wgpu::Texture,
         pipeline: &wgpu::RenderPipeline,
+        bind_group: Option<&wgpu::BindGroup>,
     ) -> Result<(), RenderError> {
         let view = target.create_view(&Default::default());
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("test pattern"),
+                label: Some("fullscreen"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
                     depth_slice: None,
@@ -158,6 +258,7 @@ impl Gpu {
                 ..Default::default()
             });
             pass.set_pipeline(pipeline);
+            pass.set_bind_group(0, bind_group, &[]);
             pass.draw(0..3, 0..1);
         }
         self.queue.submit([encoder.finish()]);
@@ -213,6 +314,7 @@ impl Gpu {
         self.draw(
             &frame.texture,
             &test_pattern_pipeline(&self.device, config.format),
+            None,
         )?;
         self.queue.present(frame);
         Ok(())
@@ -229,11 +331,60 @@ impl Gpu {
         &self,
         mtl_texture: *mut std::ffi::c_void,
     ) -> Result<wgpu::Texture, RenderError> {
+        use objc2_metal::{MTLPixelFormat, MTLTextureUsage};
+        let wrap = MetalWrap {
+            format: |f| (f == MTLPixelFormat::BGRA8Unorm).then_some(PREVIEW_FORMAT),
+            needs: MTLTextureUsage::RenderTarget,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            // The first pass clears it.
+            state: wgpu::TextureUses::UNINITIALIZED,
+            label: "flutter preview",
+        };
+        // SAFETY: forwarded from this function's contract.
+        unsafe { self.wrap_metal(mtl_texture, wrap) }
+    }
+
+    /// Wraps one plane of a decoder frame (a Metal texture on an IOSurface plane: R8Unorm luma
+    /// or RG8Unorm chroma) for sampling, without copying.
+    ///
+    /// # Safety
+    /// `mtl_texture` must be null or a live `id<MTLTexture>`. It is retained here, so the caller
+    /// may release its own reference. The decoder must have finished writing the frame.
+    #[cfg(target_vendor = "apple")]
+    pub unsafe fn wrap_metal_plane(
+        &self,
+        mtl_texture: *mut std::ffi::c_void,
+    ) -> Result<wgpu::Texture, RenderError> {
+        use objc2_metal::{MTLPixelFormat, MTLTextureUsage};
+        let wrap = MetalWrap {
+            format: |f| match f {
+                MTLPixelFormat::R8Unorm => Some(wgpu::TextureFormat::R8Unorm),
+                MTLPixelFormat::RG8Unorm => Some(wgpu::TextureFormat::Rg8Unorm),
+                _ => None,
+            },
+            needs: MTLTextureUsage::ShaderRead,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING,
+            // The decoder already wrote the pixels.
+            state: wgpu::TextureUses::RESOURCE,
+            label: "decoder plane",
+        };
+        // SAFETY: forwarded from this function's contract.
+        unsafe { self.wrap_metal(mtl_texture, wrap) }
+    }
+
+    /// The checks and hal import shared by the Metal wraps.
+    ///
+    /// # Safety
+    /// `mtl_texture` must be null or a live `id<MTLTexture>`.
+    #[cfg(target_vendor = "apple")]
+    unsafe fn wrap_metal(
+        &self,
+        mtl_texture: *mut std::ffi::c_void,
+        wrap: MetalWrap,
+    ) -> Result<wgpu::Texture, RenderError> {
         use objc2::rc::Retained;
         use objc2::runtime::ProtocolObject;
-        use objc2_metal::{
-            MTLPixelFormat, MTLResource, MTLTexture, MTLTextureType, MTLTextureUsage,
-        };
+        use objc2_metal::{MTLResource, MTLTexture, MTLTextureType};
         use wgpu::hal::{CopyExtent, api::Metal, metal::Device};
 
         // SAFETY: the caller guarantees null or a live id<MTLTexture>; retain() adds our own
@@ -251,10 +402,12 @@ impl Gpu {
                 Retained::as_ptr(hal.raw_device()),
             )
         });
+        let format = (wrap.format)(raw.pixelFormat()).ok_or(RenderError::InvalidTexture)?;
         if width == 0
             || height == 0
-            || raw.pixelFormat() != MTLPixelFormat::BGRA8Unorm
-            || !raw.usage().contains(MTLTextureUsage::RenderTarget)
+            || raw.textureType() != MTLTextureType::Type2D
+            || raw.mipmapLevelCount() != 1
+            || !raw.usage().contains(wrap.needs)
             || !same_device
         {
             return Err(RenderError::InvalidTexture);
@@ -264,12 +417,11 @@ impl Gpu {
             height,
             depth_or_array_layers: 1,
         };
-        // SAFETY: format, size and usage were checked above; the platform layer creates plain 2D
-        // single-mip textures (SpikePreview.swift).
+        // SAFETY: format, size, type, mip count and usage were checked above.
         let hal = unsafe {
             Device::texture_from_raw(
                 raw,
-                PREVIEW_FORMAT,
+                format,
                 MTLTextureType::Type2D,
                 1,
                 1,
@@ -281,37 +433,23 @@ impl Gpu {
                 None,
             )
         };
-        // SAFETY: `hal` is on wgpu's own device (checked above) and the descriptor matches it;
-        // UNINITIALIZED makes the first pass clear it.
+        // SAFETY: `hal` is on wgpu's own device (checked above) and the descriptor matches it.
         Ok(unsafe {
             self.device.create_texture_from_hal::<Metal>(
                 hal,
                 &wgpu::TextureDescriptor {
-                    label: Some("flutter preview"),
+                    label: Some(wrap.label),
                     size,
                     mip_level_count: 1,
                     sample_count: 1,
                     dimension: wgpu::TextureDimension::D2,
-                    format: PREVIEW_FORMAT,
-                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                    format,
+                    usage: wrap.usage,
                     view_formats: &[],
                 },
-                wgpu::TextureUses::UNINITIALIZED,
+                wrap.state,
             )
         })
-    }
-
-    /// Wraps one plane of a decoder frame (a Metal texture on an IOSurface plane: R8Unorm luma
-    /// or RG8Unorm chroma) for sampling, without copying.
-    ///
-    /// # Safety
-    /// `mtl_texture` must be null or a live `id<MTLTexture>`. It is retained here.
-    #[cfg(target_vendor = "apple")]
-    pub unsafe fn wrap_metal_plane(
-        &self,
-        _mtl_texture: *mut std::ffi::c_void,
-    ) -> Result<wgpu::Texture, RenderError> {
-        Err(RenderError::InvalidTexture)
     }
 }
 
@@ -320,9 +458,27 @@ fn test_pattern_pipeline(
     device: &wgpu::Device,
     format: wgpu::TextureFormat,
 ) -> wgpu::RenderPipeline {
-    let shader = device.create_shader_module(wgpu::include_wgsl!("test_pattern.wgsl"));
+    let source = concat!(
+        include_str!("../shaders/common/fullscreen.wgsl"),
+        include_str!("test_pattern.wgsl"),
+    );
+    fullscreen_pipeline(device, "test pattern", source, format)
+}
+
+/// A pipeline drawing one fullscreen triangle (`vs` from shaders/common/fullscreen.wgsl) with
+/// fragment entry `fs` from `source`, into render targets of `format`.
+fn fullscreen_pipeline(
+    device: &wgpu::Device,
+    label: &str,
+    source: &str,
+    format: wgpu::TextureFormat,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some(label),
+        source: wgpu::ShaderSource::Wgsl(source.into()),
+    });
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("test pattern"),
+        label: Some(label),
         layout: None,
         vertex: wgpu::VertexState {
             module: &shader,

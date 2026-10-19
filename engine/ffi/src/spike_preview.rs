@@ -1,10 +1,16 @@
 //! SPIKE (P1-001): Android only. Draws the wgpu test pattern into a Flutter SurfaceProducer's
 //! Surface over JNI. iOS uses the platform callbacks (platform.rs); Android moves there once it
 //! has a vtable.
+//!
+//! SPIKE (P1-002): iOS only. Draws one decoded NV12 frame into the preview texture, so the
+//! simulator shows a VideoToolbox frame reaching wgpu with no copy. The Decoder port replaces it.
 
 use std::ffi::c_void;
 
 use crate::{ENGINE_ERR_GPU, ENGINE_ERR_NULL, ffi_guard};
+
+#[cfg(target_vendor = "apple")]
+use framix_render::{YcbcrMatrix, YcbcrRange, YcbcrSpace};
 
 /// The engine's one GPU, opened on first use; None if it could not be opened.
 fn gpu() -> Option<&'static framix_render::Gpu> {
@@ -29,6 +35,52 @@ fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
     }
 }
 
+/// SPIKE (P1-002): converts one NV12 decoder frame into the preview texture. `y` and `cbcr`
+/// are Metal textures on the frame's IOSurface planes (R8Unorm, RG8Unorm); `target` is the
+/// preview's BGRA texture. `bt709` picks BT.709 over BT.601, `video_range` video over full
+/// range (both 0 or 1). Returns an engine code once the GPU is done.
+///
+/// # Safety
+/// `target`, `y` and `cbcr` must each be null or a live `id<MTLTexture>` for the call, and the
+/// decoder must have finished writing the frame.
+#[cfg(target_vendor = "apple")]
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn engine_spike_draw_nv12(
+    target: *mut c_void,
+    y: *mut c_void,
+    cbcr: *mut c_void,
+    bt709: u32,
+    video_range: u32,
+) -> i32 {
+    ffi_guard(|| {
+        if target.is_null() || y.is_null() || cbcr.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        let Some(gpu) = gpu() else {
+            return ENGINE_ERR_GPU;
+        };
+        let space = YcbcrSpace {
+            matrix: if bt709 == 0 {
+                YcbcrMatrix::Bt601
+            } else {
+                YcbcrMatrix::Bt709
+            },
+            range: if video_range == 0 {
+                YcbcrRange::Full
+            } else {
+                YcbcrRange::Video
+            },
+        };
+        // SAFETY: all three are live id<MTLTexture>s per this fn's contract.
+        let drawn = unsafe { gpu.wrap_metal_texture(target) }.and_then(|out| {
+            // SAFETY: as above; the decoder is done with the frame.
+            let (y, cbcr) = unsafe { (gpu.wrap_metal_plane(y)?, gpu.wrap_metal_plane(cbcr)?) };
+            gpu.draw_nv12(&out, &y, &cbcr, space)
+        });
+        report(drawn)
+    })
+}
+
 /// SPIKE (P1-001): JNI entry for `SpikePreview.nativeRender(surface)` in the Android app. Draws
 /// one test-pattern frame into `surface`, the Surface of a Flutter SurfaceProducer, and
 /// presents it; Flutter samples the window's HardwareBuffers directly. Returns an engine code.
@@ -36,6 +88,7 @@ fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
 /// # Safety
 /// Called by the JVM: `env` is the calling thread's `JNIEnv*` and `surface` a live local
 /// reference to an `android.view.Surface` (or null).
+#[cfg(target_os = "android")]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRender(
     env: *mut c_void,
