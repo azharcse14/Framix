@@ -28,7 +28,7 @@ Version gula [docs/toolchain.md](docs/toolchain.md) e pin kora; oita mene cholo.
 
 1. `git lfs install && git lfs pull`
 2. Rust: `rust-toolchain.toml` nijei toolchain dhore. Codegen tool: `cargo install --locked cbindgen cargo-audit` (version toolchain.md e), `protoc`, `buf`, `dart pub global activate protoc_plugin`.
-3. Flutter: FVM diye toolchain.md er version (`fvm use <version>`), tarpor `cd app && fvm flutter pub get`.
+3. Flutter: version `.fvmrc` e pin kora; `fvm install` (ei version ta install kore), tarpor `cd app && fvm flutter pub get`.
 4. iOS: Xcode (toolchain.md er version). Android: pinned NDK ar JDK 21.
 5. Run: `cd app && fvm flutter run`. Android e `--target-platform android-arm64,android-x64`.
 

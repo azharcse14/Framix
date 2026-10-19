@@ -4,7 +4,7 @@ Pin everything; upgrade at the first patch 1-2 weeks after a major release; new 
 
 | Tool | Version | Notes |
 | --- | --- | --- |
-| Flutter | 3.47.x (Dart 3.13), pinned with FVM | New code uses material_ui / cupertino_ui packages; pin their versions |
+| Flutter | 3.47.7 (Dart 3.13.5), pinned in `.fvmrc` (FVM) | New code uses material_ui / cupertino_ui packages; pin their versions |
 | Rust | 1.99.0, edition 2024, rust-toolchain.toml | 6-week releases; take patch releases |
 | Xcode / iOS SDK | Xcode 27.1 (iOS 27.1 SDK) | Deployment target 15+ for Runner and every pod (Podfile post_install); UIScene life cycle required |
 | Swift | 6.4 | Swift 6 language mode, strict concurrency |
