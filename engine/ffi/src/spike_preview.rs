@@ -177,6 +177,12 @@ unsafe fn render_into_surface(
     let Some(gpu) = gpu() else {
         return ENGINE_ERR_GPU;
     };
+    // The Kotlin side calls from the main thread and a decode thread; one lock keeps wgpu's
+    // draws and presents apart from the frame import's raw queue submit.
+    static GPU_USE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _gpu_use = GPU_USE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     // SAFETY: window is live while `window` is in scope.
     let (width, height) = unsafe {
         (
@@ -190,7 +196,8 @@ unsafe fn render_into_surface(
     if w == 0 || h == 0 {
         return report(Err(framix_render::RenderError::SurfaceUnusable));
     }
-    // SAFETY: `frame` is live and finished per this fn's contract.
+    // SAFETY: `frame` is live and finished per this fn's contract; `GPU_USE` is held, so no
+    // other thread uses the queue.
     let source = frame
         .map(|ahb| unsafe { gpu.import_android_frame(ahb) })
         .transpose();

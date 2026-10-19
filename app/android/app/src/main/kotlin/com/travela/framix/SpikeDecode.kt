@@ -77,6 +77,15 @@ object SpikeDecode {
         private val surface: android.opengl.EGLSurface
 
         init {
+            val (context, surface) = create(target)
+            this.context = context
+            this.surface = surface
+        }
+
+        /** Makes the context and window surface current; frees what it made if a step fails. */
+        private fun create(
+            target: Surface,
+        ): Pair<android.opengl.EGLContext, android.opengl.EGLSurface> {
             val version = IntArray(2)
             check(EGL14.eglInitialize(display, version, 0, version, 1)) { "eglInitialize" }
             val configs = arrayOfNulls<EGLConfig>(1)
@@ -88,14 +97,22 @@ object SpikeDecode {
             )
             check(EGL14.eglChooseConfig(display, attributes, 0, configs, 0, 1, count, 0) &&
                 count[0] > 0) { "eglChooseConfig" }
-            context = EGL14.eglCreateContext(
+            val context = EGL14.eglCreateContext(
                 display, configs[0], EGL14.EGL_NO_CONTEXT,
                 intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE), 0,
             )
-            surface = EGL14.eglCreateWindowSurface(
+            check(context != EGL14.EGL_NO_CONTEXT) { "eglCreateContext" }
+            val surface = EGL14.eglCreateWindowSurface(
                 display, configs[0], target, intArrayOf(EGL14.EGL_NONE), 0,
             )
-            check(EGL14.eglMakeCurrent(display, surface, surface, context)) { "eglMakeCurrent" }
+            if (surface == EGL14.EGL_NO_SURFACE ||
+                !EGL14.eglMakeCurrent(display, surface, surface, context)
+            ) {
+                if (surface != EGL14.EGL_NO_SURFACE) EGL14.eglDestroySurface(display, surface)
+                EGL14.eglDestroyContext(display, context)
+                error("eglCreateWindowSurface / eglMakeCurrent")
+            }
+            return context to surface
         }
 
         /** Decodes one frame into an OES texture and draws it into the target. */
@@ -110,8 +127,10 @@ object SpikeDecode {
             val frames = HandlerThread("framix spike frames").apply { start() }
             val decoded = SurfaceTexture(texture)
             val decoderSurface = Surface(decoded)
-            val codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
+            var created: MediaCodec? = null
             try {
+                val mime = format.getString(MediaFormat.KEY_MIME) ?: return false
+                val codec = MediaCodec.createDecoderByType(mime).also { created = it }
                 decoded.setDefaultBufferSize(width, height)
                 val arrived = CountDownLatch(1)
                 decoded.setOnFrameAvailableListener({ arrived.countDown() }, Handler(frames.looper))
@@ -128,8 +147,10 @@ object SpikeDecode {
                 GLES20.glFinish()
                 return EGL14.eglSwapBuffers(display, surface)
             } finally {
-                codec.stop()
-                codec.release()
+                created?.let {
+                    runCatching { it.stop() }
+                    it.release()
+                }
                 decoderSurface.release()
                 decoded.release()
                 frames.quitSafely()
@@ -143,7 +164,7 @@ object SpikeDecode {
             )
             EGL14.eglDestroySurface(display, surface)
             EGL14.eglDestroyContext(display, context)
-            EGL14.eglTerminate(display)
+            // No eglTerminate: the default display is shared with Flutter's own GLES renderer.
         }
     }
 

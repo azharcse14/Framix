@@ -28,7 +28,10 @@ pub(crate) fn request_device(
     let opened = unsafe { adapter.as_hal::<Vulkan>() }
         .filter(|hal| {
             let caps = hal.physical_device_capabilities();
-            AHB_EXTENSIONS.iter().all(|e| caps.supports_extension(e))
+            // The AHB extension builds on 1.1 core (external memory, dedicated allocation,
+            // sampler YCbCr), which wgpu-hal does not enable as extensions on a 1.0 device.
+            caps.properties().api_version >= vk::API_VERSION_1_1
+                && AHB_EXTENSIONS.iter().all(|e| caps.supports_extension(e))
         })
         .map(|hal| {
             // SAFETY: the callback only adds extensions the adapter reports as supported.
@@ -69,6 +72,9 @@ struct AHardwareBufferDesc {
     rfu1: u64,
 }
 
+/// AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE: required to create a SAMPLED Vulkan image on it.
+const AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE: u64 = 1 << 8;
+
 #[link(name = "android")]
 unsafe extern "C" {
     fn AHardwareBuffer_describe(buffer: *const c_void, desc: *mut AHardwareBufferDesc);
@@ -79,7 +85,8 @@ unsafe extern "C" {
 /// # Safety
 /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be done,
 /// and nothing may write it while the returned texture is used. `device` must have been opened by
-/// [`request_device`] with the AHB extensions.
+/// [`request_device`] with the AHB extensions. No other thread may use wgpu's queue (submit or
+/// present) during the call: it submits on the raw VkQueue behind wgpu.
 pub(crate) unsafe fn import_ahb(
     device: &wgpu::Device,
     ahb: NonNull<c_void>,
@@ -87,7 +94,12 @@ pub(crate) unsafe fn import_ahb(
     let mut desc = AHardwareBufferDesc::default();
     // SAFETY: `ahb` is live per the contract; `desc` is a valid out pointer.
     unsafe { AHardwareBuffer_describe(ahb.as_ptr(), &mut desc) };
-    if desc.width == 0 || desc.height == 0 || desc.layers != 1 {
+    let max_side = device.limits().max_texture_dimension_2d;
+    if !(1..=max_side).contains(&desc.width)
+        || !(1..=max_side).contains(&desc.height)
+        || desc.layers != 1
+        || desc.usage & AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE == 0
+    {
         return Err(RenderError::InvalidTexture);
     }
     // SAFETY: as_hal only borrows wgpu's device for the raw handles.
@@ -220,7 +232,8 @@ unsafe fn import_image(
     }
     .map_err(vk_err)?;
 
-    // SAFETY: `image` and `memory` are ours and unused by wgpu yet.
+    // SAFETY: `image` and `memory` are ours and unused by wgpu yet; the caller keeps wgpu's
+    // queue to itself (contract).
     if let Err(e) = unsafe { acquire_from_foreign(hal, &device, image) } {
         // SAFETY: as above; nothing else holds them.
         unsafe {
@@ -256,7 +269,7 @@ unsafe fn acquire_from_foreign(
                     .command_pool(pool)
                     .level(vk::CommandBufferLevel::PRIMARY)
                     .command_buffer_count(1),
-            )?[0];
+            )?[0]; // One buffer was asked for, so index 0 exists.
             device.begin_command_buffer(
                 cmd,
                 &vk::CommandBufferBeginInfo::default()
@@ -297,6 +310,8 @@ unsafe fn acquire_from_foreign(
                     fence,
                 )
                 .and_then(|()| device.wait_for_fences(&[fence], true, u64::MAX));
+            // SPIKE: on a failed wait (device lost) the fence, pool, image and memory are freed
+            // while the submit may still be pending; the device is unusable by then anyway.
             device.destroy_fence(fence, None);
             submitted
         };

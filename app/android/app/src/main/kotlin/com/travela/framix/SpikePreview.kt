@@ -41,10 +41,12 @@ class SpikePreview(
         files?.resolve("spike_clip.mp4")?.takeIf { it.isFile }?.let { clip ->
             // SPIKE (P1-056): decode off the main thread, then draw over the test pattern.
             Thread {
-                val code = SpikeDecode.withFirstFrame(clip) { frame ->
-                    nativeRenderFrame(producer.surface, frame)
-                }
-                Log.i("framix", "spike decode: nativeRenderFrame -> $code")
+                runCatching {
+                    SpikeDecode.withFirstFrame(clip) { frame ->
+                        nativeRenderFrame(producer.surface, frame)
+                    }
+                }.onSuccess { Log.i("framix", "spike decode: nativeRenderFrame -> $it") }
+                    .onFailure { Log.w("framix", "spike decode failed", it) }
             }.start()
         }
     }

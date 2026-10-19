@@ -282,7 +282,8 @@ impl Gpu {
     ///
     /// # Safety
     /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be
-    /// done, and nothing may write it while the returned texture is used.
+    /// done, and nothing may write it while the returned texture is used. No other thread may
+    /// use this `Gpu`'s queue (draw, present) during the call.
     #[cfg(target_os = "android")]
     pub unsafe fn import_android_frame(
         &self,
