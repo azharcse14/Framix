@@ -186,7 +186,10 @@ enum SpikeDecode {
     let matrix = CVBufferCopyAttachment(pixels, kCVImageBufferYCbCrMatrixKey, nil)
     let bt709: UInt32 = (matrix as? String) == (kCVImageBufferYCbCrMatrix_ITU_R_601_4 as String) ? 0 : 1
     let opaque = { (texture: MTLTexture) in Unmanaged.passUnretained(texture).toOpaque() }
-    return unsafeBitCast(symbol, to: DrawNv12.self)(
-      opaque(target), opaque(luma), opaque(chroma), bt709, 1)
+    // The planes must outlive the call: passUnretained alone lets Swift release them early.
+    return withExtendedLifetime((luma, chroma)) {
+      unsafeBitCast(symbol, to: DrawNv12.self)(
+        opaque(target), opaque(luma), opaque(chroma), bt709, 1)
+    }
   }
 }

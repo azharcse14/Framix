@@ -61,6 +61,27 @@ pub struct YcbcrSpace {
 
 impl YcbcrSpace {
     /// The `Ycbcr` uniform of shaders/common/ycbcr.wgsl: kr, kb (f32), video_range, pad (u32).
+    /// Every space, in [`YcbcrSpace::index`] order.
+    const ALL: [Self; 4] = [
+        Self::new(YcbcrMatrix::Bt601, YcbcrRange::Video),
+        Self::new(YcbcrMatrix::Bt601, YcbcrRange::Full),
+        Self::new(YcbcrMatrix::Bt709, YcbcrRange::Video),
+        Self::new(YcbcrMatrix::Bt709, YcbcrRange::Full),
+    ];
+
+    const fn new(matrix: YcbcrMatrix, range: YcbcrRange) -> Self {
+        Self { matrix, range }
+    }
+
+    /// Position in [`YcbcrSpace::ALL`].
+    fn index(self) -> usize {
+        let matrix = match self.matrix {
+            YcbcrMatrix::Bt601 => 0,
+            YcbcrMatrix::Bt709 => 2,
+        };
+        matrix + usize::from(self.range == YcbcrRange::Full)
+    }
+
     fn uniform(self) -> [u8; 16] {
         let (kr, kb): (f32, f32) = match self.matrix {
             YcbcrMatrix::Bt601 => (0.299, 0.114),
@@ -68,9 +89,9 @@ impl YcbcrSpace {
         };
         let video = u32::from(self.range == YcbcrRange::Video);
         let mut out = [0; 16];
-        out[0..4].copy_from_slice(&kr.to_ne_bytes());
-        out[4..8].copy_from_slice(&kb.to_ne_bytes());
-        out[8..12].copy_from_slice(&video.to_ne_bytes());
+        out[0..4].copy_from_slice(&kr.to_le_bytes());
+        out[4..8].copy_from_slice(&kb.to_le_bytes());
+        out[8..12].copy_from_slice(&video.to_le_bytes());
         out
     }
 }
@@ -87,11 +108,12 @@ struct MetalWrap {
     label: &'static str,
 }
 
-/// The NV12 -> RGB pass: pipeline, plane sampler and the YcbcrSpace uniform it rewrites.
+/// The NV12 -> RGB pass: pipeline, plane sampler, and one read-only uniform per YcbcrSpace,
+/// so concurrent draws never share a buffer that is being rewritten.
 struct Nv12Pass {
     pipeline: wgpu::RenderPipeline,
     sampler: wgpu::Sampler,
-    space: wgpu::Buffer,
+    spaces: [wgpu::Buffer; 4],
 }
 
 impl Nv12Pass {
@@ -110,11 +132,13 @@ impl Nv12Pass {
                 min_filter: wgpu::FilterMode::Linear,
                 ..Default::default()
             }),
-            space: device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("nv12 space"),
-                size: 16,
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
+            spaces: YcbcrSpace::ALL.map(|space| {
+                use wgpu::util::DeviceExt as _;
+                device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("nv12 space"),
+                    contents: &space.uniform(),
+                    usage: wgpu::BufferUsages::UNIFORM,
+                })
             }),
         }
     }
@@ -204,7 +228,6 @@ impl Gpu {
             return Err(RenderError::InvalidTexture);
         }
         let pass = &self.nv12;
-        self.queue.write_buffer(&pass.space, 0, &space.uniform());
         // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
         let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("nv12 frame"),
@@ -228,7 +251,7 @@ impl Gpu {
                 },
                 wgpu::BindGroupEntry {
                     binding: 3,
-                    resource: pass.space.as_entire_binding(),
+                    resource: pass.spaces[space.index()].as_entire_binding(),
                 },
             ],
         });
@@ -349,7 +372,9 @@ impl Gpu {
     ///
     /// # Safety
     /// `mtl_texture` must be null or a live `id<MTLTexture>`. It is retained here, so the caller
-    /// may release its own reference. The decoder must have finished writing the frame.
+    /// may release its own reference. The decoder must have finished writing the frame, and the
+    /// frame (its CVPixelBuffer) must stay alive and unwritten for as long as the returned
+    /// texture is used: the decoder's pool recycles the IOSurface once the buffer is released.
     #[cfg(target_vendor = "apple")]
     pub unsafe fn wrap_metal_plane(
         &self,
