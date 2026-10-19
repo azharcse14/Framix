@@ -63,6 +63,7 @@ Recurring review findings in Framix (first seen P1-008, 2026-10-15):
 
 - Warning-gate scripts (TC-006 native_warnings.sh): check the allowlist for summary lines that stand in for many warnings. Gradle's default warning-mode is summary, so allowlisting "Deprecated Gradle features were used" hides every Gradle API deprecation, ours included; require `--warning-mode all` / org.gradle.warning.mode=all. Also check `grep ... || true` does not swallow grep exit 2 (bad regex = silent pass), and that a build failure prints the log before the trap deletes it.
   TC-006 re-review: ~/.gradle/gradle.properties and GRADLE_OPTS override the project file, so a dev-machine warning.mode=none silently passes the gate.
+  TC-010 (2026-10-19): Xcode minor releases reword known warnings (27.1 "skipped, no" vs "skipped. No"); allowlist entries are unanchored substrings. For allowlist edits, test the regex with /usr/bin/grep -E (BSD) under bash, not the agent shell's grep (wrapped as ugrep), and confirm alternations are exact literals, not wildcards. check.sh does not run native_warnings.sh, and the reviewer may not run it either.
 
 - User rewrites main history (trailer strip, 2026-10-15; backup/main-before-* branches). Branches forked before that have NO merge base with main (`git diff main...HEAD` fails). Check `git merge-base main HEAD` first; if empty, find the old fork commit with an identical tree on main and ask for `git rebase --onto main <old-fork>`.
 
