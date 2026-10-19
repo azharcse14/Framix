@@ -13,8 +13,8 @@ if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flu
 ALLOWED='
 # Flutter tool scheme script reads Xcode env it does not know (Flutter 3.47).
 unknown environment variable SWIFT_DEBUG_INFORMATION_(FORMAT|VERSION)
-# Xcode prints this for every app without AppIntents.
-Metadata extraction skipped\. No AppIntents\.framework dependency found
+# Xcode prints this for every app without AppIntents ("skipped, no" since Xcode 27.1).
+Metadata extraction skipped(\. No|, no) AppIntents\.framework dependency found
 # Flutter 3.47 Gradle plugin needs the old DSL and KGP: newDsl=false, builtInKotlin=false,
 # org.jetbrains.kotlin.android, and the old android {} accessor in app/build.gradle.kts.
 android\.(newDsl|builtInKotlin)=false. is deprecated
