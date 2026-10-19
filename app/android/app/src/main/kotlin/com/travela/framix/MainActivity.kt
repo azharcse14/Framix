@@ -14,7 +14,8 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "framix/media")
             .setMethodCallHandler(mediaPicker)
         // SPIKE (P1-001)
-        val preview = SpikePreview(flutterEngine.renderer).also { spikePreview = it }
+        val preview = SpikePreview(flutterEngine.renderer, getExternalFilesDir(null))
+            .also { spikePreview = it }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "framix/spike_preview")
             .setMethodCallHandler(preview)
     }

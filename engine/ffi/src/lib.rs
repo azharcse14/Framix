@@ -14,10 +14,13 @@ mod spike_preview;
 pub use platform::{
     ENGINE_PLATFORM_VERSION, EnginePlatform, EnginePreviewTextureDone, engine_platform_register,
 };
-#[cfg(target_os = "android")]
-pub use spike_preview::Java_com_travela_framix_SpikePreview_nativeRender;
 #[cfg(target_vendor = "apple")]
 pub use spike_preview::engine_spike_draw_nv12;
+#[cfg(target_os = "android")]
+pub use spike_preview::{
+    Java_com_travela_framix_SpikePreview_nativeRender,
+    Java_com_travela_framix_SpikePreview_nativeRenderFrame,
+};
 
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;
