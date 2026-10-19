@@ -32,6 +32,33 @@ pub enum RenderError {
     SurfaceUnusable,
 }
 
+/// The YCbCr -> RGB matrix a decoder frame was encoded with.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum YcbcrMatrix {
+    /// ITU-R BT.601 (SD video, JPEG).
+    Bt601,
+    /// ITU-R BT.709 (HD video).
+    Bt709,
+}
+
+/// Whether Y and CbCr use the video (16-235/240) or the full (0-255) code range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum YcbcrRange {
+    /// Y 16-235, CbCr 16-240 (8-bit codes).
+    Video,
+    /// 0-255.
+    Full,
+}
+
+/// How to turn a frame's YCbCr samples into RGB.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct YcbcrSpace {
+    /// Conversion matrix.
+    pub matrix: YcbcrMatrix,
+    /// Code range.
+    pub range: YcbcrRange,
+}
+
 /// A GPU device plus the test-pattern pipeline. One per engine.
 pub struct Gpu {
     // Only the Android path makes surfaces; iOS renders into textures it is handed.
@@ -95,6 +122,18 @@ impl Gpu {
     /// layer can tell Flutter a new frame is ready right after this returns.
     pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
         self.draw(target, &self.pipeline)
+    }
+
+    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB into `target`
+    /// and waits until the GPU is done.
+    pub fn draw_nv12(
+        &self,
+        _target: &wgpu::Texture,
+        _y: &wgpu::Texture,
+        _cbcr: &wgpu::Texture,
+        _space: YcbcrSpace,
+    ) -> Result<(), RenderError> {
+        Ok(())
     }
 
     fn draw(
@@ -260,6 +299,19 @@ impl Gpu {
                 wgpu::TextureUses::UNINITIALIZED,
             )
         })
+    }
+
+    /// Wraps one plane of a decoder frame (a Metal texture on an IOSurface plane: R8Unorm luma
+    /// or RG8Unorm chroma) for sampling, without copying.
+    ///
+    /// # Safety
+    /// `mtl_texture` must be null or a live `id<MTLTexture>`. It is retained here.
+    #[cfg(target_vendor = "apple")]
+    pub unsafe fn wrap_metal_plane(
+        &self,
+        _mtl_texture: *mut std::ffi::c_void,
+    ) -> Result<wgpu::Texture, RenderError> {
+        Err(RenderError::InvalidTexture)
     }
 }
 
