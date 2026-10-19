@@ -60,7 +60,6 @@ pub struct YcbcrSpace {
 }
 
 impl YcbcrSpace {
-    /// The `Ycbcr` uniform of shaders/common/ycbcr.wgsl: kr, kb (f32), video_range, pad (u32).
     /// Every space, in [`YcbcrSpace::index`] order.
     const ALL: [Self; 4] = [
         Self::new(YcbcrMatrix::Bt601, YcbcrRange::Video),
@@ -82,6 +81,7 @@ impl YcbcrSpace {
         matrix + usize::from(self.range == YcbcrRange::Full)
     }
 
+    /// The `Ycbcr` uniform of shaders/common/ycbcr.wgsl: kr, kb (f32), video_range, pad (u32).
     fn uniform(self) -> [u8; 16] {
         let (kr, kb): (f32, f32) = match self.matrix {
             YcbcrMatrix::Bt601 => (0.299, 0.114),
@@ -564,4 +564,16 @@ fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
 #[cfg(not(target_vendor = "apple"))]
 fn draw_into(_: &Gpu, _: PlatformTexture) -> Result<(), String> {
     Err("no platform texture support on this OS yet".to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::YcbcrSpace;
+
+    #[test]
+    fn every_space_indexes_its_own_uniform() {
+        for (i, space) in YcbcrSpace::ALL.into_iter().enumerate() {
+            assert_eq!(space.index(), i, "{space:?}");
+        }
+    }
 }
