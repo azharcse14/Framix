@@ -839,7 +839,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-19",
+     "text": "From P1-056: on the wgpu GLES backend imports_frames is false, so decoded frames do not draw; the GLES fallback needs its own import (EGLImage from the RGBA AHB) reusing the Kotlin OES pass."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12587,6 +12592,10 @@
     {
      "date": "2026-10-19",
      "text": "Also check the P1-002 NV12 decode path (FRAMIX_SPIKE_CLIP) on a real iPhone; verified only on the iOS 27 simulator."
+    },
+    {
+     "date": "2026-10-19",
+     "text": "Also check the P1-056 Android frame path (spike_clip.mp4 in the app files dir) on a real phone: the UNDEFINED-from-foreign barrier and the AHB memory-type choice are driver-specific; verified only on the emulator."
     }
    ],
    "source": "added"
@@ -12628,7 +12637,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-19",
+     "text": "From P1-056: the AHB import submits on wgpu's raw VkQueue under a spike lock and waits on a fence, with glFinish on the GLES side. Needs fences (EGL native fence -> Vulkan semaphore), a release barrier back to QUEUE_FAMILY_FOREIGN_EXT before ImageReader reuses the buffer, and a per-format blit pipeline instead of one per call."
+    }
+   ],
    "source": "added"
   },
   {
@@ -12682,12 +12696,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-19",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-19",
+   "commit": "efed1a5",
    "branch": "p1-056-android-decoder-gles",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-19",
+     "text": "WIP commit 4578485: host tests green, Android clippy clean; emulator run not done yet (flutter run has no --target-platform; push clip to /sdcard/Android/data/com.travela.framix/files/spike_clip.mp4)"
+    },
+    {
+     "date": "2026-10-19",
+     "text": "Approach (user choice 2026-10-19): GLES pass, not a VkSamplerYcbcrConversion pass. wgpu-hal 30 hard-codes samplerYcbcrConversion off and open_with_callback cannot turn it on, so the Rust Vulkan pass would need its own VkDevice, a raw pipeline and SPIR-V. Kotlin converts the MediaCodec frame (SurfaceTexture/OES) to an RGBA8 ImageReader HardwareBuffer; Rust imports it as a VkImage. Supersedes the earlier WIP note: verified on the Pixel_8 emulator (API 37, c2.goldfish.h264.decoder), upright quadrants, nativeRenderFrame -> 0."
+    }
+   ],
    "source": "added"
   },
   {
@@ -12707,7 +12730,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-19",
+     "text": "Also remove the Android P1-056 spike: SpikeDecode.kt, nativeRenderFrame + render_into_surface's GPU_USE lock in engine/ffi/src/spike_preview.rs, engine/render/src/android.rs, and the Android-only ash dependency if the Decoder port no longer needs it."
+    }
+   ],
    "source": "added"
   },
   {
