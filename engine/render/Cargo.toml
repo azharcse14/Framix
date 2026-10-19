@@ -15,6 +15,8 @@ pollster = "=0.4.0"
 # Same crate, Android backends on top.
 [target.'cfg(target_os = "android")'.dependencies]
 wgpu = { version = "=30.0.1", default-features = false, features = ["vulkan", "gles"] }
+# SPIKE (P1-056): import AHardwareBuffers as Vulkan images; the version wgpu-hal 30 already uses.
+ash = { version = "=0.38.0", default-features = false, features = ["std"] }
 
 [target.'cfg(target_vendor = "apple")'.dependencies]
 objc2 = "=0.6.4"

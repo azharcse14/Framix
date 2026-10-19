@@ -3,10 +3,19 @@
 //! Flutter SurfaceProducer (its buffers are the HardwareBuffers Flutter samples).
 
 use framix_app::preview::{PlatformTexture, PreviewRenderer};
+
+#[cfg(target_os = "android")]
+mod android;
 use thiserror::Error;
 
 /// Preview texture format: what the platform layer allocates (kCVPixelFormatType_32BGRA).
 pub const PREVIEW_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8Unorm;
+
+/// The RGBA frame blit: fullscreen vertex stage plus src/blit.wgsl.
+const BLIT_WGSL: &str = concat!(
+    include_str!("../shaders/common/fullscreen.wgsl"),
+    include_str!("blit.wgsl"),
+);
 
 /// Why the GPU could not be set up.
 #[derive(Debug, Error)]
@@ -30,6 +39,11 @@ pub enum RenderError {
     /// The surface is not usable by this adapter, or gave no frame to draw into.
     #[error("surface unusable")]
     SurfaceUnusable,
+    /// A Vulkan call of the Android frame import failed, or the device cannot import frames
+    /// (GLES backend, or no AHardwareBuffer extensions).
+    #[cfg(target_os = "android")]
+    #[error("Android frame import: {0}")]
+    Android(String),
 }
 
 /// The YCbCr -> RGB matrix a decoder frame was encoded with.
@@ -112,7 +126,6 @@ struct MetalWrap {
 /// so concurrent draws never share a buffer that is being rewritten.
 struct Nv12Pass {
     pipeline: wgpu::RenderPipeline,
-    sampler: wgpu::Sampler,
     spaces: [wgpu::Buffer; 4],
 }
 
@@ -125,13 +138,6 @@ impl Nv12Pass {
         );
         Self {
             pipeline: fullscreen_pipeline(device, "nv12", source, PREVIEW_FORMAT),
-            // Linear filtering upsamples the half-size chroma plane.
-            sampler: device.create_sampler(&wgpu::SamplerDescriptor {
-                label: Some("nv12 planes"),
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Linear,
-                ..Default::default()
-            }),
             spaces: YcbcrSpace::ALL.map(|space| {
                 use wgpu::util::DeviceExt as _;
                 device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -160,7 +166,13 @@ pub struct Gpu {
     device: wgpu::Device,
     queue: wgpu::Queue,
     pipeline: wgpu::RenderPipeline,
+    /// Linear filtering for decoder frames: scales them and upsamples NV12's half-size chroma.
+    frame_sampler: wgpu::Sampler,
     nv12: Nv12Pass,
+    blit: wgpu::RenderPipeline,
+    /// The device was opened with the AHardwareBuffer import extensions.
+    #[cfg(target_os = "android")]
+    imports_frames: bool,
 }
 
 impl Gpu {
@@ -179,20 +191,34 @@ impl Gpu {
             pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default()))?;
         // Ask only for what this adapter has: the iOS simulator's Metal device is below
         // wgpu's default limits.
-        let (device, queue) =
-            pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
-                required_limits: adapter.limits(),
-                ..Default::default()
-            }))?;
+        let desc = wgpu::DeviceDescriptor {
+            required_limits: adapter.limits(),
+            ..Default::default()
+        };
+        #[cfg(target_os = "android")]
+        let (device, queue, imports_frames) = android::request_device(&adapter, &desc)?;
+        #[cfg(not(target_os = "android"))]
+        let (device, queue) = pollster::block_on(adapter.request_device(&desc))?;
         let pipeline = test_pattern_pipeline(&device, PREVIEW_FORMAT);
+        let frame_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("decoder frames"),
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            ..Default::default()
+        });
         let nv12 = Nv12Pass::new(&device);
+        let blit = fullscreen_pipeline(&device, "rgba frame", BLIT_WGSL, PREVIEW_FORMAT);
         Ok(Self {
             instance,
             adapter,
             device,
             queue,
             pipeline,
+            frame_sampler,
             nv12,
+            blit,
+            #[cfg(target_os = "android")]
+            imports_frames,
         })
     }
 
@@ -216,10 +242,60 @@ impl Gpu {
     /// pass's HardwareBuffer) into `target` and waits until the GPU is done.
     pub fn draw_rgba(
         &self,
-        _target: &wgpu::Texture,
-        _frame: &wgpu::Texture,
+        target: &wgpu::Texture,
+        frame: &wgpu::Texture,
     ) -> Result<(), RenderError> {
-        Ok(())
+        if target.format() != PREVIEW_FORMAT || frame.format() != wgpu::TextureFormat::Rgba8Unorm {
+            return Err(RenderError::InvalidTexture);
+        }
+        let bind_group = self.rgba_bind_group(&self.blit, frame);
+        self.draw(target, &self.blit, Some(&bind_group))
+    }
+
+    /// The blit pass's bindings for `frame`.
+    fn rgba_bind_group(
+        &self,
+        pipeline: &wgpu::RenderPipeline,
+        frame: &wgpu::Texture,
+    ) -> wgpu::BindGroup {
+        // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
+        self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("rgba frame"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &frame.create_view(&Default::default()),
+                    ),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&self.frame_sampler),
+                },
+            ],
+        })
+    }
+
+    /// Imports an RGBA8 AHardwareBuffer (a decoder frame the platform layer converted) as a
+    /// texture for [`Gpu::draw_to_android_window`], without copying.
+    ///
+    /// # Safety
+    /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be
+    /// done, and nothing may write it while the returned texture is used.
+    #[cfg(target_os = "android")]
+    pub unsafe fn import_android_frame(
+        &self,
+        ahb: std::ptr::NonNull<std::ffi::c_void>,
+    ) -> Result<wgpu::Texture, RenderError> {
+        if !self.imports_frames {
+            return Err(RenderError::Android(
+                "device has no AHardwareBuffer import".to_owned(),
+            ));
+        }
+        // SAFETY: forwarded from this function's contract; the device was opened with the
+        // import extensions (checked above).
+        unsafe { android::import_ahb(&self.device, ahb) }
     }
 
     /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB into `target`
@@ -257,7 +333,7 @@ impl Gpu {
                 },
                 wgpu::BindGroupEntry {
                     binding: 2,
-                    resource: wgpu::BindingResource::Sampler(&pass.sampler),
+                    resource: wgpu::BindingResource::Sampler(&self.frame_sampler),
                 },
                 wgpu::BindGroupEntry {
                     binding: 3,
@@ -300,8 +376,9 @@ impl Gpu {
         Ok(())
     }
 
-    /// Draws one test-pattern frame into an Android window and presents it. The window's
-    /// buffers are what Flutter's SurfaceProducer samples, so nothing is copied.
+    /// Draws one frame into an Android window and presents it: `source` (an imported decoder
+    /// frame) or, without one, the test pattern. The window's buffers are what Flutter's
+    /// SurfaceProducer samples, so nothing is copied.
     ///
     /// # Safety
     /// `window` must be a live `ANativeWindow*` that outlives this call.
@@ -311,6 +388,7 @@ impl Gpu {
         window: std::ptr::NonNull<std::ffi::c_void>,
         width: u32,
         height: u32,
+        source: Option<&wgpu::Texture>,
     ) -> Result<(), RenderError> {
         use wgpu::rwh::{
             AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
@@ -344,11 +422,19 @@ impl Gpu {
             _ => return Err(RenderError::SurfaceUnusable),
         };
         // SPIKE: one frame, so the pipeline is built per call.
-        self.draw(
-            &frame.texture,
-            &test_pattern_pipeline(&self.device, config.format),
-            None,
-        )?;
+        match source {
+            Some(source) => {
+                let pipeline =
+                    fullscreen_pipeline(&self.device, "rgba frame", BLIT_WGSL, config.format);
+                let bind_group = self.rgba_bind_group(&pipeline, source);
+                self.draw(&frame.texture, &pipeline, Some(&bind_group))?;
+            }
+            None => self.draw(
+                &frame.texture,
+                &test_pattern_pipeline(&self.device, config.format),
+                None,
+            )?,
+        }
         self.queue.present(frame);
         Ok(())
     }
