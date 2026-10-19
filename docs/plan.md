@@ -227,6 +227,8 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [ ] `TC-007` Notun OS beta (iOS June e, Android bochorer shurute) te app test, stable er age ready \[—\]
 - [x] `TC-008` Minimum OS (kon purono phone e chole) ar target/compile SDK (kon notun SDK diye build) alada decision \[—\]
 - [ ] `TC-009` Upgrade er age compatibility matrix: Flutter ↔ AGP ↔ Kotlin ↔ plugin, Flutter ↔ Xcode; ekta bodlale baki gula check \[—\]
+- [ ] `TC-010` native_warnings.sh allowlist misses Xcode 27.1 wording 'Metadata extraction skipped, no AppIntents.framework dependency found' (allowlist has 'skipped. No'), so the gate fails on every build \[Native\]
+- [ ] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
 
 ## AI diye code lekha (Claude Code)
 
@@ -359,7 +361,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 **Architecture risk test (prototype)**
 
 - [x] `P1-001` wgpu output ke copy chhara Flutter Texture e dekhano (iOS IOSurface/CVPixelBuffer, Android HardwareBuffer) \[Rust\]\[Native\]
-- [ ] `P1-002` Hardware decoder theke GPU te zero-copy frame. Android e MediaCodec output prai opaque YCbCr AHardwareBuffer, Vulkan e YCbCr sampler lage; wgpu te support na thakle Plan B: native pass (Vulkan YCbCr sampler ba GLES samplerExternalOES) diye RGBA te convert, tarpor wgpu te import (ek GPU copy, CPU copy na) \[Native\]\[Rust\]
+- [x] `P1-002` Hardware decoder theke GPU te zero-copy frame. Android e MediaCodec output prai opaque YCbCr AHardwareBuffer, Vulkan e YCbCr sampler lage; wgpu te support na thakle Plan B: native pass (Vulkan YCbCr sampler ba GLES samplerExternalOES) diye RGBA te convert, tarpor wgpu te import (ek GPU copy, CPU copy na) \[Native\]\[Rust\]
 - [ ] `P1-003` Android preview output: SurfaceProducer er Surface theke ANativeWindow baniye sorasori wgpu surface e render; AHardwareBuffer path er sathe tulona \[Native\]\[Rust\]
 - [ ] `P1-004` Low-end Android e GLES fallback: Texture output ar decoder import dui backend e kaj kore kina (GLES 3.0 e compute shader nai) \[Rust\]\[Native\]
 - [x] `P1-005` Rust ↔ platform layer interop: C ABI + init e callback register (FFI niyom dekho) \[Rust\]\[Native\]
@@ -428,6 +430,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-053` Preview renders on a render thread with GPU sync (MTLSharedEvent / fences) and double buffering; today it draws on the engine thread (P1-005) \[Rust\] \[Native\]
 - [ ] `P1-054` iOS Runner to Swift 6 language mode (SWIFT_VERSION is still 5.0 in project.pbxproj; docs/toolchain.md wants Swift 6 strict concurrency) \[Native\]
 - [ ] `P1-055` Unregister preview textures (iOS FlutterTextureRegistry, Android SurfaceProducer) when the preview goes away; release only after the engine stops drawing into them (P1-005 review) \[Native\] \[Rust\]
+- [ ] `P1-056` Android half of P1-002: MediaCodec opaque YCbCr AHardwareBuffer to wgpu with no CPU copy; wgpu 30 Vulkan has no YCbCr sampler/external texture, so Rust imports the AHB as a VkImage (ash 0.38 direct dep, approved) and a VkSamplerYcbcrConversion pass converts to an RGBA wgpu texture (one GPU copy); verify on the Pixel_8 emulator with tests/media/color_quadrants_h264_320x240_1s.mp4 \[Native\] \[Rust\]
+- [ ] `P1-057` Remove the P1-002 decode spike (engine_spike_draw_nv12, SpikeDecode in PlatformCallbacks.swift, FRAMIX_SPIKE_CLIP) once the Decoder port delivers frames; pass raw CV matrix/range tags to the engine instead of choosing 601/709 in Swift \[Native\] \[Rust\]
+- [ ] `P1-058` NV12 pass follow-ups: pool bind groups/views per frame, criterion bench for draw_nv12, check plane sizes and texture usages (InvalidTexture, not a wgpu panic), tests for texture type/mip/device checks and a no-copy test (rewrite IOSurface, redraw), chroma siting (H.264 left-sited) before goldens \[Rust\]
 
 ## Phase 2: Audio
 
