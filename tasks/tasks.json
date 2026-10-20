@@ -814,12 +814,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-20",
+   "done": "2026-10-20",
+   "commit": "c3f182a",
+   "branch": "p1-003-android-preview-adr",
+   "notes": [
+    {
+     "date": "2026-10-20",
+     "text": "Approach (user choice 2026-10-20): written comparison + ADR 0004, no new code. The surface path already works (P1-001); emulator timings mean nothing for phones, so real-device timing goes with P1-051."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12596,6 +12601,10 @@
     {
      "date": "2026-10-19",
      "text": "Also check the P1-056 Android frame path (spike_clip.mp4 in the app files dir) on a real phone: the UNDEFINED-from-foreign barrier and the AHB memory-type choice are driver-specific; verified only on the emulator."
+    },
+    {
+     "date": "2026-10-20",
+     "text": "From ADR 0004 (P1-003): on the Android preview also measure present-mode pacing (dropped/late frames) and ImageReader memory at preview size (SurfaceProducer MAX_IMAGES = 7), and look for torn frames on an API 29-32 phone (Flutter waits on producer fences only on API 33+)."
     }
    ],
    "source": "added"
@@ -12641,6 +12650,10 @@
     {
      "date": "2026-10-19",
      "text": "From P1-056: the AHB import submits on wgpu's raw VkQueue under a spike lock and waits on a fence, with glFinish on the GLES side. Needs fences (EGL native fence -> Vulkan semaphore), a release barrier back to QUEUE_FAMILY_FOREIGN_EXT before ImageReader reuses the buffer, and a per-format blit pipeline instead of one per call."
+    },
+    {
+     "date": "2026-10-20",
+     "text": "From ADR 0004: the Android preview output needs no double buffering of our own; the SurfaceProducer's ImageReader swapchain already provides it."
     }
    ],
    "source": "added"
@@ -12681,7 +12694,16 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-20",
+     "text": "From ADR 0004 (P1-003): Android keeps the SurfaceProducer window path; drop the wgpu surface on SurfaceProducer.Callback.onSurfaceCleanup and recreate it on onSurfaceAvailable, and keep it alive while the producer lives."
+    },
+    {
+     "date": "2026-10-20",
+     "text": "Correction to the previous ADR 0004 note: with SurfaceLifecycle.manual, onSurfaceCleanup/onSurfaceAvailable never fire (only resetInBackground registers the trim-memory listener; the Huawei SurfaceTexture producer ignores setCallback). Call getSurface() before each draw and recreate the wgpu surface when the Surface differs (always after setSize) or is invalid."
+    }
+   ],
    "source": "added"
   },
   {

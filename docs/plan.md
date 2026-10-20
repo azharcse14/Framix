@@ -362,7 +362,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 - [x] `P1-001` wgpu output ke copy chhara Flutter Texture e dekhano (iOS IOSurface/CVPixelBuffer, Android HardwareBuffer) \[Rust\]\[Native\]
 - [x] `P1-002` Hardware decoder theke GPU te zero-copy frame. Android e MediaCodec output prai opaque YCbCr AHardwareBuffer, Vulkan e YCbCr sampler lage; wgpu te support na thakle Plan B: native pass (Vulkan YCbCr sampler ba GLES samplerExternalOES) diye RGBA te convert, tarpor wgpu te import (ek GPU copy, CPU copy na) \[Native\]\[Rust\]
-- [ ] `P1-003` Android preview output: SurfaceProducer er Surface theke ANativeWindow baniye sorasori wgpu surface e render; AHardwareBuffer path er sathe tulona \[Native\]\[Rust\]
+- [x] `P1-003` Android preview output: SurfaceProducer er Surface theke ANativeWindow baniye sorasori wgpu surface e render; AHardwareBuffer path er sathe tulona \[Native\]\[Rust\]
 - [ ] `P1-004` Low-end Android e GLES fallback: Texture output ar decoder import dui backend e kaj kore kina (GLES 3.0 e compute shader nai) \[Rust\]\[Native\]
 - [x] `P1-005` Rust ↔ platform layer interop: C ABI + init e callback register (FFI niyom dekho) \[Rust\]\[Native\]
 - [x] `P1-006` dart:ffi command-event API (engine\_create with protocol version, engine\_send, engine\_set\_event\_callback, engine\_destroy) \[Dart\]\[Rust\]
