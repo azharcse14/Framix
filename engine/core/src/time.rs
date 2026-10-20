@@ -4,8 +4,8 @@
 /// x/1001 rates) and audio sample rate divides it exactly.
 pub const TICKS_PER_SECOND: i64 = 705_600_000;
 
-/// A point or span on the timeline, in ticks of [`TICKS_PER_SECOND`].
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// A point or span on the timeline, in ticks of [`TICKS_PER_SECOND`]. Defaults to 0.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Time(pub i64);
 
 /// Frames (or samples) per second as an exact fraction `num / den`, e.g. 30000/1001.

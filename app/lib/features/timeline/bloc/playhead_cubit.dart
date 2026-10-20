@@ -1,14 +1,45 @@
+import 'dart:async';
+
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/engine/framix_engine.dart';
+import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 
-/// Mirrors the engine's playhead in ticks. Sends Seek; the engine clamps it.
+/// Mirrors the engine's playhead in ticks. Sends Seek; the engine clamps it and owns the value.
 class PlayheadCubit extends Cubit<int> {
-  PlayheadCubit(this._engine) : super(0);
+  PlayheadCubit(this._engine) : super(0) {
+    _events = _engine.events.listen((e) {
+      if (e.hasPlayheadChanged()) {
+        emit(e.playheadChanged.time.toInt());
+      } else if (e.hasTimelineChanged()) {
+        emit(e.timelineChanged.playhead.toInt());
+      }
+    });
+  }
 
-  // ignore: unused_field, stub until P1-020 implements seek.
   final FramixEngine _engine;
+  late final StreamSubscription<Event> _events;
+  int? _wanted;
 
-  /// Asks the engine to move the playhead to [ticks].
-  void seek(int ticks) {}
+  /// Asks the engine to move the playhead to [ticks]. Seeks made in the same event-loop turn
+  /// (one batch of drag updates) become one Seek to the last position.
+  void seek(int ticks) {
+    final scheduled = _wanted != null;
+    _wanted = ticks;
+    if (!scheduled) scheduleMicrotask(_send);
+  }
+
+  void _send() {
+    final ticks = _wanted;
+    _wanted = null;
+    if (ticks == null || isClosed) return;
+    _engine.send(Command(seek: Seek(time: Int64(ticks))));
+  }
+
+  @override
+  Future<void> close() async {
+    await _events.cancel();
+    return super.close();
+  }
 }

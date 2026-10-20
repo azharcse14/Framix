@@ -6,8 +6,11 @@ class TimelineZoomCubit extends Cubit<double> {
 
   /// Pixels per second on a fresh timeline.
   static const initial = 100.0;
+  static const _min = 20.0;
+  static const _max = 2000.0;
+  static const _step = 1.5;
 
-  void zoomIn() {}
+  void zoomIn() => emit((state * _step).clamp(_min, _max));
 
-  void zoomOut() {}
+  void zoomOut() => emit((state / _step).clamp(_min, _max));
 }

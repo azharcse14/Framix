@@ -51,6 +51,10 @@ class FramixColors extends ThemeExtension<FramixColors> {
   final Color error;
   final Color onError;
 
+  /// The tokens of the current theme; [framixDarkTheme] always installs them.
+  static FramixColors of(BuildContext context) =>
+      Theme.of(context).extension<FramixColors>() ?? dark;
+
   @override
   FramixColors copyWith() => this;
 

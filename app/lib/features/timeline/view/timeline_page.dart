@@ -8,8 +8,9 @@ import '../../preview/view/preview_view.dart';
 import '../bloc/timeline_cubit.dart';
 import 'aspect_ratio_bar.dart';
 import 'import_buttons.dart';
+import 'timeline_view.dart';
 
-/// The timeline: track list, undo/redo, and add-track actions.
+/// The timeline: tracks on a time axis, undo/redo, and add-track actions.
 class TimelinePage extends StatelessWidget {
   const TimelinePage({super.key});
 
@@ -56,10 +57,7 @@ class TimelinePage extends StatelessWidget {
                         ),
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: state.tracks.length,
-                      itemBuilder: (_, i) => _TrackTile(track: state.tracks[i]),
-                    ),
+                  : TimelineView(timeline: state),
             ),
           ),
         ],
@@ -88,56 +86,6 @@ class TimelinePage extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _TrackTile extends StatelessWidget {
-  const _TrackTile({required this.track});
-
-  final Track track;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final isAudio = track.kind == TrackKind.TRACK_KIND_AUDIO;
-    final cubit = context.read<TimelineCubit>();
-    return ListTile(
-      leading: Icon(isAudio ? Icons.audiotrack : Icons.videocam),
-      title: Text(
-        isAudio
-            ? l10n.audioTrackName(track.number)
-            : l10n.videoTrackName(track.number),
-      ),
-      subtitle: Text(l10n.clipCount(track.clips.length)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            tooltip: l10n.muteTrack,
-            isSelected: track.muted,
-            icon: const Icon(Icons.volume_up),
-            selectedIcon: const Icon(Icons.volume_off),
-            onPressed: () => cubit.setTrackFlags(track, muted: !track.muted),
-          ),
-          if (!isAudio)
-            IconButton(
-              tooltip: l10n.hideTrack,
-              isSelected: track.hidden,
-              icon: const Icon(Icons.visibility),
-              selectedIcon: const Icon(Icons.visibility_off),
-              onPressed: () =>
-                  cubit.setTrackFlags(track, hidden: !track.hidden),
-            ),
-          IconButton(
-            tooltip: l10n.lockTrack,
-            isSelected: track.locked,
-            icon: const Icon(Icons.lock_open),
-            selectedIcon: const Icon(Icons.lock),
-            onPressed: () => cubit.setTrackFlags(track, locked: !track.locked),
-          ),
-        ],
       ),
     );
   }

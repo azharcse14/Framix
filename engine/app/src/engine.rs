@@ -2,7 +2,7 @@
 
 use framix_core::aspect::AspectRatio;
 use framix_core::media::{self, Media, RawMedia};
-use framix_core::time::Time;
+use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
     self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
 };
@@ -24,6 +24,9 @@ pub struct Engine {
     history: History,
     store: Option<Box<dyn ProjectStore>>,
     preview: Option<Preview>,
+    /// Where the preview shows; always inside [0, duration]. Not part of the timeline, so undo
+    /// never moves it and saves don't store it.
+    playhead: Time,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -32,6 +35,8 @@ struct Preview {
     renderer: Box<dyn PreviewRenderer>,
     /// Texture requests the platform has not answered yet.
     pending: u32,
+    /// The texture last shown, redrawn when the playhead moves.
+    shown: Option<PlatformTexture>,
 }
 
 /// Largest preview side; also the smallest max texture size of supported GPUs.
@@ -59,6 +64,7 @@ impl Engine {
                 host,
                 renderer,
                 pending: 0,
+                shown: None,
             }),
             ..self
         }
@@ -96,9 +102,33 @@ impl Engine {
             .ok_or("no preview was requested")?;
         preview.pending -= 1;
         let texture = texture?;
-        preview.renderer.draw(texture, Time(0))?;
-        preview.host.frame_available(texture.id);
+        preview.shown = Some(texture);
+        self.redraw()?;
         Ok(texture.id)
+    }
+
+    /// Draws the shown texture at the playhead; nothing to do before a preview exists.
+    fn redraw(&mut self) -> Result<(), String> {
+        let Some(preview) = self.preview.as_mut() else {
+            return Ok(());
+        };
+        let Some(texture) = preview.shown else {
+            return Ok(());
+        };
+        preview.renderer.draw(texture, self.playhead)?;
+        preview.host.frame_available(texture.id);
+        Ok(())
+    }
+
+    /// Moves the playhead to `time` inside the timeline and redraws if it moved.
+    fn move_playhead(&mut self, time: Time) -> Result<(), String> {
+        let end = self.history.timeline().duration();
+        let time = Time(time.0.clamp(0, end.0.max(0)));
+        if time == self.playhead {
+            return Ok(());
+        }
+        self.playhead = time;
+        self.redraw()
     }
 
     /// Applies `command` and returns the single event describing the outcome: the new
@@ -108,7 +138,18 @@ impl Engine {
             return command_failed("command has no kind");
         };
         match self.apply(kind) {
-            Ok(Reply::Timeline) => self.timeline_changed(),
+            // An edit may have shortened the timeline under the playhead.
+            Ok(Reply::Timeline) => match self.move_playhead(self.playhead) {
+                Ok(()) => self.timeline_changed(),
+                Err(reason) => command_failed(reason),
+            },
+            Ok(Reply::Playhead) => Event {
+                kind: Some(proto::event::Kind::PlayheadChanged(
+                    proto::PlayheadChanged {
+                        time: self.playhead.0,
+                    },
+                )),
+            },
             Ok(Reply::Saved) => Event {
                 kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
             },
@@ -193,7 +234,9 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
-            command::Kind::Seek(_) => Err("seek is not implemented yet".to_owned()),
+            command::Kind::Seek(seek) => self
+                .move_playhead(Time(seek.time))
+                .map(|()| Reply::Playhead),
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
                 .map(|()| Reply::Accepted),
@@ -283,8 +326,8 @@ impl Engine {
                 can_redo: self.history.can_redo(),
                 aspect_width: timeline.aspect().width(),
                 aspect_height: timeline.aspect().height(),
-                playhead: 0,
-                ticks_per_second: 0,
+                playhead: self.playhead.0,
+                ticks_per_second: TICKS_PER_SECOND,
             })),
         }
     }
@@ -298,6 +341,8 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
+    /// Where the playhead is now.
+    Playhead,
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.
