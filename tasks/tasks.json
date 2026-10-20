@@ -1058,12 +1058,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-20",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-012-android-fd",
+   "notes": [
+    {
+     "date": "2026-10-20",
+     "text": "blocked: Android import already keeps content:// URIs (no copy, P1-011); the fd path needs a Rust reader (P1-013 probe or the media crate) and the Android vtable (P1-052) for an open_media(uri) -> fd callback. User chose P1-052 first (2026-10-20)."
+    }
+   ],
    "source": "plan"
   },
   {
