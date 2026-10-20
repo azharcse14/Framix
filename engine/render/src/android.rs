@@ -78,6 +78,26 @@ const AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE: u64 = 1 << 8;
 #[link(name = "android")]
 unsafe extern "C" {
     fn AHardwareBuffer_describe(buffer: *const c_void, desc: *mut AHardwareBufferDesc);
+    fn ANativeWindow_getWidth(window: *mut c_void) -> i32;
+    fn ANativeWindow_getHeight(window: *mut c_void) -> i32;
+}
+
+/// The window's size, or `SurfaceUnusable` if it has none.
+///
+/// # Safety
+/// `window` must be a live `ANativeWindow*` for the call.
+pub(crate) unsafe fn window_size(window: NonNull<c_void>) -> Result<(u32, u32), RenderError> {
+    // SAFETY: `window` is live per the contract.
+    let (width, height) = unsafe {
+        (
+            ANativeWindow_getWidth(window.as_ptr()),
+            ANativeWindow_getHeight(window.as_ptr()),
+        )
+    };
+    match (u32::try_from(width), u32::try_from(height)) {
+        (Ok(w), Ok(h)) if w > 0 && h > 0 => Ok((w, h)),
+        _ => Err(RenderError::SurfaceUnusable),
+    }
 }
 
 /// Imports an RGBA8 AHardwareBuffer as a sampled wgpu texture, without copying.

@@ -15,7 +15,5 @@ exclude = [
   "engine_spike_draw_nv12",
   # NDK functions the Android shim imports, not engine exports.
   "ANativeWindow_fromSurface",
-  "ANativeWindow_getWidth",
-  "ANativeWindow_getHeight",
   "ANativeWindow_release",
 ]

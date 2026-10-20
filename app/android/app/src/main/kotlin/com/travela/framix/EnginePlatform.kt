@@ -12,43 +12,60 @@ import java.io.File
 
 /**
  * Fills the engine's `EnginePlatform` vtable through the Rust JNI shim
- * (engine/ffi/src/android_platform.rs). Rust calls [createPreviewTexture] and [frameAvailable]
- * on the engine thread; both return at once and hop to the main thread.
+ * (engine/ffi/src/android_platform.rs). The registration is once per process, like the engine
+ * library; each FlutterEngine (one per Activity) attaches its TextureRegistry while it lives.
  */
-class EnginePlatform(
-    private val textures: TextureRegistry,
-    /** SPIKE (P1-056): app files dir; `spike_clip.mp4` there (adb push) is drawn over the preview. */
-    private val files: File?,
-) {
+object EnginePlatform {
     private val main = Handler(Looper.getMainLooper())
+    private var registered = false
+
+    /** The current FlutterEngine's textures; null between engines. */
+    @Volatile private var textures: TextureRegistry? = null
+
+    /** SPIKE (P1-056): app files dir; `spike_clip.mp4` there (adb push) is drawn over the preview. */
+    @Volatile private var files: File? = null
+
     // ponytail: producers are never released; the preview makes one per launch (P1-055).
     private val producers = mutableMapOf<Long, TextureRegistry.SurfaceProducer>()
 
-    /** Registers with the engine library Dart loads (same process, same instance). */
-    fun register() {
+    /** Registers once per process and serves [textures] until [detach]. Main thread. */
+    fun attach(textures: TextureRegistry, files: File?) {
+        this.textures = textures
+        this.files = files
+        if (registered) return
+        registered = true
         val code = nativeRegister()
         if (code != 0) Log.e("framix", "engine platform register failed: $code")
     }
 
-    /** Called by Rust (JNI): makes a SurfaceProducer and answers [nativePreviewTextureDone] once. */
+    /** The FlutterEngine is going away; later requests fail until the next [attach]. */
+    fun detach(textures: TextureRegistry) {
+        if (this.textures === textures) this.textures = null
+    }
+
+    /**
+     * Called by Rust (JNI, engine thread): makes a SurfaceProducer and answers
+     * [nativePreviewTextureDone] exactly once on the main thread. The body is only the post and
+     * must not throw after it: Rust answers itself when this call throws.
+     */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
     fun createPreviewTexture(width: Int, height: Int, doneCtx: Long) {
         main.post {
-            val producer = runCatching {
-                textures.createSurfaceProducer().also { it.setSize(width, height) }
-            }.getOrNull()
-            if (producer == null) {
-                nativePreviewTextureDone(doneCtx, ERR_GPU, 0, null)
+            val made = runCatching {
+                val registry = checkNotNull(textures) { "no FlutterEngine" }
+                val producer = registry.createSurfaceProducer().also { it.setSize(width, height) }
+                producer to producer.surface
+            }.onFailure { Log.w("framix", "preview texture failed", it) }.getOrNull()
+            if (made == null) {
+                nativePreviewTextureDone(doneCtx, 0, null)
                 return@post
             }
+            val (producer, surface) = made
             producers[producer.id()] = producer
-            nativePreviewTextureDone(doneCtx, 0, producer.id(), producer.surface)
+            nativePreviewTextureDone(doneCtx, producer.id(), surface)
             spikeDecode(producer)
         }
     }
-
-    /** Called by Rust; the SurfaceProducer picks up presented frames by itself. */
-    @Suppress("UNUSED_PARAMETER") // Called from Rust through JNI.
-    fun frameAvailable(textureId: Long) {}
 
     /** SPIKE (P1-056): decode the pushed clip off the main thread and draw it over the preview. */
     private fun spikeDecode(producer: TextureRegistry.SurfaceProducer) {
@@ -65,21 +82,14 @@ class EnginePlatform(
 
     private external fun nativeRegister(): Int
 
-    /** engine/ffi/src/android_platform.rs: hands the producer's Surface to the engine. */
-    private external fun nativePreviewTextureDone(
-        doneCtx: Long, status: Int, textureId: Long, surface: Surface?,
-    )
+    /** engine/ffi/src/android_platform.rs: hands the producer's Surface (null = failed) over. */
+    private external fun nativePreviewTextureDone(doneCtx: Long, textureId: Long, surface: Surface?)
 
     /** SPIKE (P1-056): engine/ffi/src/spike_preview.rs, draws an RGBA8 frame. */
     private external fun nativeRenderFrame(surface: Surface, frame: HardwareBuffer): Int
 
-    private companion object {
-        /** ENGINE_ERR_GPU in engine/ffi. */
-        const val ERR_GPU = -5
-
-        init {
-            // The engine library Dart already loaded (native assets); same instance.
-            System.loadLibrary("framix_ffi")
-        }
+    init {
+        // The engine library Dart already loaded (native assets); same instance.
+        System.loadLibrary("framix_ffi")
     }
 }

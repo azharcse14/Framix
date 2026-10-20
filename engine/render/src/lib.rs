@@ -387,10 +387,10 @@ impl Gpu {
     pub unsafe fn draw_to_android_window(
         &self,
         window: std::ptr::NonNull<std::ffi::c_void>,
-        width: u32,
-        height: u32,
         source: Option<&wgpu::Texture>,
     ) -> Result<(), RenderError> {
+        // SAFETY: the caller guarantees a live window for the whole call.
+        let (width, height) = unsafe { android::window_size(window) }?;
         use wgpu::rwh::{
             AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
         };
@@ -661,29 +661,11 @@ fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
 
 #[cfg(target_os = "android")]
 fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
-    #[link(name = "android")]
-    unsafe extern "C" {
-        fn ANativeWindow_getWidth(window: *mut std::ffi::c_void) -> i32;
-        fn ANativeWindow_getHeight(window: *mut std::ffi::c_void) -> i32;
-    }
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
         .ok_or("null preview window")?;
     // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
-    // reported as made.
-    let (width, height) = unsafe {
-        (
-            ANativeWindow_getWidth(window.as_ptr()),
-            ANativeWindow_getHeight(window.as_ptr()),
-        )
-    };
-    let (Ok(w), Ok(h)) = (u32::try_from(width), u32::try_from(height)) else {
-        return Err(RenderError::SurfaceUnusable.to_string());
-    };
-    if w == 0 || h == 0 {
-        return Err(RenderError::SurfaceUnusable.to_string());
-    }
-    // SAFETY: as above; wgpu's surface is dropped inside the call.
-    unsafe { gpu.draw_to_android_window(window, w, h, None) }.map_err(|e| e.to_string())
+    // reported as made; wgpu's surface is dropped inside the call.
+    unsafe { gpu.draw_to_android_window(window, None) }.map_err(|e| e.to_string())
 }
 
 #[cfg(not(any(target_vendor = "apple", target_os = "android")))]

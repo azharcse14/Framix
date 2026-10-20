@@ -19,7 +19,6 @@ struct Java {
     /// Global reference to the Kotlin `EnginePlatform` object.
     platform: jobject,
     create_preview_texture: jmethodID,
-    frame_available: jmethodID,
 }
 
 // SAFETY: a JavaVM pointer, a global reference and method ids are valid on every thread (JNI
@@ -34,8 +33,6 @@ static JAVA: OnceLock<Java> = OnceLock::new();
 #[link(name = "android")]
 unsafe extern "C" {
     pub(crate) fn ANativeWindow_fromSurface(env: *mut JNIEnv, surface: jobject) -> *mut c_void;
-    pub(crate) fn ANativeWindow_getWidth(window: *mut c_void) -> i32;
-    pub(crate) fn ANativeWindow_getHeight(window: *mut c_void) -> i32;
     pub(crate) fn ANativeWindow_release(window: *mut c_void);
 }
 
@@ -94,38 +91,55 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
             (!id.is_null()).then_some(id)
         };
         let create_preview_texture = method(c"createPreviewTexture", c"(IIJ)V")?;
-        let frame_available = method(c"frameAvailable", c"(J)V")?;
         let platform = (jni.NewGlobalRef)(env, this);
         (!platform.is_null()).then_some(Java {
             vm,
             platform,
             create_preview_texture,
-            frame_available,
         })
     }
 }
 
-/// Calls a void Kotlin method on the platform object from the current (engine) thread, which
-/// stays attached to the VM as a daemon. Returns false if the call could not run or threw.
-fn call(method: impl FnOnce(&Java) -> jmethodID, args: &[jvalue]) -> bool {
+/// Calls `createPreviewTexture` on the Kotlin object. A thread that was not attached to the VM
+/// is attached for the call and detached after it: the engine thread may exit later (its join
+/// in `engine_destroy`), and ART aborts on an attached thread exiting. Returns false if the call
+/// could not run or threw.
+///
+/// # Safety
+/// `args` must match the `(IIJ)V` signature.
+unsafe fn call_create_preview_texture(args: &[jvalue; 3]) -> bool {
     let Some(java) = JAVA.get() else {
         return false;
     };
-    // SAFETY: `java` holds a live VM, a global reference and method ids of its class (JNI
-    // keeps them valid for the process); `args` match the method signatures used by callers.
+    // SAFETY: `java` holds a live VM, a global reference and a method id of its class (JNI keeps
+    // them valid for the process); `args` match the method signature (contract).
     unsafe {
+        let invoke = &(**java.vm).v1_4;
         let mut env: *mut c_void = null_mut();
-        if ((**java.vm).v1_4.AttachCurrentThreadAsDaemon)(java.vm, &mut env, null_mut())
-            != jni_sys::JNI_OK
-        {
-            return false;
-        }
+        let attached_here = match (invoke.GetEnv)(java.vm, &mut env, jni_sys::JNI_VERSION_1_6) {
+            jni_sys::JNI_OK => false,
+            jni_sys::JNI_EDETACHED => {
+                if (invoke.AttachCurrentThread)(java.vm, &mut env, null_mut()) != jni_sys::JNI_OK {
+                    return false;
+                }
+                true
+            }
+            _ => return false,
+        };
         let env = env.cast::<JNIEnv>();
         let jni = &(**env).v1_6;
-        (jni.CallVoidMethodA)(env, java.platform, method(java), args.as_ptr());
+        (jni.CallVoidMethodA)(
+            env,
+            java.platform,
+            java.create_preview_texture,
+            args.as_ptr(),
+        );
         let threw = (jni.ExceptionCheck)(env);
         if threw {
             (jni.ExceptionClear)(env);
+        }
+        if attached_here {
+            (invoke.DetachCurrentThread)(java.vm);
         }
         !threw
     }
@@ -159,24 +173,23 @@ fn request_texture(width: u32, height: u32, done: EnginePreviewTextureDone, done
             j: done_ctx as jlong,
         },
     ];
-    if !call(|java| java.create_preview_texture, &args) {
-        // Kotlin never got the request (or threw before taking it), so answer it here.
-        // SAFETY: as above; Kotlin only answers after a call that returned normally.
+    // SAFETY: the three values match `(IIJ)V`: width, height, done_ctx.
+    if !unsafe { call_create_preview_texture(&args) } {
+        // Kotlin never got the request, or threw before posting it: EnginePlatform.kt's
+        // createPreviewTexture only posts and cannot throw after that, so it will not answer.
+        // SAFETY: as above, answered exactly once.
         unsafe { done(done_ctx, ENGINE_ERR_GPU, 0, null_mut()) };
     }
 }
 
-/// `frame_available`: tells Kotlin; on Android the SurfaceProducer picks up frames by itself.
-unsafe extern "C" fn frame_available(_ctx: *mut c_void, texture_id: i64) {
-    ffi_guard(|| {
-        call(|java| java.frame_available, &[jvalue { j: texture_id }]);
-        ENGINE_OK
-    });
-}
+/// `frame_available`: nothing to do on Android; the SurfaceProducer picks up presented frames
+/// by itself, so no JNI round trip per frame.
+unsafe extern "C" fn frame_available(_ctx: *mut c_void, _texture_id: i64) {}
 
-/// JNI entry for `EnginePlatform.nativePreviewTextureDone(doneCtx, status, textureId, surface)`:
-/// answers one `createPreviewTexture` call. On success the Surface's `ANativeWindow` becomes
-/// the texture handle the renderer draws into; the engine owns that window reference.
+/// JNI entry for `EnginePlatform.nativePreviewTextureDone(doneCtx, textureId, surface)`: answers
+/// one `createPreviewTexture` call; a null `surface` means it failed. On success the Surface's
+/// `ANativeWindow` becomes the texture handle the renderer draws into; the engine owns that
+/// window reference.
 ///
 /// # Safety
 /// Called by the JVM: `env` is the calling thread's `JNIEnv*`; `done_ctx` comes from exactly one
@@ -187,7 +200,6 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativePreviewTex
     env: *mut JNIEnv,
     _this: jobject,
     done_ctx: jlong,
-    status: jint,
     texture_id: jlong,
     surface: jobject,
 ) {
@@ -195,13 +207,12 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativePreviewTex
         let done_ctx = done_ctx as *mut c_void;
         // SAFETY: env and surface are live per this fn's contract; the window reference it
         // returns is handed to the engine with the texture.
-        let window = (status == ENGINE_OK && !surface.is_null())
+        let window = (!surface.is_null())
             .then(|| NonNull::new(unsafe { ANativeWindow_fromSurface(env, surface) }))
             .flatten();
         let (status, handle) = match window {
             Some(window) => (ENGINE_OK, window.as_ptr()),
-            None if status == ENGINE_OK => (ENGINE_ERR_NULL, null_mut()),
-            None => (status, null_mut()),
+            None => (ENGINE_ERR_GPU, null_mut()),
         };
         // SAFETY: `done_ctx` came from create_preview_texture and is answered once (contract).
         unsafe { preview_texture_done(done_ctx, status, texture_id, handle) };

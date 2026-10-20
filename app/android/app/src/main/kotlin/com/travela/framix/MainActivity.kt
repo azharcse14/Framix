@@ -12,7 +12,12 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "framix/media")
             .setMethodCallHandler(mediaPicker)
-        EnginePlatform(flutterEngine.renderer, getExternalFilesDir(null)).register()
+        EnginePlatform.attach(flutterEngine.renderer, getExternalFilesDir(null))
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        EnginePlatform.detach(flutterEngine.renderer)
+        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     override fun onDestroy() {

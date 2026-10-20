@@ -91,7 +91,7 @@ pub unsafe extern "C" fn engine_spike_draw_nv12(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRenderFrame(
     env: *mut c_void,
-    _class: *mut c_void,
+    _this: *mut c_void,
     surface: *mut c_void,
     frame: *mut c_void,
 ) -> i32 {
@@ -127,10 +127,7 @@ unsafe fn render_into_surface(
     surface: *mut c_void,
     frame: std::ptr::NonNull<c_void>,
 ) -> i32 {
-    use crate::android_platform::{
-        ANativeWindow_fromSurface, ANativeWindow_getHeight, ANativeWindow_getWidth,
-        ANativeWindow_release,
-    };
+    use crate::android_platform::{ANativeWindow_fromSurface, ANativeWindow_release};
     if surface.is_null() {
         return ENGINE_ERR_NULL;
     }
@@ -159,24 +156,11 @@ unsafe fn render_into_surface(
     let _gpu_use = GPU_USE
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    // SAFETY: window is live while `window` is in scope.
-    let (width, height) = unsafe {
-        (
-            ANativeWindow_getWidth(window.0.as_ptr()),
-            ANativeWindow_getHeight(window.0.as_ptr()),
-        )
-    };
-    let (Ok(w), Ok(h)) = (u32::try_from(width), u32::try_from(height)) else {
-        return report(Err(framix_render::RenderError::SurfaceUnusable));
-    };
-    if w == 0 || h == 0 {
-        return report(Err(framix_render::RenderError::SurfaceUnusable));
-    }
     // SAFETY: `frame` is live and finished per this fn's contract; `GPU_USE` is held, so no
     // other thread uses the queue.
     let drawn = unsafe { gpu.import_android_frame(frame) }.and_then(|source| {
         // SAFETY: `window` outlives the call; wgpu's surface is dropped inside it.
-        unsafe { gpu.draw_to_android_window(window.0, w, h, Some(&source)) }
+        unsafe { gpu.draw_to_android_window(window.0, Some(&source)) }
     });
     report(drawn)
 }
