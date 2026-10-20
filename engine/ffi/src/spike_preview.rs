@@ -1,9 +1,5 @@
-//! SPIKE (P1-001): Android only. Draws the wgpu test pattern into a Flutter SurfaceProducer's
-//! Surface over JNI. iOS uses the platform callbacks (platform.rs); Android moves there once it
-//! has a vtable.
-//!
-//! SPIKE (P1-056): Android also draws one decoded frame, converted to an RGBA8 HardwareBuffer by
-//! the app's GLES pass and imported into wgpu.
+//! SPIKE (P1-056): Android draws one decoded frame, converted to an RGBA8 HardwareBuffer by the
+//! app's GLES pass and imported into wgpu, over the preview the engine made.
 //!
 //! SPIKE (P1-002): iOS only. Draws one decoded NV12 frame into the preview texture, so the
 //! simulator shows a VideoToolbox frame reaching wgpu with no copy. The Decoder port replaces it.
@@ -84,25 +80,7 @@ pub unsafe extern "C" fn engine_spike_draw_nv12(
     })
 }
 
-/// SPIKE (P1-001): JNI entry for `SpikePreview.nativeRender(surface)` in the Android app. Draws
-/// one test-pattern frame into `surface`, the Surface of a Flutter SurfaceProducer, and
-/// presents it; Flutter samples the window's HardwareBuffers directly. Returns an engine code.
-///
-/// # Safety
-/// Called by the JVM: `env` is the calling thread's `JNIEnv*` and `surface` a live local
-/// reference to an `android.view.Surface` (or null).
-#[cfg(target_os = "android")]
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRender(
-    env: *mut c_void,
-    _class: *mut c_void,
-    surface: *mut c_void,
-) -> i32 {
-    // SAFETY: forwarded from this fn's contract.
-    ffi_guard(|| unsafe { render_into_surface(env, surface, None) })
-}
-
-/// SPIKE (P1-056): JNI entry for `SpikePreview.nativeRenderFrame(surface, frame)`. Draws `frame`,
+/// SPIKE (P1-056): JNI entry for `EnginePlatform.nativeRenderFrame(surface, frame)`. Draws `frame`,
 /// a `android.hardware.HardwareBuffer` holding a decoded video frame the app converted to RGBA8
 /// on the GPU, into `surface` with no CPU copy. Returns an engine code.
 ///
@@ -111,7 +89,7 @@ pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRender(
 /// local references (or null), and the GPU work that wrote `frame` is done.
 #[cfg(target_os = "android")]
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRenderFrame(
+pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRenderFrame(
     env: *mut c_void,
     _class: *mut c_void,
     surface: *mut c_void,
@@ -134,11 +112,11 @@ pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRenderFrame(
             return ENGINE_ERR_NULL;
         };
         // SAFETY: forwarded from this fn's contract; `ahb` is live for the call.
-        unsafe { render_into_surface(env, surface, Some(ahb)) }
+        unsafe { render_into_surface(env, surface, ahb) }
     })
 }
 
-/// Draws into `surface`'s window: the imported `frame` when given, else the test pattern.
+/// Draws the imported `frame` into `surface`'s window.
 ///
 /// # Safety
 /// `env` is the calling thread's `JNIEnv*`, `surface` a live `android.view.Surface` local
@@ -147,15 +125,12 @@ pub unsafe extern "C" fn Java_com_travela_framix_SpikePreview_nativeRenderFrame(
 unsafe fn render_into_surface(
     env: *mut c_void,
     surface: *mut c_void,
-    frame: Option<std::ptr::NonNull<c_void>>,
+    frame: std::ptr::NonNull<c_void>,
 ) -> i32 {
-    #[link(name = "android")]
-    unsafe extern "C" {
-        fn ANativeWindow_fromSurface(env: *mut c_void, surface: *mut c_void) -> *mut c_void;
-        fn ANativeWindow_getWidth(window: *mut c_void) -> i32;
-        fn ANativeWindow_getHeight(window: *mut c_void) -> i32;
-        fn ANativeWindow_release(window: *mut c_void);
-    }
+    use crate::android_platform::{
+        ANativeWindow_fromSurface, ANativeWindow_getHeight, ANativeWindow_getWidth,
+        ANativeWindow_release,
+    };
     if surface.is_null() {
         return ENGINE_ERR_NULL;
     }
@@ -170,7 +145,8 @@ unsafe fn render_into_surface(
     // SAFETY: env and surface are live per this fn's contract; the returned window holds its
     // own reference, owned by `Window`.
     let Some(window) =
-        std::ptr::NonNull::new(unsafe { ANativeWindow_fromSurface(env, surface) }).map(Window)
+        std::ptr::NonNull::new(unsafe { ANativeWindow_fromSurface(env.cast(), surface.cast()) })
+            .map(Window)
     else {
         return ENGINE_ERR_NULL;
     };
@@ -198,12 +174,9 @@ unsafe fn render_into_surface(
     }
     // SAFETY: `frame` is live and finished per this fn's contract; `GPU_USE` is held, so no
     // other thread uses the queue.
-    let source = frame
-        .map(|ahb| unsafe { gpu.import_android_frame(ahb) })
-        .transpose();
-    let drawn = source.and_then(|source| {
+    let drawn = unsafe { gpu.import_android_frame(frame) }.and_then(|source| {
         // SAFETY: `window` outlives the call; wgpu's surface is dropped inside it.
-        unsafe { gpu.draw_to_android_window(window.0, w, h, source.as_ref()) }
+        unsafe { gpu.draw_to_android_window(window.0, w, h, Some(&source)) }
     });
     report(drawn)
 }

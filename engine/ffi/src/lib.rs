@@ -8,19 +8,23 @@ use framix_app::preview::PlatformTexture;
 use framix_app::proto::{Command, Event};
 use prost::Message as _;
 
+#[cfg(target_os = "android")]
+mod android_platform;
 mod platform;
 #[cfg(any(target_os = "android", target_vendor = "apple"))]
 mod spike_preview;
+#[cfg(target_os = "android")]
+pub use android_platform::{
+    Java_com_travela_framix_EnginePlatform_nativePreviewTextureDone,
+    Java_com_travela_framix_EnginePlatform_nativeRegister,
+};
 pub use platform::{
     ENGINE_PLATFORM_VERSION, EnginePlatform, EnginePreviewTextureDone, engine_platform_register,
 };
+#[cfg(target_os = "android")]
+pub use spike_preview::Java_com_travela_framix_EnginePlatform_nativeRenderFrame;
 #[cfg(target_vendor = "apple")]
 pub use spike_preview::engine_spike_draw_nv12;
-#[cfg(target_os = "android")]
-pub use spike_preview::{
-    Java_com_travela_framix_SpikePreview_nativeRender,
-    Java_com_travela_framix_SpikePreview_nativeRenderFrame,
-};
 
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;

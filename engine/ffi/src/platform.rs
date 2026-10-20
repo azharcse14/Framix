@@ -16,7 +16,8 @@ pub const ENGINE_PLATFORM_VERSION: u32 = 1;
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
 /// other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
-/// iOS) and must stay alive while Flutter may show `texture_id`.
+/// iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive while
+/// Flutter may show `texture_id`.
 pub type EnginePreviewTextureDone =
     unsafe extern "C" fn(done_ctx: *mut c_void, status: i32, texture_id: i64, texture: *mut c_void);
 
@@ -128,7 +129,7 @@ impl PreviewHost for PlatformHost {
 ///
 /// # Safety
 /// `done_ctx` must come from [`PlatformHost::create_texture`] and be passed exactly once.
-unsafe extern "C" fn preview_texture_done(
+pub(crate) unsafe extern "C" fn preview_texture_done(
     done_ctx: *mut c_void,
     status: i32,
     texture_id: i64,

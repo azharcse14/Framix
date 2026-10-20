@@ -85,7 +85,8 @@ typedef struct EngineBuffer {
  * The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
  * with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
  * other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
- * iOS) and must stay alive while Flutter may show `texture_id`.
+ * iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive while
+ * Flutter may show `texture_id`.
  */
 typedef void (*EnginePreviewTextureDone)(void *done_ctx,
                                          int32_t status,

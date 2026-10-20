@@ -31,5 +31,6 @@ plumbing in Dart.
 - Dart only sees texture ids; no handles or method channels for engine work.
 - A platform that never calls `done` leaks one small context but cannot hang shutdown.
 - Rendering still runs on the engine thread until the render thread task lands.
-- Android needs a JNI shim to fill the same vtable (Kotlin has no C function pointers); until
-  then Android keeps the P1-001 spike path.
+- Android fills the same vtable through a Rust JNI shim (Kotlin has no C function pointers):
+  `EnginePlatform.kt` registers itself, Rust trampolines call it, and the SurfaceProducer's
+  `ANativeWindow` is the texture handle (P1-052, engine/ffi/src/android_platform.rs).

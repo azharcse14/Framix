@@ -270,6 +270,7 @@ dependencies = [
  "framix_app",
  "framix_render",
  "framix_storage",
+ "jni-sys 0.4.1",
  "prost",
 ]
 

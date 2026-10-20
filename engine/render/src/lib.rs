@@ -633,7 +633,8 @@ impl GpuRenderer {
     ///
     /// # Safety
     /// `draw` must only get textures whose `handle` came from a successful
-    /// `EnginePreviewTextureDone` (a live `id<MTLTexture>` on Apple) and stays alive for the call.
+    /// `EnginePreviewTextureDone` (a live `id<MTLTexture>` on Apple, an owned `ANativeWindow*` on
+    /// Android) and stays alive for the call.
     pub unsafe fn new() -> Self {
         Self { gpu: None }
     }
@@ -658,7 +659,34 @@ fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
     gpu.draw_test_pattern(&texture).map_err(|e| e.to_string())
 }
 
-#[cfg(not(target_vendor = "apple"))]
+#[cfg(target_os = "android")]
+fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
+    #[link(name = "android")]
+    unsafe extern "C" {
+        fn ANativeWindow_getWidth(window: *mut std::ffi::c_void) -> i32;
+        fn ANativeWindow_getHeight(window: *mut std::ffi::c_void) -> i32;
+    }
+    let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
+        .ok_or("null preview window")?;
+    // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
+    // reported as made.
+    let (width, height) = unsafe {
+        (
+            ANativeWindow_getWidth(window.as_ptr()),
+            ANativeWindow_getHeight(window.as_ptr()),
+        )
+    };
+    let (Ok(w), Ok(h)) = (u32::try_from(width), u32::try_from(height)) else {
+        return Err(RenderError::SurfaceUnusable.to_string());
+    };
+    if w == 0 || h == 0 {
+        return Err(RenderError::SurfaceUnusable.to_string());
+    }
+    // SAFETY: as above; wgpu's surface is dropped inside the call.
+    unsafe { gpu.draw_to_android_window(window, w, h, None) }.map_err(|e| e.to_string())
+}
+
+#[cfg(not(any(target_vendor = "apple", target_os = "android")))]
 fn draw_into(_: &Gpu, _: PlatformTexture) -> Result<(), String> {
     Err("no platform texture support on this OS yet".to_owned())
 }
