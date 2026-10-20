@@ -55,7 +55,8 @@ class FramixApp extends StatelessWidget {
           providers: [
             BlocProvider(create: (_) => TimelineCubit(engine)),
             BlocProvider(create: (_) => PreviewCubit(engine)),
-            BlocProvider(create: (_) => PlayheadCubit(engine)),
+            // Not lazy: it must see every playhead event from the start.
+            BlocProvider(create: (_) => PlayheadCubit(engine), lazy: false),
             BlocProvider(create: (_) => TimelineZoomCubit()),
           ],
           child: const TimelinePage(),

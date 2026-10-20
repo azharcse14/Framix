@@ -51,9 +51,10 @@ class FramixColors extends ThemeExtension<FramixColors> {
   final Color error;
   final Color onError;
 
-  /// The tokens of the current theme; [framixDarkTheme] always installs them.
+  /// The tokens of the current theme. Every app theme (framixDarkTheme) installs them, so a
+  /// missing extension is a programming error.
   static FramixColors of(BuildContext context) =>
-      Theme.of(context).extension<FramixColors>() ?? dark;
+      Theme.of(context).extension<FramixColors>()!;
 
   @override
   FramixColors copyWith() => this;

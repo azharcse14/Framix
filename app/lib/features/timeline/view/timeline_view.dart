@@ -24,14 +24,19 @@ class TimelineView extends StatelessWidget {
   static const playheadKey = ValueKey('timeline-playhead');
 
   static const _headerWidth = 176.0;
-  static const _rulerHeight = 32.0;
-  // Room for the header's name, clip count and switches, Bangla line height included.
-  static const _laneHeight = 124.0;
+  // A touch target (48dp), not just the marks.
+  static const _rulerHeight = 48.0;
+
+  /// Lane height follows the header: two text lines at the user's text scale (with room for
+  /// Bangla's taller lines) plus the 48dp switches.
+  static double _laneHeight(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(2 * 26) + 48 + FramixSpace.m;
 
   @override
   Widget build(BuildContext context) {
     final pps = context.watch<TimelineZoomCubit>().state;
     final ticksPerSecond = timeline.ticksPerSecond.toInt();
+    final laneHeight = _laneHeight(context);
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
 
@@ -50,7 +55,7 @@ class TimelineView extends StatelessWidget {
                       const SizedBox(height: _rulerHeight),
                       for (final track in timeline.tracks)
                         SizedBox(
-                          height: _laneHeight,
+                          height: laneHeight,
                           child: _TrackHeader(track: track),
                         ),
                     ],
@@ -71,23 +76,26 @@ class TimelineView extends StatelessWidget {
                           width: width,
                           height:
                               _rulerHeight +
-                              _laneHeight * timeline.tracks.length,
+                              laneHeight * timeline.tracks.length,
                           child: Stack(
                             children: [
-                              Column(
-                                children: [
-                                  _Ruler(
-                                    pps: pps,
-                                    ticksPerSecond: ticksPerSecond,
-                                    height: _rulerHeight,
-                                  ),
-                                  for (final track in timeline.tracks)
-                                    _Lane(
-                                      track: track,
-                                      height: _laneHeight,
-                                      px: px,
+                              // Scrubbing repaints only the playhead line, not marks and clips.
+                              RepaintBoundary(
+                                child: Column(
+                                  children: [
+                                    _Ruler(
+                                      pps: pps,
+                                      ticksPerSecond: ticksPerSecond,
+                                      height: _rulerHeight,
                                     ),
-                                ],
+                                    for (final track in timeline.tracks)
+                                      _Lane(
+                                        track: track,
+                                        height: laneHeight,
+                                        px: px,
+                                      ),
+                                  ],
+                                ),
                               ),
                               // The playhead changes often; only this line rebuilds.
                               BlocBuilder<PlayheadCubit, int>(
@@ -189,21 +197,33 @@ class _Ruler extends StatelessWidget {
     }
 
     final colors = FramixColors.of(context);
-    return Semantics(
-      label: AppLocalizations.of(context).timelineRuler,
-      child: GestureDetector(
-        key: TimelineView.rulerKey,
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (d) => seekTo(d.localPosition.dx),
-        onHorizontalDragUpdate: (d) => seekTo(d.localPosition.dx),
-        child: CustomPaint(
-          size: Size(double.infinity, height),
-          painter: _RulerPainter(
-            pps: pps,
-            mark: colors.outline,
-            label: colors.textMuted,
-          ),
+    final ruler = GestureDetector(
+      key: TimelineView.rulerKey,
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (d) => seekTo(d.localPosition.dx),
+      onHorizontalDragUpdate: (d) => seekTo(d.localPosition.dx),
+      child: CustomPaint(
+        size: Size(double.infinity, height),
+        painter: _RulerPainter(
+          pps: pps,
+          mark: colors.outline,
+          label: colors.textMuted,
         ),
+      ),
+    );
+    // Screen readers seek one second at a time; the value is the playhead timecode.
+    return BlocBuilder<PlayheadCubit, int>(
+      builder: (context, at) => Semantics(
+        label: AppLocalizations.of(context).timelineRuler,
+        value: _timecode(at, ticksPerSecond),
+        increasedValue: _timecode(at + ticksPerSecond, ticksPerSecond),
+        decreasedValue: _timecode(
+          math.max(0, at - ticksPerSecond),
+          ticksPerSecond,
+        ),
+        onIncrease: () => playhead.seek(at + ticksPerSecond),
+        onDecrease: () => playhead.seek(at - ticksPerSecond),
+        child: ruler,
       ),
     );
   }
@@ -241,7 +261,9 @@ class _RulerPainter extends CustomPainter {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      text.paint(canvas, Offset(x + 2, 2));
+      text
+        ..paint(canvas, Offset(x + 2, 2))
+        ..dispose();
     }
   }
 

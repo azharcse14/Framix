@@ -102,33 +102,37 @@ impl Engine {
             .ok_or("no preview was requested")?;
         preview.pending -= 1;
         let texture = texture?;
+        preview.renderer.draw(texture, self.playhead)?;
+        preview.host.frame_available(texture.id);
+        // Only a preview that drew once is redrawn later.
         preview.shown = Some(texture);
-        self.redraw()?;
         Ok(texture.id)
     }
 
-    /// Draws the shown texture at the playhead; nothing to do before a preview exists.
-    fn redraw(&mut self) -> Result<(), String> {
+    /// Best effort: draws the shown texture at the playhead. A failed draw stops later redraws
+    /// (the preview is gone) but never fails the command that moved the playhead; the
+    /// playhead and the timeline are the state, the picture follows them.
+    fn redraw(&mut self) {
         let Some(preview) = self.preview.as_mut() else {
-            return Ok(());
+            return;
         };
         let Some(texture) = preview.shown else {
-            return Ok(());
+            return;
         };
-        preview.renderer.draw(texture, self.playhead)?;
-        preview.host.frame_available(texture.id);
-        Ok(())
+        match preview.renderer.draw(texture, self.playhead) {
+            Ok(()) => preview.host.frame_available(texture.id),
+            Err(_) => preview.shown = None,
+        }
     }
 
     /// Moves the playhead to `time` inside the timeline and redraws if it moved.
-    fn move_playhead(&mut self, time: Time) -> Result<(), String> {
+    fn move_playhead(&mut self, time: Time) {
         let end = self.history.timeline().duration();
         let time = Time(time.0.clamp(0, end.0.max(0)));
-        if time == self.playhead {
-            return Ok(());
+        if time != self.playhead {
+            self.playhead = time;
+            self.redraw();
         }
-        self.playhead = time;
-        self.redraw()
     }
 
     /// Applies `command` and returns the single event describing the outcome: the new
@@ -139,10 +143,11 @@ impl Engine {
         };
         match self.apply(kind) {
             // An edit may have shortened the timeline under the playhead.
-            Ok(Reply::Timeline) => match self.move_playhead(self.playhead) {
-                Ok(()) => self.timeline_changed(),
-                Err(reason) => command_failed(reason),
-            },
+            Ok(Reply::Timeline) => {
+                // An edit may have shortened the timeline under the playhead.
+                self.move_playhead(self.playhead);
+                self.timeline_changed()
+            }
             Ok(Reply::Playhead) => Event {
                 kind: Some(proto::event::Kind::PlayheadChanged(
                     proto::PlayheadChanged {
@@ -183,9 +188,13 @@ impl Engine {
             command::Kind::GetTimeline(_) => Ok(Reply::Timeline),
             command::Kind::NewProject(_) => {
                 self.history = History::default();
+                self.move_playhead(Time(0));
                 Ok(Reply::Timeline)
             }
-            command::Kind::OpenProject(open) => timeline(self.open(&open.path)),
+            command::Kind::OpenProject(open) => timeline(self.open(&open.path).map(|()| {
+                // Another project starts at its beginning.
+                self.move_playhead(Time(0));
+            })),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
                 timeline(self.edit(|tl| tl.remove_clip(ClipId(op.clip_id))))
@@ -234,9 +243,10 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
-            command::Kind::Seek(seek) => self
-                .move_playhead(Time(seek.time))
-                .map(|()| Reply::Playhead),
+            command::Kind::Seek(seek) => {
+                self.move_playhead(Time(seek.time));
+                Ok(Reply::Playhead)
+            }
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
                 .map(|()| Reply::Accepted),
