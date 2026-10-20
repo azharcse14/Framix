@@ -43,7 +43,7 @@ decision rests on structure. Timings come with the device check (P1-051).
   - `SurfaceProducer.Callback` only fires for `resetInBackground`;
   - the Huawei SurfaceTexture producer ignores `setCallback`.
 - Kotlin calls `getSurface()` before each draw, as TextureRegistry asks. Rust recreates the wgpu
-  surface when that Surface differs from the last one (always after `setSize`) or is no longer
+  surface when that Surface differs from the last one (after `setSize` changes the size) or is no longer
   valid. This is part of P1-055.
 - Do not build the own-AHB output path. Revisit it only if the real-device check (P1-051) shows
   a cost the surface path cannot fix: dropped or late frames from wgpu's present mode, or more
