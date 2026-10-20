@@ -108,3 +108,56 @@ fn a_new_project_starts_at_zero() {
         other => panic!("{other:?}"),
     }
 }
+
+/// Draws once, then the GPU is lost; counts draw attempts.
+struct DiesAfterFirst(std::sync::Arc<std::sync::atomic::AtomicU32>);
+
+impl PreviewRenderer for DiesAfterFirst {
+    fn draw(&mut self, _: PlatformTexture, _: Time) -> Result<(), String> {
+        let n = self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        if n == 0 {
+            Ok(())
+        } else {
+            Err("device lost".into())
+        }
+    }
+}
+
+#[test]
+fn a_preview_lost_after_its_first_frame_stops_being_redrawn() {
+    let draws = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+    let mut engine =
+        Engine::default().with_preview(Box::new(Host), Box::new(DiesAfterFirst(draws.clone())));
+    run(
+        &mut engine,
+        command::Kind::ImportMedia(ImportMedia {
+            items: vec![MediaItem {
+                uri: "content://media/external/video/0".into(),
+                kind: MediaKind::Video as i32,
+                duration_value: 4000,
+                duration_timescale: 1000,
+                width: 1080,
+                height: 1920,
+                rotation: 0,
+                codec: "avc1".into(),
+            }],
+        }),
+    );
+    run(
+        &mut engine,
+        command::Kind::CreatePreview(CreatePreview {
+            width: 64,
+            height: 64,
+        }),
+    );
+    engine.preview_texture_ready(Ok(PlatformTexture { id: 7, handle: 1 }));
+    for t in 1..=3 {
+        let e = run(&mut engine, command::Kind::Seek(Seek { time: t * SECOND }));
+        assert!(matches!(e.kind, Some(event::Kind::PlayheadChanged(_))));
+    }
+    let attempts = draws.load(std::sync::atomic::Ordering::SeqCst);
+    assert_eq!(
+        attempts, 2,
+        "first frame, one failed redraw, then no more attempts"
+    );
+}

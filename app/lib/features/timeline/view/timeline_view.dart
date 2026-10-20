@@ -27,10 +27,14 @@ class TimelineView extends StatelessWidget {
   // A touch target (48dp), not just the marks.
   static const _rulerHeight = 48.0;
 
-  /// Lane height follows the header: two text lines at the user's text scale (with room for
-  /// Bangla's taller lines) plus the 48dp switches.
-  static double _laneHeight(BuildContext context) =>
-      MediaQuery.textScalerOf(context).scale(2 * 26) + 48 + FramixSpace.m;
+  /// Lane height follows the header: two text lines plus the 48dp switches. Each line's font
+  /// size is scaled on its own (system scaling is nonlinear on Android 14+); a Bangla line is
+  /// about twice its font size tall.
+  static double _laneHeight(BuildContext context) {
+    final fontSize = DefaultTextStyle.of(context).style.fontSize ?? 14;
+    final line = MediaQuery.textScalerOf(context).scale(fontSize) * 2;
+    return 2 * line + 48 + FramixSpace.m;
+  }
 
   @override
   Widget build(BuildContext context) {
