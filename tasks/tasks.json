@@ -1260,12 +1260,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-21",
+   "done": "2026-10-21",
+   "commit": "c8ed93d",
+   "branch": "p1-020-zoom-scrub",
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "Limitation: Seek coalescing is per event-loop turn, so on a device each touch sample is one Seek with a synchronous GPU draw on the command thread (and a new wgpu surface per draw on Android). Engine-side latest-wins or per-frame draws belong to P1-053. Pinch zoom left to UX-008 (buttons cover zoom in/out). Ruler paints all marks across the scroll width (inside a RepaintBoundary, so scrubbing does not repaint it); visible-range painting is a later optimisation."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -5167,6 +5172,10 @@
     {
      "date": "2026-10-15",
      "text": "Long-press clip drag should send the MoveClip engine command (P1-019)."
+    },
+    {
+     "date": "2026-10-21",
+     "text": "P1-020 shipped button zoom (TimelineZoomCubit, 20-2000 px/s, x1.5 steps); pinch should drive the same cubit, not a second zoom model."
     }
    ],
    "source": "plan"
@@ -5652,6 +5661,10 @@
     {
      "date": "2026-10-15",
      "text": "Hand-built ColorScheme + FramixColors tokens landed in ENG-003 (app/lib/core/ui/framix_theme.dart)"
+    },
+    {
+     "date": "2026-10-21",
+     "text": "The playhead line uses accentText (P1-020 timeline_view.dart); swap it for the planned playhead token."
     }
    ],
    "source": "plan"
@@ -12695,6 +12708,14 @@
     {
      "date": "2026-10-20",
      "text": "From ADR 0004: the Android preview output needs no double buffering of our own; the SurfaceProducer's ImageReader swapchain already provides it."
+    },
+    {
+     "date": "2026-10-21",
+     "text": "From P1-020: scrubbing sends one Seek per touch sample and each redraws synchronously on the command thread; drain queued Seeks (latest wins) or draw once per frame on the render thread, and keep the Android wgpu surface instead of making one per draw."
+    },
+    {
+     "date": "2026-10-21",
+     "text": "From P1-020 review: a failed preview redraw clears the shown texture silently and the preview never redraws again; report preview loss as an event so Dart can send a new CreatePreview (a transient failure leaves a frozen frame today)."
     }
    ],
    "source": "added"
@@ -12898,6 +12919,45 @@
      "text": "Scope: uses SYS-024's minimal FFmpeg build rather than owning it, and is the fallback RES-003 describes. For it to ever trigger, both pickers must forward files they cannot probe (uri + kind, metadata empty) instead of dropping them, and RawMedia/Media::validate need a 'not yet probed' path. Codec tags differ by platform today (avc1/hvc1 vs avc/hevc); anything branching on codec needs one shared vocabulary."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-060",
+   "section": "P1",
+   "group": "Architecture risk test (prototype)",
+   "title": "Preview shows the decoded frame at the playhead (needs the Decoder port); redraw after edits that change what is under the playhead even when it did not move (P1-020 redraws only on playhead moves)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-061",
+   "section": "P1",
+   "group": "Architecture risk test (prototype)",
+   "title": "Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md)",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
