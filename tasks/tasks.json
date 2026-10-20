@@ -12626,12 +12626,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-20",
+   "done": "2026-10-21",
+   "commit": "fbb5c62",
+   "branch": "p1-052-android-vtable",
+   "notes": [
+    {
+     "date": "2026-10-20",
+     "text": "No failing-test-first commit: the change is Android-only JNI/Kotlin glue with no host-runnable logic; the engine flow stays covered by engine/app/tests/engine_preview.rs. Verified on the Pixel_8 emulator (API 37) in debug and release (R8): CreatePreview makes a 1280x720 ImageReader producer and the test pattern shows; with spike_clip.mp4 the decoded quadrants draw."
+    }
+   ],
    "source": "added"
   },
   {
@@ -12707,6 +12712,14 @@
     {
      "date": "2026-10-20",
      "text": "Correction to the previous ADR 0004 note: with SurfaceLifecycle.manual, onSurfaceCleanup/onSurfaceAvailable never fire (only resetInBackground registers the trim-memory listener; the Huawei SurfaceTexture producer ignores setCallback). Call getSurface() before each draw and recreate the wgpu surface when the Surface differs (always after setSize) or is invalid."
+    },
+    {
+     "date": "2026-10-20",
+     "text": "Also release the engine-owned ANativeWindow reference taken in nativePreviewTextureDone (android_platform.rs), including the paths where preview_texture_done drops the texture (engine stopped, rejected)."
+    },
+    {
+     "date": "2026-10-21",
+     "text": "Also release a SurfaceProducer whose setSize/surface threw after createSurfaceProducer succeeded (EnginePlatform.kt createPreviewTexture)."
     }
    ],
    "source": "added"
@@ -12736,6 +12749,10 @@
     {
      "date": "2026-10-19",
      "text": "Approach (user choice 2026-10-19): GLES pass, not a VkSamplerYcbcrConversion pass. wgpu-hal 30 hard-codes samplerYcbcrConversion off and open_with_callback cannot turn it on, so the Rust Vulkan pass would need its own VkDevice, a raw pipeline and SPIR-V. Kotlin converts the MediaCodec frame (SurfaceTexture/OES) to an RGBA8 ImageReader HardwareBuffer; Rust imports it as a VkImage. Supersedes the earlier WIP note: verified on the Pixel_8 emulator (API 37, c2.goldfish.h264.decoder), upright quadrants, nativeRenderFrame -> 0."
+    },
+    {
+     "date": "2026-10-20",
+     "text": "Spike limit (P1-052 review): the decode spike draws with its own Gpu while GpuRenderer draws with another, both into the same ANativeWindow from two threads; overlapping connects fail and a later engine redraw paints over the frame. Fine for the spike; the Decoder port draws through the renderer."
     }
    ],
    "source": "added"
