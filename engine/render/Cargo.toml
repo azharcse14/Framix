@@ -8,6 +8,8 @@ publish.workspace = true
 [dependencies]
 # Implements app's PreviewRenderer port, like storage implements ProjectStore.
 framix_app = { path = "../app" }
+# Time for PreviewRenderer::draw.
+framix_core = { path = "../core" }
 wgpu = { version = "=30.0.1", default-features = false, features = ["std", "parking_lot", "metal", "wgsl"] }
 thiserror = "2.0.21"
 pollster = "=0.4.0"

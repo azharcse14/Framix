@@ -199,6 +199,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Importing media'**
   String get importing;
+
+  /// No description provided for @zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get zoomIn;
+
+  /// No description provided for @zoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get zoomOut;
+
+  /// No description provided for @timelineRuler.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get timelineRuler;
 }
 
 class _AppLocalizationsDelegate

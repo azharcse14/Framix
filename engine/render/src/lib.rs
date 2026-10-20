@@ -641,7 +641,13 @@ impl GpuRenderer {
 }
 
 impl PreviewRenderer for GpuRenderer {
-    fn draw(&mut self, target: PlatformTexture) -> Result<(), String> {
+    // The time picks the frame once the Decoder port exists; today every time shows the test
+    // pattern.
+    fn draw(
+        &mut self,
+        target: PlatformTexture,
+        _time: framix_core::time::Time,
+    ) -> Result<(), String> {
         let gpu = match &mut self.gpu {
             Some(gpu) => gpu,
             empty => empty.insert(Gpu::new().map_err(|e| e.to_string())?),

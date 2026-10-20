@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use framix_app::engine::Engine;
 use framix_app::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
 use framix_app::proto::{Command, CreatePreview, PreviewReady, command, event};
+use framix_core::time::Time;
 
 /// What the fakes saw, in order.
 #[derive(Debug, PartialEq)]
@@ -44,7 +45,7 @@ struct FakeRenderer {
 }
 
 impl PreviewRenderer for FakeRenderer {
-    fn draw(&mut self, target: PlatformTexture) -> Result<(), String> {
+    fn draw(&mut self, target: PlatformTexture, _time: Time) -> Result<(), String> {
         if self.fail {
             return Err("device lost".into());
         }

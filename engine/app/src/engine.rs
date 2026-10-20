@@ -96,7 +96,7 @@ impl Engine {
             .ok_or("no preview was requested")?;
         preview.pending -= 1;
         let texture = texture?;
-        preview.renderer.draw(texture)?;
+        preview.renderer.draw(texture, Time(0))?;
         preview.host.frame_available(texture.id);
         Ok(texture.id)
     }
@@ -193,6 +193,7 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
+            command::Kind::Seek(_) => Err("seek is not implemented yet".to_owned()),
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
                 .map(|()| Reply::Accepted),
@@ -282,6 +283,8 @@ impl Engine {
                 can_redo: self.history.can_redo(),
                 aspect_width: timeline.aspect().width(),
                 aspect_height: timeline.aspect().height(),
+                playhead: 0,
+                ticks_per_second: 0,
             })),
         }
     }

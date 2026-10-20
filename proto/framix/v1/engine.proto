@@ -26,6 +26,7 @@ message Command {
     MoveClip move_clip = 16;
     ImportMedia import_media = 17;
     CreatePreview create_preview = 18;
+    Seek seek = 19;
   }
 }
 
@@ -166,6 +167,12 @@ message CreatePreview {
   uint32 height = 2;
 }
 
+// Moves the playhead to `time`, clamped to [0, timeline duration], and redraws the preview
+// there. Not an undo step. Answered with PlayheadChanged.
+message Seek {
+  int64 time = 1;
+}
+
 // Sent by the engine. Exactly one kind is set. Every command is answered by exactly one event,
 // in command order; results of accepted platform work (PreviewReady, or CommandFailed) arrive
 // later on their own.
@@ -176,7 +183,13 @@ message Event {
     ProjectSaved project_saved = 3;
     CommandAccepted command_accepted = 4;
     PreviewReady preview_ready = 5;
+    PlayheadChanged playhead_changed = 6;
   }
+}
+
+// Where the playhead is now, after a Seek.
+message PlayheadChanged {
+  int64 time = 1;
 }
 
 // The command started work whose result comes later as its own event.
@@ -196,6 +209,10 @@ message TimelineChanged {
   // Canvas aspect ratio, reduced (9:16, 16:9, ...).
   uint32 aspect_width = 5;
   uint32 aspect_height = 6;
+  // Playhead, kept inside [0, duration] when edits shorten the timeline.
+  int64 playhead = 7;
+  // Ticks per second of every time field, so the UI can place times without its own copy.
+  int64 ticks_per_second = 8;
 }
 
 // A track and its clips, sorted by start.

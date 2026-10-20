@@ -20,5 +20,8 @@
   "lockTrack": "Lock track",
   "importFromGallery": "Import from gallery",
   "importFromFiles": "Import from files",
-  "importing": "Importing media"
+  "importing": "Importing media",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "timelineRuler": "Timeline"
 }

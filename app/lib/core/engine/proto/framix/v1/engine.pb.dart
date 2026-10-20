@@ -40,6 +40,7 @@ enum Command_Kind {
   moveClip,
   importMedia,
   createPreview,
+  seek,
   notSet
 }
 
@@ -64,6 +65,7 @@ class Command extends $pb.GeneratedMessage {
     MoveClip? moveClip,
     ImportMedia? importMedia,
     CreatePreview? createPreview,
+    Seek? seek,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -84,6 +86,7 @@ class Command extends $pb.GeneratedMessage {
     if (moveClip != null) result.moveClip = moveClip;
     if (importMedia != null) result.importMedia = importMedia;
     if (createPreview != null) result.createPreview = createPreview;
+    if (seek != null) result.seek = seek;
     return result;
   }
 
@@ -115,13 +118,14 @@ class Command extends $pb.GeneratedMessage {
     16: Command_Kind.moveClip,
     17: Command_Kind.importMedia,
     18: Command_Kind.createPreview,
+    19: Command_Kind.seek,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -158,6 +162,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: ImportMedia.$_createMessage)
     ..aOM<CreatePreview>(18, _omitFieldNames ? '' : 'createPreview',
         subBuilder: CreatePreview.$_createMessage)
+    ..aOM<Seek>(19, _omitFieldNames ? '' : 'seek',
+        subBuilder: Seek.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -198,6 +204,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
+  @$pb.TagNumber(19)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -217,6 +224,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
+  @$pb.TagNumber(19)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -416,6 +424,17 @@ class Command extends $pb.GeneratedMessage {
   void clearCreatePreview() => $_clearField(18);
   @$pb.TagNumber(18)
   CreatePreview ensureCreatePreview() => $_ensure(17);
+
+  @$pb.TagNumber(19)
+  Seek get seek => $_getN(18);
+  @$pb.TagNumber(19)
+  set seek(Seek value) => $_setField(19, value);
+  @$pb.TagNumber(19)
+  $core.bool hasSeek() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearSeek() => $_clearField(19);
+  @$pb.TagNumber(19)
+  Seek ensureSeek() => $_ensure(18);
 }
 
 /// Appends an empty track.
@@ -1721,12 +1740,70 @@ class CreatePreview extends $pb.GeneratedMessage {
   void clearHeight() => $_clearField(2);
 }
 
+/// Moves the playhead to `time`, clamped to [0, timeline duration], and redraws the preview
+/// there. Not an undo step. Answered with PlayheadChanged.
+class Seek extends $pb.GeneratedMessage {
+  factory Seek({
+    $fixnum.Int64? time,
+  }) {
+    final result = Seek._();
+    if (time != null) result.time = time;
+    return result;
+  }
+
+  Seek._();
+
+  factory Seek.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      Seek()..mergeFromBuffer(data, registry);
+  factory Seek.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      Seek()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Seek',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: Seek.$_createMessage)
+    ..aInt64(1, _omitFieldNames ? '' : 'time')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Seek clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Seek copyWith(void Function(Seek) updates) =>
+      super.copyWith((message) => updates(message as Seek)) as Seek;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use Seek() / Seek.new instead')
+  static Seek create() => Seek._();
+  static $pb.GeneratedMessage $_createMessage() => Seek._();
+  @$core.override
+  Seek createEmptyInstance() => Seek._();
+  @$core.pragma('dart2js:noInline')
+  static Seek getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Seek>(Seek.$_createMessage);
+  static Seek? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get time => $_getI64(0);
+  @$pb.TagNumber(1)
+  set time($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTime() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTime() => $_clearField(1);
+}
+
 enum Event_Kind {
   timelineChanged,
   commandFailed,
   projectSaved,
   commandAccepted,
   previewReady,
+  playheadChanged,
   notSet
 }
 
@@ -1740,6 +1817,7 @@ class Event extends $pb.GeneratedMessage {
     ProjectSaved? projectSaved,
     CommandAccepted? commandAccepted,
     PreviewReady? previewReady,
+    PlayheadChanged? playheadChanged,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
@@ -1747,6 +1825,7 @@ class Event extends $pb.GeneratedMessage {
     if (projectSaved != null) result.projectSaved = projectSaved;
     if (commandAccepted != null) result.commandAccepted = commandAccepted;
     if (previewReady != null) result.previewReady = previewReady;
+    if (playheadChanged != null) result.playheadChanged = playheadChanged;
     return result;
   }
 
@@ -1765,13 +1844,14 @@ class Event extends $pb.GeneratedMessage {
     3: Event_Kind.projectSaved,
     4: Event_Kind.commandAccepted,
     5: Event_Kind.previewReady,
+    6: Event_Kind.playheadChanged,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5])
+    ..oo(0, [1, 2, 3, 4, 5, 6])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
@@ -1782,6 +1862,8 @@ class Event extends $pb.GeneratedMessage {
         subBuilder: CommandAccepted.$_createMessage)
     ..aOM<PreviewReady>(5, _omitFieldNames ? '' : 'previewReady',
         subBuilder: PreviewReady.$_createMessage)
+    ..aOM<PlayheadChanged>(6, _omitFieldNames ? '' : 'playheadChanged',
+        subBuilder: PlayheadChanged.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1809,12 +1891,14 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1871,6 +1955,75 @@ class Event extends $pb.GeneratedMessage {
   void clearPreviewReady() => $_clearField(5);
   @$pb.TagNumber(5)
   PreviewReady ensurePreviewReady() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  PlayheadChanged get playheadChanged => $_getN(5);
+  @$pb.TagNumber(6)
+  set playheadChanged(PlayheadChanged value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPlayheadChanged() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPlayheadChanged() => $_clearField(6);
+  @$pb.TagNumber(6)
+  PlayheadChanged ensurePlayheadChanged() => $_ensure(5);
+}
+
+/// Where the playhead is now, after a Seek.
+class PlayheadChanged extends $pb.GeneratedMessage {
+  factory PlayheadChanged({
+    $fixnum.Int64? time,
+  }) {
+    final result = PlayheadChanged._();
+    if (time != null) result.time = time;
+    return result;
+  }
+
+  PlayheadChanged._();
+
+  factory PlayheadChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      PlayheadChanged()..mergeFromBuffer(data, registry);
+  factory PlayheadChanged.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      PlayheadChanged()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'PlayheadChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: PlayheadChanged.$_createMessage)
+    ..aInt64(1, _omitFieldNames ? '' : 'time')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PlayheadChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PlayheadChanged copyWith(void Function(PlayheadChanged) updates) =>
+      super.copyWith((message) => updates(message as PlayheadChanged))
+          as PlayheadChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use PlayheadChanged() / PlayheadChanged.new instead')
+  static PlayheadChanged create() => PlayheadChanged._();
+  static $pb.GeneratedMessage $_createMessage() => PlayheadChanged._();
+  @$core.override
+  PlayheadChanged createEmptyInstance() => PlayheadChanged._();
+  @$core.pragma('dart2js:noInline')
+  static PlayheadChanged getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PlayheadChanged>(
+          PlayheadChanged.$_createMessage);
+  static PlayheadChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get time => $_getI64(0);
+  @$pb.TagNumber(1)
+  set time($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTime() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTime() => $_clearField(1);
 }
 
 /// The command started work whose result comes later as its own event.
@@ -1982,6 +2135,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $core.bool? canRedo,
     $core.int? aspectWidth,
     $core.int? aspectHeight,
+    $fixnum.Int64? playhead,
+    $fixnum.Int64? ticksPerSecond,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -1990,6 +2145,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (canRedo != null) result.canRedo = canRedo;
     if (aspectWidth != null) result.aspectWidth = aspectWidth;
     if (aspectHeight != null) result.aspectHeight = aspectHeight;
+    if (playhead != null) result.playhead = playhead;
+    if (ticksPerSecond != null) result.ticksPerSecond = ticksPerSecond;
     return result;
   }
 
@@ -2015,6 +2172,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aI(6, _omitFieldNames ? '' : 'aspectHeight',
         fieldType: $pb.PbFieldType.OU3)
+    ..aInt64(7, _omitFieldNames ? '' : 'playhead')
+    ..aInt64(8, _omitFieldNames ? '' : 'ticksPerSecond')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2087,6 +2246,26 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasAspectHeight() => $_has(5);
   @$pb.TagNumber(6)
   void clearAspectHeight() => $_clearField(6);
+
+  /// Playhead, kept inside [0, duration] when edits shorten the timeline.
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get playhead => $_getI64(6);
+  @$pb.TagNumber(7)
+  set playhead($fixnum.Int64 value) => $_setInt64(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasPlayhead() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearPlayhead() => $_clearField(7);
+
+  /// Ticks per second of every time field, so the UI can place times without its own copy.
+  @$pb.TagNumber(8)
+  $fixnum.Int64 get ticksPerSecond => $_getI64(7);
+  @$pb.TagNumber(8)
+  set ticksPerSecond($fixnum.Int64 value) => $_setInt64(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasTicksPerSecond() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearTicksPerSecond() => $_clearField(8);
 }
 
 /// A track and its clips, sorted by start.

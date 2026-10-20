@@ -21,6 +21,10 @@ pub trait PreviewHost: Send {
 
 /// The GPU side of the preview.
 pub trait PreviewRenderer: Send {
-    /// Draws the current frame into `target` and returns once the GPU is done with it.
-    fn draw(&mut self, target: PlatformTexture) -> Result<(), String>;
+    /// Draws the frame at `time` into `target` and returns once the GPU is done with it.
+    fn draw(
+        &mut self,
+        target: PlatformTexture,
+        time: framix_core::time::Time,
+    ) -> Result<(), String>;
 }

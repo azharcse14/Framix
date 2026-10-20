@@ -75,4 +75,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importing => 'Importing media';
+
+  @override
+  String get zoomIn => 'Zoom in';
+
+  @override
+  String get zoomOut => 'Zoom out';
+
+  @override
+  String get timelineRuler => 'Timeline';
 }

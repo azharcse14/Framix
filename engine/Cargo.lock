@@ -280,6 +280,7 @@ version = "0.1.0"
 dependencies = [
  "ash",
  "framix_app",
+ "framix_core",
  "objc2",
  "objc2-core-foundation",
  "objc2-io-surface",

@@ -74,4 +74,13 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get importing => 'মিডিয়া আনা হচ্ছে';
+
+  @override
+  String get zoomIn => 'জুম ইন';
+
+  @override
+  String get zoomOut => 'জুম আউট';
+
+  @override
+  String get timelineRuler => 'টাইমলাইন';
 }
