@@ -375,7 +375,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-010` Aspect ratio select (9:16, 16:9, 1:1, 4:5, 3:4, 21:9) \[Dart\]\[Rust\]
 - [x] `P1-011` Video/image import (gallery ar Files/iCloud Drive/Google Drive er moto cloud storage), multi-select order shoho, color/blank clip \[Dart\]
 - [ ] `P1-012` Android e boro file er jonno file descriptor (fd), copy chhara \[Native\]
-- [ ] `P1-013` Metadata read (duration, resolution, codec, rotation) \[Rust\]
+- [x] `P1-013` Metadata read (duration, resolution, codec, rotation) \[Rust\]
 - [x] `P1-014` Timeline data model multi-track ar keyframe mathay rekhe design \[Rust\]
 - [ ] `P1-015` **1b:** Project folder, search, sort (date, naam, size) \[Dart\]\[Rust\]
 - [ ] `P1-016` **1b:** Recently deleted (30 din), vul kore delete hole ferot ana \[Rust\]\[Dart\]
@@ -433,6 +433,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-056` Android half of P1-002: MediaCodec opaque YCbCr AHardwareBuffer to wgpu with no CPU copy; wgpu 30 Vulkan has no YCbCr sampler/external texture, so Rust imports the AHB as a VkImage (ash 0.38 direct dep, approved) and a VkSamplerYcbcrConversion pass converts to an RGBA wgpu texture (one GPU copy); verify on the Pixel_8 emulator with tests/media/color_quadrants_h264_320x240_1s.mp4 \[Native\] \[Rust\]
 - [ ] `P1-057` Remove the P1-002 decode spike (engine_spike_draw_nv12, SpikeDecode in PlatformCallbacks.swift, FRAMIX_SPIKE_CLIP) once the Decoder port delivers frames; pass raw CV matrix/range tags to the engine instead of choosing 601/709 in Swift \[Native\] \[Rust\]
 - [ ] `P1-058` NV12 pass follow-ups: pool bind groups/views per frame, criterion bench for draw_nv12, check plane sizes and texture usages (InvalidTexture, not a wgpu panic), tests for texture type/mip/device checks and a no-copy test (rewrite IOSurface, redraw), chroma siting (H.264 left-sited) before goldens \[Rust\]
+- [ ] `P1-059` FFmpeg (rsmpeg) fallback: minimal FFmpeg build for iOS/Android, probe and demux for formats the platform cannot read; also the Rust reader P1-012's fd path feeds (after LEG-003 license and SYS-024 size checks) \[Rust\] \[C++\]
 
 ## Phase 2: Audio
 
