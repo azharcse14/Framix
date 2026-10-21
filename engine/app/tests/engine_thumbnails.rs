@@ -134,6 +134,7 @@ fn at_most_two_run_at_once_and_answers_start_the_next() {
     assert_eq!(times(&requests), vec![0, SECOND], "two in flight");
 
     let key = |t: i64| ThumbnailKey {
+        generation: 0,
         media: MediaId(video),
         time: Time(t),
         max_side: 128,
@@ -162,6 +163,7 @@ fn a_time_already_asked_for_is_not_made_again() {
     let (mut engine, requests, video, _) = setup();
     ask(&mut engine, video, &[0], 128);
     let key = ThumbnailKey {
+        generation: 0,
         media: MediaId(video),
         time: Time(0),
         max_side: 128,
@@ -185,6 +187,7 @@ fn a_time_already_asked_for_is_not_made_again() {
 fn answers_for_keys_never_asked_for_are_ignored() {
     let (mut engine, _, video, _) = setup();
     let stray = ThumbnailKey {
+        generation: 0,
         media: MediaId(video),
         time: Time(0),
         max_side: 128,

@@ -90,7 +90,8 @@ object EnginePlatform {
     fun requestThumbnail(uri: String, image: Boolean, timeUs: Long, maxSide: Int, doneCtx: Long) {
         thumbnails.execute {
             val path = runCatching { thumbnailFile(uri, image, timeUs, maxSide) }
-                .onFailure { Log.w("framix", "thumbnail failed", it) }
+                // Only the kind of failure: messages can carry the uri or a cache path.
+                .onFailure { Log.w("framix", "thumbnail failed: ${it.javaClass.simpleName}") }
                 .getOrNull()
             nativeThumbnailDone(doneCtx, path)
         }
@@ -106,9 +107,13 @@ object EnginePlatform {
         if (file.isFile) return file.path
         val bitmap = if (image) photo(ctx, Uri.parse(uri), maxSide) else frame(ctx, Uri.parse(uri), timeUs, maxSide)
         try {
-            val partial = File(dir, "${file.name}.part")
+            // Unique per worker: the same uri can be imported twice and made at once.
+            val partial = File.createTempFile(file.name, ".part", dir)
             partial.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it) }
-            check(partial.renameTo(file)) { "rename" }
+            if (!partial.renameTo(file)) {
+                partial.delete()
+                check(file.isFile) { "rename" }
+            }
         } finally {
             bitmap.recycle()
         }
@@ -118,14 +123,9 @@ object EnginePlatform {
     private fun frame(ctx: Context, uri: Uri, timeUs: Long, maxSide: Int): Bitmap =
         MediaMetadataRetriever().use { r ->
             r.setDataSource(ctx, uri)
-            val w = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: maxSide
-            val h = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: maxSide
-            val scale = maxSide.toFloat() / maxOf(w, h, 1)
+            // Scales to fit maxSide x maxSide and keeps the aspect ratio.
             checkNotNull(
-                r.getScaledFrameAtTime(
-                    timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
-                    maxOf((w * scale).toInt(), 1), maxOf((h * scale).toInt(), 1),
-                ),
+                r.getScaledFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, maxSide, maxSide),
             ) { "no frame" }
         }
 

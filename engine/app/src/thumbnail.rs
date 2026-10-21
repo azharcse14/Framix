@@ -19,9 +19,12 @@ pub const MAX_TIMES: usize = 64;
 /// Thumbnails being made at once (RES-005 adds priorities).
 const MAX_IN_FLIGHT: usize = 2;
 
-/// One thumbnail: a media, a snapped source time and a size.
+/// One thumbnail: a media, a snapped source time and a size, within one project.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ThumbnailKey {
+    /// Which project the request came from; media ids restart with each project, so a late
+    /// answer for an earlier project must not match.
+    pub generation: u32,
     /// Which media.
     pub media: MediaId,
     /// Snapped source time.
@@ -58,6 +61,7 @@ pub(crate) struct Thumbnails {
     /// Keys the platform is working on.
     in_flight: BTreeSet<ThumbnailKey>,
     queue: VecDeque<ThumbnailRequest>,
+    generation: u32,
 }
 
 impl Thumbnails {
@@ -67,7 +71,16 @@ impl Thumbnails {
             known: BTreeSet::new(),
             in_flight: BTreeSet::new(),
             queue: VecDeque::new(),
+            generation: 0,
         }
+    }
+
+    /// A new or opened project: forget every key; answers still on their way are ignored.
+    pub(crate) fn reset(&mut self) {
+        self.known.clear();
+        self.in_flight.clear();
+        self.queue.clear();
+        self.generation = self.generation.wrapping_add(1);
     }
 
     /// Queues the thumbnails of `media` at `times` that were never asked for, then starts as
@@ -82,6 +95,7 @@ impl Thumbnails {
         for &time in times {
             let time = snap(media, time);
             let key = ThumbnailKey {
+                generation: self.generation,
                 media: id,
                 time,
                 max_side,

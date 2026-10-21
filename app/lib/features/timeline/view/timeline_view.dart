@@ -47,9 +47,23 @@ class _TimelineViewState extends State<TimelineView> {
   /// The horizontal scroll; lanes build thumbnail tiles only near what it shows.
   final _scroll = ScrollController();
 
+  /// Which half-screen the view starts in; lanes rebuild only when it changes, not per pixel.
+  final _window = ValueNotifier<int>(0);
+  double _viewport = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_moveWindow);
+  }
+
+  void _moveWindow() =>
+      _window.value = (_scroll.offset / (_viewport / 2)).floor();
+
   @override
   void dispose() {
     _scroll.dispose();
+    _window.dispose();
     super.dispose();
   }
 
@@ -95,6 +109,7 @@ class _TimelineViewState extends State<TimelineView> {
                         end + box.maxWidth / 2,
                       );
                       final viewport = box.maxWidth;
+                      _viewport = math.max(viewport, 1);
                       return SingleChildScrollView(
                         controller: _scroll,
                         scrollDirection: Axis.horizontal,
@@ -114,12 +129,10 @@ class _TimelineViewState extends State<TimelineView> {
                                       height: rulerHeight,
                                     ),
                                     // Thumbnails only for one screen either side of the view.
-                                    ListenableBuilder(
-                                      listenable: _scroll,
-                                      builder: (context, _) {
-                                        final at = _scroll.hasClients
-                                            ? _scroll.offset
-                                            : 0.0;
+                                    ValueListenableBuilder(
+                                      valueListenable: _window,
+                                      builder: (context, window, _) {
+                                        final at = window * viewport / 2;
                                         return Column(
                                           children: [
                                             for (final track in timeline.tracks)
@@ -509,6 +522,8 @@ class _Tiles {
           bottom: 0,
           width: width,
           child: ThumbnailTile(
+            // A slot keeps its own state only while it shows the same picture.
+            key: ValueKey((clip.mediaId.toInt(), i)),
             media: clip.mediaId.toInt(),
             // A photo has one picture; a video's tile shows the frame at its left edge.
             time: photo
@@ -552,6 +567,16 @@ class _ThumbnailTileState extends State<ThumbnailTile> {
   }
 
   @override
+  void didUpdateWidget(ThumbnailTile old) {
+    super.didUpdateWidget(old);
+    if (old.media != widget.media || old.time != widget.time) {
+      context.read<ThumbnailCubit>().request(widget.media, [
+        widget.time,
+      ], _maxSide);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final key = (media: widget.media, time: widget.time, maxSide: _maxSide);
     return BlocSelector<ThumbnailCubit, Map<ThumbnailKey, String>, String?>(
@@ -563,6 +588,8 @@ class _ThumbnailTileState extends State<ThumbnailTile> {
               fit: BoxFit.cover,
               cacheWidth: _maxSide,
               gaplessPlayback: true,
+              // The OS may purge the cache while the app runs: show the plain fill.
+              errorBuilder: (_, _, _) => const SizedBox.expand(),
             ),
     );
   }

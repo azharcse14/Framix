@@ -219,11 +219,13 @@ impl Engine {
             command::Kind::GetTimeline(_) => Ok(Reply::Timeline),
             command::Kind::NewProject(_) => {
                 self.history = History::default();
+                self.forget_thumbnails();
                 self.move_playhead(Time(0));
                 Ok(Reply::Timeline)
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path).map(|()| {
-                // Another project starts at its beginning.
+                // Another project starts at its beginning, with its own media ids.
+                self.forget_thumbnails();
                 self.move_playhead(Time(0));
             })),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
@@ -292,6 +294,12 @@ impl Engine {
                     Ok::<_, TimelineError>(())
                 }))
             }
+        }
+    }
+
+    fn forget_thumbnails(&mut self) {
+        if let Some(thumbnails) = self.thumbnails.as_mut() {
+            thumbnails.reset();
         }
     }
 
