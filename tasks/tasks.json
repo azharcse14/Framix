@@ -1284,12 +1284,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-21",
+   "done": "2026-10-21",
+   "commit": "ed30ef8",
+   "branch": "p1-021-thumbnails",
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "Verified on the Pixel_8 emulator only (strip shows the imported clip's frame). iOS was built but not run with media (the picker needs manual taps), and Runner is still Swift 5 mode (P1-054), so strict concurrency on the Task.detached thumbnail work is unchecked. Failure status reuses ENGINE_ERR_GPU."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -7775,7 +7780,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "From P1-021: failed thumbnails are never retried in a session (engine 'known' and Dart '_asked' keep them); priorities and cancellation for off-screen tiles are still missing."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -8029,7 +8039,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "From P1-021: Caches/thumbs (iOS) and cacheDir/thumbs (Android) have no size limit or eviction yet; a purged file shows the plain fill and is not remade in that session."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12947,6 +12962,25 @@
    "title": "Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md)",
    "tags": [
     "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-062",
+   "section": "P1",
+   "group": "Project ar import",
+   "title": "ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart)",
+   "tags": [
     "Dart"
    ],
    "owner": "claude",

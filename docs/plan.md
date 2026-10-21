@@ -386,7 +386,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-018` Trim, split, merge, delete, duplicate \[Rust\]\[Dart\]
 - [x] `P1-019` Drag kore reorder \[Dart\]
 - [x] `P1-020` Timeline zoom in/out, scrubbing preview \[Dart\]\[Rust\]
-- [ ] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
+- [x] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
 - [ ] `P1-022` Snapping ar haptic feedback \[Dart\]
 - [x] `P1-023` Undo/redo (command pattern) \[Rust\]
 - [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
@@ -436,6 +436,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-059` FFmpeg (rsmpeg) fallback: minimal FFmpeg build for iOS/Android, probe and demux for formats the platform cannot read; also the Rust reader P1-012's fd path feeds (after LEG-003 license and SYS-024 size checks) \[Rust\] \[C++\]
 - [ ] `P1-060` Preview shows the decoded frame at the playhead (needs the Decoder port); redraw after edits that change what is under the playhead even when it did not move (P1-020 redraws only on playhead moves) \[Rust\]
 - [ ] `P1-061` Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md) \[Rust\] \[Dart\]
+- [ ] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
 
 ## Phase 2: Audio
 
