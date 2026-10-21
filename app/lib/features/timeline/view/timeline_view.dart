@@ -259,7 +259,11 @@ class _Ruler extends StatelessWidget {
     final playhead = context.read<PlayheadCubit>();
     void seekTo(double dx) {
       if (ticksPerSecond == 0) return;
-      playhead.seek((dx / pps * ticksPerSecond).round());
+      // A 12 dp touch radius at this zoom; the engine decides what to snap to.
+      playhead.seek(
+        (dx / pps * ticksPerSecond).round(),
+        snapWithin: (12 / pps * ticksPerSecond).round(),
+      );
     }
 
     final colors = FramixColors.of(context);

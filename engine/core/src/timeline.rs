@@ -506,8 +506,34 @@ impl Timeline {
 
     /// The snap point nearest to `time` within `within` ticks, if any: 0, the timeline end and
     /// every clip's start and end on every track. Ties go to the earlier point.
-    pub fn snap(&self, _time: Time, _within: Time) -> Option<Time> {
-        None
+    pub fn snap(&self, time: Time, within: Time) -> Option<Time> {
+        let mut best: Option<Time> = None;
+        let mut consider = |p: Time| {
+            let d = (p.0 - time.0).abs();
+            if d > within.0 {
+                return;
+            }
+            // Strictly closer wins; an equal distance keeps the earlier point.
+            let better = match best {
+                None => true,
+                Some(b) => d < (b.0 - time.0).abs() || (d == (b.0 - time.0).abs() && p < b),
+            };
+            if better {
+                best = Some(p);
+            }
+        };
+        consider(Time(0));
+        consider(self.duration());
+        for track in &self.tracks {
+            // Clips are sorted and never overlap, so their edges are sorted too: only the
+            // clips around `time` can hold the nearest edges.
+            let i = track.clips.partition_point(|c| c.end() < time);
+            for clip in track.clips[i.saturating_sub(1)..].iter().take(3) {
+                consider(clip.start);
+                consider(clip.end());
+            }
+        }
+        best
     }
 
     /// End of the last clip on any track; zero when empty.

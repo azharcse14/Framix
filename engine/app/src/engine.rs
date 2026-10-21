@@ -40,6 +40,9 @@ struct Preview {
     shown: Option<PlatformTexture>,
 }
 
+/// Largest snap radius a Seek may ask for.
+const MAX_SNAP: Time = Time(10 * TICKS_PER_SECOND);
+
 /// Largest preview side; also the smallest max texture size of supported GPUs.
 const MAX_PREVIEW_SIDE: u32 = 8192;
 
@@ -179,11 +182,11 @@ impl Engine {
                 self.move_playhead(self.playhead);
                 self.timeline_changed()
             }
-            Ok(Reply::Playhead) => Event {
+            Ok(Reply::Playhead(snapped)) => Event {
                 kind: Some(proto::event::Kind::PlayheadChanged(
                     proto::PlayheadChanged {
                         time: self.playhead.0,
-                        snapped: false,
+                        snapped,
                     },
                 )),
             },
@@ -281,8 +284,15 @@ impl Engine {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
             command::Kind::Seek(seek) => {
-                self.move_playhead(Time(seek.time));
-                Ok(Reply::Playhead)
+                if seek.snap_within < 0 {
+                    return Err("negative snap tolerance".into());
+                }
+                let within = Time(seek.snap_within.min(MAX_SNAP.0));
+                let snapped = (within.0 > 0)
+                    .then(|| self.history.timeline().snap(Time(seek.time), within))
+                    .flatten();
+                self.move_playhead(snapped.unwrap_or(Time(seek.time)));
+                Ok(Reply::Playhead(snapped.is_some()))
             }
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
@@ -421,8 +431,8 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
-    /// Where the playhead is now.
-    Playhead,
+    /// Where the playhead is now, and whether the seek snapped.
+    Playhead(bool),
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.
