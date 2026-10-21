@@ -20,6 +20,7 @@ class PlayheadCubit extends Cubit<int> {
         _snapped = snapped;
         emit(e.playheadChanged.time.toInt());
       } else if (e.hasTimelineChanged()) {
+        _snapped = false;
         emit(e.timelineChanged.playhead.toInt());
       }
     });

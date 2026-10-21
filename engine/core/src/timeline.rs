@@ -508,15 +508,20 @@ impl Timeline {
     /// every clip's start and end on every track. Ties go to the earlier point.
     pub fn snap(&self, time: Time, within: Time) -> Option<Time> {
         let mut best: Option<Time> = None;
+        // `time` is untrusted (a Seek): distances as u64 cannot overflow.
+        let within = within.0.max(0).unsigned_abs();
         let mut consider = |p: Time| {
-            let d = (p.0 - time.0).abs();
-            if d > within.0 {
+            let d = p.0.abs_diff(time.0);
+            if d > within {
                 return;
             }
             // Strictly closer wins; an equal distance keeps the earlier point.
             let better = match best {
                 None => true,
-                Some(b) => d < (b.0 - time.0).abs() || (d == (b.0 - time.0).abs() && p < b),
+                Some(b) => {
+                    let bd = b.0.abs_diff(time.0);
+                    d < bd || (d == bd && p < b)
+                }
             };
             if better {
                 best = Some(p);

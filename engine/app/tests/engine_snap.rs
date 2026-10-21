@@ -74,8 +74,7 @@ fn far_from_edges_it_does_not_snap() {
 #[test]
 fn a_huge_tolerance_is_capped_at_ten_seconds() {
     let mut engine = engine();
-    // 3.5 s is 1.5 s from 2 s and 5 s; a 100 s radius would snap, the 10 s cap still does,
-    // so check the cap with a point farther than 10 s from every edge instead.
+    // 30 s into a 60 s clip is 30 s from every edge: a 100 s radius would snap, the cap does not.
     let mut long = Engine::default();
     run(
         &mut long,
