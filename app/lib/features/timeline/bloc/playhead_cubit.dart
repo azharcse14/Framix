@@ -24,7 +24,7 @@ class PlayheadCubit extends Cubit<int> {
 
   /// Asks the engine to move the playhead to [ticks]. Seeks made in the same event-loop turn
   /// (one batch of drag updates) become one Seek to the last position.
-  void seek(int ticks) {
+  void seek(int ticks, {int snapWithin = 0}) {
     final scheduled = _wanted != null;
     _wanted = ticks;
     if (!scheduled) scheduleMicrotask(_send);

@@ -562,12 +562,14 @@ const Seek$json = {
   '1': 'Seek',
   '2': [
     {'1': 'time', '3': 1, '4': 1, '5': 3, '10': 'time'},
+    {'1': 'snap_within', '3': 2, '4': 1, '5': 3, '10': 'snapWithin'},
   ],
 };
 
 /// Descriptor for `Seek`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List seekDescriptor =
-    $convert.base64Decode('CgRTZWVrEhIKBHRpbWUYASABKANSBHRpbWU=');
+final $typed_data.Uint8List seekDescriptor = $convert.base64Decode(
+    'CgRTZWVrEhIKBHRpbWUYASABKANSBHRpbWUSHwoLc25hcF93aXRoaW4YAiABKANSCnNuYXBXaX'
+    'RoaW4=');
 
 @$core.Deprecated('Use eventDescriptor instead')
 const Event$json = {
@@ -676,12 +678,14 @@ const PlayheadChanged$json = {
   '1': 'PlayheadChanged',
   '2': [
     {'1': 'time', '3': 1, '4': 1, '5': 3, '10': 'time'},
+    {'1': 'snapped', '3': 2, '4': 1, '5': 8, '10': 'snapped'},
   ],
 };
 
 /// Descriptor for `PlayheadChanged`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List playheadChangedDescriptor = $convert
-    .base64Decode('Cg9QbGF5aGVhZENoYW5nZWQSEgoEdGltZRgBIAEoA1IEdGltZQ==');
+final $typed_data.Uint8List playheadChangedDescriptor = $convert.base64Decode(
+    'Cg9QbGF5aGVhZENoYW5nZWQSEgoEdGltZRgBIAEoA1IEdGltZRIYCgdzbmFwcGVkGAIgASgIUg'
+    'dzbmFwcGVk');
 
 @$core.Deprecated('Use commandAcceptedDescriptor instead')
 const CommandAccepted$json = {

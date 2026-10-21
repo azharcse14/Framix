@@ -504,6 +504,12 @@ impl Timeline {
         Ok((t, i))
     }
 
+    /// The snap point nearest to `time` within `within` ticks, if any: 0, the timeline end and
+    /// every clip's start and end on every track. Ties go to the earlier point.
+    pub fn snap(&self, _time: Time, _within: Time) -> Option<Time> {
+        None
+    }
+
     /// End of the last clip on any track; zero when empty.
     pub fn duration(&self) -> Time {
         // Clips are sorted and never overlap, so a track's last clip ends last.

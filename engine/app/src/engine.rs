@@ -183,6 +183,7 @@ impl Engine {
                 kind: Some(proto::event::Kind::PlayheadChanged(
                     proto::PlayheadChanged {
                         time: self.playhead.0,
+                        snapped: false,
                     },
                 )),
             },

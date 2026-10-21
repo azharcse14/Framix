@@ -32,7 +32,10 @@ fn playhead(e: Event) -> i64 {
 }
 
 fn seek(time: i64) -> command::Kind {
-    command::Kind::Seek(Seek { time })
+    command::Kind::Seek(Seek {
+        time,
+        snap_within: 0,
+    })
 }
 
 /// Imports `seconds` long videos back to back; returns the timeline.

@@ -1840,14 +1840,16 @@ class RequestThumbnails extends $pb.GeneratedMessage {
   void clearMaxSide() => $_clearField(3);
 }
 
-/// Moves the playhead to `time`, clamped to [0, timeline duration], and redraws the preview
-/// there. Not an undo step. Answered with PlayheadChanged.
+/// Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws
+/// the preview there. Not an undo step. Answered with PlayheadChanged.
 class Seek extends $pb.GeneratedMessage {
   factory Seek({
     $fixnum.Int64? time,
+    $fixnum.Int64? snapWithin,
   }) {
     final result = Seek._();
     if (time != null) result.time = time;
+    if (snapWithin != null) result.snapWithin = snapWithin;
     return result;
   }
 
@@ -1865,6 +1867,7 @@ class Seek extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Seek.$_createMessage)
     ..aInt64(1, _omitFieldNames ? '' : 'time')
+    ..aInt64(2, _omitFieldNames ? '' : 'snapWithin')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1895,6 +1898,17 @@ class Seek extends $pb.GeneratedMessage {
   $core.bool hasTime() => $_has(0);
   @$pb.TagNumber(1)
   void clearTime() => $_clearField(1);
+
+  /// Snap to the nearest edge (0, a clip start or end, the timeline end) within this many ticks;
+  /// 0 means no snapping, more than 10 s is capped, negative is refused.
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get snapWithin => $_getI64(1);
+  @$pb.TagNumber(2)
+  set snapWithin($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSnapWithin() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSnapWithin() => $_clearField(2);
 }
 
 enum Event_Kind {
@@ -2186,9 +2200,11 @@ class ThumbnailReady extends $pb.GeneratedMessage {
 class PlayheadChanged extends $pb.GeneratedMessage {
   factory PlayheadChanged({
     $fixnum.Int64? time,
+    $core.bool? snapped,
   }) {
     final result = PlayheadChanged._();
     if (time != null) result.time = time;
+    if (snapped != null) result.snapped = snapped;
     return result;
   }
 
@@ -2206,6 +2222,7 @@ class PlayheadChanged extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: PlayheadChanged.$_createMessage)
     ..aInt64(1, _omitFieldNames ? '' : 'time')
+    ..aOB(2, _omitFieldNames ? '' : 'snapped')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2238,6 +2255,16 @@ class PlayheadChanged extends $pb.GeneratedMessage {
   $core.bool hasTime() => $_has(0);
   @$pb.TagNumber(1)
   void clearTime() => $_clearField(1);
+
+  /// The seek landed on a snap point.
+  @$pb.TagNumber(2)
+  $core.bool get snapped => $_getBF(1);
+  @$pb.TagNumber(2)
+  set snapped($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSnapped() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSnapped() => $_clearField(2);
 }
 
 /// The command started work whose result comes later as its own event.

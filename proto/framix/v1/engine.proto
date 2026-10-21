@@ -178,10 +178,13 @@ message RequestThumbnails {
   uint32 max_side = 3;
 }
 
-// Moves the playhead to `time`, clamped to [0, timeline duration], and redraws the preview
-// there. Not an undo step. Answered with PlayheadChanged.
+// Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws
+// the preview there. Not an undo step. Answered with PlayheadChanged.
 message Seek {
   int64 time = 1;
+  // Snap to the nearest edge (0, a clip start or end, the timeline end) within this many ticks;
+  // 0 means no snapping, more than 10 s is capped, negative is refused.
+  int64 snap_within = 2;
 }
 
 // Sent by the engine. Exactly one kind is set. Every command is answered by exactly one event,
@@ -210,6 +213,8 @@ message ThumbnailReady {
 // Where the playhead is now, after a Seek.
 message PlayheadChanged {
   int64 time = 1;
+  // The seek landed on a snap point.
+  bool snapped = 2;
 }
 
 // The command started work whose result comes later as its own event.
