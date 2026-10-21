@@ -109,7 +109,12 @@ object EnginePlatform {
         try {
             // Unique per worker: the same uri can be imported twice and made at once.
             val partial = File.createTempFile(file.name, ".part", dir)
-            partial.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it) }
+            try {
+                partial.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it) }
+            } catch (e: Exception) {
+                partial.delete()
+                throw e
+            }
             if (!partial.renameTo(file)) {
                 partial.delete()
                 check(file.isFile) { "rename" }

@@ -132,7 +132,14 @@ class _TimelineViewState extends State<TimelineView> {
                                     ValueListenableBuilder(
                                       valueListenable: _window,
                                       builder: (context, window, _) {
-                                        final at = window * viewport / 2;
+                                        // The scroll may be clamped (zoom out)
+                                        // without a notification; read it here.
+                                        final at = _scroll.hasClients
+                                            ? (_scroll.offset / (viewport / 2))
+                                                      .floor() *
+                                                  viewport /
+                                                  2
+                                            : window * viewport / 2;
                                         return Column(
                                           children: [
                                             for (final track in timeline.tracks)
