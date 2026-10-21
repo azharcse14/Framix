@@ -1308,12 +1308,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-21",
+   "done": "2026-10-21",
+   "commit": "1d5c0b5",
+   "branch": "p1-022-snapping",
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "Paused after the failing-test commit 4a8db2e (user asked to stop before weekly usage passes 92%). Next: implement Timeline::snap (binary search per track), engine Seek snapping + cap, PlayheadCubit haptic on snap start, ruler sends a 12 dp radius."
+    },
+    {
+     "date": "2026-10-21",
+     "text": "WIP aed09b4: Timeline::snap, Seek snapping (cap 10 s), PlayheadCubit haptic and ruler 12 dp radius implemented; all Rust tests pass. snap_test.dart (step-3 test) times out: its second seekAndWait snaps to the same 2 s, the Cubit does not re-emit an equal state, so stream.firstWhere never fires. Needs the user's OK to fix the test (e.g. wait on the PlayheadChanged event instead of the cubit stream). Paused: weekly usage ~90%."
+    },
+    {
+     "date": "2026-10-21",
+     "text": "User approved the snap_test.dart fix (wait on PlayheadChanged; assertions unchanged), committed in 68eb412. Review (Sonnet): one Critical (i64 overflow in snap with untrusted Seek.time) fixed with u64 distances and an extremes test."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12461,7 +12474,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "Reuse Timeline::snap (P1-022) for trim handles."
+    }
+   ],
    "source": "added"
   },
   {
@@ -12499,7 +12517,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-21",
+     "text": "Reuse Timeline::snap (P1-022) for clip drag."
+    }
+   ],
    "source": "added"
   },
   {

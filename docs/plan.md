@@ -387,7 +387,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-019` Drag kore reorder \[Dart\]
 - [x] `P1-020` Timeline zoom in/out, scrubbing preview \[Dart\]\[Rust\]
 - [x] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
-- [ ] `P1-022` Snapping ar haptic feedback \[Dart\]
+- [x] `P1-022` Snapping ar haptic feedback \[Dart\]
 - [x] `P1-023` Undo/redo (command pattern) \[Rust\]
 - [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
 - [ ] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
