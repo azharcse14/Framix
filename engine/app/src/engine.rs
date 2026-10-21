@@ -24,6 +24,7 @@ pub struct Engine {
     history: History,
     store: Option<Box<dyn ProjectStore>>,
     preview: Option<Preview>,
+    thumbnails: Option<crate::thumbnail::Thumbnails>,
     /// Where the preview shows; always inside [0, duration]. Not part of the timeline, so undo
     /// never moves it and saves don't store it.
     playhead: Time,
@@ -136,18 +137,33 @@ impl Engine {
     }
 
     /// Lets this engine make thumbnails through `host`; without it RequestThumbnails fails.
-    pub fn with_thumbnails(self, _host: Box<dyn crate::thumbnail::ThumbnailHost>) -> Self {
-        self
+    pub fn with_thumbnails(self, host: Box<dyn crate::thumbnail::ThumbnailHost>) -> Self {
+        Self {
+            thumbnails: Some(crate::thumbnail::Thumbnails::new(host)),
+            ..self
+        }
     }
 
     /// The platform's answer to one thumbnail request: ThumbnailReady for a made file, nothing
     /// for a failure. Starts the next queued request either way.
     pub fn thumbnail_ready(
         &mut self,
-        _key: crate::thumbnail::ThumbnailKey,
-        _path: Result<String, String>,
+        key: crate::thumbnail::ThumbnailKey,
+        path: Result<String, String>,
     ) -> Option<Event> {
-        None
+        let thumbnails = self.thumbnails.as_mut()?;
+        if !thumbnails.finish(key) {
+            return None;
+        }
+        let path = path.ok()?;
+        Some(Event {
+            kind: Some(proto::event::Kind::ThumbnailReady(proto::ThumbnailReady {
+                media_id: key.media.0,
+                time: key.time.0,
+                max_side: key.max_side,
+                path,
+            })),
+        })
     }
 
     /// Applies `command` and returns the single event describing the outcome: the new
@@ -258,7 +274,9 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
-            command::Kind::RequestThumbnails(_) => Err("thumbnails are not implemented yet".into()),
+            command::Kind::RequestThumbnails(op) => {
+                self.request_thumbnails(op).map(|()| Reply::Accepted)
+            }
             command::Kind::Seek(seek) => {
                 self.move_playhead(Time(seek.time));
                 Ok(Reply::Playhead)
@@ -275,6 +293,27 @@ impl Engine {
                 }))
             }
         }
+    }
+
+    fn request_thumbnails(&mut self, op: proto::RequestThumbnails) -> Result<(), String> {
+        use crate::thumbnail::{MAX_SIDE, MAX_TIMES};
+        if !MAX_SIDE.contains(&op.max_side) {
+            return Err(format!("thumbnail size {} out of range", op.max_side));
+        }
+        if op.times.len() > MAX_TIMES {
+            return Err(format!("too many thumbnail times ({})", op.times.len()));
+        }
+        let id = MediaId(op.media_id);
+        let media = self
+            .history
+            .timeline()
+            .media(id)
+            .ok_or_else(|| format!("unknown media {}", op.media_id))?;
+        let thumbnails = self
+            .thumbnails
+            .as_mut()
+            .ok_or("no thumbnails on this platform")?;
+        thumbnails.ask(id, media, &op.times, op.max_side)
     }
 
     fn store(&self) -> Result<&dyn ProjectStore, String> {
@@ -335,6 +374,11 @@ impl Engine {
                             source_start: c.source_start.0,
                             start: c.start.0,
                             duration: c.duration.0,
+                            media_kind: match timeline.media(c.media).map(Media::kind) {
+                                Some(media::MediaKind::Video) => proto::MediaKind::Video,
+                                Some(media::MediaKind::Image) => proto::MediaKind::Image,
+                                None => proto::MediaKind::Unspecified,
+                            } as i32,
                         })
                         .collect(),
                     number: *count,
@@ -354,7 +398,7 @@ impl Engine {
                 aspect_height: timeline.aspect().height(),
                 playhead: self.playhead.0,
                 ticks_per_second: TICKS_PER_SECOND,
-                thumbnail_step: 0,
+                thumbnail_step: crate::thumbnail::THUMBNAIL_STEP.0,
             })),
         }
     }

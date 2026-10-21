@@ -88,9 +88,13 @@ const int ENGINE_ERR_PROTOCOL = -3;
 
 const int ENGINE_ERR_STOPPED = -4;
 
+const int ENGINE_MEDIA_IMAGE = 2;
+
+const int ENGINE_MEDIA_VIDEO = 1;
+
 const int ENGINE_OK = 0;
 
-const int ENGINE_PLATFORM_VERSION = 1;
+const int ENGINE_PLATFORM_VERSION = 2;
 
 const int ENGINE_PROTOCOL_VERSION = 12;
 
@@ -161,6 +165,25 @@ final class EnginePlatform extends ffi.Struct {
   >
   frame_available;
 
+  /// Makes a thumbnail image file of the media `uri` (`uri_len` UTF-8 bytes, valid for the
+  /// call) of `kind` at `time_us` microseconds, longest side at most `max_side`, then calls
+  /// `done`. Must return at once and do the work elsewhere.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Void Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Uint8> uri,
+        ffi.Size uri_len,
+        ffi.Uint32 kind,
+        ffi.Int64 time_us,
+        ffi.Uint32 max_side,
+        EngineThumbnailDone done,
+        ffi.Pointer<ffi.Void> done_ctx,
+      )
+    >
+  >
+  request_thumbnail;
+
   static ffi.Pointer<EnginePlatform> $allocate(
     ffi.Allocator $allocator, {
     required int version,
@@ -183,11 +206,27 @@ final class EnginePlatform extends ffi.Struct {
       >
     >
     frame_available,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Void Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Uint8> uri,
+          ffi.Size uri_len,
+          ffi.Uint32 kind,
+          ffi.Int64 time_us,
+          ffi.Uint32 max_side,
+          EngineThumbnailDone done,
+          ffi.Pointer<ffi.Void> done_ctx,
+        )
+      >
+    >
+    request_thumbnail,
   }) => $allocator<EnginePlatform>()
     ..ref.version = version
     ..ref.ctx = ctx
     ..ref.create_preview_texture = create_preview_texture
-    ..ref.frame_available = frame_available;
+    ..ref.frame_available = frame_available
+    ..ref.request_thumbnail = request_thumbnail;
 }
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
@@ -208,4 +247,22 @@ typedef DartEnginePreviewTextureDoneFunction = void Function(
   int status,
   int texture_id,
   ffi.Pointer<ffi.Void> texture,
+);
+
+/// The platform's answer to `request_thumbnail`. Call it exactly once, from any thread, with the
+/// `done_ctx` that came with the request. On success (`status` [`crate::ENGINE_OK`]) `path` is
+/// `path_len` UTF-8 bytes naming the image file, valid for the call only.
+typedef EngineThumbnailDone =
+    ffi.Pointer<ffi.NativeFunction<EngineThumbnailDoneFunction>>;
+typedef EngineThumbnailDoneFunction = ffi.Void Function(
+  ffi.Pointer<ffi.Void> done_ctx,
+  ffi.Int32 status,
+  ffi.Pointer<ffi.Uint8> path,
+  ffi.Size path_len,
+);
+typedef DartEngineThumbnailDoneFunction = void Function(
+  ffi.Pointer<ffi.Void> done_ctx,
+  int status,
+  ffi.Pointer<ffi.Uint8> path,
+  int path_len,
 );

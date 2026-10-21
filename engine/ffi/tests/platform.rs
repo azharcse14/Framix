@@ -16,6 +16,19 @@ use framix_ffi::{
 };
 use prost::Message;
 
+/// Thumbnails are not exercised here (engine_thumbnails.rs and platform_thumbnail.rs are).
+unsafe extern "C" fn no_thumbnail(
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: u32,
+    _: framix_ffi::EngineThumbnailDone,
+    _: *mut c_void,
+) {
+}
+
 /// How the fake platform answers: fail, succeed with a null texture, or never.
 const FAIL: u8 = 0;
 const NULL_TEXTURE: u8 = 1;
@@ -72,6 +85,7 @@ impl Session {
                 ctx: std::ptr::null_mut(),
                 create_preview_texture: Some(create),
                 frame_available: Some(frame),
+                request_thumbnail: Some(no_thumbnail),
             };
             // SAFETY: valid platform with static callbacks and a null ctx.
             assert_eq!(unsafe { engine_platform_register(&platform) }, ENGINE_OK);

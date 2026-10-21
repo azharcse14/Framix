@@ -2,13 +2,20 @@
 // (docs/adr/0003-platform-callbacks.md). Thin adapter: the engine decides what to draw and when.
 package com.travela.framix
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.hardware.HardwareBuffer
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import io.flutter.view.TextureRegistry
 import java.io.File
+import java.security.MessageDigest
+import java.util.concurrent.Executors
 
 /**
  * Fills the engine's `EnginePlatform` vtable through the Rust JNI shim
@@ -25,13 +32,20 @@ object EnginePlatform {
     /** SPIKE (P1-056): app files dir; `spike_clip.mp4` there (adb push) is drawn over the preview. */
     @Volatile private var files: File? = null
 
+    /** The app context, for media access and the cache folder. */
+    @Volatile private var context: Context? = null
+
+    // Two workers, like the engine's in-flight limit; thumbnails never touch the main thread.
+    private val thumbnails = Executors.newFixedThreadPool(2)
+
     // ponytail: producers are never released; the preview makes one per launch (P1-055).
     private val producers = mutableMapOf<Long, TextureRegistry.SurfaceProducer>()
 
     /** Registers once per process and serves [textures] until [detach]. Main thread. */
-    fun attach(textures: TextureRegistry, files: File?) {
+    fun attach(textures: TextureRegistry, files: File?, context: Context) {
         this.textures = textures
         this.files = files
+        this.context = context.applicationContext
         if (registered) return
         registered = true
         val code = nativeRegister()
@@ -67,6 +81,62 @@ object EnginePlatform {
         }
     }
 
+    /**
+     * Called by Rust (JNI, engine thread): writes a JPEG thumbnail of [uri] at [timeUs] (videos)
+     * no larger than [maxSide] into the cache folder, then answers [nativeThumbnailDone] exactly
+     * once from a worker. The body only submits the work and must not throw after that.
+     */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun requestThumbnail(uri: String, image: Boolean, timeUs: Long, maxSide: Int, doneCtx: Long) {
+        thumbnails.execute {
+            val path = runCatching { thumbnailFile(uri, image, timeUs, maxSide) }
+                .onFailure { Log.w("framix", "thumbnail failed", it) }
+                .getOrNull()
+            nativeThumbnailDone(doneCtx, path)
+        }
+    }
+
+    /** The cached thumbnail file for these arguments, made if missing. */
+    private fun thumbnailFile(uri: String, image: Boolean, timeUs: Long, maxSide: Int): String {
+        val ctx = checkNotNull(context) { "not attached" }
+        val dir = File(ctx.cacheDir, "thumbs").apply { mkdirs() }
+        val name = MessageDigest.getInstance("SHA-256").digest(uri.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+        val file = File(dir, "$name-$timeUs-$maxSide.jpg")
+        if (file.isFile) return file.path
+        val bitmap = if (image) photo(ctx, Uri.parse(uri), maxSide) else frame(ctx, Uri.parse(uri), timeUs, maxSide)
+        try {
+            val partial = File(dir, "${file.name}.part")
+            partial.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it) }
+            check(partial.renameTo(file)) { "rename" }
+        } finally {
+            bitmap.recycle()
+        }
+        return file.path
+    }
+
+    private fun frame(ctx: Context, uri: Uri, timeUs: Long, maxSide: Int): Bitmap =
+        MediaMetadataRetriever().use { r ->
+            r.setDataSource(ctx, uri)
+            val w = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: maxSide
+            val h = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: maxSide
+            val scale = maxSide.toFloat() / maxOf(w, h, 1)
+            checkNotNull(
+                r.getScaledFrameAtTime(
+                    timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                    maxOf((w * scale).toInt(), 1), maxOf((h * scale).toInt(), 1),
+                ),
+            ) { "no frame" }
+        }
+
+    private fun photo(ctx: Context, uri: Uri, maxSide: Int): Bitmap =
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(ctx.contentResolver, uri)) { d, info, _ ->
+            val (w, h) = info.size.width to info.size.height
+            val scale = minOf(1f, maxSide.toFloat() / maxOf(w, h, 1))
+            d.setTargetSize(maxOf((w * scale).toInt(), 1), maxOf((h * scale).toInt(), 1))
+            d.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+        }
+
     /** SPIKE (P1-056): decode the pushed clip off the main thread and draw it over the preview. */
     private fun spikeDecode(producer: TextureRegistry.SurfaceProducer) {
         val clip = files?.resolve("spike_clip.mp4")?.takeIf { it.isFile } ?: return
@@ -84,6 +154,9 @@ object EnginePlatform {
 
     /** engine/ffi/src/android_platform.rs: hands the producer's Surface (null = failed) over. */
     private external fun nativePreviewTextureDone(doneCtx: Long, textureId: Long, surface: Surface?)
+
+    /** engine/ffi/src/android_platform.rs: the thumbnail file's path, or null if it failed. */
+    private external fun nativeThumbnailDone(doneCtx: Long, path: String?)
 
     /** SPIKE (P1-056): engine/ffi/src/spike_preview.rs, draws an RGBA8 frame. */
     private external fun nativeRenderFrame(surface: Surface, frame: HardwareBuffer): Int

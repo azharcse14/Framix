@@ -780,6 +780,14 @@ const Clip$json = {
     {'1': 'source_start', '3': 3, '4': 1, '5': 3, '10': 'sourceStart'},
     {'1': 'start', '3': 4, '4': 1, '5': 3, '10': 'start'},
     {'1': 'duration', '3': 5, '4': 1, '5': 3, '10': 'duration'},
+    {
+      '1': 'media_kind',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.MediaKind',
+      '10': 'mediaKind'
+    },
   ],
 };
 
@@ -787,7 +795,8 @@ const Clip$json = {
 final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     'CgRDbGlwEg4KAmlkGAEgASgEUgJpZBIZCghtZWRpYV9pZBgCIAEoBFIHbWVkaWFJZBIhCgxzb3'
     'VyY2Vfc3RhcnQYAyABKANSC3NvdXJjZVN0YXJ0EhQKBXN0YXJ0GAQgASgDUgVzdGFydBIaCghk'
-    'dXJhdGlvbhgFIAEoA1IIZHVyYXRpb24=');
+    'dXJhdGlvbhgFIAEoA1IIZHVyYXRpb24SMwoKbWVkaWFfa2luZBgGIAEoDjIULmZyYW1peC52MS'
+    '5NZWRpYUtpbmRSCW1lZGlhS2luZA==');
 
 @$core.Deprecated('Use projectSavedDescriptor instead')
 const ProjectSaved$json = {

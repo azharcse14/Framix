@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui show Clip;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -7,12 +9,13 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/playhead_cubit.dart';
+import '../bloc/thumbnail_cubit.dart';
 import '../bloc/timeline_cubit.dart';
 import '../bloc/timeline_zoom_cubit.dart';
 
 /// The tracks on a time axis: headers, a ruler, clip lanes and the playhead. Positions come
 /// from engine ticks; the only state here is the zoom (pixels per second).
-class TimelineView extends StatelessWidget {
+class TimelineView extends StatefulWidget {
   const TimelineView({super.key, required this.timeline});
 
   final TimelineChanged timeline;
@@ -37,10 +40,27 @@ class TimelineView extends StatelessWidget {
   }
 
   @override
+  State<TimelineView> createState() => _TimelineViewState();
+}
+
+class _TimelineViewState extends State<TimelineView> {
+  /// The horizontal scroll; lanes build thumbnail tiles only near what it shows.
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    const rulerHeight = TimelineView._rulerHeight;
+    final timeline = widget.timeline;
     final pps = context.watch<TimelineZoomCubit>().state;
     final ticksPerSecond = timeline.ticksPerSecond.toInt();
-    final laneHeight = _laneHeight(context);
+    final laneHeight = TimelineView._laneHeight(context);
+    final step = timeline.thumbnailStep.toInt();
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
 
@@ -53,10 +73,10 @@ class TimelineView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: _headerWidth,
+                  width: TimelineView._headerWidth,
                   child: Column(
                     children: [
-                      const SizedBox(height: _rulerHeight),
+                      const SizedBox(height: rulerHeight),
                       for (final track in timeline.tracks)
                         SizedBox(
                           height: laneHeight,
@@ -74,13 +94,14 @@ class TimelineView extends StatelessWidget {
                         box.maxWidth,
                         end + box.maxWidth / 2,
                       );
+                      final viewport = box.maxWidth;
                       return SingleChildScrollView(
+                        controller: _scroll,
                         scrollDirection: Axis.horizontal,
                         child: SizedBox(
                           width: width,
                           height:
-                              _rulerHeight +
-                              laneHeight * timeline.tracks.length,
+                              rulerHeight + laneHeight * timeline.tracks.length,
                           child: Stack(
                             children: [
                               // Scrubbing repaints only the playhead line, not marks and clips.
@@ -90,21 +111,42 @@ class TimelineView extends StatelessWidget {
                                     _Ruler(
                                       pps: pps,
                                       ticksPerSecond: ticksPerSecond,
-                                      height: _rulerHeight,
+                                      height: rulerHeight,
                                     ),
-                                    for (final track in timeline.tracks)
-                                      _Lane(
-                                        track: track,
-                                        height: laneHeight,
-                                        px: px,
-                                      ),
+                                    // Thumbnails only for one screen either side of the view.
+                                    ListenableBuilder(
+                                      listenable: _scroll,
+                                      builder: (context, _) {
+                                        final at = _scroll.hasClients
+                                            ? _scroll.offset
+                                            : 0.0;
+                                        return Column(
+                                          children: [
+                                            for (final track in timeline.tracks)
+                                              _Lane(
+                                                track: track,
+                                                height: laneHeight,
+                                                px: px,
+                                                tiles: _Tiles(
+                                                  pps: pps,
+                                                  ticksPerSecond:
+                                                      ticksPerSecond,
+                                                  step: step,
+                                                  from: at - viewport,
+                                                  to: at + 2 * viewport,
+                                                ),
+                                              ),
+                                          ],
+                                        );
+                                      },
+                                    ),
                                   ],
                                 ),
                               ),
                               // The playhead changes often; only this line rebuilds.
                               BlocBuilder<PlayheadCubit, int>(
                                 builder: (context, playhead) => Positioned(
-                                  key: playheadKey,
+                                  key: TimelineView.playheadKey,
                                   left: px(playhead) - 1,
                                   top: 0,
                                   bottom: 0,
@@ -285,11 +327,17 @@ class _RulerPainter extends CustomPainter {
 
 /// One track's clips on the time axis.
 class _Lane extends StatelessWidget {
-  const _Lane({required this.track, required this.height, required this.px});
+  const _Lane({
+    required this.track,
+    required this.height,
+    required this.px,
+    required this.tiles,
+  });
 
   final Track track;
   final double height;
   final double Function(int ticks) px;
+  final _Tiles tiles;
 
   @override
   Widget build(BuildContext context) {
@@ -305,6 +353,9 @@ class _Lane extends StatelessWidget {
               child: ClipBox(
                 width: px(clip.duration.toInt()),
                 audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
+                tiles: track.kind == TrackKind.TRACK_KIND_AUDIO
+                    ? const []
+                    : tiles.of(clip, left: px(clip.start.toInt())),
               ),
             ),
         ],
@@ -315,10 +366,18 @@ class _Lane extends StatelessWidget {
 
 /// One clip on its lane.
 class ClipBox extends StatelessWidget {
-  const ClipBox({super.key, required this.width, required this.audio});
+  const ClipBox({
+    super.key,
+    required this.width,
+    required this.audio,
+    this.tiles = const [],
+  });
 
   final double width;
   final bool audio;
+
+  /// Thumbnail slots, each placed at its own offset inside the clip.
+  final List<Widget> tiles;
 
   @override
   Widget build(BuildContext context) {
@@ -330,12 +389,18 @@ class ClipBox extends StatelessWidget {
         border: Border.all(color: colors.outline),
         borderRadius: BorderRadius.circular(4),
       ),
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      // Track color always comes with an icon (docs/design-system.md).
-      child: width < 24
-          ? null
-          : Icon(audio ? Icons.audiotrack : Icons.movie, size: 16),
+      clipBehavior: ui.Clip.hardEdge,
+      child: Stack(
+        children: [
+          ...tiles,
+          // Track color always comes with an icon (docs/design-system.md).
+          if (width >= 24)
+            Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(audio ? Icons.audiotrack : Icons.movie, size: 16),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -410,10 +475,95 @@ class _TrackHeader extends StatelessWidget {
   }
 }
 
+/// Which thumbnail slots a clip shows: about [width] px each, only inside [from]..[to] (lane
+/// coordinates), at source times snapped to the engine's [step].
+class _Tiles {
+  const _Tiles({
+    required this.pps,
+    required this.ticksPerSecond,
+    required this.step,
+    required this.from,
+    required this.to,
+  });
+
+  static const width = 64.0;
+
+  final double pps;
+  final int ticksPerSecond;
+  final int step;
+  final double from;
+  final double to;
+
+  List<Widget> of(Clip clip, {required double left}) {
+    if (ticksPerSecond == 0 || step <= 0) return const [];
+    final clipWidth = clip.duration.toInt() / ticksPerSecond * pps;
+    final count = (clipWidth / width).ceil();
+    final first = math.max(0, ((from - left) / width).floor());
+    final last = math.min(count - 1, ((to - left) / width).ceil());
+    final photo = clip.mediaKind == MediaKind.MEDIA_KIND_IMAGE;
+    return [
+      for (var i = first; i <= last; i++)
+        Positioned(
+          left: i * width,
+          top: 0,
+          bottom: 0,
+          width: width,
+          child: ThumbnailTile(
+            media: clip.mediaId.toInt(),
+            // A photo has one picture; a video's tile shows the frame at its left edge.
+            time: photo
+                ? 0
+                : _snap(clip.sourceStart.toInt() + _ticks(i * width)),
+          ),
+        ),
+    ];
+  }
+
+  int _ticks(double px) => (px / pps * ticksPerSecond).round();
+
+  int _snap(int ticks) => ticks - ticks % step;
+}
+
 /// One thumbnail slot inside a clip: the image once the engine reports it, a plain fill before.
-class ThumbnailTile extends StatelessWidget {
-  const ThumbnailTile({super.key});
+/// Asks for its thumbnail when first built, so only shown slots are ever made.
+class ThumbnailTile extends StatefulWidget {
+  const ThumbnailTile({super.key, required this.media, required this.time});
+
+  final int media;
+  final int time;
 
   @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
+  State<ThumbnailTile> createState() => _ThumbnailTileState();
+}
+
+class _ThumbnailTileState extends State<ThumbnailTile> {
+  late int _maxSide;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Device pixels of a slot, inside the engine's 32..512 range.
+    _maxSide = (_Tiles.width * MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(32, 512);
+    context.read<ThumbnailCubit>().request(widget.media, [
+      widget.time,
+    ], _maxSide);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final key = (media: widget.media, time: widget.time, maxSide: _maxSide);
+    return BlocSelector<ThumbnailCubit, Map<ThumbnailKey, String>, String?>(
+      selector: (files) => files[key],
+      builder: (context, path) => path == null
+          ? const SizedBox.expand()
+          : Image.file(
+              File(path),
+              fit: BoxFit.cover,
+              cacheWidth: _maxSide,
+              gaplessPlayback: true,
+            ),
+    );
+  }
 }

@@ -8,6 +8,7 @@ import 'core/media/media_importer.dart';
 import 'core/ui/framix_theme.dart';
 import 'features/preview/bloc/preview_cubit.dart';
 import 'features/timeline/bloc/playhead_cubit.dart';
+import 'features/timeline/bloc/thumbnail_cubit.dart';
 import 'features/timeline/bloc/timeline_cubit.dart';
 import 'features/timeline/bloc/timeline_zoom_cubit.dart';
 import 'features/timeline/view/timeline_page.dart';
@@ -58,6 +59,7 @@ class FramixApp extends StatelessWidget {
             // Not lazy: it must see every playhead event from the start.
             BlocProvider(create: (_) => PlayheadCubit(engine), lazy: false),
             BlocProvider(create: (_) => TimelineZoomCubit()),
+            BlocProvider(create: (_) => ThumbnailCubit(engine)),
           ],
           child: const TimelinePage(),
         ),

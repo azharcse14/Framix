@@ -268,6 +268,7 @@ name = "framix_ffi"
 version = "0.1.0"
 dependencies = [
  "framix_app",
+ "framix_core",
  "framix_render",
  "framix_storage",
  "jni-sys 0.4.1",

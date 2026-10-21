@@ -52,7 +52,17 @@
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 1
+#define ENGINE_PLATFORM_VERSION 2
+
+/**
+ * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
+ */
+#define ENGINE_MEDIA_VIDEO 1
+
+/**
+ * [`EnginePlatform::request_thumbnail`]'s `kind`: a photo.
+ */
+#define ENGINE_MEDIA_IMAGE 2
 
 /**
  * Opaque engine instance: a channel into the engine thread.
@@ -94,6 +104,16 @@ typedef void (*EnginePreviewTextureDone)(void *done_ctx,
                                          void *texture);
 
 /**
+ * The platform's answer to `request_thumbnail`. Call it exactly once, from any thread, with the
+ * `done_ctx` that came with the request. On success (`status` [`crate::ENGINE_OK`]) `path` is
+ * `path_len` UTF-8 bytes naming the image file, valid for the call only.
+ */
+typedef void (*EngineThumbnailDone)(void *done_ctx,
+                                    int32_t status,
+                                    const uint8_t *path,
+                                    size_t path_len);
+
+/**
  * Callbacks the platform layer gives the engine once at startup. Each is called on an engine
  * thread and must return at once; `ctx` is passed back unchanged and must live for the process.
  */
@@ -118,6 +138,19 @@ typedef struct EnginePlatform {
    * Tells Flutter that `texture_id` holds a new frame.
    */
   void (*frame_available)(void *ctx, int64_t texture_id);
+  /**
+   * Makes a thumbnail image file of the media `uri` (`uri_len` UTF-8 bytes, valid for the
+   * call) of `kind` at `time_us` microseconds, longest side at most `max_side`, then calls
+   * `done`. Must return at once and do the work elsewhere.
+   */
+  void (*request_thumbnail)(void *ctx,
+                            const uint8_t *uri,
+                            size_t uri_len,
+                            uint32_t kind,
+                            int64_t time_us,
+                            uint32_t max_side,
+                            EngineThumbnailDone done,
+                            void *done_ctx);
 } EnginePlatform;
 
 /**

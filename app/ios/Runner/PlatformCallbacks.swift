@@ -2,9 +2,12 @@
 // (docs/adr/0003-platform-callbacks.md). Thin adapter: the engine decides what to draw and when.
 import AVFoundation
 import CoreVideo
+import CryptoKit
 import Flutter
 import IOSurface
+import ImageIO
 import Metal
+import UniformTypeIdentifiers
 
 /// A Flutter texture whose CVPixelBuffer shares one IOSurface with the Metal texture the engine
 /// (wgpu) renders into, so Flutter samples exactly the bytes the GPU wrote.
@@ -66,7 +69,8 @@ enum PlatformCallbacks {
     engineLibrary = library
     var platform = EnginePlatform(
       version: UInt32(ENGINE_PLATFORM_VERSION), ctx: nil,
-      create_preview_texture: createPreviewTexture, frame_available: frameAvailable)
+      create_preview_texture: createPreviewTexture, frame_available: frameAvailable,
+      request_thumbnail: requestThumbnail)
     let code = unsafeBitCast(symbol, to: Register.self)(&platform)
     assert(code == ENGINE_OK, "engine_platform_register failed: \(code)")
   }
@@ -115,6 +119,89 @@ private let createPreviewTexture:
       }
     }
   }
+
+/// Thumbnail requests arrive on the engine thread; the work runs detached and answers `done`
+/// exactly once from there.
+private let requestThumbnail:
+  @convention(c) (
+    UnsafeMutableRawPointer?, UnsafePointer<UInt8>?, Int, UInt32, Int64, UInt32,
+    EngineThumbnailDone?, UnsafeMutableRawPointer?
+  ) -> Void = { _, uri, uriLength, kind, timeUs, maxSide, done, doneCtx in
+    guard let done else { return }
+    guard let uri,
+      let reference = String(
+        bytes: UnsafeBufferPointer(start: uri, count: uriLength), encoding: .utf8)
+    else { return done(doneCtx, ENGINE_ERR_GPU, nil, 0) }
+    let ctx = UInt(bitPattern: doneCtx)
+    let image = kind == UInt32(ENGINE_MEDIA_IMAGE)
+    Task.detached(priority: .utility) {
+      let path = try? await Thumbnails.file(
+        for: reference, image: image, timeUs: timeUs, maxSide: Int(maxSide))
+      let doneCtx = UnsafeMutableRawPointer(bitPattern: ctx)
+      guard let path else { return done(doneCtx, ENGINE_ERR_GPU, nil, 0) }
+      var bytes = Array(path.utf8)
+      bytes.withUnsafeMutableBufferPointer { buffer in
+        done(doneCtx, ENGINE_OK, buffer.baseAddress, buffer.count)
+      }
+    }
+  }
+
+/// Thumbnail files in Caches/thumbs, named by the media reference, time and size, so a
+/// thumbnail is made once and reused.
+enum Thumbnails {
+  static func file(for reference: String, image: Bool, timeUs: Int64, maxSide: Int) async throws
+    -> String
+  {
+    let manager = FileManager.default
+    let dir = try manager.url(
+      for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+    ).appendingPathComponent("thumbs", isDirectory: true)
+    try manager.createDirectory(at: dir, withIntermediateDirectories: true)
+    let name = SHA256.hash(data: Data(reference.utf8)).map { String(format: "%02x", $0) }
+      .joined()
+    let file = dir.appendingPathComponent("\(name)-\(timeUs)-\(maxSide).jpg")
+    if manager.fileExists(atPath: file.path) { return file.path }
+
+    // The engine's media references are relative to Application Support (MediaPicker.store).
+    let source = try manager.url(
+      for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false
+    ).appendingPathComponent(reference)
+    let picture = image
+      ? try photo(source, maxSide: maxSide)
+      : try await frame(source, timeUs: timeUs, maxSide: maxSide)
+    let partial = dir.appendingPathComponent("\(file.lastPathComponent).part")
+    guard
+      let out = CGImageDestinationCreateWithURL(
+        partial as CFURL, UTType.jpeg.identifier as CFString, 1, nil)
+    else { throw CocoaError(.fileWriteUnknown) }
+    CGImageDestinationAddImage(
+      out, picture, [kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary)
+    guard CGImageDestinationFinalize(out) else { throw CocoaError(.fileWriteUnknown) }
+    try? manager.removeItem(at: file)
+    try manager.moveItem(at: partial, to: file)
+    return file.path
+  }
+
+  private static func frame(_ url: URL, timeUs: Int64, maxSide: Int) async throws -> CGImage {
+    let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
+    generator.appliesPreferredTrackTransform = true
+    generator.maximumSize = CGSize(width: maxSide, height: maxSide)
+    return try await generator.image(at: CMTime(value: timeUs, timescale: 1_000_000)).image
+  }
+
+  private static func photo(_ url: URL, maxSide: Int) throws -> CGImage {
+    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+      let thumb = CGImageSourceCreateThumbnailAtIndex(
+        source, 0,
+        [
+          kCGImageSourceCreateThumbnailFromImageAlways: true,
+          kCGImageSourceCreateThumbnailWithTransform: true,
+          kCGImageSourceThumbnailMaxPixelSize: maxSide,
+        ] as CFDictionary)
+    else { throw CocoaError(.fileReadCorruptFile) }
+    return thumb
+  }
+}
 
 private let frameAvailable: @convention(c) (UnsafeMutableRawPointer?, Int64) -> Void = { _, id in
   DispatchQueue.main.async {

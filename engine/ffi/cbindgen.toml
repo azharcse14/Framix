@@ -12,6 +12,7 @@ exclude = [
   "Java_com_travela_framix_EnginePlatform_nativeRegister",
   "Java_com_travela_framix_EnginePlatform_nativePreviewTextureDone",
   "Java_com_travela_framix_EnginePlatform_nativeRenderFrame",
+  "Java_com_travela_framix_EnginePlatform_nativeThumbnailDone",
   "engine_spike_draw_nv12",
   # NDK functions the Android shim imports, not engine exports.
   "ANativeWindow_fromSurface",

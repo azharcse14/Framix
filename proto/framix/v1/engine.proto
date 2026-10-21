@@ -256,6 +256,8 @@ message Clip {
   int64 source_start = 3;
   int64 start = 4;
   int64 duration = 5;
+  // Video or photo, so the UI shows one thumbnail for a photo's whole clip.
+  MediaKind media_kind = 6;
 }
 
 // SaveProject finished.

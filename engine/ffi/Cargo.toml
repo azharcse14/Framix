@@ -11,6 +11,8 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
 framix_app = { path = "../app" }
+# MediaKind for thumbnail requests.
+framix_core = { path = "../core" }
 # Implements app's PreviewRenderer (GpuRenderer).
 framix_render = { path = "../render" }
 framix_storage = { path = "../storage" }

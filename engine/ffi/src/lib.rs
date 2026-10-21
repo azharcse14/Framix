@@ -17,9 +17,11 @@ mod spike_preview;
 pub use android_platform::{
     Java_com_travela_framix_EnginePlatform_nativePreviewTextureDone,
     Java_com_travela_framix_EnginePlatform_nativeRegister,
+    Java_com_travela_framix_EnginePlatform_nativeThumbnailDone,
 };
 pub use platform::{
-    ENGINE_PLATFORM_VERSION, EnginePlatform, EnginePreviewTextureDone, engine_platform_register,
+    ENGINE_MEDIA_IMAGE, ENGINE_MEDIA_VIDEO, ENGINE_PLATFORM_VERSION, EnginePlatform,
+    EnginePreviewTextureDone, EngineThumbnailDone, engine_platform_register,
 };
 #[cfg(target_os = "android")]
 pub use spike_preview::Java_com_travela_framix_EnginePlatform_nativeRenderFrame;
@@ -62,6 +64,8 @@ enum EngineMessage {
     SetCallback(EngineEventCallback),
     /// The platform's answer to a preview texture request.
     PreviewTexture(Result<PlatformTexture, String>),
+    /// The platform's answer to a thumbnail request: the image file's path, or why not.
+    Thumbnail(framix_app::thumbnail::ThumbnailKey, Result<String, String>),
     /// Stop after the messages queued before this one. Needed because pending platform
     /// answers hold senders, so the queue never closes by itself.
     Shutdown,
@@ -179,7 +183,11 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
 /// The engine thread: answers every command with one event, in order, plus the results of
 /// platform work as they arrive.
 fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
+    let thumbnails = platform::PlatformHost {
+        engine: host.engine.clone(),
+    };
     let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
+        .with_thumbnails(Box::new(thumbnails))
         .with_preview(
             Box::new(host),
             Box::new(
@@ -202,6 +210,16 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
             },
             EngineMessage::PreviewTexture(texture) => {
                 guarded(|| engine.preview_texture_ready(texture))
+            }
+            EngineMessage::Thumbnail(key, path) => {
+                // A failed thumbnail has no event; a panic still reports one.
+                match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    engine.thumbnail_ready(key, path)
+                })) {
+                    Ok(Some(event)) => event,
+                    Ok(None) => continue,
+                    Err(_) => command_failed("internal error"),
+                }
             }
         };
         if let Some(deliver) = callback {

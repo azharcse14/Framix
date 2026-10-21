@@ -2629,6 +2629,7 @@ class Clip extends $pb.GeneratedMessage {
     $fixnum.Int64? sourceStart,
     $fixnum.Int64? start,
     $fixnum.Int64? duration,
+    MediaKind? mediaKind,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -2636,6 +2637,7 @@ class Clip extends $pb.GeneratedMessage {
     if (sourceStart != null) result.sourceStart = sourceStart;
     if (start != null) result.start = start;
     if (duration != null) result.duration = duration;
+    if (mediaKind != null) result.mediaKind = mediaKind;
     return result;
   }
 
@@ -2659,6 +2661,8 @@ class Clip extends $pb.GeneratedMessage {
     ..aInt64(3, _omitFieldNames ? '' : 'sourceStart')
     ..aInt64(4, _omitFieldNames ? '' : 'start')
     ..aInt64(5, _omitFieldNames ? '' : 'duration')
+    ..aE<MediaKind>(6, _omitFieldNames ? '' : 'mediaKind',
+        enumValues: MediaKind.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2725,6 +2729,16 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasDuration() => $_has(4);
   @$pb.TagNumber(5)
   void clearDuration() => $_clearField(5);
+
+  /// Video or photo, so the UI shows one thumbnail for a photo's whole clip.
+  @$pb.TagNumber(6)
+  MediaKind get mediaKind => $_getN(5);
+  @$pb.TagNumber(6)
+  set mediaKind(MediaKind value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMediaKind() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMediaKind() => $_clearField(6);
 }
 
 /// SaveProject finished.

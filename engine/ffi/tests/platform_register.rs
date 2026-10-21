@@ -8,6 +8,19 @@ use framix_ffi::{
     EnginePlatform, EnginePreviewTextureDone, engine_platform_register,
 };
 
+/// Thumbnails are not exercised here (engine_thumbnails.rs and platform_thumbnail.rs are).
+unsafe extern "C" fn no_thumbnail(
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: u32,
+    _: framix_ffi::EngineThumbnailDone,
+    _: *mut c_void,
+) {
+}
+
 unsafe extern "C" fn create(
     _: *mut c_void,
     _: u32,
@@ -24,6 +37,7 @@ fn platform(version: u32) -> EnginePlatform {
         ctx: std::ptr::null_mut(),
         create_preview_texture: Some(create),
         frame_available: Some(frame),
+        request_thumbnail: Some(no_thumbnail),
     }
 }
 
@@ -31,6 +45,7 @@ fn platform(version: u32) -> EnginePlatform {
 fn register_validates_then_accepts_once() {
     let missing = EnginePlatform {
         frame_available: None,
+        request_thumbnail: Some(no_thumbnail),
         ..platform(ENGINE_PLATFORM_VERSION)
     };
     // SAFETY: null and valid pointers to stack values that outlive each call; the accepted
