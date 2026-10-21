@@ -43,7 +43,7 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 11;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 12;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread, so it must not call

@@ -41,6 +41,7 @@ enum Command_Kind {
   importMedia,
   createPreview,
   seek,
+  requestThumbnails,
   notSet
 }
 
@@ -66,6 +67,7 @@ class Command extends $pb.GeneratedMessage {
     ImportMedia? importMedia,
     CreatePreview? createPreview,
     Seek? seek,
+    RequestThumbnails? requestThumbnails,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -87,6 +89,7 @@ class Command extends $pb.GeneratedMessage {
     if (importMedia != null) result.importMedia = importMedia;
     if (createPreview != null) result.createPreview = createPreview;
     if (seek != null) result.seek = seek;
+    if (requestThumbnails != null) result.requestThumbnails = requestThumbnails;
     return result;
   }
 
@@ -119,13 +122,15 @@ class Command extends $pb.GeneratedMessage {
     17: Command_Kind.importMedia,
     18: Command_Kind.createPreview,
     19: Command_Kind.seek,
+    20: Command_Kind.requestThumbnails,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+    ..oo(0,
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -164,6 +169,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: CreatePreview.$_createMessage)
     ..aOM<Seek>(19, _omitFieldNames ? '' : 'seek',
         subBuilder: Seek.$_createMessage)
+    ..aOM<RequestThumbnails>(20, _omitFieldNames ? '' : 'requestThumbnails',
+        subBuilder: RequestThumbnails.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -205,6 +212,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
+  @$pb.TagNumber(20)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -225,6 +233,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
+  @$pb.TagNumber(20)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -435,6 +444,17 @@ class Command extends $pb.GeneratedMessage {
   void clearSeek() => $_clearField(19);
   @$pb.TagNumber(19)
   Seek ensureSeek() => $_ensure(18);
+
+  @$pb.TagNumber(20)
+  RequestThumbnails get requestThumbnails => $_getN(19);
+  @$pb.TagNumber(20)
+  set requestThumbnails(RequestThumbnails value) => $_setField(20, value);
+  @$pb.TagNumber(20)
+  $core.bool hasRequestThumbnails() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearRequestThumbnails() => $_clearField(20);
+  @$pb.TagNumber(20)
+  RequestThumbnails ensureRequestThumbnails() => $_ensure(19);
 }
 
 /// Appends an empty track.
@@ -1740,6 +1760,86 @@ class CreatePreview extends $pb.GeneratedMessage {
   void clearHeight() => $_clearField(2);
 }
 
+/// Asks for thumbnails of one media at source `times` (each snapped down to
+/// TimelineChanged.thumbnail_step, at most 64), each side at most `max_side` (32..=512).
+/// Answered with CommandAccepted; each new thumbnail arrives later as ThumbnailReady. Times
+/// already asked for are not made again; failures send nothing.
+class RequestThumbnails extends $pb.GeneratedMessage {
+  factory RequestThumbnails({
+    $fixnum.Int64? mediaId,
+    $core.Iterable<$fixnum.Int64>? times,
+    $core.int? maxSide,
+  }) {
+    final result = RequestThumbnails._();
+    if (mediaId != null) result.mediaId = mediaId;
+    if (times != null) result.times.addAll(times);
+    if (maxSide != null) result.maxSide = maxSide;
+    return result;
+  }
+
+  RequestThumbnails._();
+
+  factory RequestThumbnails.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RequestThumbnails()..mergeFromBuffer(data, registry);
+  factory RequestThumbnails.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RequestThumbnails()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestThumbnails',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RequestThumbnails.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'mediaId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'times', $pb.PbFieldType.K6)
+    ..aI(3, _omitFieldNames ? '' : 'maxSide', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestThumbnails clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RequestThumbnails copyWith(void Function(RequestThumbnails) updates) =>
+      super.copyWith((message) => updates(message as RequestThumbnails))
+          as RequestThumbnails;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RequestThumbnails() / RequestThumbnails.new instead')
+  static RequestThumbnails create() => RequestThumbnails._();
+  static $pb.GeneratedMessage $_createMessage() => RequestThumbnails._();
+  @$core.override
+  RequestThumbnails createEmptyInstance() => RequestThumbnails._();
+  @$core.pragma('dart2js:noInline')
+  static RequestThumbnails getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RequestThumbnails>(
+          RequestThumbnails.$_createMessage);
+  static RequestThumbnails? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get mediaId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set mediaId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMediaId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMediaId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get times => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.int get maxSide => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set maxSide($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasMaxSide() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMaxSide() => $_clearField(3);
+}
+
 /// Moves the playhead to `time`, clamped to [0, timeline duration], and redraws the preview
 /// there. Not an undo step. Answered with PlayheadChanged.
 class Seek extends $pb.GeneratedMessage {
@@ -1804,6 +1904,7 @@ enum Event_Kind {
   commandAccepted,
   previewReady,
   playheadChanged,
+  thumbnailReady,
   notSet
 }
 
@@ -1818,6 +1919,7 @@ class Event extends $pb.GeneratedMessage {
     CommandAccepted? commandAccepted,
     PreviewReady? previewReady,
     PlayheadChanged? playheadChanged,
+    ThumbnailReady? thumbnailReady,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
@@ -1826,6 +1928,7 @@ class Event extends $pb.GeneratedMessage {
     if (commandAccepted != null) result.commandAccepted = commandAccepted;
     if (previewReady != null) result.previewReady = previewReady;
     if (playheadChanged != null) result.playheadChanged = playheadChanged;
+    if (thumbnailReady != null) result.thumbnailReady = thumbnailReady;
     return result;
   }
 
@@ -1845,13 +1948,14 @@ class Event extends $pb.GeneratedMessage {
     4: Event_Kind.commandAccepted,
     5: Event_Kind.previewReady,
     6: Event_Kind.playheadChanged,
+    7: Event_Kind.thumbnailReady,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
@@ -1864,6 +1968,8 @@ class Event extends $pb.GeneratedMessage {
         subBuilder: PreviewReady.$_createMessage)
     ..aOM<PlayheadChanged>(6, _omitFieldNames ? '' : 'playheadChanged',
         subBuilder: PlayheadChanged.$_createMessage)
+    ..aOM<ThumbnailReady>(7, _omitFieldNames ? '' : 'thumbnailReady',
+        subBuilder: ThumbnailReady.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1892,6 +1998,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -1899,6 +2006,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1966,6 +2074,112 @@ class Event extends $pb.GeneratedMessage {
   void clearPlayheadChanged() => $_clearField(6);
   @$pb.TagNumber(6)
   PlayheadChanged ensurePlayheadChanged() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  ThumbnailReady get thumbnailReady => $_getN(6);
+  @$pb.TagNumber(7)
+  set thumbnailReady(ThumbnailReady value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasThumbnailReady() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearThumbnailReady() => $_clearField(7);
+  @$pb.TagNumber(7)
+  ThumbnailReady ensureThumbnailReady() => $_ensure(6);
+}
+
+/// A thumbnail file for one media at a snapped source time; show it as an image file.
+class ThumbnailReady extends $pb.GeneratedMessage {
+  factory ThumbnailReady({
+    $fixnum.Int64? mediaId,
+    $fixnum.Int64? time,
+    $core.int? maxSide,
+    $core.String? path,
+  }) {
+    final result = ThumbnailReady._();
+    if (mediaId != null) result.mediaId = mediaId;
+    if (time != null) result.time = time;
+    if (maxSide != null) result.maxSide = maxSide;
+    if (path != null) result.path = path;
+    return result;
+  }
+
+  ThumbnailReady._();
+
+  factory ThumbnailReady.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ThumbnailReady()..mergeFromBuffer(data, registry);
+  factory ThumbnailReady.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ThumbnailReady()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ThumbnailReady',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ThumbnailReady.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'mediaId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(2, _omitFieldNames ? '' : 'time')
+    ..aI(3, _omitFieldNames ? '' : 'maxSide', fieldType: $pb.PbFieldType.OU3)
+    ..aOS(4, _omitFieldNames ? '' : 'path')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ThumbnailReady clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ThumbnailReady copyWith(void Function(ThumbnailReady) updates) =>
+      super.copyWith((message) => updates(message as ThumbnailReady))
+          as ThumbnailReady;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ThumbnailReady() / ThumbnailReady.new instead')
+  static ThumbnailReady create() => ThumbnailReady._();
+  static $pb.GeneratedMessage $_createMessage() => ThumbnailReady._();
+  @$core.override
+  ThumbnailReady createEmptyInstance() => ThumbnailReady._();
+  @$core.pragma('dart2js:noInline')
+  static ThumbnailReady getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ThumbnailReady>(
+          ThumbnailReady.$_createMessage);
+  static ThumbnailReady? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get mediaId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set mediaId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMediaId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMediaId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get time => $_getI64(1);
+  @$pb.TagNumber(2)
+  set time($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTime() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTime() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get maxSide => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set maxSide($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasMaxSide() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMaxSide() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get path => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set path($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPath() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPath() => $_clearField(4);
 }
 
 /// Where the playhead is now, after a Seek.
@@ -2137,6 +2351,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $core.int? aspectHeight,
     $fixnum.Int64? playhead,
     $fixnum.Int64? ticksPerSecond,
+    $fixnum.Int64? thumbnailStep,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -2147,6 +2362,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (aspectHeight != null) result.aspectHeight = aspectHeight;
     if (playhead != null) result.playhead = playhead;
     if (ticksPerSecond != null) result.ticksPerSecond = ticksPerSecond;
+    if (thumbnailStep != null) result.thumbnailStep = thumbnailStep;
     return result;
   }
 
@@ -2174,6 +2390,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aInt64(7, _omitFieldNames ? '' : 'playhead')
     ..aInt64(8, _omitFieldNames ? '' : 'ticksPerSecond')
+    ..aInt64(9, _omitFieldNames ? '' : 'thumbnailStep')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2266,6 +2483,16 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasTicksPerSecond() => $_has(7);
   @$pb.TagNumber(8)
   void clearTicksPerSecond() => $_clearField(8);
+
+  /// Thumbnail times are multiples of this many ticks (RequestThumbnails snaps to it).
+  @$pb.TagNumber(9)
+  $fixnum.Int64 get thumbnailStep => $_getI64(8);
+  @$pb.TagNumber(9)
+  set thumbnailStep($fixnum.Int64 value) => $_setInt64(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasThumbnailStep() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearThumbnailStep() => $_clearField(9);
 }
 
 /// A track and its clips, sorted by start.

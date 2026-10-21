@@ -5,6 +5,7 @@ pub mod history;
 pub mod preview;
 pub mod project;
 pub mod store;
+pub mod thumbnail;
 
 /// Wire types of the UI <-> engine contract (proto/framix/v1/engine.proto).
 pub mod proto {

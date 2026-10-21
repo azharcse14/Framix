@@ -135,6 +135,21 @@ impl Engine {
         }
     }
 
+    /// Lets this engine make thumbnails through `host`; without it RequestThumbnails fails.
+    pub fn with_thumbnails(self, _host: Box<dyn crate::thumbnail::ThumbnailHost>) -> Self {
+        self
+    }
+
+    /// The platform's answer to one thumbnail request: ThumbnailReady for a made file, nothing
+    /// for a failure. Starts the next queued request either way.
+    pub fn thumbnail_ready(
+        &mut self,
+        _key: crate::thumbnail::ThumbnailKey,
+        _path: Result<String, String>,
+    ) -> Option<Event> {
+        None
+    }
+
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
@@ -243,6 +258,7 @@ impl Engine {
                     .collect::<Result<Vec<_>, _>>()?;
                 timeline(self.edit(|tl| tl.import(media).map(drop)))
             }
+            command::Kind::RequestThumbnails(_) => Err("thumbnails are not implemented yet".into()),
             command::Kind::Seek(seek) => {
                 self.move_playhead(Time(seek.time));
                 Ok(Reply::Playhead)
@@ -338,6 +354,7 @@ impl Engine {
                 aspect_height: timeline.aspect().height(),
                 playhead: self.playhead.0,
                 ticks_per_second: TICKS_PER_SECOND,
+                thumbnail_step: 0,
             })),
         }
     }

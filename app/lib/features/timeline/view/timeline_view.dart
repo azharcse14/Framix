@@ -409,3 +409,11 @@ class _TrackHeader extends StatelessWidget {
     );
   }
 }
+
+/// One thumbnail slot inside a clip: the image once the engine reports it, a plain fill before.
+class ThumbnailTile extends StatelessWidget {
+  const ThumbnailTile({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}

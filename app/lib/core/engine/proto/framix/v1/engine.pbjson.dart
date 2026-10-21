@@ -220,6 +220,15 @@ const Command$json = {
       '9': 0,
       '10': 'seek'
     },
+    {
+      '1': 'request_thumbnails',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.RequestThumbnails',
+      '9': 0,
+      '10': 'requestThumbnails'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -247,7 +256,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'LmZyYW1peC52MS5Nb3ZlQ2xpcEgAUghtb3ZlQ2xpcBI7CgxpbXBvcnRfbWVkaWEYESABKAsyFi'
     '5mcmFtaXgudjEuSW1wb3J0TWVkaWFIAFILaW1wb3J0TWVkaWESQQoOY3JlYXRlX3ByZXZpZXcY'
     'EiABKAsyGC5mcmFtaXgudjEuQ3JlYXRlUHJldmlld0gAUg1jcmVhdGVQcmV2aWV3EiUKBHNlZW'
-    'sYEyABKAsyDy5mcmFtaXgudjEuU2Vla0gAUgRzZWVrQgYKBGtpbmQ=');
+    'sYEyABKAsyDy5mcmFtaXgudjEuU2Vla0gAUgRzZWVrEk0KEnJlcXVlc3RfdGh1bWJuYWlscxgU'
+    'IAEoCzIcLmZyYW1peC52MS5SZXF1ZXN0VGh1bWJuYWlsc0gAUhFyZXF1ZXN0VGh1bWJuYWlsc0'
+    'IGCgRraW5k');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -531,6 +542,21 @@ final $typed_data.Uint8List createPreviewDescriptor = $convert.base64Decode(
     'Cg1DcmVhdGVQcmV2aWV3EhQKBXdpZHRoGAEgASgNUgV3aWR0aBIWCgZoZWlnaHQYAiABKA1SBm'
     'hlaWdodA==');
 
+@$core.Deprecated('Use requestThumbnailsDescriptor instead')
+const RequestThumbnails$json = {
+  '1': 'RequestThumbnails',
+  '2': [
+    {'1': 'media_id', '3': 1, '4': 1, '5': 4, '10': 'mediaId'},
+    {'1': 'times', '3': 2, '4': 3, '5': 3, '10': 'times'},
+    {'1': 'max_side', '3': 3, '4': 1, '5': 13, '10': 'maxSide'},
+  ],
+};
+
+/// Descriptor for `RequestThumbnails`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestThumbnailsDescriptor = $convert.base64Decode(
+    'ChFSZXF1ZXN0VGh1bWJuYWlscxIZCghtZWRpYV9pZBgBIAEoBFIHbWVkaWFJZBIUCgV0aW1lcx'
+    'gCIAMoA1IFdGltZXMSGQoIbWF4X3NpZGUYAyABKA1SB21heFNpZGU=');
+
 @$core.Deprecated('Use seekDescriptor instead')
 const Seek$json = {
   '1': 'Seek',
@@ -601,6 +627,15 @@ const Event$json = {
       '9': 0,
       '10': 'playheadChanged'
     },
+    {
+      '1': 'thumbnail_ready',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ThumbnailReady',
+      '9': 0,
+      '10': 'thumbnailReady'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -616,7 +651,25 @@ final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     'X2FjY2VwdGVkGAQgASgLMhouZnJhbWl4LnYxLkNvbW1hbmRBY2NlcHRlZEgAUg9jb21tYW5kQW'
     'NjZXB0ZWQSPgoNcHJldmlld19yZWFkeRgFIAEoCzIXLmZyYW1peC52MS5QcmV2aWV3UmVhZHlI'
     'AFIMcHJldmlld1JlYWR5EkcKEHBsYXloZWFkX2NoYW5nZWQYBiABKAsyGi5mcmFtaXgudjEuUG'
-    'xheWhlYWRDaGFuZ2VkSABSD3BsYXloZWFkQ2hhbmdlZEIGCgRraW5k');
+    'xheWhlYWRDaGFuZ2VkSABSD3BsYXloZWFkQ2hhbmdlZBJECg90aHVtYm5haWxfcmVhZHkYByAB'
+    'KAsyGS5mcmFtaXgudjEuVGh1bWJuYWlsUmVhZHlIAFIOdGh1bWJuYWlsUmVhZHlCBgoEa2luZA'
+    '==');
+
+@$core.Deprecated('Use thumbnailReadyDescriptor instead')
+const ThumbnailReady$json = {
+  '1': 'ThumbnailReady',
+  '2': [
+    {'1': 'media_id', '3': 1, '4': 1, '5': 4, '10': 'mediaId'},
+    {'1': 'time', '3': 2, '4': 1, '5': 3, '10': 'time'},
+    {'1': 'max_side', '3': 3, '4': 1, '5': 13, '10': 'maxSide'},
+    {'1': 'path', '3': 4, '4': 1, '5': 9, '10': 'path'},
+  ],
+};
+
+/// Descriptor for `ThumbnailReady`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List thumbnailReadyDescriptor = $convert.base64Decode(
+    'Cg5UaHVtYm5haWxSZWFkeRIZCghtZWRpYV9pZBgBIAEoBFIHbWVkaWFJZBISCgR0aW1lGAIgAS'
+    'gDUgR0aW1lEhkKCG1heF9zaWRlGAMgASgNUgdtYXhTaWRlEhIKBHBhdGgYBCABKAlSBHBhdGg=');
 
 @$core.Deprecated('Use playheadChangedDescriptor instead')
 const PlayheadChanged$json = {
@@ -670,6 +723,7 @@ const TimelineChanged$json = {
     {'1': 'aspect_height', '3': 6, '4': 1, '5': 13, '10': 'aspectHeight'},
     {'1': 'playhead', '3': 7, '4': 1, '5': 3, '10': 'playhead'},
     {'1': 'ticks_per_second', '3': 8, '4': 1, '5': 3, '10': 'ticksPerSecond'},
+    {'1': 'thumbnail_step', '3': 9, '4': 1, '5': 3, '10': 'thumbnailStep'},
   ],
 };
 
@@ -680,7 +734,7 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'bmRvEhkKCGNhbl9yZWRvGAQgASgIUgdjYW5SZWRvEiEKDGFzcGVjdF93aWR0aBgFIAEoDVILYX'
     'NwZWN0V2lkdGgSIwoNYXNwZWN0X2hlaWdodBgGIAEoDVIMYXNwZWN0SGVpZ2h0EhoKCHBsYXlo'
     'ZWFkGAcgASgDUghwbGF5aGVhZBIoChB0aWNrc19wZXJfc2Vjb25kGAggASgDUg50aWNrc1Blcl'
-    'NlY29uZA==');
+    'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcA==');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {

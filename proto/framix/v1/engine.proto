@@ -27,6 +27,7 @@ message Command {
     ImportMedia import_media = 17;
     CreatePreview create_preview = 18;
     Seek seek = 19;
+    RequestThumbnails request_thumbnails = 20;
   }
 }
 
@@ -167,6 +168,16 @@ message CreatePreview {
   uint32 height = 2;
 }
 
+// Asks for thumbnails of one media at source `times` (each snapped down to
+// TimelineChanged.thumbnail_step, at most 64), each side at most `max_side` (32..=512).
+// Answered with CommandAccepted; each new thumbnail arrives later as ThumbnailReady. Times
+// already asked for are not made again; failures send nothing.
+message RequestThumbnails {
+  uint64 media_id = 1;
+  repeated int64 times = 2;
+  uint32 max_side = 3;
+}
+
 // Moves the playhead to `time`, clamped to [0, timeline duration], and redraws the preview
 // there. Not an undo step. Answered with PlayheadChanged.
 message Seek {
@@ -184,7 +195,16 @@ message Event {
     CommandAccepted command_accepted = 4;
     PreviewReady preview_ready = 5;
     PlayheadChanged playhead_changed = 6;
+    ThumbnailReady thumbnail_ready = 7;
   }
+}
+
+// A thumbnail file for one media at a snapped source time; show it as an image file.
+message ThumbnailReady {
+  uint64 media_id = 1;
+  int64 time = 2;
+  uint32 max_side = 3;
+  string path = 4;
 }
 
 // Where the playhead is now, after a Seek.
@@ -213,6 +233,8 @@ message TimelineChanged {
   int64 playhead = 7;
   // Ticks per second of every time field, so the UI can place times without its own copy.
   int64 ticks_per_second = 8;
+  // Thumbnail times are multiples of this many ticks (RequestThumbnails snaps to it).
+  int64 thumbnail_step = 9;
 }
 
 // A track and its clips, sorted by start.
