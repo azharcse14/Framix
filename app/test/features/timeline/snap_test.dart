@@ -52,11 +52,16 @@ void main() {
         .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
+  /// Seeks and waits for the engine's answer (the cubit does not re-emit an equal state).
   Future<void> seekAndWait(int ticks, int snapWithin, int expected) async {
-    final landed = cubit.stream.firstWhere((t) => t == expected);
+    final landed = engine.events.firstWhere((e) => e.hasPlayheadChanged());
     cubit.seek(ticks, snapWithin: snapWithin);
-    await landed.timeout(const Duration(seconds: 5));
-    // Let the haptic call, made right after the state, reach the mock.
+    expect(
+      (await landed.timeout(const Duration(seconds: 5))).playheadChanged.time
+          .toInt(),
+      expected,
+    );
+    // Let the cubit handle the same event and the haptic call reach the mock.
     await Future<void>.delayed(const Duration(milliseconds: 50));
   }
 
