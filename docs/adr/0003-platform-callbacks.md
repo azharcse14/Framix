@@ -6,8 +6,9 @@ Task: P1-005
 ## Context
 Some work only the platform layer can do: Flutter textures (FlutterTextureRegistry on iOS,
 SurfaceProducer on Android), hardware codecs, OS ML. That work often has to run on the main
-thread, while the engine runs on its own thread and `engine_destroy` joins it from the main
-thread, so the engine must never wait for the platform synchronously. The P1-001 spike used a
+thread, while the engine runs on its own thread and `engine_destroy` joined it from the main
+thread (since P1-044 it returns at once instead), so the engine must never wait for the
+platform synchronously. The P1-001 spike used a
 method channel and let Dart pass a raw `id<MTLTexture>` back to Rust, which put platform
 plumbing in Dart.
 

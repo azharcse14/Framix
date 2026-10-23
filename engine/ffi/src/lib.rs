@@ -106,8 +106,8 @@ pub unsafe extern "C" fn engine_create(protocol_version: u32, out: *mut *mut Eng
 ///
 /// # Safety
 /// `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
-/// callable until it has received `EngineStopped` (if it
-/// is still the callback then).
+/// callable until `EngineStopped` has been delivered to
+/// whichever callback is set last.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_set_event_callback(
     engine: *const Engine,
@@ -175,9 +175,40 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
     }
 }
 
-/// The engine thread: answers every command with one event, in order, plus the results of
-/// platform work as they arrive.
+/// The engine thread: serves messages until Shutdown, then sends EngineStopped last. If the
+/// engine itself fails (a panic outside one message, e.g. while starting), commands are
+/// refused until Shutdown, so the stream still ends.
 fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
+    let mut callback: EngineEventCallback = None;
+    let served = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        serve(&inbox, host, &mut callback);
+    }));
+    if served.is_err() {
+        for message in &inbox {
+            match message {
+                EngineMessage::SetCallback(new) => callback = new,
+                EngineMessage::Shutdown => break,
+                EngineMessage::Command(_) => deliver(callback, &command_failed("engine stopped")),
+                EngineMessage::PreviewTexture(_) | EngineMessage::Thumbnail(..) => {}
+            }
+        }
+    }
+    deliver(
+        callback,
+        &Event {
+            kind: Some(event::Kind::EngineStopped(Default::default())),
+        },
+    );
+}
+
+/// Answers every command with one event, in order, plus the results of platform work as
+/// they arrive. Returns at Shutdown; the engine (and its GPU state) is dropped before the
+/// caller sends EngineStopped.
+fn serve(
+    inbox: &Receiver<EngineMessage>,
+    host: platform::PlatformHost,
+    callback: &mut EngineEventCallback,
+) {
     let thumbnails = platform::PlatformHost {
         engine: host.engine.clone(),
     };
@@ -191,11 +222,10 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 unsafe { framix_render::GpuRenderer::new() },
             ),
         );
-    let mut callback: EngineEventCallback = None;
     for message in inbox {
         let event = match message {
             EngineMessage::SetCallback(new) => {
-                callback = new;
+                *callback = new;
                 continue;
             }
             EngineMessage::Shutdown => break,
@@ -217,14 +247,8 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 }
             }
         };
-        deliver(callback, &event);
+        deliver(*callback, &event);
     }
-    deliver(
-        callback,
-        &Event {
-            kind: Some(event::Kind::EngineStopped(Default::default())),
-        },
-    );
 }
 
 fn deliver(callback: EngineEventCallback, event: &Event) {

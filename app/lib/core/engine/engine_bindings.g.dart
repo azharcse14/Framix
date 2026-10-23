@@ -67,8 +67,8 @@ external int engine_send(
 ///
 /// # Safety
 /// `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
-/// callable until it has received `EngineStopped` (if it
-/// is still the callback then).
+/// callable until `EngineStopped` has been delivered to
+/// whichever callback is set last.
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<Engine>, EngineEventCallback)>()
 external int engine_set_event_callback(
   ffi.Pointer<Engine> engine,

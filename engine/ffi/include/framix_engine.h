@@ -166,8 +166,8 @@ int32_t engine_create(uint32_t protocol_version, struct Engine **out);
  *
  * # Safety
  * `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
- * callable until it has received `EngineStopped` (if it
- * is still the callback then).
+ * callable until `EngineStopped` has been delivered to
+ * whichever callback is set last.
  */
 int32_t engine_set_event_callback(const struct Engine *engine, EngineEventCallback callback);
 

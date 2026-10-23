@@ -37,6 +37,7 @@ flowchart TB
 ## FFI contract
 - Functions: engine_create (with protocol version), engine_send, engine_set_event_callback, engine_destroy, engine_free_*.
 - engine_send only enqueues and returns; work runs on engine threads.
+- engine_destroy returns at once; the engine answers queued commands, then sends EngineStopped as its last event, and Dart closes the listener on it.
 - Events reach Dart through NativeCallable.listener; playhead events are throttled (~30/s).
 - Every exported fn uses catch_unwind and returns an error code; panics also go to Sentry.
 - Protocol version mismatch: fail fast in debug, error event in release.

@@ -106,7 +106,7 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
 
 /// Runs `call` with a JNIEnv for the current thread and the Kotlin object. A thread that was
 /// not attached to the VM is attached for the call and detached after it: the engine thread may
-/// exit later (its join in `engine_destroy`), and ART aborts on an attached thread exiting.
+/// exit at any time (it is detached), and ART aborts on an attached thread exiting.
 /// Returns false if no env was available or the call threw.
 ///
 /// # Safety
