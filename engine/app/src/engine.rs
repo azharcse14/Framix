@@ -8,7 +8,7 @@ use framix_core::timeline::{
     self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
 };
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::history::History;
 use crate::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
@@ -29,6 +29,10 @@ pub struct Engine {
     /// Where the preview shows; always inside [0, duration]. Not part of the timeline, so undo
     /// never moves it and saves don't store it.
     playhead: Time,
+    /// Where the project is autosaved, once EnableAutosave succeeded.
+    autosave: Option<PathBuf>,
+    /// The timeline last autosaved or recovered; autosave writes only when it differs.
+    autosaved: Timeline,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -41,7 +45,7 @@ struct Preview {
     shown: Option<PlatformTexture>,
 }
 
-/// How long edits must be quiet before the engine autosaves.
+/// Longest time a change waits before the engine autosaves it.
 pub const AUTOSAVE_DELAY: std::time::Duration = std::time::Duration::from_secs(1);
 
 /// Largest snap radius a Seek may ask for.
@@ -81,7 +85,22 @@ impl Engine {
     /// Saves the project to the autosave file if it changed since the last autosave (or
     /// recovery). Returns CommandFailed if the save failed; None otherwise.
     pub fn autosave(&mut self) -> Option<Event> {
-        None
+        let path = self.autosave.clone()?;
+        if *self.history.timeline() == self.autosaved {
+            return None;
+        }
+        let saved = project::encode_for_save(self.history.timeline())
+            .map_err(|e| e.to_string())
+            .and_then(|bytes| {
+                // The kind only: an io error's text could name the path.
+                (self.store()?.save(&path, &bytes)).map_err(|e| e.kind().to_string())
+            });
+        // ponytail: a failed save is retried after the next change, not every second, so a
+        // full disk reports once per edit; retry on a timer if lost idle edits matter.
+        self.autosaved = self.history.timeline().clone();
+        saved
+            .err()
+            .map(|reason| command_failed(format!("autosave failed: {reason}")))
     }
 
     /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
@@ -294,7 +313,7 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
-            command::Kind::EnableAutosave(_) => Err("not implemented yet".into()),
+            command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
             command::Kind::SetExportSettings(op) => {
                 let settings = export_settings(op)?;
                 timeline(self.edit(|tl| {
@@ -412,6 +431,28 @@ impl Engine {
         self.store()?
             .save(Path::new(path), &bytes)
             .map_err(|e| e.to_string())
+    }
+
+    /// Recovers the project at `path` if there is one, then autosaves there. A file that
+    /// exists but doesn't load or decode is refused and autosave stays off, so it is kept.
+    fn enable_autosave(&mut self, path: &str) -> Result<(), String> {
+        let path = PathBuf::from(path);
+        match self.store()?.load(&path) {
+            Ok(bytes) => {
+                let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
+                self.autosaved = timeline.clone();
+                self.history = History::new(timeline);
+                self.forget_thumbnails();
+                self.move_playhead(Time(0));
+            }
+            // Nothing saved yet: the current project is new work to save.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                self.autosaved = Timeline::default();
+            }
+            Err(e) => return Err(format!("autosave file unreadable: {}", e.kind())),
+        }
+        self.autosave = Some(path);
+        Ok(())
     }
 
     /// Replaces the project only if the file loads and decodes; otherwise nothing changes.

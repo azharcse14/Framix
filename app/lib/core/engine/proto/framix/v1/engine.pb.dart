@@ -558,7 +558,7 @@ class Command extends $pb.GeneratedMessage {
 }
 
 /// Recovers the project saved at `path` (undo cleared) if there is one, then saves the project
-/// there about a second after edits stop and when the engine stops. A file that exists but
+/// there within about a second of each change and when the engine stops. A file that exists but
 /// can't be read or decoded is refused and left alone (autosave stays off).
 class EnableAutosave extends $pb.GeneratedMessage {
   factory EnableAutosave({

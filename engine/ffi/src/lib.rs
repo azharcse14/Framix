@@ -1,6 +1,9 @@
 //! C ABI boundary of the Framix engine: decode command -> `framix_app` -> encode event.
 
-use std::sync::mpsc::{Receiver, Sender, channel};
+use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
+use std::time::Instant;
+
+use framix_app::engine::AUTOSAVE_DELAY;
 
 use framix_app::engine::command_failed;
 use framix_app::preview::PlatformTexture;
@@ -225,7 +228,23 @@ fn serve(
                 unsafe { framix_render::GpuRenderer::new() },
             ),
         );
-    for message in inbox {
+    // Changes are saved at most AUTOSAVE_DELAY after they happen, even while commands keep
+    // coming (a long scrub or drag); autosave is a no-op when nothing changed.
+    let mut due = Instant::now() + AUTOSAVE_DELAY;
+    loop {
+        let message = match inbox.recv_timeout(due.saturating_duration_since(Instant::now())) {
+            Ok(message) => Some(message),
+            Err(RecvTimeoutError::Timeout) => None,
+            // Every sender gone: nothing more comes.
+            Err(RecvTimeoutError::Disconnected) => break,
+        };
+        if Instant::now() >= due {
+            due = Instant::now() + AUTOSAVE_DELAY;
+            if let Some(failed) = engine.autosave() {
+                deliver(*callback, &failed);
+            }
+        }
+        let Some(message) = message else { continue };
         let event = match message {
             EngineMessage::SetCallback(new) => {
                 *callback = new;
@@ -233,6 +252,10 @@ fn serve(
             }
             EngineMessage::Shutdown => {
                 *stopping = true;
+                // The last save happens before EngineStopped.
+                if let Some(failed) = engine.autosave() {
+                    deliver(*callback, &failed);
+                }
                 break;
             }
             EngineMessage::Command(bytes) => match Command::decode(bytes.as_slice()) {
