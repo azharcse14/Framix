@@ -404,7 +404,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Export**
 
-- [ ] `P1-032` Resolution (720p, 1080p, 2K, 4K), frame rate (24/30/60), bitrate \[Rust\]\[Native\]
+- [x] `P1-032` Resolution (720p, 1080p, 2K, 4K), frame rate (24/30/60), bitrate \[Rust\]\[Native\]
 - [ ] `P1-033` Estimated file size dekhano \[Rust\]
 - [ ] `P1-034` Hardware encoder (VideoToolbox, MediaCodec) \[Native\]
 - [ ] `P1-035` Progress, cancel, fail handling \[Rust\]\[Dart\]
@@ -439,6 +439,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-061` Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md) \[Rust\] \[Dart\]
 - [ ] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
 - [ ] `P1-063` Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale) \[Rust\] \[Dart\]
+- [ ] `P1-064` Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen \[Dart\]
 
 ## Phase 2: Audio
 

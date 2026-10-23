@@ -1549,12 +1549,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "141e52f",
+   "branch": "p1-032-export-settings",
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Engine-only: the [Native] part (device capability check) is deferred to P1-034/GOT-016; the Dart export-settings UI is filed separately."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1592,7 +1597,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Encoder reads Timeline::export(): frame_size(aspect) and effective_kbps(aspect) from core::export (P1-032); don't re-derive sizes or bitrates. The device check for unsupported settings (4K60, HEVC) is still open."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -10846,7 +10856,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Capability query should validate against core::export::ExportSettings (P1-032) and back the 'this phone can't export 4K60' warning."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13093,6 +13108,25 @@
    "title": "Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale)",
    "tags": [
     "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-064",
+   "section": "P1",
+   "group": "Export",
+   "title": "Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen",
+   "tags": [
     "Dart"
    ],
    "owner": "claude",
