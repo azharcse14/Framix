@@ -290,6 +290,15 @@ const Command$json = {
       '9': 0,
       '10': 'setExportSettings'
     },
+    {
+      '1': 'enable_autosave',
+      '3': 24,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.EnableAutosave',
+      '9': 0,
+      '10': 'enableAutosave'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -322,8 +331,21 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'JLChJzZXRfY2xpcF90cmFuc2Zvcm0YFSABKAsyGy5mcmFtaXgudjEuU2V0Q2xpcFRyYW5zZm9y'
     'bUgAUhBzZXRDbGlwVHJhbnNmb3JtEjsKDHJlcGxhY2VfY2xpcBgWIAEoCzIWLmZyYW1peC52MS'
     '5SZXBsYWNlQ2xpcEgAUgtyZXBsYWNlQ2xpcBJOChNzZXRfZXhwb3J0X3NldHRpbmdzGBcgASgL'
-    'MhwuZnJhbWl4LnYxLlNldEV4cG9ydFNldHRpbmdzSABSEXNldEV4cG9ydFNldHRpbmdzQgYKBG'
-    'tpbmQ=');
+    'MhwuZnJhbWl4LnYxLlNldEV4cG9ydFNldHRpbmdzSABSEXNldEV4cG9ydFNldHRpbmdzEkQKD2'
+    'VuYWJsZV9hdXRvc2F2ZRgYIAEoCzIZLmZyYW1peC52MS5FbmFibGVBdXRvc2F2ZUgAUg5lbmFi'
+    'bGVBdXRvc2F2ZUIGCgRraW5k');
+
+@$core.Deprecated('Use enableAutosaveDescriptor instead')
+const EnableAutosave$json = {
+  '1': 'EnableAutosave',
+  '2': [
+    {'1': 'path', '3': 1, '4': 1, '5': 9, '10': 'path'},
+  ],
+};
+
+/// Descriptor for `EnableAutosave`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List enableAutosaveDescriptor =
+    $convert.base64Decode('Cg5FbmFibGVBdXRvc2F2ZRISCgRwYXRoGAEgASgJUgRwYXRo');
 
 @$core.Deprecated('Use setExportSettingsDescriptor instead')
 const SetExportSettings$json = {

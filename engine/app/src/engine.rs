@@ -41,6 +41,9 @@ struct Preview {
     shown: Option<PlatformTexture>,
 }
 
+/// How long edits must be quiet before the engine autosaves.
+pub const AUTOSAVE_DELAY: std::time::Duration = std::time::Duration::from_secs(1);
+
 /// Largest snap radius a Seek may ask for.
 const MAX_SNAP: Time = Time(10 * TICKS_PER_SECOND);
 
@@ -73,6 +76,12 @@ impl Engine {
             }),
             ..self
         }
+    }
+
+    /// Saves the project to the autosave file if it changed since the last autosave (or
+    /// recovery). Returns CommandFailed if the save failed; None otherwise.
+    pub fn autosave(&mut self) -> Option<Event> {
+        None
     }
 
     /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
@@ -285,6 +294,7 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
+            command::Kind::EnableAutosave(_) => Err("not implemented yet".into()),
             command::Kind::SetExportSettings(op) => {
                 let settings = export_settings(op)?;
                 timeline(self.edit(|tl| {

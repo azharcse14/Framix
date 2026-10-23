@@ -45,6 +45,7 @@ enum Command_Kind {
   setClipTransform,
   replaceClip,
   setExportSettings,
+  enableAutosave,
   notSet
 }
 
@@ -74,6 +75,7 @@ class Command extends $pb.GeneratedMessage {
     SetClipTransform? setClipTransform,
     ReplaceClip? replaceClip,
     SetExportSettings? setExportSettings,
+    EnableAutosave? enableAutosave,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -99,6 +101,7 @@ class Command extends $pb.GeneratedMessage {
     if (setClipTransform != null) result.setClipTransform = setClipTransform;
     if (replaceClip != null) result.replaceClip = replaceClip;
     if (setExportSettings != null) result.setExportSettings = setExportSettings;
+    if (enableAutosave != null) result.enableAutosave = enableAutosave;
     return result;
   }
 
@@ -135,6 +138,7 @@ class Command extends $pb.GeneratedMessage {
     21: Command_Kind.setClipTransform,
     22: Command_Kind.replaceClip,
     23: Command_Kind.setExportSettings,
+    24: Command_Kind.enableAutosave,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -164,7 +168,8 @@ class Command extends $pb.GeneratedMessage {
       20,
       21,
       22,
-      23
+      23,
+      24
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -212,6 +217,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: ReplaceClip.$_createMessage)
     ..aOM<SetExportSettings>(23, _omitFieldNames ? '' : 'setExportSettings',
         subBuilder: SetExportSettings.$_createMessage)
+    ..aOM<EnableAutosave>(24, _omitFieldNames ? '' : 'enableAutosave',
+        subBuilder: EnableAutosave.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -257,6 +264,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -281,6 +289,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -535,6 +544,77 @@ class Command extends $pb.GeneratedMessage {
   void clearSetExportSettings() => $_clearField(23);
   @$pb.TagNumber(23)
   SetExportSettings ensureSetExportSettings() => $_ensure(22);
+
+  @$pb.TagNumber(24)
+  EnableAutosave get enableAutosave => $_getN(23);
+  @$pb.TagNumber(24)
+  set enableAutosave(EnableAutosave value) => $_setField(24, value);
+  @$pb.TagNumber(24)
+  $core.bool hasEnableAutosave() => $_has(23);
+  @$pb.TagNumber(24)
+  void clearEnableAutosave() => $_clearField(24);
+  @$pb.TagNumber(24)
+  EnableAutosave ensureEnableAutosave() => $_ensure(23);
+}
+
+/// Recovers the project saved at `path` (undo cleared) if there is one, then saves the project
+/// there about a second after edits stop and when the engine stops. A file that exists but
+/// can't be read or decoded is refused and left alone (autosave stays off).
+class EnableAutosave extends $pb.GeneratedMessage {
+  factory EnableAutosave({
+    $core.String? path,
+  }) {
+    final result = EnableAutosave._();
+    if (path != null) result.path = path;
+    return result;
+  }
+
+  EnableAutosave._();
+
+  factory EnableAutosave.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      EnableAutosave()..mergeFromBuffer(data, registry);
+  factory EnableAutosave.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      EnableAutosave()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EnableAutosave',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: EnableAutosave.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EnableAutosave clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EnableAutosave copyWith(void Function(EnableAutosave) updates) =>
+      super.copyWith((message) => updates(message as EnableAutosave))
+          as EnableAutosave;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use EnableAutosave() / EnableAutosave.new instead')
+  static EnableAutosave create() => EnableAutosave._();
+  static $pb.GeneratedMessage $_createMessage() => EnableAutosave._();
+  @$core.override
+  EnableAutosave createEmptyInstance() => EnableAutosave._();
+  @$core.pragma('dart2js:noInline')
+  static EnableAutosave getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EnableAutosave>(
+          EnableAutosave.$_createMessage);
+  static EnableAutosave? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
 }
 
 /// Sets how the project exports. kbps 0 picks the bitrate from the frame size and rate;
