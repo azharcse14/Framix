@@ -397,7 +397,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Clip transform**
 
-- [ ] `P1-029` Crop, rotate, mirror/flip \[Rust\]
+- [x] `P1-029` Crop, rotate, mirror/flip \[Rust\]
 - [ ] `P1-030` Canvas e position, scale (pinch/drag handle) \[Dart\]\[Rust\]
 - [ ] `P1-031` Replace clip \[Rust\]
 

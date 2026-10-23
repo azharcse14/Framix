@@ -1476,12 +1476,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "fb758c4",
+   "branch": "p1-029-clip-transform",
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "engine_import.rs min_reader assertion moved 2 -> 3 with format 3 (forced by the bump, not weakened). Review (Sonnet): O(n^2) decode of transformed clips fixed with Timeline::insert_clip_with; edge tests added."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1501,7 +1506,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Clip.transform exists (P1-029): crop in source pixels against Media::size (stored size before the media's own rotation), then clockwise quarter turns, then flips; UI sends SetClipTransform (degrees)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12975,7 +12985,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Renderer must apply Clip.transform (P1-029): crop, then turns (on top of media rotation), then flips."
+    }
+   ],
    "source": "added"
   },
   {
