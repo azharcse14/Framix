@@ -1,6 +1,6 @@
 //! Clip transforms in the project file (P1-029, format 3).
 
-use framix_app::project::{FORMAT_VERSION, ProjectError, decode, encode};
+use framix_app::project::{ProjectError, decode, encode};
 use framix_app::project_proto::{
     ProjectFile, SavedClip, SavedMedia, SavedMediaKind, SavedTrack, SavedTrackKind,
 };
@@ -85,7 +85,6 @@ fn the_v3_fixture_opens_with_its_transform() {
     assert_eq!(file.format_version, 3);
     let t = decode(&bytes).unwrap();
     assert_ne!(t.tracks()[0].clips()[0].transform, ClipTransform::default());
-    assert_eq!(FORMAT_VERSION, 3);
 }
 
 /// A format-3 file with one 100 x 50 photo clip carrying `clip`'s transform fields.

@@ -14,12 +14,12 @@ use crate::project_proto::{
 };
 
 /// Format version this engine writes and the newest it reads.
-pub const FORMAT_VERSION: u32 = 3;
+pub const FORMAT_VERSION: u32 = 4;
 
-/// Oldest reader that can open what this engine writes: 3, because older readers would drop
+/// Oldest reader that can open what this engine writes: 4, because older readers would drop
 /// what they don't know when they save again (format 1: the media list; format 2: clip
-/// transforms).
-const MIN_READER_VERSION: u32 = 3;
+/// transforms; format 3: canvas position and scale).
+const MIN_READER_VERSION: u32 = 4;
 
 /// Most tracks a project file may hold.
 pub const MAX_TRACKS: usize = 256;
@@ -102,7 +102,9 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
                     crop_top: c.transform.crop.top,
                     crop_right: c.transform.crop.right,
                     crop_bottom: c.transform.crop.bottom,
-                    ..Default::default()
+                    x: c.transform.x,
+                    y: c.transform.y,
+                    scale: c.transform.scale,
                 })
                 .collect(),
             muted: track.flags().muted,
@@ -236,7 +238,10 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                     right: c.crop_right,
                     bottom: c.crop_bottom,
                 },
-                ..ClipTransform::default()
+                x: c.x,
+                y: c.y,
+                // Files before format 4 have no scale: fit.
+                scale: if c.scale == 0 { 1000 } else { c.scale },
             };
             // Untrusted: checked like an edit, and set at insert so loading stays linear.
             timeline.insert_clip_with(track, placement, transform)?;

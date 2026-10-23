@@ -43,6 +43,13 @@ pub struct ClipPlacement {
     pub duration: Time,
 }
 
+/// Furthest a frame centre may sit from the canvas centre, in 1/10000 of the canvas: two
+/// canvases.
+pub const MAX_OFFSET: i32 = 20_000;
+
+/// Allowed clip scales, in 1/1000 of fit-to-canvas: 1 % to 1000 %.
+pub const SCALE_RANGE: std::ops::RangeInclusive<u32> = 10..=10_000;
+
 /// Pixels cut from each side of the source picture.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Crop {
@@ -581,7 +588,12 @@ impl Timeline {
         media: MediaId,
         transform: ClipTransform,
     ) -> Result<(), TimelineError> {
-        if transform.turns > 3 {
+        let on_canvas = |v: i32| (-MAX_OFFSET..=MAX_OFFSET).contains(&v);
+        if transform.turns > 3
+            || !on_canvas(transform.x)
+            || !on_canvas(transform.y)
+            || !SCALE_RANGE.contains(&transform.scale)
+        {
             return Err(TimelineError::BadTransform);
         }
         let crop = transform.crop;
@@ -618,8 +630,14 @@ impl Timeline {
 
     /// The clip at `time` on the topmost visible video track that has one: the clip canvas
     /// gestures act on.
-    pub fn top_clip_at(&self, _time: Time) -> Option<ClipId> {
-        None
+    pub fn top_clip_at(&self, time: Time) -> Option<ClipId> {
+        // Later tracks draw over earlier ones.
+        self.tracks
+            .iter()
+            .rev()
+            .filter(|t| t.kind == TrackKind::Video && !t.flags.hidden)
+            .find_map(|t| t.clip_at(time))
+            .map(|c| c.id)
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.

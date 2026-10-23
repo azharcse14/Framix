@@ -187,7 +187,7 @@ impl Engine {
                     proto::PlayheadChanged {
                         time: self.playhead.0,
                         snapped,
-                        active_clip: 0,
+                        active_clip: self.active_clip(),
                     },
                 )),
             },
@@ -306,9 +306,18 @@ impl Engine {
                         right: op.crop_right,
                         bottom: op.crop_bottom,
                     },
-                    ..timeline::ClipTransform::default()
+                    x: op.x,
+                    y: op.y,
+                    // 0 is what senders before P1-030 leave unset: fit.
+                    scale: if op.scale == 0 { 1000 } else { op.scale },
                 };
-                timeline(self.edit(|tl| tl.set_clip_transform(ClipId(op.clip_id), transform)))
+                let set = |tl: &mut Timeline| tl.set_clip_transform(ClipId(op.clip_id), transform);
+                let applied = if op.gesture == 0 {
+                    self.history.apply(set)
+                } else {
+                    self.history.apply_merged(op.gesture, set)
+                };
+                timeline(applied.map_err(|e| e.to_string()))
             }
             command::Kind::Seek(seek) => {
                 if seek.snap_within < 0 {
@@ -333,6 +342,14 @@ impl Engine {
                 }))
             }
         }
+    }
+
+    /// The clip canvas gestures act on at the playhead; 0 for none.
+    fn active_clip(&self) -> u64 {
+        self.history
+            .timeline()
+            .top_clip_at(self.playhead)
+            .map_or(0, |c| c.0)
     }
 
     fn forget_thumbnails(&mut self) {
@@ -432,7 +449,9 @@ impl Engine {
                             crop_top: c.transform.crop.top,
                             crop_right: c.transform.crop.right,
                             crop_bottom: c.transform.crop.bottom,
-                            ..Default::default()
+                            x: c.transform.x,
+                            y: c.transform.y,
+                            scale: c.transform.scale,
                         })
                         .collect(),
                     number: *count,
@@ -453,7 +472,7 @@ impl Engine {
                 playhead: self.playhead.0,
                 ticks_per_second: TICKS_PER_SECOND,
                 thumbnail_step: crate::thumbnail::THUMBNAIL_STEP.0,
-                active_clip: 0,
+                active_clip: self.active_clip(),
             })),
         }
     }

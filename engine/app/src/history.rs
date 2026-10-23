@@ -13,6 +13,8 @@ pub struct History {
     current: Timeline,
     undo: Vec<Timeline>,
     redo: Vec<Timeline>,
+    /// Gesture key of the last undo step, while edits may still merge into it.
+    merging: Option<u64>,
 }
 
 impl History {
@@ -22,6 +24,7 @@ impl History {
             current: timeline,
             undo: Vec::new(),
             redo: Vec::new(),
+            merging: None,
         }
     }
 
@@ -37,6 +40,7 @@ impl History {
         &mut self,
         edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
     ) -> Result<T, E> {
+        self.merging = None;
         let mut next = self.current.clone();
         let value = edit(&mut next)?;
         // An edit that changed nothing (same trim, same ratio) is not a step: keep redo.
@@ -54,10 +58,25 @@ impl History {
     /// (one gesture); any other apply, undo or redo ends the run.
     pub fn apply_merged<T, E>(
         &mut self,
-        _key: u64,
+        key: u64,
         edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
     ) -> Result<T, E> {
-        self.apply(edit)
+        if self.merging != Some(key) {
+            let steps = self.undo.len();
+            let value = self.apply(edit)?;
+            // Only a step this gesture made may take later edits.
+            if self.undo.len() > steps {
+                self.merging = Some(key);
+            }
+            return Ok(value);
+        }
+        // Part of the same gesture: change the current state, keep the gesture's one step.
+        let mut next = self.current.clone();
+        let value = edit(&mut next)?;
+        // Ids only go forward.
+        next.keep_ids_newer_than(&self.current);
+        self.current = next;
+        Ok(value)
     }
 
     /// Whether [`History::undo`] would do anything.
@@ -72,11 +91,13 @@ impl History {
 
     /// Reverts the last applied step. Returns `false` when there is nothing to undo.
     pub fn undo(&mut self) -> bool {
+        self.merging = None;
         Self::step(&mut self.current, &mut self.undo, &mut self.redo)
     }
 
     /// Re-applies the last undone step. Returns `false` when there is nothing to redo.
     pub fn redo(&mut self) -> bool {
+        self.merging = None;
         Self::step(&mut self.current, &mut self.redo, &mut self.undo)
     }
 
