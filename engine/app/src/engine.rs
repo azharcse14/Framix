@@ -283,7 +283,10 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
-            command::Kind::ReplaceClip(_) => Err("not implemented yet".into()),
+            command::Kind::ReplaceClip(op) => {
+                let media = media_from_item(op.media.ok_or("replace without media")?)?;
+                timeline(self.edit(|tl| tl.replace_clip(ClipId(op.clip_id), media).map(drop)))
+            }
             command::Kind::SetClipTransform(op) => {
                 let turns = match op.rotation {
                     0 => 0,

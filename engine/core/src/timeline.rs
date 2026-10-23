@@ -580,8 +580,20 @@ impl Timeline {
     /// Puts `media` under `clip`, keeping its track, start and duration: the media is
     /// registered under a new id, the source starts at 0 and the transform resets. A video must
     /// be at least as long as the clip. The old media stays registered (undo needs it).
-    pub fn replace_clip(&mut self, clip: ClipId, _media: Media) -> Result<MediaId, TimelineError> {
-        Err(TimelineError::UnknownClip(clip))
+    pub fn replace_clip(&mut self, clip: ClipId, media: Media) -> Result<MediaId, TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        if media.kind() == MediaKind::Video && media.duration() < self.tracks[t].clips[i].duration {
+            return Err(TimelineError::MediaTooShort);
+        }
+        // Every check is done: nothing below can fail, so no id is used up on a refusal.
+        let id = MediaId(self.allocate_id());
+        self.media.insert(id, media);
+        let target = &mut self.tracks[t].clips[i];
+        target.media = id;
+        target.source_start = Time(0);
+        // The crop was measured on the old media's size.
+        target.transform = ClipTransform::default();
+        Ok(id)
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.
