@@ -180,10 +180,12 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
 /// refused until Shutdown, so the stream still ends.
 fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
     let mut callback: EngineEventCallback = None;
+    let mut stopping = false;
     let served = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        serve(&inbox, host, &mut callback);
+        serve(&inbox, host, &mut callback, &mut stopping);
     }));
-    if served.is_err() {
+    // A panic after Shutdown (the engine's drop) must not wait for another one.
+    if served.is_err() && !stopping {
         for message in &inbox {
             match message {
                 EngineMessage::SetCallback(new) => callback = new,
@@ -208,6 +210,7 @@ fn serve(
     inbox: &Receiver<EngineMessage>,
     host: platform::PlatformHost,
     callback: &mut EngineEventCallback,
+    stopping: &mut bool,
 ) {
     let thumbnails = platform::PlatformHost {
         engine: host.engine.clone(),
@@ -228,7 +231,10 @@ fn serve(
                 *callback = new;
                 continue;
             }
-            EngineMessage::Shutdown => break,
+            EngineMessage::Shutdown => {
+                *stopping = true;
+                break;
+            }
             EngineMessage::Command(bytes) => match Command::decode(bytes.as_slice()) {
                 Ok(command) => guarded(|| engine.handle(command)),
                 Err(_) => command_failed("undecodable command"),
