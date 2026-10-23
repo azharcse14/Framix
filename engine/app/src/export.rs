@@ -2,7 +2,7 @@
 //! (docs/adr/0005-export-encoder.md). Runs on the export worker, never the engine thread.
 
 use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use framix_core::time::Time;
 use framix_core::timeline::Timeline;
@@ -40,38 +40,23 @@ pub trait EncoderHost: Send + Sync {
 }
 
 /// Renders `timeline` frame by frame into an encoder opened from its export settings. A partial
-/// last frame is encoded whole. Any failure cancels the file.
+/// last frame is encoded whole. Any failure cancels the file. No cancel or progress: see
+/// [`run_export_with`].
 pub fn run_export(
     timeline: &Timeline,
     renderer: &mut dyn PreviewRenderer,
     host: &dyn EncoderHost,
     path: &str,
 ) -> Result<(), String> {
-    let settings = timeline.export();
-    let (width, height) = settings.frame_size(timeline.aspect());
-    let config = EncoderConfig {
-        width,
-        height,
-        fps: settings.fps.per_second(),
-        kbps: settings.effective_kbps(timeline.aspect()),
-        path: path.to_owned(),
-    };
-    let rate = settings.fps.rate();
-    let frames = frame_count(rate, timeline.duration()).ok_or("timeline too long")?;
-    let mut encoder = host.open(&config)?;
-    let rendered = (0..frames).try_for_each(|n| {
-        let time = rate.frame_to_time(n).ok_or("frame time out of range")?;
-        let target = encoder.frame(time)?;
-        renderer.draw(target, time)
-    });
-    match rendered {
-        Ok(()) => encoder.finish(true),
-        Err(e) => {
-            // The render error is the one worth reporting; the cancel's own result is not.
-            let _ = encoder.finish(false);
-            Err(e)
-        }
-    }
+    run_export_with(
+        timeline,
+        renderer,
+        host,
+        path,
+        &AtomicBool::new(false),
+        &mut |_, _| {},
+    )
+    .map_err(|e| e.to_string())
 }
 
 /// Frames needed to cover `duration` at `rate`, counting a partial last frame.
@@ -106,12 +91,51 @@ pub enum ExportError {
 /// [`run_export`] that stops when `cancel` is set and reports `progress(frame, frames)` once
 /// per whole percent and for the last frame.
 pub fn run_export_with(
-    _timeline: &Timeline,
-    _renderer: &mut dyn PreviewRenderer,
-    _host: &dyn EncoderHost,
-    _path: &str,
-    _cancel: &AtomicBool,
-    _progress: &mut dyn FnMut(u32, u32),
+    timeline: &Timeline,
+    renderer: &mut dyn PreviewRenderer,
+    host: &dyn EncoderHost,
+    path: &str,
+    cancel: &AtomicBool,
+    progress: &mut dyn FnMut(u32, u32),
 ) -> Result<(), ExportError> {
-    Err(ExportError::Failed("not implemented yet".into()))
+    let settings = timeline.export();
+    let (width, height) = settings.frame_size(timeline.aspect());
+    let config = EncoderConfig {
+        width,
+        height,
+        fps: settings.fps.per_second(),
+        kbps: settings.effective_kbps(timeline.aspect()),
+        path: path.to_owned(),
+    };
+    let rate = settings.fps.rate();
+    let frames = frame_count(rate, timeline.duration())
+        .and_then(|n| u32::try_from(n).ok())
+        .ok_or_else(|| ExportError::Failed("timeline too long".into()))?;
+    let mut encoder = host.open(&config).map_err(ExportError::Failed)?;
+    let mut percent = None;
+    let rendered = (0..frames).try_for_each(|n| {
+        if cancel.load(Ordering::Relaxed) {
+            return Err(ExportError::Cancelled);
+        }
+        let time = rate
+            .frame_to_time(i64::from(n))
+            .ok_or_else(|| ExportError::Failed("frame time out of range".into()))?;
+        let target = encoder.frame(time).map_err(ExportError::Failed)?;
+        renderer.draw(target, time).map_err(ExportError::Failed)?;
+        let done = n + 1;
+        let now = u64::from(done) * 100 / u64::from(frames);
+        if percent != Some(now) || done == frames {
+            percent = Some(now);
+            progress(done, frames);
+        }
+        Ok(())
+    });
+    match rendered {
+        Ok(()) => encoder.finish(true).map_err(ExportError::Failed),
+        Err(e) => {
+            // The render error (or the cancel) is the one worth reporting.
+            let _ = encoder.finish(false);
+            Err(e)
+        }
+    }
 }

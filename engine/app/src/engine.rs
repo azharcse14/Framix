@@ -37,10 +37,10 @@ pub struct Engine {
     autosave_failed: bool,
     /// ExportProject is possible (the platform has an encoder).
     exports: bool,
-    /// An export was accepted and has not finished.
-    exporting: bool,
     /// The accepted export, until the worker takes it.
     export_job: Option<crate::export::ExportJob>,
+    /// The running export's cancel flag; Some while an export runs (accepted, not finished).
+    export_cancel: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -134,7 +134,7 @@ impl Engine {
 
     /// The worker's result for the running export: ExportFinished.
     pub fn export_finished(&mut self, result: Result<(), String>) -> Event {
-        self.exporting = false;
+        self.export_cancel = None;
         Event {
             kind: Some(proto::event::Kind::ExportFinished(proto::ExportFinished {
                 ok: result.is_ok(),
@@ -145,24 +145,52 @@ impl Engine {
     }
 
     /// The worker's progress: ExportProgress.
-    pub fn export_progress(&mut self, _frame: u32, _frames: u32) -> Event {
-        command_failed("not implemented yet")
+    pub fn export_progress(&mut self, frame: u32, frames: u32) -> Event {
+        Event {
+            kind: Some(proto::event::Kind::ExportProgress(proto::ExportProgress {
+                frame,
+                frames,
+            })),
+        }
     }
 
     /// The running export stopped because it was cancelled: ExportFinished, cancelled.
     pub fn export_cancelled(&mut self) -> Event {
-        command_failed("not implemented yet")
+        self.export_cancel = None;
+        Event {
+            kind: Some(proto::event::Kind::ExportFinished(proto::ExportFinished {
+                ok: false,
+                reason: String::new(),
+                cancelled: true,
+            })),
+        }
     }
 
     /// Asks the running export to stop (the engine is stopping); nothing if none runs.
-    pub fn cancel_running_export(&mut self) {}
+    pub fn cancel_running_export(&mut self) {
+        if let Some(flag) = &self.export_cancel {
+            flag.store(true, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
+
+    /// CancelExport: refused unless an export runs and is not already being cancelled.
+    fn cancel_export(&mut self) -> Result<(), String> {
+        match &self.export_cancel {
+            Some(flag) if !flag.load(std::sync::atomic::Ordering::Relaxed) => {
+                flag.store(true, std::sync::atomic::Ordering::Relaxed);
+                Ok(())
+            }
+            Some(_) => Err("the export is already stopping".into()),
+            None => Err("no export is running".into()),
+        }
+    }
 
     /// Accepts an export of the current timeline: one at a time, never of an empty timeline.
     fn start_export(&mut self, path: String) -> Result<(), String> {
         if !self.exports {
             return Err("this engine cannot export".into());
         }
-        if self.exporting {
+        if self.export_cancel.is_some() {
             return Err("an export is already running".into());
         }
         // The platform replaces what is at the path, so it must name an .mp4 file.
@@ -173,12 +201,13 @@ impl Engine {
         if timeline.duration() == Time(0) {
             return Err("nothing to export".into());
         }
+        let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         self.export_job = Some(crate::export::ExportJob {
             timeline: timeline.clone(),
             path,
-            cancel: Default::default(),
+            cancel: cancel.clone(),
         });
-        self.exporting = true;
+        self.export_cancel = Some(cancel);
         Ok(())
     }
 
@@ -398,7 +427,7 @@ impl Engine {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
-            command::Kind::CancelExport(_) => Err("not implemented yet".into()),
+            command::Kind::CancelExport(_) => self.cancel_export().map(|()| Reply::Accepted),
             command::Kind::ExportProject(op) => {
                 self.start_export(op.path).map(|()| Reply::Accepted)
             }

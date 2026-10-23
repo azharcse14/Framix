@@ -31,8 +31,9 @@ take the previous one.
 ## Consequences
 - The engine thread never waits on the encoder. The worker does, so a slow encoder slows only
   the export.
-- `engine_destroy` does not wait for a running export. The worker finishes or fails on its own
-  and its result goes nowhere (a progress/cancel path is P1-035).
+- `engine_destroy` does not wait for a running export: it sets the export's cancel flag, so the
+  worker stops at its next frame and cancels the file, and its result goes nowhere. Progress
+  (once per percent) and `CancelExport` came with P1-035.
 - Android registers stub encoder calls that fail to open until its MediaCodec encoder lands
   (input Surface as the render target, like the preview's window).
 - The iOS encoder uses `AVAssetWriterInputPixelBufferAdaptor`, which works from iOS 17 and is

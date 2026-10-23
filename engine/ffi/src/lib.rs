@@ -64,8 +64,10 @@ enum EngineMessage {
     PreviewTexture(Result<PlatformTexture, String>),
     /// The platform's answer to a thumbnail request: the image file's path, or why not.
     Thumbnail(framix_app::thumbnail::ThumbnailKey, Result<String, String>),
+    /// The export worker's progress: frames done, frames in all.
+    ExportProgress(u32, u32),
     /// The export worker's result for the running export.
-    Export(Result<(), String>),
+    Export(Result<(), framix_app::export::ExportError>),
     /// Stop after the messages queued before this one. Needed because pending platform
     /// answers hold senders, so the queue never closes by itself.
     Shutdown,
@@ -196,6 +198,7 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 EngineMessage::Command(_) => deliver(callback, &command_failed("engine stopped")),
                 EngineMessage::PreviewTexture(_)
                 | EngineMessage::Thumbnail(..)
+                | EngineMessage::ExportProgress(..)
                 | EngineMessage::Export(_) => {}
             }
         }
@@ -269,6 +272,9 @@ fn serve(
             }
             EngineMessage::Shutdown => {
                 *stopping = true;
+                // A running export stops at its next frame and cancels its file; nobody waits
+                // for it (destroy stays non-blocking).
+                engine.cancel_running_export();
                 // The last save happens before EngineStopped.
                 let _ = autosave(&mut engine, *callback);
                 break;
@@ -283,7 +289,16 @@ fn serve(
                 }
                 reply
             }
-            EngineMessage::Export(result) => guarded(|| engine.export_finished(result)),
+            EngineMessage::ExportProgress(frame, frames) => {
+                guarded(|| engine.export_progress(frame, frames))
+            }
+            EngineMessage::Export(result) => guarded(|| match result {
+                Err(framix_app::export::ExportError::Cancelled) => engine.export_cancelled(),
+                Err(framix_app::export::ExportError::Failed(reason)) => {
+                    engine.export_finished(Err(reason))
+                }
+                Ok(()) => engine.export_finished(Ok(())),
+            }),
             EngineMessage::PreviewTexture(texture) => {
                 guarded(|| engine.preview_texture_ready(texture))
             }
@@ -309,23 +324,34 @@ fn start_export(job: framix_app::export::ExportJob, engine: Sender<EngineMessage
     let spawned = std::thread::Builder::new()
         .name("framix-export".into())
         .spawn(move || {
+            let progress = worker.clone();
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 // SAFETY: run_export draws only into targets the platform encoder returned
                 // (encoder_frame's contract: a live BGRA render target until the next call).
                 let mut renderer = unsafe { framix_render::GpuRenderer::new() };
-                framix_app::export::run_export(
+                framix_app::export::run_export_with(
                     &job.timeline,
                     &mut renderer,
                     &platform::PlatformEncoderHost,
                     &job.path,
+                    &job.cancel,
+                    &mut |frame, frames| {
+                        let _ = progress.send(EngineMessage::ExportProgress(frame, frames));
+                    },
                 )
             }))
-            .unwrap_or_else(|_| Err("internal error".into()));
+            .unwrap_or_else(|_| {
+                Err(framix_app::export::ExportError::Failed(
+                    "internal error".into(),
+                ))
+            });
             // The engine may have stopped; then nobody waits for the result.
             let _ = worker.send(EngineMessage::Export(result));
         });
     if spawned.is_err() {
-        let _ = engine.send(EngineMessage::Export(Err("no export thread".into())));
+        let _ = engine.send(EngineMessage::Export(Err(
+            framix_app::export::ExportError::Failed("no export thread".into()),
+        )));
     }
 }
 

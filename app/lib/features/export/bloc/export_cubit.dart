@@ -56,16 +56,55 @@ final class ExportFailed extends ExportState {
 
 /// Mirrors the engine's export. Sends ExportProject and CancelExport only.
 class ExportCubit extends Cubit<ExportState> {
-  ExportCubit(this._engine) : super(const ExportIdle());
+  ExportCubit(this._engine) : super(const ExportIdle()) {
+    _events = _engine.events.listen((event) {
+      final next = fromEvent(event);
+      if (next != null) {
+        _starting = false;
+        return emit(next);
+      }
+      if (!_starting) return;
+      // ponytail: the first reply after start is taken as start's own. Replies to other
+      // features' commands could interleave; correlate by command id if that ever shows.
+      if (event.hasCommandFailed()) {
+        _starting = false;
+        emit(ExportFailed(event.commandFailed.reason));
+      } else if (event.hasCommandAccepted()) {
+        _starting = false;
+        emit(const ExportRunning(0, 0));
+      }
+    });
+  }
 
   final FramixEngine _engine;
+  late final StreamSubscription<Event> _events;
+  bool _starting = false;
 
   /// The state an engine event moves the export to; null if the event is not about it.
-  static ExportState? fromEvent(Event event) => null;
+  static ExportState? fromEvent(Event event) {
+    if (event.hasExportProgress()) {
+      final p = event.exportProgress;
+      return ExportRunning(p.frame, p.frames);
+    }
+    if (!event.hasExportFinished()) return null;
+    final f = event.exportFinished;
+    if (f.ok) return const ExportDone();
+    if (f.cancelled) return const ExportCancelled();
+    return ExportFailed(f.reason);
+  }
 
   /// Exports the project to [path] (an .mp4 file).
-  void start(String path) {}
+  void start(String path) {
+    _starting = true;
+    _engine.send(Command(exportProject: ExportProject(path: path)));
+  }
 
-  /// Stops the running export.
-  void cancel() {}
+  /// Stops the running export; the engine refuses it when none runs.
+  void cancel() => _engine.send(Command(cancelExport: CancelExport()));
+
+  @override
+  Future<void> close() async {
+    await _events.cancel();
+    return super.close();
+  }
 }
