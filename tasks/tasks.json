@@ -1573,11 +1573,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "9a068a0",
+   "branch": "p1-033-file-size",
    "notes": [],
    "source": "plan"
   },
@@ -13137,7 +13137,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Show TimelineChanged.export.estimated_bytes (P1-033) as MB/GB, labelled as an estimate (audio is counted even without audio clips)."
+    }
+   ],
    "source": "added"
   }
  ]

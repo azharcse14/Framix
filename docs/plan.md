@@ -405,7 +405,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 **Export**
 
 - [x] `P1-032` Resolution (720p, 1080p, 2K, 4K), frame rate (24/30/60), bitrate \[Rust\]\[Native\]
-- [ ] `P1-033` Estimated file size dekhano \[Rust\]
+- [x] `P1-033` Estimated file size dekhano \[Rust\]
 - [ ] `P1-034` Hardware encoder (VideoToolbox, MediaCodec) \[Native\]
 - [ ] `P1-035` Progress, cancel, fail handling \[Rust\]\[Dart\]
 - [ ] `P1-036` Save to gallery, share sheet \[Dart\]
