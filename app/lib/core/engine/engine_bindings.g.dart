@@ -20,14 +20,12 @@ external int engine_create(
   ffi.Pointer<ffi.Pointer<Engine>> out,
 );
 
-/// Stops the engine thread after it finishes queued commands, then frees the engine.
-///
-/// Exception to "every exported fn returns immediately": this blocks until queued
-/// commands are answered, which is what lets callbacks stop safely. P1-044 removes it.
+/// Frees the handle and returns at once. The engine thread answers the commands queued
+/// before this call, sends `EngineStopped` as its last event, and exits.
 ///
 /// # Safety
 /// `engine` must be null or come from [`engine_create`], and no other call may use it
-/// during or after this one. Never call it from the event callback.
+/// during or after this one.
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<Engine>)>()
 external int engine_destroy(ffi.Pointer<Engine> engine);
 
@@ -69,7 +67,8 @@ external int engine_send(
 ///
 /// # Safety
 /// `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
-/// callable until [`engine_destroy`] returns.
+/// callable until it has received `EngineStopped` (if it
+/// is still the callback then).
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<Engine>, EngineEventCallback)>()
 external int engine_set_event_callback(
   ffi.Pointer<Engine> engine,
@@ -119,9 +118,8 @@ final class EngineBuffer extends ffi.Struct {
 }
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
-/// with [`engine_free_buffer`]. Called on the engine thread, so it must not call
-/// [`engine_destroy`] (that would join the engine thread from itself). Dart's
-/// `NativeCallable.listener` posts to the isolate, so it is safe there.
+/// with [`engine_free_buffer`]. Called on the engine thread. After [`engine_destroy`] the
+/// last event is `EngineStopped`; nothing follows it.
 typedef EngineEventCallback =
     ffi.Pointer<ffi.NativeFunction<EngineEventCallbackFunction>>;
 typedef EngineEventCallbackFunction = ffi.Void Function(

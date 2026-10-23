@@ -1,11 +1,10 @@
 //! C ABI boundary of the Framix engine: decode command -> `framix_app` -> encode event.
 
 use std::sync::mpsc::{Receiver, Sender, channel};
-use std::thread::JoinHandle;
 
 use framix_app::engine::command_failed;
 use framix_app::preview::PlatformTexture;
-use framix_app::proto::{Command, Event};
+use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
 
 #[cfg(target_os = "android")]
@@ -48,15 +47,13 @@ pub const ENGINE_ERR_ALREADY: i32 = -6;
 pub const ENGINE_PROTOCOL_VERSION: u32 = 19;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
-/// with [`engine_free_buffer`]. Called on the engine thread, so it must not call
-/// [`engine_destroy`] (that would join the engine thread from itself). Dart's
-/// `NativeCallable.listener` posts to the isolate, so it is safe there.
+/// with [`engine_free_buffer`]. Called on the engine thread. After [`engine_destroy`] the
+/// last event is `EngineStopped`; nothing follows it.
 pub type EngineEventCallback = Option<unsafe extern "C" fn(ptr: *mut u8, len: usize)>;
 
 /// Opaque engine instance: a channel into the engine thread.
 pub struct Engine {
     messages: Sender<EngineMessage>,
-    thread: JoinHandle<()>,
 }
 
 enum EngineMessage {
@@ -91,14 +88,16 @@ pub unsafe extern "C" fn engine_create(protocol_version: u32, out: *mut *mut Eng
         let host = platform::PlatformHost {
             engine: messages.clone(),
         };
-        let Ok(thread) = std::thread::Builder::new()
+        // Detached: engine_destroy does not wait for it; EngineStopped says it is done.
+        if std::thread::Builder::new()
             .name("framix-engine".into())
             .spawn(move || run_engine(inbox, host))
-        else {
+            .is_err()
+        {
             return ENGINE_ERR_STOPPED;
-        };
+        }
         // SAFETY: as above.
-        unsafe { *out = Box::into_raw(Box::new(Engine { messages, thread })) };
+        unsafe { *out = Box::into_raw(Box::new(Engine { messages })) };
         ENGINE_OK
     })
 }
@@ -107,7 +106,8 @@ pub unsafe extern "C" fn engine_create(protocol_version: u32, out: *mut *mut Eng
 ///
 /// # Safety
 /// `engine` must come from [`engine_create`] and not be destroyed; `callback` must stay
-/// callable until [`engine_destroy`] returns.
+/// callable until it has received `EngineStopped` (if it
+/// is still the callback then).
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_set_event_callback(
     engine: *const Engine,
@@ -144,14 +144,12 @@ pub unsafe extern "C" fn engine_send(engine: *const Engine, bytes: *const u8, le
     })
 }
 
-/// Stops the engine thread after it finishes queued commands, then frees the engine.
-///
-/// Exception to "every exported fn returns immediately": this blocks until queued
-/// commands are answered, which is what lets callbacks stop safely. P1-044 removes it.
+/// Frees the handle and returns at once. The engine thread answers the commands queued
+/// before this call, sends `EngineStopped` as its last event, and exits.
 ///
 /// # Safety
 /// `engine` must be null or come from [`engine_create`], and no other call may use it
-/// during or after this one. Never call it from the event callback.
+/// during or after this one.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn engine_destroy(engine: *mut Engine) -> i32 {
     ffi_guard(|| {
@@ -160,13 +158,10 @@ pub unsafe extern "C" fn engine_destroy(engine: *mut Engine) -> i32 {
         }
         // SAFETY: per the contract, `engine` came from engine_create (Box::into_raw) and
         // nothing else uses it, so ownership returns here exactly once.
-        let Engine { messages, thread } = *unsafe { Box::from_raw(engine) };
+        let Engine { messages } = *unsafe { Box::from_raw(engine) };
         // Ends the engine loop after queued commands. A send error means it already ended.
         let _ = messages.send(EngineMessage::Shutdown);
-        match thread.join() {
-            Ok(()) => ENGINE_OK,
-            Err(_) => ENGINE_ERR_PANIC,
-        }
+        ENGINE_OK
     })
 }
 
@@ -222,12 +217,22 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 }
             }
         };
-        if let Some(deliver) = callback {
-            let buf = EngineBuffer::from_vec(event.encode_to_vec());
-            // SAFETY: engine_set_event_callback's contract keeps `deliver` callable
-            // until engine_destroy, which joins this thread first.
-            unsafe { deliver(buf.ptr, buf.len) };
-        }
+        deliver(callback, &event);
+    }
+    deliver(
+        callback,
+        &Event {
+            kind: Some(event::Kind::EngineStopped(Default::default())),
+        },
+    );
+}
+
+fn deliver(callback: EngineEventCallback, event: &Event) {
+    if let Some(deliver) = callback {
+        let buf = EngineBuffer::from_vec(event.encode_to_vec());
+        // SAFETY: engine_set_event_callback's contract keeps `deliver` callable until it
+        // has received EngineStopped, which is sent last.
+        unsafe { deliver(buf.ptr, buf.len) };
     }
 }
 

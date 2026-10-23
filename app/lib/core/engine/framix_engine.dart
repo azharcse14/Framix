@@ -9,10 +9,9 @@ import 'proto/framix/v1/engine.pb.dart';
 
 /// The Rust engine: send [Command]s, listen to [events]. Owns one native engine instance.
 class FramixEngine {
-  FramixEngine._(this._engine, this._listener, this._events);
+  FramixEngine._(this._engine, this._events);
 
   final Pointer<Engine> _engine;
-  final NativeCallable<EngineEventCallbackFunction> _listener;
   final StreamController<Event> _events;
   bool _disposed = false;
 
@@ -25,12 +24,20 @@ class FramixEngine {
       if (code != ENGINE_OK) throw StateError('engine_create failed: $code');
       final engine = out.value;
       final events = StreamController<Event>.broadcast();
+      late final NativeCallable<EngineEventCallbackFunction> listener;
       // Called from the engine thread; a listener hops onto this isolate (GOT-007).
-      final listener = NativeCallable<EngineEventCallbackFunction>.listener(
-        (Pointer<Uint8> ptr, int len) => events.add(_takeEvent(ptr, len)),
-      );
+      listener = NativeCallable<EngineEventCallbackFunction>.listener((
+        Pointer<Uint8> ptr,
+        int len,
+      ) {
+        final event = _takeEvent(ptr, len);
+        if (!event.hasEngineStopped()) return events.add(event);
+        // The engine's last event: nothing else will call the listener.
+        listener.close();
+        events.close();
+      });
       engine_set_event_callback(engine, listener.nativeFunction);
-      return FramixEngine._(engine, listener, events);
+      return FramixEngine._(engine, events);
     } finally {
       calloc.free(out);
     }
@@ -54,17 +61,12 @@ class FramixEngine {
     }
   }
 
-  /// Stops the engine (after queued commands) and closes [events]. Safe to call twice.
+  /// Stops the engine and returns at once. Replies to queued commands still arrive on
+  /// [events], which then closes. Safe to call twice.
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    // Blocks until queued commands finish (engine_destroy joins the engine thread).
     engine_destroy(_engine);
-    // ponytail: every event not yet delivered to this isolate (each a full timeline
-    // snapshot) is dropped and its buffer leaked; P1-044 makes destroy non-blocking with
-    // an end-of-stream marker so in-flight events are freed.
-    _listener.close();
-    _events.close();
   }
 
   /// Decodes an engine-owned buffer and gives it back to the engine.

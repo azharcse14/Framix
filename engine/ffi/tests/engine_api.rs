@@ -72,6 +72,16 @@ impl Drop for Session {
     fn drop(&mut self) {
         // SAFETY: the engine is not used after this.
         unsafe { engine_destroy(self.engine) };
+        // P1-044: destroy returns at once; hold the turn until this engine's last event so
+        // it can't land in the next session.
+        while let Ok(bytes) = self.events.recv_timeout(Duration::from_secs(5)) {
+            if matches!(
+                Event::decode(bytes.as_slice()).map(|e| e.kind),
+                Ok(Some(event::Kind::EngineStopped(_)))
+            ) {
+                break;
+            }
+        }
     }
 }
 
