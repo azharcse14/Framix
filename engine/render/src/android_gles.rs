@@ -48,6 +48,7 @@ type ImageTargetTexture = unsafe extern "C" fn(target: u32, image: *mut c_void);
 /// # Safety
 /// `F` must be the function's real signature.
 unsafe fn proc<F>(name: &CStr) -> Result<F, RenderError> {
+    const { assert!(size_of::<F>() == size_of::<*mut c_void>()) };
     // SAFETY: `name` is a NUL-terminated string.
     let ptr = unsafe { eglGetProcAddress(name.as_ptr()) };
     if ptr.is_null() {
@@ -103,11 +104,19 @@ pub(crate) unsafe fn import_ahb(
             if image.is_null() {
                 return Err(RenderError::Android("eglCreateImageKHR failed".into()));
             }
+            // Drop errors left by wgpu's own GL calls, so the check below is about this import.
+            // Bounded: a lost context keeps reporting an error.
+            for _ in 0..16 {
+                if glGetError() == GL_NO_ERROR {
+                    break;
+                }
+            }
             let mut name = 0;
             glGenTextures(1, &mut name);
             glBindTexture(GL_TEXTURE_2D, name);
             target(GL_TEXTURE_2D, image);
             let error = glGetError();
+            // Unbinds on the active unit; wgpu binds its own textures before each draw.
             glBindTexture(GL_TEXTURE_2D, 0);
             destroy(display, image);
             match NonZeroU32::new(name) {

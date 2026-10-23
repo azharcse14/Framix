@@ -78,9 +78,15 @@ speed.
 - **Decoder import works.** The RGBA8 AHardwareBuffer from the Kotlin OES pass is bound to a GL
   texture through an EGLImage (`android_gles.rs`, no new crate) and drawn by the same blit. No
   compute shaders are used anywhere, so GLES 3.0 has no missing stage.
-- **Colours are too dark on GLES.** Mid-gray shows at about 0x33 instead of 0x80, which looks
-  like an extra sRGB→linear step, while Vulkan on the same emulator is correct. This is open
-  (P1-068).
+- **Colours:** the first GLES runs showed the frame too dark (mid-gray about 0x33). After the
+  queue lock below, the same run shows correct colours on both backends, so it was most likely
+  the import racing a draw. P1-068 stays open until a real device confirms it.
+- **When GLES is picked:** only when no Vulkan adapter exists. A Vulkan 1.0 device, one
+  without the AHB extensions, or a driver whose device open fails still stays on Vulkan (no
+  frame import, or no GPU). Falling back on those is GOT-015's blocklist.
+- **Locking:** one shared `Gpu` serves the renderer and the decode spike, and its window-surface
+  lock is also the queue lock, so the Vulkan import's raw submit never overlaps a draw. The
+  cached surface holds its own `ANativeWindow` reference.
 - **Not tested:** real GLES 3.0 hardware (Mali/Adreno/PowerVR drivers), performance, and EGL
   fences instead of `glFinish` (P1-053). The device blocklist that picks GLES on a broken Vulkan
   driver is GOT-015. The real-device run is P1-051.

@@ -180,25 +180,27 @@ pub struct Gpu {
     /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
     imports_frames: bool,
-    /// The preview window's surface, kept between draws and used under this lock. On GLES a
-    /// window takes one EGL connection, and a dropped surface may disconnect late, so a fresh
-    /// surface per draw fails with "already connected" (P1-004).
+    /// The preview window's surface, kept between draws. Its lock is also the queue lock:
+    /// every submit and present on Android (draws, and the Vulkan frame import's raw queue
+    /// submit) happens under it, so the renderer and the decode spike never overlap (P1-004).
     #[cfg(target_os = "android")]
     window_surface: std::sync::Mutex<Option<WindowSurface>>,
 }
 
-/// A configured surface on one ANativeWindow.
+/// A configured surface on one ANativeWindow. Fields drop in order: the surface before the
+/// window reference it draws into.
 #[cfg(target_os = "android")]
 struct WindowSurface {
-    window: usize,
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
+    window: android::WindowRef,
 }
 
 impl Gpu {
     /// SPIKE (P1-004): the process's one GPU, opened on first use, shared by the preview
     /// renderer and the decode spikes so they draw through one device and one window surface.
-    /// The render thread (P1-053) owns it instead.
+    /// A failure to open is kept for the process (no retry). The render thread (P1-053) owns
+    /// the GPU instead.
     pub fn shared() -> Result<&'static Gpu, RenderError> {
         static GPU: std::sync::OnceLock<Result<Gpu, String>> = std::sync::OnceLock::new();
         GPU.get_or_init(|| Gpu::new().map_err(|e| e.to_string()))
@@ -327,8 +329,8 @@ impl Gpu {
     ///
     /// # Safety
     /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be
-    /// done, and nothing may write it while the returned texture is used. No other thread may
-    /// use this `Gpu`'s queue (draw, present) during the call.
+    /// done, and nothing may write it while the returned texture is used. The call serialises
+    /// itself with [`Gpu::draw_to_android_window`]; no other queue use may run meanwhile.
     #[cfg(target_os = "android")]
     pub unsafe fn import_android_frame(
         &self,
@@ -339,8 +341,14 @@ impl Gpu {
                 "device has no AHardwareBuffer import".to_owned(),
             ));
         }
+        // The Vulkan import submits on wgpu's raw queue: hold the queue lock (see
+        // `window_surface`) so no draw or present runs meanwhile.
+        let _queue = self
+            .window_surface
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         // SAFETY: forwarded from this function's contract; the device was opened with the
-        // import extensions or is GLES (checked above).
+        // import extensions or is GLES (checked above); the queue lock is held.
         unsafe { android::import_ahb(&self.device, ahb) }
     }
 
@@ -440,15 +448,16 @@ impl Gpu {
             .window_surface
             .lock()
             .unwrap_or_else(|e| e.into_inner());
+        // The cached surface holds its own window reference, so a matching pointer is the same
+        // live window, never a freed one at the same address.
         let reuse = cached
             .as_ref()
-            .is_some_and(|c| c.window == window.as_ptr() as usize);
+            .is_some_and(|c| c.window.as_ptr() == window.as_ptr());
         if !reuse {
             // The old window's surface goes first, so it disconnects before a new one connects.
             *cached = None;
-            // SAFETY: the caller guarantees the window is live for this call; the engine keeps
-            // its reference to the preview window for the app's lifetime today (releasing it
-            // is P1-055, which must drop this cache first).
+            // SAFETY: the caller guarantees the window is live for this call; the surface takes
+            // its own reference.
             *cached = Some(unsafe { self.window_surface(window, width, height) }?);
         }
         let Some(WindowSurface {
@@ -486,10 +495,10 @@ impl Gpu {
         Ok(())
     }
 
-    /// Creates and configures a surface on `window`.
+    /// Creates and configures a surface on `window`, holding a reference to it.
     ///
     /// # Safety
-    /// `window` must stay live as long as the returned surface.
+    /// `window` must be a live `ANativeWindow*` for the call.
     #[cfg(target_os = "android")]
     unsafe fn window_surface(
         &self,
@@ -500,7 +509,9 @@ impl Gpu {
         use wgpu::rwh::{
             AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
         };
-        // SAFETY: the window outlives the surface per the contract.
+        // SAFETY: live per the contract; the reference keeps it alive as long as the surface.
+        let window_ref = unsafe { android::WindowRef::acquire(window) };
+        // SAFETY: `window_ref` (dropped after the surface) keeps the window alive.
         let surface = unsafe {
             self.instance
                 .create_surface_unsafe(wgpu::SurfaceTargetUnsafe::RawHandle {
@@ -523,9 +534,9 @@ impl Gpu {
         }
         surface.configure(&self.device, &config);
         Ok(WindowSurface {
-            window: window.as_ptr() as usize,
             surface,
             config,
+            window: window_ref,
         })
     }
 
@@ -711,8 +722,8 @@ fn fullscreen_pipeline(
     })
 }
 
-/// [`PreviewRenderer`] on [`Gpu`]: draws the test pattern into the platform's texture. Opens
-/// the GPU on first use.
+/// [`PreviewRenderer`] on [`Gpu`]: draws the test pattern into the platform's texture. Uses
+/// [`Gpu::shared`], opened on first use.
 pub struct GpuRenderer {
     gpu: Option<&'static Gpu>,
 }

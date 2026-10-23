@@ -147,14 +147,8 @@ unsafe fn render_into_surface(
     let Some(gpu) = gpu() else {
         return ENGINE_ERR_GPU;
     };
-    // The Kotlin side calls from the main thread and a decode thread; one lock keeps wgpu's
-    // draws and presents apart from the frame import's raw queue submit.
-    static GPU_USE: std::sync::Mutex<()> = std::sync::Mutex::new(());
-    let _gpu_use = GPU_USE
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    // SAFETY: `frame` is live and finished per this fn's contract; `GPU_USE` is held, so no
-    // other thread uses the queue.
+    // SAFETY: `frame` is live and finished per this fn's contract; the Gpu serialises the
+    // import with every draw on its queue (it is shared with the preview renderer).
     let drawn = unsafe { gpu.import_android_frame(frame) }.and_then(|source| {
         // SAFETY: `window` outlives the call; wgpu's surface is dropped inside it.
         unsafe { gpu.draw_to_android_window(window.0, Some(&source)) }

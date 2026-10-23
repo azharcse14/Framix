@@ -102,6 +102,8 @@ const AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE: u64 = 1 << 8;
 unsafe extern "C" {
     fn AHardwareBuffer_describe(buffer: *const c_void, desc: *mut AHardwareBufferDesc);
     fn ANativeWindow_getWidth(window: *mut c_void) -> i32;
+    fn ANativeWindow_acquire(window: *mut c_void);
+    fn ANativeWindow_release(window: *mut c_void);
     fn ANativeWindow_getHeight(window: *mut c_void) -> i32;
 }
 
@@ -109,6 +111,36 @@ unsafe extern "C" {
 ///
 /// # Safety
 /// `window` must be a live `ANativeWindow*` for the call.
+/// An owned reference to an ANativeWindow, released on drop.
+pub(crate) struct WindowRef(NonNull<c_void>);
+
+impl WindowRef {
+    /// Takes a reference of its own to `window`.
+    ///
+    /// # Safety
+    /// `window` must be a live `ANativeWindow*` for the call.
+    pub(crate) unsafe fn acquire(window: NonNull<c_void>) -> Self {
+        // SAFETY: live per the contract; balanced by the release in Drop.
+        unsafe { ANativeWindow_acquire(window.as_ptr()) };
+        Self(window)
+    }
+
+    pub(crate) fn as_ptr(&self) -> *mut c_void {
+        self.0.as_ptr()
+    }
+}
+
+impl Drop for WindowRef {
+    fn drop(&mut self) {
+        // SAFETY: this struct holds one reference, taken in acquire.
+        unsafe { ANativeWindow_release(self.0.as_ptr()) };
+    }
+}
+
+// SAFETY: ANativeWindow reference counting is thread-safe; the pointer is only compared and
+// released.
+unsafe impl Send for WindowRef {}
+
 pub(crate) unsafe fn window_size(window: NonNull<c_void>) -> Result<(u32, u32), RenderError> {
     // SAFETY: `window` is live per the contract.
     let (width, height) = unsafe {
@@ -128,8 +160,9 @@ pub(crate) unsafe fn window_size(window: NonNull<c_void>) -> Result<(u32, u32), 
 /// # Safety
 /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be done,
 /// and nothing may write it while the returned texture is used. `device` must have been opened by
-/// [`request_device`] with the AHB extensions, or be on the GLES backend. No other thread may use wgpu's queue (submit or
-/// present) during the call: it submits on the raw VkQueue behind wgpu.
+/// [`request_device`] with the AHB extensions, or be on the GLES backend. No other thread may
+/// use wgpu's queue (submit or present) during the call: on Vulkan it submits on the raw
+/// VkQueue behind wgpu.
 pub(crate) unsafe fn import_ahb(
     device: &wgpu::Device,
     ahb: NonNull<c_void>,
