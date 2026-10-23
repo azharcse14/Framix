@@ -13093,12 +13093,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "f494292",
+   "branch": "tc-012-pinch-hang",
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Root cause: awaiting cubit.close() in a testWidgets body (stream cancel needs the real event loop); cleanup goes in addTearDown. Tests found two gesture bugs (restart re-read the lagging mirror; lift-together left a stale gesture), fixed. Known: a finger landing while one finger rests unmoved after a lift jumps the clip once by about half the finger gap (recognizer delivers the focal jump as a delta); untested."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "Final fix for lift-together: a Listener counts pointers (onScaleEnd can't tell the last lift); trackpad pan-zoom end also ends the gesture (untested)."
+    }
+   ],
    "source": "added"
   },
   {

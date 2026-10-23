@@ -229,7 +229,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [ ] `TC-009` Upgrade er age compatibility matrix: Flutter ↔ AGP ↔ Kotlin ↔ plugin, Flutter ↔ Xcode; ekta bodlale baki gula check \[—\]
 - [x] `TC-010` native_warnings.sh allowlist misses Xcode 27.1 wording 'Metadata extraction skipped, no AppIntents.framework dependency found' (allowlist has 'skipped. No'), so the gate fails on every build \[Native\]
 - [x] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
-- [ ] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
+- [x] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
 
 ## AI diye code lekha (Claude Code)
 
