@@ -17,7 +17,10 @@ final class ExportEncoder {
   private var pending: (buffer: CVPixelBuffer, texture: MTLTexture, time: CMTime)?
 
   init?(width: Int, height: Int, fps: Int, kbps: Int, url: URL) {
-    guard let device = MTLCreateSystemDefaultDevice() else { return nil }
+    // The engine only sends .mp4 paths; an old export there is replaced.
+    guard url.pathExtension == "mp4", let device = MTLCreateSystemDefaultDevice() else {
+      return nil
+    }
     try? FileManager.default.removeItem(at: url)
     guard let writer = try? AVAssetWriter(outputURL: url, fileType: .mp4) else { return nil }
     let input = AVAssetWriterInput(
@@ -86,7 +89,10 @@ final class ExportEncoder {
       let done = DispatchSemaphore(value: 0)
       writer.finishWriting { done.signal() }
       done.wait()
-      return writer.status == .completed
+      if writer.status == .completed { return true }
+      // A file that did not complete is not a usable video.
+      try? FileManager.default.removeItem(at: writer.outputURL)
+      return false
     }
     writer.cancelWriting()
     try? FileManager.default.removeItem(at: writer.outputURL)
@@ -97,7 +103,8 @@ final class ExportEncoder {
   private func appendPending() -> Bool {
     guard let frame = pending else { return true }
     pending = nil
-    // The worker thread may wait: the encoder drains at its own pace.
+    // The worker thread may wait (1 ms polls): the encoder drains at its own pace. Cancel
+    // (P1-035) replaces this with requestMediaDataWhenReady.
     while !input.isReadyForMoreMediaData {
       guard writer.status == .writing else { return false }
       usleep(1000)

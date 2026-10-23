@@ -151,6 +151,10 @@ impl Engine {
         if self.exporting {
             return Err("an export is already running".into());
         }
+        // The platform replaces what is at the path, so it must name an .mp4 file.
+        if std::path::Path::new(&path).extension() != Some(std::ffi::OsStr::new("mp4")) {
+            return Err("the export path must be an .mp4 file".into());
+        }
         let timeline = self.history.timeline();
         if timeline.duration() == Time(0) {
             return Err("nothing to export".into());
