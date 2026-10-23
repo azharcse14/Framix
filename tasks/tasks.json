@@ -12335,11 +12335,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "c8ba53b",
+   "branch": "p1-044-detach",
    "notes": [
     {
      "date": "2026-10-15",
@@ -12352,6 +12352,10 @@
     {
      "date": "2026-10-15",
      "text": "Since P1-009, SaveProject/OpenProject do file I/O (up to 4 MiB + fsyncs) on the engine command thread; engine_destroy joins behind it. Land this before autosave (OVL-028)."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "Review: engine_api.rs and platform.rs test sessions (frozen earlier tests) now drain to their engine's EngineStopped in Drop, since destroy no longer joins; engine_api's change landed in the feat commit, platform's in its own test commit. The panic-at-start path (refuse until Shutdown, then marker) has no test."
     }
    ],
    "source": "added"
@@ -13152,6 +13156,26 @@
      "text": "Show TimelineChanged.export.estimated_bytes (P1-033) as MB/GB, labelled as an estimate (audio is counted even without audio clips)."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-065",
+   "section": "P1",
+   "group": null,
+   "title": "Platform answers arriving after engine Shutdown drop their PlatformTexture without releasing it (small leak; send error path in ffi platform host)",
+   "tags": [
+    "Rust",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

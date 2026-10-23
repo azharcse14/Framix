@@ -419,7 +419,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-041` Sentry setup ar render on demand (detail: Sentry setup, Resource optimization) \[Dart\]\[Rust\]
 - [x] `P1-042` engine_free_buffer ke unsafe extern "C" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai \[Rust\]
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]
-- [ ] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
+- [x] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
 - [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
 - [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
 - [ ] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
@@ -440,6 +440,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
 - [ ] `P1-063` Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale) \[Rust\] \[Dart\]
 - [ ] `P1-064` Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen \[Dart\]
+- [ ] `P1-065` Platform answers arriving after engine Shutdown drop their PlatformTexture without releasing it (small leak; send error path in ffi platform host) \[Rust\] \[Native\]
 
 ## Phase 2: Audio
 
