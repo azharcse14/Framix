@@ -283,7 +283,27 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
-            command::Kind::SetClipTransform(_) => Err("not implemented yet".into()),
+            command::Kind::SetClipTransform(op) => {
+                let turns = match op.rotation {
+                    0 => 0,
+                    90 => 1,
+                    180 => 2,
+                    270 => 3,
+                    other => return Err(format!("rotation {other} is not a quarter turn")),
+                };
+                let transform = timeline::ClipTransform {
+                    turns,
+                    flip_h: op.flip_h,
+                    flip_v: op.flip_v,
+                    crop: timeline::Crop {
+                        left: op.crop_left,
+                        top: op.crop_top,
+                        right: op.crop_right,
+                        bottom: op.crop_bottom,
+                    },
+                };
+                timeline(self.edit(|tl| tl.set_clip_transform(ClipId(op.clip_id), transform)))
+            }
             command::Kind::Seek(seek) => {
                 if seek.snap_within < 0 {
                     return Err("negative snap tolerance".into());
@@ -399,7 +419,13 @@ impl Engine {
                                 Some(media::MediaKind::Image) => proto::MediaKind::Image,
                                 None => proto::MediaKind::Unspecified,
                             } as i32,
-                            ..Default::default()
+                            rotation: u32::from(c.transform.turns) * 90,
+                            flip_h: c.transform.flip_h,
+                            flip_v: c.transform.flip_v,
+                            crop_left: c.transform.crop.left,
+                            crop_top: c.transform.crop.top,
+                            crop_right: c.transform.crop.right,
+                            crop_bottom: c.transform.crop.bottom,
                         })
                         .collect(),
                     number: *count,

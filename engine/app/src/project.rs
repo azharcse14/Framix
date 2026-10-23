@@ -4,7 +4,7 @@ use framix_core::aspect::AspectRatio;
 use framix_core::media::{Media, MediaKind, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
-    ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackKind,
+    ClipPlacement, ClipTransform, Crop, MediaId, Timeline, TimelineError, TrackFlags, TrackKind,
 };
 use prost::Message as _;
 use thiserror::Error;
@@ -14,11 +14,12 @@ use crate::project_proto::{
 };
 
 /// Format version this engine writes and the newest it reads.
-pub const FORMAT_VERSION: u32 = 2;
+pub const FORMAT_VERSION: u32 = 3;
 
-/// Oldest reader that can open what this engine writes: 2, because a format-1 reader would
-/// drop the media list when it saves again.
-const MIN_READER_VERSION: u32 = 2;
+/// Oldest reader that can open what this engine writes: 3, because older readers would drop
+/// what they don't know when they save again (format 1: the media list; format 2: clip
+/// transforms).
+const MIN_READER_VERSION: u32 = 3;
 
 /// Most tracks a project file may hold.
 pub const MAX_TRACKS: usize = 256;
@@ -94,7 +95,13 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
                     source_start: c.source_start.0,
                     start: c.start.0,
                     duration: c.duration.0,
-                    ..Default::default()
+                    turns: u32::from(c.transform.turns),
+                    flip_h: c.transform.flip_h,
+                    flip_v: c.transform.flip_v,
+                    crop_left: c.transform.crop.left,
+                    crop_top: c.transform.crop.top,
+                    crop_right: c.transform.crop.right,
+                    crop_bottom: c.transform.crop.bottom,
                 })
                 .collect(),
             muted: track.flags().muted,
@@ -218,7 +225,22 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
             if file.format_version >= 2 && timeline.media(placement.media).is_none() {
                 return Err(ProjectError::UnknownMedia(c.media_id));
             }
-            timeline.insert_clip(track, placement)?;
+            let id = timeline.insert_clip(track, placement)?;
+            let transform = ClipTransform {
+                turns: u8::try_from(c.turns).map_err(|_| TimelineError::BadTransform)?,
+                flip_h: c.flip_h,
+                flip_v: c.flip_v,
+                crop: Crop {
+                    left: c.crop_left,
+                    top: c.crop_top,
+                    right: c.crop_right,
+                    bottom: c.crop_bottom,
+                },
+            };
+            // Untrusted: the same checks as an edit (turns, crop against the media size).
+            if transform != ClipTransform::default() {
+                timeline.set_clip_transform(id, transform)?;
+            }
         }
         // After the clips: a locked track refuses inserts.
         timeline.set_track_flags(track, flags)?;

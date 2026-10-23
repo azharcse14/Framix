@@ -406,7 +406,7 @@ impl Timeline {
             source_start: Time(source_start),
             start: at,
             duration: Time(c.duration.0 - cut),
-            transform: ClipTransform::default(),
+            transform: c.transform,
         };
         clips.insert(i + 1, right);
         Ok(id)
@@ -428,6 +428,9 @@ impl Timeline {
         let Some(r) = r.filter(continuous) else {
             return Err(TimelineError::NotMergeable);
         };
+        if l.transform != r.transform {
+            return Err(TimelineError::TransformsDiffer);
+        }
         // Fits: it is r.end() - l.start, and r.end() fits.
         clips[i].duration = Time(l.duration.0 + r.duration.0);
         clips.remove(j);
@@ -520,16 +523,37 @@ impl Timeline {
             start: c.end(),
             duration: c.duration,
         };
-        self.insert_clip(self.tracks[t].id, copy)
+        let id = self.insert_clip(self.tracks[t].id, copy)?;
+        let (t, i) = self.locate(id)?;
+        self.tracks[t].clips[i].transform = c.transform;
+        Ok(id)
     }
 
     /// Sets a clip's crop, turns and flips. The crop must leave at least one pixel each way of
     /// the clip's media; turns must be 0..=3.
     pub fn set_clip_transform(
         &mut self,
-        _clip: ClipId,
-        _transform: ClipTransform,
+        clip: ClipId,
+        transform: ClipTransform,
     ) -> Result<(), TimelineError> {
+        if transform.turns > 3 {
+            return Err(TimelineError::BadTransform);
+        }
+        let (t, i) = self.locate(clip)?;
+        let crop = transform.crop;
+        if crop != Crop::default() {
+            let (width, height) = self
+                .media(self.tracks[t].clips[i].media)
+                .ok_or(TimelineError::BadCrop)?
+                .size();
+            // u64 sums: four u32 insets cannot overflow.
+            let across = u64::from(crop.left) + u64::from(crop.right);
+            let down = u64::from(crop.top) + u64::from(crop.bottom);
+            if across >= u64::from(width) || down >= u64::from(height) {
+                return Err(TimelineError::BadCrop);
+            }
+        }
+        self.tracks[t].clips[i].transform = transform;
         Ok(())
     }
 
