@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'core/engine/framix_engine.dart';
+import 'core/engine/spike_export.dart';
 import 'core/media/channel_media_importer.dart';
 import 'core/media/media_importer.dart';
 import 'core/ui/framix_theme.dart';
@@ -19,6 +20,7 @@ void main() {
     FramixEngine.create(),
     dispose: (engine) => engine.dispose(),
   );
+  startSpikeExport(GetIt.I<FramixEngine>());
   runApp(FramixApp(engine: GetIt.I<FramixEngine>()));
 }
 

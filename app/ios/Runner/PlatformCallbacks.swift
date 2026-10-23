@@ -70,7 +70,8 @@ enum PlatformCallbacks {
     var platform = EnginePlatform(
       version: UInt32(ENGINE_PLATFORM_VERSION), ctx: nil,
       create_preview_texture: createPreviewTexture, frame_available: frameAvailable,
-      request_thumbnail: requestThumbnail)
+      request_thumbnail: requestThumbnail, encoder_open: encoderOpen,
+      encoder_frame: encoderFrame, encoder_finish: encoderFinish)
     let code = unsafeBitCast(symbol, to: Register.self)(&platform)
     assert(code == ENGINE_OK, "engine_platform_register failed: \(code)")
   }
