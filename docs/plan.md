@@ -407,7 +407,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-032` Resolution (720p, 1080p, 2K, 4K), frame rate (24/30/60), bitrate \[Rust\]\[Native\]
 - [x] `P1-033` Estimated file size dekhano \[Rust\]
 - [x] `P1-034` Hardware encoder (VideoToolbox, MediaCodec) \[Native\]
-- [ ] `P1-035` Progress, cancel, fail handling \[Rust\]\[Dart\]
+- [x] `P1-035` Progress, cancel, fail handling \[Rust\]\[Dart\]
 - [ ] `P1-036` Save to gallery, share sheet \[Dart\]
 - [ ] `P1-037` **1b:** Platform export preset (TikTok/Reels/Shorts 9:16 1080p, YouTube 16:9, Instagram 4:5) \[Dart\]\[Rust\]
 
@@ -1150,6 +1150,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-053` Trims and splits must stay inside the media's duration (P1-011 media registry has durations) \[Rust\]
 - [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 - [ ] `ENG-055` Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review) \[Rust\]
+- [ ] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
 
 **Security**
 

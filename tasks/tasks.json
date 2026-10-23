@@ -1621,11 +1621,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-24",
+   "commit": "cb416b8",
+   "branch": "p1-035-export-progress",
    "notes": [
     {
      "date": "2026-10-23",
@@ -1634,6 +1634,10 @@
     {
      "date": "2026-10-23",
      "text": "From P1-034 review: the export worker outlives engine_destroy and has no cancel flag (hot restart can start a second export to the same path); add cancel/join on destroy, an iOS background task (Metal submits fail in background), and send worker panics to Sentry."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "Review: destroy only cancels the export worker, it doesn't join it; its finish(false) can remove a file a new engine just started at the same path (hot restart). Join (or a per-export temp file renamed on success), an iOS background task and Sentry for worker panics (P1-041) remain."
     }
    ],
    "source": "plan"
@@ -13207,6 +13211,10 @@
     {
      "date": "2026-10-23",
      "text": "P1-034: ExportProject{path} -> CommandAccepted, then ExportFinished{ok, reason}. Remove app/lib/core/engine/spike_export.dart when the export screen lands."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "P1-035: use ExportCubit (start(path), cancel(), states idle/running(frame, frames)/done/cancelled/failed(reason))."
     }
    ],
    "source": "added"
@@ -13321,6 +13329,26 @@
    "tags": [
     "Native",
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-056",
+   "section": "ENG",
+   "group": null,
+   "title": "Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035)",
+   "tags": [
+    "Rust",
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
