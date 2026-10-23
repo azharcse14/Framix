@@ -229,6 +229,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [ ] `TC-009` Upgrade er age compatibility matrix: Flutter ↔ AGP ↔ Kotlin ↔ plugin, Flutter ↔ Xcode; ekta bodlale baki gula check \[—\]
 - [x] `TC-010` native_warnings.sh allowlist misses Xcode 27.1 wording 'Metadata extraction skipped, no AppIntents.framework dependency found' (allowlist has 'skipped. No'), so the gate fails on every build \[Native\]
 - [x] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
+- [ ] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
 
 ## AI diye code lekha (Claude Code)
 
@@ -398,7 +399,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 **Clip transform**
 
 - [x] `P1-029` Crop, rotate, mirror/flip \[Rust\]
-- [ ] `P1-030` Canvas e position, scale (pinch/drag handle) \[Dart\]\[Rust\]
+- [x] `P1-030` Canvas e position, scale (pinch/drag handle) \[Dart\]\[Rust\]
 - [x] `P1-031` Replace clip \[Rust\]
 
 **Export**
@@ -437,6 +438,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-060` Preview shows the decoded frame at the playhead (needs the Decoder port); redraw after edits that change what is under the playhead even when it did not move (P1-020 redraws only on playhead moves) \[Rust\]
 - [ ] `P1-061` Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md) \[Rust\] \[Dart\]
 - [ ] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
+- [ ] `P1-063` Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 

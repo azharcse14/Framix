@@ -1501,15 +1501,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "9078cdd",
+   "branch": "p1-030-canvas-position",
    "notes": [
     {
      "date": "2026-10-23",
      "text": "Clip.transform exists (P1-029): crop in source pixels against Media::size (stored size before the media's own rotation), then clockwise quarter turns, then flips; UI sends SetClipTransform (degrees)."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "Review: the frozen project_transform.rs lost its 'FORMAT_VERSION == 3' assertion (it pinned the current format, not the fixture's). Pinch widget test dropped (TC-012 harness hang); delta-based pinch math fixed the focal-jump bug it found."
     }
    ],
    "source": "plan"
@@ -5204,6 +5208,10 @@
     {
      "date": "2026-10-21",
      "text": "P1-020 shipped button zoom (TimelineZoomCubit, 20-2000 px/s, x1.5 steps); pinch should drive the same cubit, not a second zoom model."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "P1-030: canvas gestures have no screen-reader actions (Semantics label only); add nudge/scale actions or buttons."
     }
    ],
    "source": "plan"
@@ -12993,6 +13001,10 @@
     {
      "date": "2026-10-23",
      "text": "Renderer must apply Clip.transform (P1-029): crop, then turns (on top of media rotation), then flips."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "Also apply x/y/scale (P1-030) after crop, turns and flips."
     }
    ],
    "source": "added"
@@ -13043,6 +13055,45 @@
    "title": "Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "TC-012",
+   "section": "TC",
+   "group": null,
+   "title": "Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-063",
+   "section": "P1",
+   "group": "Architecture risk test (prototype)",
+   "title": "Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale)",
+   "tags": [
+    "Rust",
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
