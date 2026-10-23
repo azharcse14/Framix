@@ -1675,11 +1675,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "0b3019c",
+   "branch": "p1-038-autosave",
    "notes": [],
    "source": "plan"
   },
@@ -1719,7 +1719,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "P1-038 autosaves within 1 s of each change and at shutdown on the engine thread; the 4 MiB write + fsyncs there may hitch scrubbing on slow flash: measure on a device, move to a worker if needed."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6079,7 +6084,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Engine side delivered by P1-038 (EnableAutosave, timed + shutdown autosave, recovery); wiring and bad-file handling filed as follow-ups."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -8867,6 +8877,10 @@
     {
      "date": "2026-10-15",
      "text": "Do not ship autosave before P1-044: project I/O runs on the command thread (P1-009)."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "P1-038 has no immediate save on app background; send engine_destroy or add a Flush command on lifecycle pause."
     }
    ],
    "source": "plan"
@@ -13166,6 +13180,45 @@
    "tags": [
     "Rust",
     "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-066",
+   "section": "P1",
+   "group": "Reliability (Phase 1 ei lagbe)",
+   "title": "Autosave wiring: platform gives the app-support dir (create it), app sends EnableAutosave at startup before edits, shows 'Shesh kaj porjonto save ache' after a recovery, and decides clean exit vs crash (the file stays after a normal shutdown; add Discard/Disable if needed)",
+   "tags": [
+    "Dart",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-067",
+   "section": "P1",
+   "group": "Reliability (Phase 1 ei lagbe)",
+   "title": "Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,

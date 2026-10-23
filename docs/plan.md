@@ -413,7 +413,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 **Reliability (Phase 1 ei lagbe)**
 
-- [ ] `P1-038` Auto save ar crash recovery \[Rust\]
+- [x] `P1-038` Auto save ar crash recovery \[Rust\]
 - [ ] `P1-039` Proxy media (4K preview er jonno kom resolution copy) \[Rust\]
 - [ ] `P1-040` Overload handling er mul ongsho: protita command er por autosave, engine watchdog, Flutter error boundary, export pre-flight check (detail: Overload handling section) \[Rust\]\[Dart\]
 - [ ] `P1-041` Sentry setup ar render on demand (detail: Sentry setup, Resource optimization) \[Dart\]\[Rust\]
@@ -441,6 +441,8 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-063` Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale) \[Rust\] \[Dart\]
 - [ ] `P1-064` Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen \[Dart\]
 - [ ] `P1-065` Platform answers arriving after engine Shutdown drop their PlatformTexture without releasing it (small leak; send error path in ffi platform host) \[Rust\] \[Native\]
+- [ ] `P1-066` Autosave wiring: platform gives the app-support dir (create it), app sends EnableAutosave at startup before edits, shows 'Shesh kaj porjonto save ache' after a recovery, and decides clean exit vs crash (the file stays after a normal shutdown; add Discard/Disable if needed) \[Dart\] \[Native\]
+- [ ] `P1-067` Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart \[Rust\]
 
 ## Phase 2: Audio
 
