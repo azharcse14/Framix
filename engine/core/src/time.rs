@@ -19,6 +19,14 @@ pub struct Rate {
 }
 
 impl Rate {
+    /// `fps` whole frames per second; 0 counts as 1.
+    pub fn whole(fps: u32) -> Self {
+        Self {
+            num: fps.max(1),
+            den: 1,
+        }
+    }
+
     /// Returns `None` unless both parts are non-zero.
     pub fn new(num: u32, den: u32) -> Option<Self> {
         (num != 0 && den != 0).then_some(Self { num, den })

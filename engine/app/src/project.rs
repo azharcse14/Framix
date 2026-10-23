@@ -1,6 +1,7 @@
 //! Project file encoding (proto/framix/project/v1/project.proto). Pure: bytes in, bytes out.
 
 use framix_core::aspect::AspectRatio;
+use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{Media, MediaKind, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
@@ -15,12 +16,12 @@ use crate::project_proto::{
 };
 
 /// Format version this engine writes and the newest it reads.
-pub const FORMAT_VERSION: u32 = 4;
+pub const FORMAT_VERSION: u32 = 5;
 
-/// Oldest reader that can open what this engine writes: 4, because older readers would drop
+/// Oldest reader that can open what this engine writes: 5, because older readers would drop
 /// what they don't know when they save again (format 1: the media list; format 2: clip
-/// transforms; format 3: canvas position and scale).
-const MIN_READER_VERSION: u32 = 4;
+/// transforms; format 3: canvas position and scale; format 4: export settings).
+const MIN_READER_VERSION: u32 = 5;
 
 /// Most tracks a project file may hold.
 pub const MAX_TRACKS: usize = 256;
@@ -123,7 +124,21 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         aspect_width: timeline.aspect().width(),
         aspect_height: timeline.aspect().height(),
         media: timeline.all_media().map(saved_media).collect(),
-        ..Default::default()
+        export_resolution: match timeline.export().resolution {
+            Resolution::P720 => 1,
+            Resolution::P1080 => 2,
+            Resolution::P2K => 3,
+            Resolution::P4K => 4,
+        },
+        export_fps: match timeline.export().fps {
+            FrameRate::F24 => 1,
+            FrameRate::F30 => 2,
+            FrameRate::F60 => 3,
+        },
+        export_kbps: match timeline.export().bitrate {
+            Bitrate::Auto => 0,
+            Bitrate::Kbps(kbps) => kbps,
+        },
     }
     .encode_to_vec()
 }
@@ -171,6 +186,7 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         return Err(ProjectError::TooLarge);
     }
     let mut timeline = Timeline::default();
+    timeline.set_export(saved_export(&file)?);
     // 0:0 is a file from before the aspect ratio was saved: keep the default.
     if (file.aspect_width, file.aspect_height) != (0, 0) {
         let aspect = AspectRatio::new(file.aspect_width, file.aspect_height)
@@ -255,6 +271,35 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         timeline.set_track_flags(track, flags)?;
     }
     Ok(timeline)
+}
+
+/// Export settings from a file; 0 in a field (files before format 5) keeps its default.
+fn saved_export(file: &ProjectFile) -> Result<ExportSettings, ProjectError> {
+    let default = ExportSettings::default();
+    let resolution = match file.export_resolution {
+        0 => default.resolution,
+        1 => Resolution::P720,
+        2 => Resolution::P1080,
+        3 => Resolution::P2K,
+        4 => Resolution::P4K,
+        _ => return Err(ProjectError::InvalidExport),
+    };
+    let fps = match file.export_fps {
+        0 => default.fps,
+        1 => FrameRate::F24,
+        2 => FrameRate::F30,
+        3 => FrameRate::F60,
+        _ => return Err(ProjectError::InvalidExport),
+    };
+    let bitrate = match file.export_kbps {
+        0 => Bitrate::Auto,
+        kbps => Bitrate::kbps(kbps).ok_or(ProjectError::InvalidExport)?,
+    };
+    Ok(ExportSettings {
+        resolution,
+        fps,
+        bitrate,
+    })
 }
 
 fn saved_media((id, media): (MediaId, &Media)) -> SavedMedia {

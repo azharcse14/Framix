@@ -239,6 +239,7 @@ pub enum TimelineError {
 pub struct Timeline {
     tracks: Vec<Track>,
     aspect: AspectRatio,
+    export: crate::export::ExportSettings,
     media: BTreeMap<MediaId, Media>,
     /// Last id handed out.
     next_id: u64,
@@ -246,7 +247,10 @@ pub struct Timeline {
 
 impl PartialEq for Timeline {
     fn eq(&self, other: &Self) -> bool {
-        self.tracks == other.tracks && self.aspect == other.aspect && self.media == other.media
+        self.tracks == other.tracks
+            && self.aspect == other.aspect
+            && self.export == other.export
+            && self.media == other.media
     }
 }
 
@@ -255,11 +259,13 @@ impl Eq for Timeline {}
 impl Timeline {
     /// How the project exports.
     pub fn export(&self) -> crate::export::ExportSettings {
-        crate::export::ExportSettings::default()
+        self.export
     }
 
     /// Sets how the project exports.
-    pub fn set_export(&mut self, _settings: crate::export::ExportSettings) {}
+    pub fn set_export(&mut self, settings: crate::export::ExportSettings) {
+        self.export = settings;
+    }
 
     /// Canvas aspect ratio.
     pub fn aspect(&self) -> AspectRatio {

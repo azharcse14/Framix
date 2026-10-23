@@ -1,6 +1,7 @@
 //! Turns UI commands into timeline edits and reports the result as an event.
 
 use framix_core::aspect::AspectRatio;
+use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{self, Media, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
@@ -284,7 +285,13 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
-            command::Kind::SetExportSettings(_) => Err("not implemented yet".into()),
+            command::Kind::SetExportSettings(op) => {
+                let settings = export_settings(op)?;
+                timeline(self.edit(|tl| {
+                    tl.set_export(settings);
+                    Ok::<_, TimelineError>(())
+                }))
+            }
             command::Kind::ReplaceClip(op) => {
                 let media = media_from_item(op.media.ok_or("replace without media")?)?;
                 timeline(self.edit(|tl| tl.replace_clip(ClipId(op.clip_id), media).map(drop)))
@@ -478,7 +485,7 @@ impl Engine {
                 ticks_per_second: TICKS_PER_SECOND,
                 thumbnail_step: crate::thumbnail::THUMBNAIL_STEP.0,
                 active_clip: self.active_clip(),
-                export: None,
+                export: Some(export_info(timeline)),
             })),
         }
     }
@@ -502,6 +509,56 @@ pub fn command_failed(reason: impl Into<String>) -> Event {
         kind: Some(proto::event::Kind::CommandFailed(CommandFailed {
             reason: reason.into(),
         })),
+    }
+}
+
+fn export_settings(op: proto::SetExportSettings) -> Result<ExportSettings, String> {
+    let resolution = match proto::ExportResolution::try_from(op.resolution) {
+        Ok(proto::ExportResolution::ExportResolution720p) => Resolution::P720,
+        Ok(proto::ExportResolution::ExportResolution1080p) => Resolution::P1080,
+        Ok(proto::ExportResolution::ExportResolution2k) => Resolution::P2K,
+        Ok(proto::ExportResolution::ExportResolution4k) => Resolution::P4K,
+        _ => return Err(format!("unknown export resolution {}", op.resolution)),
+    };
+    let fps = match proto::ExportFps::try_from(op.fps) {
+        Ok(proto::ExportFps::ExportFps24) => FrameRate::F24,
+        Ok(proto::ExportFps::ExportFps30) => FrameRate::F30,
+        Ok(proto::ExportFps::ExportFps60) => FrameRate::F60,
+        _ => return Err(format!("unknown export frame rate {}", op.fps)),
+    };
+    let bitrate = match op.kbps {
+        0 => Bitrate::Auto,
+        kbps => Bitrate::kbps(kbps).ok_or_else(|| format!("bitrate {kbps} kbps out of range"))?,
+    };
+    Ok(ExportSettings {
+        resolution,
+        fps,
+        bitrate,
+    })
+}
+
+fn export_info(timeline: &Timeline) -> proto::ExportInfo {
+    let settings = timeline.export();
+    let (width, height) = settings.frame_size(timeline.aspect());
+    proto::ExportInfo {
+        resolution: match settings.resolution {
+            Resolution::P720 => proto::ExportResolution::ExportResolution720p,
+            Resolution::P1080 => proto::ExportResolution::ExportResolution1080p,
+            Resolution::P2K => proto::ExportResolution::ExportResolution2k,
+            Resolution::P4K => proto::ExportResolution::ExportResolution4k,
+        } as i32,
+        fps: match settings.fps {
+            FrameRate::F24 => proto::ExportFps::ExportFps24,
+            FrameRate::F30 => proto::ExportFps::ExportFps30,
+            FrameRate::F60 => proto::ExportFps::ExportFps60,
+        } as i32,
+        kbps: match settings.bitrate {
+            Bitrate::Auto => 0,
+            Bitrate::Kbps(kbps) => kbps,
+        },
+        width,
+        height,
+        effective_kbps: settings.effective_kbps(timeline.aspect()),
     }
 }
 
