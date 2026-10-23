@@ -31,6 +31,14 @@ class _CanvasGesturesState extends State<CanvasGestures> {
   /// The scale last sent; the base again when the recognizer restarts.
   late int _scale;
 
+  /// Fingers down. The recognizer's end callback can't tell when the last one lifts (lifting
+  /// two fingers with no move between reports no final end), so count them here.
+  int _pointers = 0;
+
+  void _lifted(PointerEvent _) {
+    if (--_pointers == 0) _start = null;
+  }
+
   Clip? _active(TimelineChanged t) {
     final id = t.activeClip;
     if (id == 0) return null;
@@ -51,63 +59,65 @@ class _CanvasGesturesState extends State<CanvasGestures> {
         final size = box.biggest;
         return Semantics(
           label: AppLocalizations.of(context).canvasPlaceClip,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onScaleStart: (_) {
-              if (clip == null) return;
-              final going = _start;
-              // A finger landed or lifted mid-gesture: the recognizer restarts. Carry on from
-              // what was sent (the engine's reply may not be here yet), as the same undo step.
-              if (going != null && going.clip == clip.id.toInt()) {
+          child: Listener(
+            onPointerDown: (_) => _pointers++,
+            onPointerUp: _lifted,
+            onPointerCancel: _lifted,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onScaleStart: (_) {
+                if (clip == null) return;
+                final going = _start;
+                // A finger landed or lifted mid-gesture: the recognizer restarts. Carry on from
+                // what was sent (the engine's reply may not be here yet), as the same undo step.
+                if (going != null && going.clip == clip.id.toInt()) {
+                  _start = (
+                    clip: going.clip,
+                    x: going.x,
+                    y: going.y,
+                    scale: _scale,
+                  );
+                  return;
+                }
+                _gesture = cubit.nextGesture();
+                _scale = clip.scale;
                 _start = (
-                  clip: going.clip,
-                  x: going.x,
-                  y: going.y,
-                  scale: _scale,
+                  clip: clip.id.toInt(),
+                  x: clip.x.toDouble(),
+                  y: clip.y.toDouble(),
+                  scale: clip.scale,
                 );
-                return;
-              }
-              _gesture = cubit.nextGesture();
-              _scale = clip.scale;
-              _start = (
-                clip: clip.id.toInt(),
-                x: clip.x.toDouble(),
-                y: clip.y.toDouble(),
-                scale: clip.scale,
-              );
-            },
-            onScaleUpdate: (d) {
-              final start = _start;
-              // The active clip can change under a gesture (a seek): stop acting on it.
-              if (clip == null ||
-                  start == null ||
-                  start.clip != clip.id.toInt()) {
-                return;
-              }
-              // Deltas, not the focal point: it jumps when a second finger lands.
-              final moved = (
-                clip: start.clip,
-                x: start.x + d.focalPointDelta.dx / size.width * 10000,
-                y: start.y + d.focalPointDelta.dy / size.height * 10000,
-                scale: start.scale,
-              );
-              _start = moved;
-              _scale = (moved.scale * d.scale).round();
-              // The engine checks the ranges; an out-of-range edit is refused there.
-              cubit.placeClip(
-                clip,
-                x: moved.x.round(),
-                y: moved.y.round(),
-                scale: _scale,
-                gesture: _gesture,
-              );
-            },
-            // Fingers still down: a restart follows, so the gesture is not over.
-            onScaleEnd: (d) {
-              if (d.pointerCount == 0) _start = null;
-            },
-            child: Stack(
-              children: [if (clip != null) _outline(context, clip, size)],
+              },
+              onScaleUpdate: (d) {
+                final start = _start;
+                // The active clip can change under a gesture (a seek): stop acting on it.
+                if (clip == null ||
+                    start == null ||
+                    start.clip != clip.id.toInt()) {
+                  return;
+                }
+                // Deltas, not the focal point: it jumps when a second finger lands.
+                final moved = (
+                  clip: start.clip,
+                  x: start.x + d.focalPointDelta.dx / size.width * 10000,
+                  y: start.y + d.focalPointDelta.dy / size.height * 10000,
+                  scale: start.scale,
+                );
+                _start = moved;
+                _scale = (moved.scale * d.scale).round();
+                // The engine checks the ranges; an out-of-range edit is refused there.
+                cubit.placeClip(
+                  clip,
+                  x: moved.x.round(),
+                  y: moved.y.round(),
+                  scale: _scale,
+                  gesture: _gesture,
+                );
+              },
+
+              child: Stack(
+                children: [if (clip != null) _outline(context, clip, size)],
+              ),
             ),
           ),
         );
