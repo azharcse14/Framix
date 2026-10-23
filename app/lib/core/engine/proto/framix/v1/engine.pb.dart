@@ -47,6 +47,7 @@ enum Command_Kind {
   setExportSettings,
   enableAutosave,
   exportProject,
+  cancelExport,
   notSet
 }
 
@@ -78,6 +79,7 @@ class Command extends $pb.GeneratedMessage {
     SetExportSettings? setExportSettings,
     EnableAutosave? enableAutosave,
     ExportProject? exportProject,
+    CancelExport? cancelExport,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -105,6 +107,7 @@ class Command extends $pb.GeneratedMessage {
     if (setExportSettings != null) result.setExportSettings = setExportSettings;
     if (enableAutosave != null) result.enableAutosave = enableAutosave;
     if (exportProject != null) result.exportProject = exportProject;
+    if (cancelExport != null) result.cancelExport = cancelExport;
     return result;
   }
 
@@ -143,6 +146,7 @@ class Command extends $pb.GeneratedMessage {
     23: Command_Kind.setExportSettings,
     24: Command_Kind.enableAutosave,
     25: Command_Kind.exportProject,
+    26: Command_Kind.cancelExport,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -174,7 +178,8 @@ class Command extends $pb.GeneratedMessage {
       22,
       23,
       24,
-      25
+      25,
+      26
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -226,6 +231,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: EnableAutosave.$_createMessage)
     ..aOM<ExportProject>(25, _omitFieldNames ? '' : 'exportProject',
         subBuilder: ExportProject.$_createMessage)
+    ..aOM<CancelExport>(26, _omitFieldNames ? '' : 'cancelExport',
+        subBuilder: CancelExport.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -273,6 +280,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
   @$pb.TagNumber(25)
+  @$pb.TagNumber(26)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -299,6 +307,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
   @$pb.TagNumber(25)
+  @$pb.TagNumber(26)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -575,6 +584,60 @@ class Command extends $pb.GeneratedMessage {
   void clearExportProject() => $_clearField(25);
   @$pb.TagNumber(25)
   ExportProject ensureExportProject() => $_ensure(24);
+
+  @$pb.TagNumber(26)
+  CancelExport get cancelExport => $_getN(25);
+  @$pb.TagNumber(26)
+  set cancelExport(CancelExport value) => $_setField(26, value);
+  @$pb.TagNumber(26)
+  $core.bool hasCancelExport() => $_has(25);
+  @$pb.TagNumber(26)
+  void clearCancelExport() => $_clearField(26);
+  @$pb.TagNumber(26)
+  CancelExport ensureCancelExport() => $_ensure(25);
+}
+
+/// Stops the running export: CommandAccepted, then ExportFinished with cancelled set. Refused
+/// when no export runs (or it is already being cancelled).
+class CancelExport extends $pb.GeneratedMessage {
+  factory CancelExport() => CancelExport._();
+
+  CancelExport._();
+
+  factory CancelExport.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CancelExport()..mergeFromBuffer(data, registry);
+  factory CancelExport.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CancelExport()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CancelExport',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: CancelExport.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CancelExport clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CancelExport copyWith(void Function(CancelExport) updates) =>
+      super.copyWith((message) => updates(message as CancelExport))
+          as CancelExport;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use CancelExport() / CancelExport.new instead')
+  static CancelExport create() => CancelExport._();
+  static $pb.GeneratedMessage $_createMessage() => CancelExport._();
+  @$core.override
+  CancelExport createEmptyInstance() => CancelExport._();
+  @$core.pragma('dart2js:noInline')
+  static CancelExport getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CancelExport>(
+          CancelExport.$_createMessage);
+  static CancelExport? _defaultInstance;
 }
 
 /// Exports the timeline with its export settings to an MP4 at `path`. Answered with
@@ -2657,6 +2720,7 @@ enum Event_Kind {
   thumbnailReady,
   engineStopped,
   exportFinished,
+  exportProgress,
   notSet
 }
 
@@ -2674,6 +2738,7 @@ class Event extends $pb.GeneratedMessage {
     ThumbnailReady? thumbnailReady,
     EngineStopped? engineStopped,
     ExportFinished? exportFinished,
+    ExportProgress? exportProgress,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
@@ -2685,6 +2750,7 @@ class Event extends $pb.GeneratedMessage {
     if (thumbnailReady != null) result.thumbnailReady = thumbnailReady;
     if (engineStopped != null) result.engineStopped = engineStopped;
     if (exportFinished != null) result.exportFinished = exportFinished;
+    if (exportProgress != null) result.exportProgress = exportProgress;
     return result;
   }
 
@@ -2707,13 +2773,14 @@ class Event extends $pb.GeneratedMessage {
     7: Event_Kind.thumbnailReady,
     8: Event_Kind.engineStopped,
     9: Event_Kind.exportFinished,
+    10: Event_Kind.exportProgress,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
@@ -2732,6 +2799,8 @@ class Event extends $pb.GeneratedMessage {
         subBuilder: EngineStopped.$_createMessage)
     ..aOM<ExportFinished>(9, _omitFieldNames ? '' : 'exportFinished',
         subBuilder: ExportFinished.$_createMessage)
+    ..aOM<ExportProgress>(10, _omitFieldNames ? '' : 'exportProgress',
+        subBuilder: ExportProgress.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2763,6 +2832,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -2773,6 +2843,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2873,6 +2944,88 @@ class Event extends $pb.GeneratedMessage {
   void clearExportFinished() => $_clearField(9);
   @$pb.TagNumber(9)
   ExportFinished ensureExportFinished() => $_ensure(8);
+
+  @$pb.TagNumber(10)
+  ExportProgress get exportProgress => $_getN(9);
+  @$pb.TagNumber(10)
+  set exportProgress(ExportProgress value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasExportProgress() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearExportProgress() => $_clearField(10);
+  @$pb.TagNumber(10)
+  ExportProgress ensureExportProgress() => $_ensure(9);
+}
+
+/// How far the running export is: `frame` of `frames` rendered. At most one per whole
+/// percent, and always one for the last frame.
+class ExportProgress extends $pb.GeneratedMessage {
+  factory ExportProgress({
+    $core.int? frame,
+    $core.int? frames,
+  }) {
+    final result = ExportProgress._();
+    if (frame != null) result.frame = frame;
+    if (frames != null) result.frames = frames;
+    return result;
+  }
+
+  ExportProgress._();
+
+  factory ExportProgress.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ExportProgress()..mergeFromBuffer(data, registry);
+  factory ExportProgress.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ExportProgress()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ExportProgress',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ExportProgress.$_createMessage)
+    ..aI(1, _omitFieldNames ? '' : 'frame', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'frames', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ExportProgress clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ExportProgress copyWith(void Function(ExportProgress) updates) =>
+      super.copyWith((message) => updates(message as ExportProgress))
+          as ExportProgress;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ExportProgress() / ExportProgress.new instead')
+  static ExportProgress create() => ExportProgress._();
+  static $pb.GeneratedMessage $_createMessage() => ExportProgress._();
+  @$core.override
+  ExportProgress createEmptyInstance() => ExportProgress._();
+  @$core.pragma('dart2js:noInline')
+  static ExportProgress getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ExportProgress>(
+          ExportProgress.$_createMessage);
+  static ExportProgress? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get frame => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set frame($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFrame() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFrame() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get frames => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set frames($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFrames() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFrames() => $_clearField(2);
 }
 
 /// The end of an accepted ExportProject. `reason` says why it failed (never a path).
@@ -2880,10 +3033,12 @@ class ExportFinished extends $pb.GeneratedMessage {
   factory ExportFinished({
     $core.bool? ok,
     $core.String? reason,
+    $core.bool? cancelled,
   }) {
     final result = ExportFinished._();
     if (ok != null) result.ok = ok;
     if (reason != null) result.reason = reason;
+    if (cancelled != null) result.cancelled = cancelled;
     return result;
   }
 
@@ -2902,6 +3057,7 @@ class ExportFinished extends $pb.GeneratedMessage {
       createEmptyInstance: ExportFinished.$_createMessage)
     ..aOB(1, _omitFieldNames ? '' : 'ok')
     ..aOS(2, _omitFieldNames ? '' : 'reason')
+    ..aOB(3, _omitFieldNames ? '' : 'cancelled')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2943,6 +3099,16 @@ class ExportFinished extends $pb.GeneratedMessage {
   $core.bool hasReason() => $_has(1);
   @$pb.TagNumber(2)
   void clearReason() => $_clearField(2);
+
+  /// The user stopped it (CancelExport) or the engine stopped; the file was removed.
+  @$pb.TagNumber(3)
+  $core.bool get cancelled => $_getBF(2);
+  @$pb.TagNumber(3)
+  set cancelled($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasCancelled() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCancelled() => $_clearField(3);
 }
 
 /// The last event after engine_destroy: queued work is done and no event follows, so the

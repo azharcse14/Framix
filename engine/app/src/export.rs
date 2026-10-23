@@ -1,6 +1,9 @@
 //! Export: renders every frame of a timeline snapshot into buffers the platform encoder owns
 //! (docs/adr/0005-export-encoder.md). Runs on the export worker, never the engine thread.
 
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
+
 use framix_core::time::Time;
 use framix_core::timeline::Timeline;
 
@@ -85,4 +88,30 @@ pub struct ExportJob {
     pub timeline: Timeline,
     /// Output path.
     pub path: String,
+    /// Set to stop the export at its next frame.
+    pub cancel: Arc<AtomicBool>,
+}
+
+/// Why an export did not finish.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum ExportError {
+    /// The cancel flag was set.
+    #[error("cancelled")]
+    Cancelled,
+    /// Opening, rendering or encoding failed.
+    #[error("{0}")]
+    Failed(String),
+}
+
+/// [`run_export`] that stops when `cancel` is set and reports `progress(frame, frames)` once
+/// per whole percent and for the last frame.
+pub fn run_export_with(
+    _timeline: &Timeline,
+    _renderer: &mut dyn PreviewRenderer,
+    _host: &dyn EncoderHost,
+    _path: &str,
+    _cancel: &AtomicBool,
+    _progress: &mut dyn FnMut(u32, u32),
+) -> Result<(), ExportError> {
+    Err(ExportError::Failed("not implemented yet".into()))
 }

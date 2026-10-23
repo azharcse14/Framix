@@ -95,7 +95,7 @@ const int ENGINE_OK = 0;
 
 const int ENGINE_PLATFORM_VERSION = 3;
 
-const int ENGINE_PROTOCOL_VERSION = 21;
+const int ENGINE_PROTOCOL_VERSION = 22;
 
 final class Engine extends ffi.Opaque {}
 

@@ -33,8 +33,13 @@ message Command {
     SetExportSettings set_export_settings = 23;
     EnableAutosave enable_autosave = 24;
     ExportProject export_project = 25;
+    CancelExport cancel_export = 26;
   }
 }
+
+// Stops the running export: CommandAccepted, then ExportFinished with cancelled set. Refused
+// when no export runs (or it is already being cancelled).
+message CancelExport {}
 
 // Exports the timeline with its export settings to an MP4 at `path`. Answered with
 // CommandAccepted, then exactly one ExportFinished; refused for an empty timeline, while
@@ -287,13 +292,23 @@ message Event {
     ThumbnailReady thumbnail_ready = 7;
     EngineStopped engine_stopped = 8;
     ExportFinished export_finished = 9;
+    ExportProgress export_progress = 10;
   }
+}
+
+// How far the running export is: `frame` of `frames` rendered. At most one per whole
+// percent, and always one for the last frame.
+message ExportProgress {
+  uint32 frame = 1;
+  uint32 frames = 2;
 }
 
 // The end of an accepted ExportProject. `reason` says why it failed (never a path).
 message ExportFinished {
   bool ok = 1;
   string reason = 2;
+  // The user stopped it (CancelExport) or the engine stopped; the file was removed.
+  bool cancelled = 3;
 }
 
 // The last event after engine_destroy: queued work is done and no event follows, so the

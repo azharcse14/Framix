@@ -139,9 +139,23 @@ impl Engine {
             kind: Some(proto::event::Kind::ExportFinished(proto::ExportFinished {
                 ok: result.is_ok(),
                 reason: result.err().unwrap_or_default(),
+                cancelled: false,
             })),
         }
     }
+
+    /// The worker's progress: ExportProgress.
+    pub fn export_progress(&mut self, _frame: u32, _frames: u32) -> Event {
+        command_failed("not implemented yet")
+    }
+
+    /// The running export stopped because it was cancelled: ExportFinished, cancelled.
+    pub fn export_cancelled(&mut self) -> Event {
+        command_failed("not implemented yet")
+    }
+
+    /// Asks the running export to stop (the engine is stopping); nothing if none runs.
+    pub fn cancel_running_export(&mut self) {}
 
     /// Accepts an export of the current timeline: one at a time, never of an empty timeline.
     fn start_export(&mut self, path: String) -> Result<(), String> {
@@ -162,6 +176,7 @@ impl Engine {
         self.export_job = Some(crate::export::ExportJob {
             timeline: timeline.clone(),
             path,
+            cancel: Default::default(),
         });
         self.exporting = true;
         Ok(())
@@ -383,6 +398,7 @@ impl Engine {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
+            command::Kind::CancelExport(_) => Err("not implemented yet".into()),
             command::Kind::ExportProject(op) => {
                 self.start_export(op.path).map(|()| Reply::Accepted)
             }
