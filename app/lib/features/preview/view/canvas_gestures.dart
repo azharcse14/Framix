@@ -63,6 +63,8 @@ class _CanvasGesturesState extends State<CanvasGestures> {
             onPointerDown: (_) => _pointers++,
             onPointerUp: _lifted,
             onPointerCancel: _lifted,
+            // A trackpad pinch has no pointer down or up; its end ends the gesture.
+            onPointerPanZoomEnd: (_) => _start = null,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onScaleStart: (_) {
@@ -114,7 +116,6 @@ class _CanvasGesturesState extends State<CanvasGestures> {
                   gesture: _gesture,
                 );
               },
-
               child: Stack(
                 children: [if (clip != null) _outline(context, clip, size)],
               ),
