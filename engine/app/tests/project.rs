@@ -60,10 +60,10 @@ fn the_v1_fixture_opens() {
 #[test]
 fn encoded_files_carry_the_format_version() {
     let file = ProjectFile::decode(encode(&Timeline::default()).as_slice()).unwrap();
-    // P1-029: format 3 needs reader 3 (a format-2 reader would drop clip transforms).
+    // P1-030: format 4 needs reader 4 (older readers drop what they do not know on resave).
     assert_eq!(
         (file.format_version, file.min_reader_version),
-        (FORMAT_VERSION, 3)
+        (FORMAT_VERSION, 4)
     );
 }
 

@@ -53,6 +53,7 @@ fn turned(turns: u8, flip_h: bool, crop: Crop) -> ClipTransform {
         flip_h,
         flip_v: false,
         crop,
+        ..ClipTransform::default()
     }
 }
 
@@ -185,7 +186,7 @@ proptest! {
         at in 1i64..1000,
     ) {
         let (mut tl, _, clip) = setup();
-        let t = ClipTransform { turns, flip_h, flip_v, crop: Crop { left, top, right: 0, bottom: 0 } };
+        let t = ClipTransform { turns, flip_h, flip_v, crop: Crop { left, top, right: 0, bottom: 0 }, ..ClipTransform::default() };
         tl.set_clip_transform(clip, t).unwrap();
         prop_assert_eq!(transform_of(&tl, clip), t);
         let right = tl.split_clip(clip, Time(at)).unwrap();

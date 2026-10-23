@@ -187,6 +187,7 @@ impl Engine {
                     proto::PlayheadChanged {
                         time: self.playhead.0,
                         snapped,
+                        active_clip: 0,
                     },
                 )),
             },
@@ -305,6 +306,7 @@ impl Engine {
                         right: op.crop_right,
                         bottom: op.crop_bottom,
                     },
+                    ..timeline::ClipTransform::default()
                 };
                 timeline(self.edit(|tl| tl.set_clip_transform(ClipId(op.clip_id), transform)))
             }
@@ -430,6 +432,7 @@ impl Engine {
                             crop_top: c.transform.crop.top,
                             crop_right: c.transform.crop.right,
                             crop_bottom: c.transform.crop.bottom,
+                            ..Default::default()
                         })
                         .collect(),
                     number: *count,
@@ -450,6 +453,7 @@ impl Engine {
                 playhead: self.playhead.0,
                 ticks_per_second: TICKS_PER_SECOND,
                 thumbnail_step: crate::thumbnail::THUMBNAIL_STEP.0,
+                active_clip: 0,
             })),
         }
     }

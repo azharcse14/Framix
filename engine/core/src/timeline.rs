@@ -56,10 +56,10 @@ pub struct Crop {
     pub bottom: u32,
 }
 
-/// How a clip's picture is cropped, turned and mirrored; the identity by default. The crop
-/// applies to the source pixels, then the quarter turns (clockwise, on top of the media's own
-/// rotation), then the flips.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+/// How a clip's picture is cropped, turned, mirrored and placed on the canvas; the identity by
+/// default. The crop applies to the source pixels, then the quarter turns (clockwise, on top of
+/// the media's own rotation), then the flips, then the scale and position.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ClipTransform {
     /// Clockwise quarter turns, 0..=3.
     pub turns: u8,
@@ -69,6 +69,26 @@ pub struct ClipTransform {
     pub flip_v: bool,
     /// Source pixels cut from each side.
     pub crop: Crop,
+    /// Frame centre's offset from the canvas centre, in 1/10000 of the canvas width.
+    pub x: i32,
+    /// Frame centre's offset from the canvas centre, in 1/10000 of the canvas height.
+    pub y: i32,
+    /// Size in 1/1000 of fit-to-canvas (1000 = fits).
+    pub scale: u32,
+}
+
+impl Default for ClipTransform {
+    fn default() -> Self {
+        Self {
+            turns: 0,
+            flip_h: false,
+            flip_v: false,
+            crop: Crop::default(),
+            x: 0,
+            y: 0,
+            scale: 1000,
+        }
+    }
 }
 
 /// A clip on a track. Covers the half-open range `[start, start + duration)`.
@@ -594,6 +614,12 @@ impl Timeline {
         // The crop was measured on the old media's size.
         target.transform = ClipTransform::default();
         Ok(id)
+    }
+
+    /// The clip at `time` on the topmost visible video track that has one: the clip canvas
+    /// gestures act on.
+    pub fn top_clip_at(&self, _time: Time) -> Option<ClipId> {
+        None
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.

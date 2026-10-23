@@ -91,8 +91,8 @@ fn media_round_trips_through_the_project_file() {
     let file = ProjectFile::decode(bytes.as_slice()).unwrap();
     assert_eq!(
         (file.format_version, file.min_reader_version),
-        // Format 3 (P1-029) needs reader 3.
-        (FORMAT_VERSION, 3)
+        // Format 4 (P1-030) needs reader 4.
+        (FORMAT_VERSION, 4)
     );
     let opened = decode(&bytes).unwrap();
     let clip = opened.tracks()[0].clips()[0];

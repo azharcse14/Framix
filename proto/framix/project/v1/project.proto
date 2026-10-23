@@ -71,4 +71,8 @@ message SavedClip {
   uint32 crop_top = 9;
   uint32 crop_right = 10;
   uint32 crop_bottom = 11;
+  // Format 4: canvas position (1/10000 of the canvas) and scale (1/1000; 0 = 1000).
+  int32 x = 12;
+  int32 y = 13;
+  uint32 scale = 14;
 }

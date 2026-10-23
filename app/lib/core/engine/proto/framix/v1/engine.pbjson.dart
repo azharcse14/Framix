@@ -313,6 +313,10 @@ const SetClipTransform$json = {
     {'1': 'crop_top', '3': 6, '4': 1, '5': 13, '10': 'cropTop'},
     {'1': 'crop_right', '3': 7, '4': 1, '5': 13, '10': 'cropRight'},
     {'1': 'crop_bottom', '3': 8, '4': 1, '5': 13, '10': 'cropBottom'},
+    {'1': 'x', '3': 9, '4': 1, '5': 5, '10': 'x'},
+    {'1': 'y', '3': 10, '4': 1, '5': 5, '10': 'y'},
+    {'1': 'scale', '3': 11, '4': 1, '5': 13, '10': 'scale'},
+    {'1': 'gesture', '3': 12, '4': 1, '5': 4, '10': 'gesture'},
   ],
 };
 
@@ -322,7 +326,8 @@ final $typed_data.Uint8List setClipTransformDescriptor = $convert.base64Decode(
     'gCIAEoDVIIcm90YXRpb24SFQoGZmxpcF9oGAMgASgIUgVmbGlwSBIVCgZmbGlwX3YYBCABKAhS'
     'BWZsaXBWEhsKCWNyb3BfbGVmdBgFIAEoDVIIY3JvcExlZnQSGQoIY3JvcF90b3AYBiABKA1SB2'
     'Nyb3BUb3ASHQoKY3JvcF9yaWdodBgHIAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGAgg'
-    'ASgNUgpjcm9wQm90dG9t');
+    'ASgNUgpjcm9wQm90dG9tEgwKAXgYCSABKAVSAXgSDAoBeRgKIAEoBVIBeRIUCgVzY2FsZRgLIA'
+    'EoDVIFc2NhbGUSGAoHZ2VzdHVyZRgMIAEoBFIHZ2VzdHVyZQ==');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -743,13 +748,14 @@ const PlayheadChanged$json = {
   '2': [
     {'1': 'time', '3': 1, '4': 1, '5': 3, '10': 'time'},
     {'1': 'snapped', '3': 2, '4': 1, '5': 8, '10': 'snapped'},
+    {'1': 'active_clip', '3': 3, '4': 1, '5': 4, '10': 'activeClip'},
   ],
 };
 
 /// Descriptor for `PlayheadChanged`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List playheadChangedDescriptor = $convert.base64Decode(
     'Cg9QbGF5aGVhZENoYW5nZWQSEgoEdGltZRgBIAEoA1IEdGltZRIYCgdzbmFwcGVkGAIgASgIUg'
-    'dzbmFwcGVk');
+    'dzbmFwcGVkEh8KC2FjdGl2ZV9jbGlwGAMgASgEUgphY3RpdmVDbGlw');
 
 @$core.Deprecated('Use commandAcceptedDescriptor instead')
 const CommandAccepted$json = {
@@ -792,6 +798,7 @@ const TimelineChanged$json = {
     {'1': 'playhead', '3': 7, '4': 1, '5': 3, '10': 'playhead'},
     {'1': 'ticks_per_second', '3': 8, '4': 1, '5': 3, '10': 'ticksPerSecond'},
     {'1': 'thumbnail_step', '3': 9, '4': 1, '5': 3, '10': 'thumbnailStep'},
+    {'1': 'active_clip', '3': 10, '4': 1, '5': 4, '10': 'activeClip'},
   ],
 };
 
@@ -802,7 +809,8 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'bmRvEhkKCGNhbl9yZWRvGAQgASgIUgdjYW5SZWRvEiEKDGFzcGVjdF93aWR0aBgFIAEoDVILYX'
     'NwZWN0V2lkdGgSIwoNYXNwZWN0X2hlaWdodBgGIAEoDVIMYXNwZWN0SGVpZ2h0EhoKCHBsYXlo'
     'ZWFkGAcgASgDUghwbGF5aGVhZBIoChB0aWNrc19wZXJfc2Vjb25kGAggASgDUg50aWNrc1Blcl'
-    'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcA==');
+    'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcBIfCgthY3RpdmVf'
+    'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcA==');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {
@@ -863,6 +871,9 @@ const Clip$json = {
     {'1': 'crop_top', '3': 11, '4': 1, '5': 13, '10': 'cropTop'},
     {'1': 'crop_right', '3': 12, '4': 1, '5': 13, '10': 'cropRight'},
     {'1': 'crop_bottom', '3': 13, '4': 1, '5': 13, '10': 'cropBottom'},
+    {'1': 'x', '3': 14, '4': 1, '5': 5, '10': 'x'},
+    {'1': 'y', '3': 15, '4': 1, '5': 5, '10': 'y'},
+    {'1': 'scale', '3': 16, '4': 1, '5': 13, '10': 'scale'},
   ],
 };
 
@@ -874,7 +885,8 @@ final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     '5NZWRpYUtpbmRSCW1lZGlhS2luZBIaCghyb3RhdGlvbhgHIAEoDVIIcm90YXRpb24SFQoGZmxp'
     'cF9oGAggASgIUgVmbGlwSBIVCgZmbGlwX3YYCSABKAhSBWZsaXBWEhsKCWNyb3BfbGVmdBgKIA'
     'EoDVIIY3JvcExlZnQSGQoIY3JvcF90b3AYCyABKA1SB2Nyb3BUb3ASHQoKY3JvcF9yaWdodBgM'
-    'IAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGA0gASgNUgpjcm9wQm90dG9t');
+    'IAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGA0gASgNUgpjcm9wQm90dG9tEgwKAXgYDi'
+    'ABKAVSAXgSDAoBeRgPIAEoBVIBeRIUCgVzY2FsZRgQIAEoDVIFc2NhbGU=');
 
 @$core.Deprecated('Use projectSavedDescriptor instead')
 const ProjectSaved$json = {

@@ -49,6 +49,7 @@ fn set(clip_id: u64, rotation: u32, flip_h: bool, crop_left: u32) -> command::Ki
         crop_top: 0,
         crop_right: 0,
         crop_bottom: 0,
+        ..Default::default()
     })
 }
 

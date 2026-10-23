@@ -53,6 +53,13 @@ message SetClipTransform {
   uint32 crop_top = 6;
   uint32 crop_right = 7;
   uint32 crop_bottom = 8;
+  // Frame centre offset from the canvas centre in 1/10000 of the canvas (-20000..=20000).
+  int32 x = 9;
+  int32 y = 10;
+  // 1/1000 of fit-to-canvas (10..=10000); 0 means 1000.
+  uint32 scale = 11;
+  // Non-zero: merged with the earlier edits of the same gesture into one undo step.
+  uint64 gesture = 12;
 }
 
 // What a track carries.
@@ -239,6 +246,8 @@ message PlayheadChanged {
   int64 time = 1;
   // The seek landed on a snap point.
   bool snapped = 2;
+  // The clip canvas gestures act on at the new playhead; 0 = none.
+  uint64 active_clip = 3;
 }
 
 // The command started work whose result comes later as its own event.
@@ -264,6 +273,8 @@ message TimelineChanged {
   int64 ticks_per_second = 8;
   // Thumbnail times are multiples of this many ticks (RequestThumbnails snaps to it).
   int64 thumbnail_step = 9;
+  // The clip canvas gestures act on (topmost visible video clip at the playhead); 0 = none.
+  uint64 active_clip = 10;
 }
 
 // A track and its clips, sorted by start.
@@ -295,6 +306,9 @@ message Clip {
   uint32 crop_top = 11;
   uint32 crop_right = 12;
   uint32 crop_bottom = 13;
+  int32 x = 14;
+  int32 y = 15;
+  uint32 scale = 16;
 }
 
 // SaveProject finished.

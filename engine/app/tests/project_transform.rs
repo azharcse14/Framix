@@ -48,6 +48,7 @@ fn transformed() -> (Timeline, ClipTransform) {
             right: 3,
             bottom: 4,
         },
+        ..ClipTransform::default()
     };
     tl.set_clip_transform(clip, t).unwrap();
     (tl, t)

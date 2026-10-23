@@ -606,6 +606,10 @@ class SetClipTransform extends $pb.GeneratedMessage {
     $core.int? cropTop,
     $core.int? cropRight,
     $core.int? cropBottom,
+    $core.int? x,
+    $core.int? y,
+    $core.int? scale,
+    $fixnum.Int64? gesture,
   }) {
     final result = SetClipTransform._();
     if (clipId != null) result.clipId = clipId;
@@ -616,6 +620,10 @@ class SetClipTransform extends $pb.GeneratedMessage {
     if (cropTop != null) result.cropTop = cropTop;
     if (cropRight != null) result.cropRight = cropRight;
     if (cropBottom != null) result.cropBottom = cropBottom;
+    if (x != null) result.x = x;
+    if (y != null) result.y = y;
+    if (scale != null) result.scale = scale;
+    if (gesture != null) result.gesture = gesture;
     return result;
   }
 
@@ -641,6 +649,12 @@ class SetClipTransform extends $pb.GeneratedMessage {
     ..aI(6, _omitFieldNames ? '' : 'cropTop', fieldType: $pb.PbFieldType.OU3)
     ..aI(7, _omitFieldNames ? '' : 'cropRight', fieldType: $pb.PbFieldType.OU3)
     ..aI(8, _omitFieldNames ? '' : 'cropBottom', fieldType: $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'x')
+    ..aI(10, _omitFieldNames ? '' : 'y')
+    ..aI(11, _omitFieldNames ? '' : 'scale', fieldType: $pb.PbFieldType.OU3)
+    ..a<$fixnum.Int64>(
+        12, _omitFieldNames ? '' : 'gesture', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -736,6 +750,45 @@ class SetClipTransform extends $pb.GeneratedMessage {
   $core.bool hasCropBottom() => $_has(7);
   @$pb.TagNumber(8)
   void clearCropBottom() => $_clearField(8);
+
+  /// Frame centre offset from the canvas centre in 1/10000 of the canvas (-20000..=20000).
+  @$pb.TagNumber(9)
+  $core.int get x => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set x($core.int value) => $_setSignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasX() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearX() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get y => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set y($core.int value) => $_setSignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasY() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearY() => $_clearField(10);
+
+  /// 1/1000 of fit-to-canvas (10..=10000); 0 means 1000.
+  @$pb.TagNumber(11)
+  $core.int get scale => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set scale($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasScale() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearScale() => $_clearField(11);
+
+  /// Non-zero: merged with the earlier edits of the same gesture into one undo step.
+  @$pb.TagNumber(12)
+  $fixnum.Int64 get gesture => $_getI64(11);
+  @$pb.TagNumber(12)
+  set gesture($fixnum.Int64 value) => $_setInt64(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasGesture() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearGesture() => $_clearField(12);
 }
 
 /// Appends an empty track.
@@ -2482,10 +2535,12 @@ class PlayheadChanged extends $pb.GeneratedMessage {
   factory PlayheadChanged({
     $fixnum.Int64? time,
     $core.bool? snapped,
+    $fixnum.Int64? activeClip,
   }) {
     final result = PlayheadChanged._();
     if (time != null) result.time = time;
     if (snapped != null) result.snapped = snapped;
+    if (activeClip != null) result.activeClip = activeClip;
     return result;
   }
 
@@ -2504,6 +2559,9 @@ class PlayheadChanged extends $pb.GeneratedMessage {
       createEmptyInstance: PlayheadChanged.$_createMessage)
     ..aInt64(1, _omitFieldNames ? '' : 'time')
     ..aOB(2, _omitFieldNames ? '' : 'snapped')
+    ..a<$fixnum.Int64>(
+        3, _omitFieldNames ? '' : 'activeClip', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2546,6 +2604,16 @@ class PlayheadChanged extends $pb.GeneratedMessage {
   $core.bool hasSnapped() => $_has(1);
   @$pb.TagNumber(2)
   void clearSnapped() => $_clearField(2);
+
+  /// The clip canvas gestures act on at the new playhead; 0 = none.
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get activeClip => $_getI64(2);
+  @$pb.TagNumber(3)
+  set activeClip($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasActiveClip() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearActiveClip() => $_clearField(3);
 }
 
 /// The command started work whose result comes later as its own event.
@@ -2660,6 +2728,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $fixnum.Int64? playhead,
     $fixnum.Int64? ticksPerSecond,
     $fixnum.Int64? thumbnailStep,
+    $fixnum.Int64? activeClip,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -2671,6 +2740,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (playhead != null) result.playhead = playhead;
     if (ticksPerSecond != null) result.ticksPerSecond = ticksPerSecond;
     if (thumbnailStep != null) result.thumbnailStep = thumbnailStep;
+    if (activeClip != null) result.activeClip = activeClip;
     return result;
   }
 
@@ -2699,6 +2769,9 @@ class TimelineChanged extends $pb.GeneratedMessage {
     ..aInt64(7, _omitFieldNames ? '' : 'playhead')
     ..aInt64(8, _omitFieldNames ? '' : 'ticksPerSecond')
     ..aInt64(9, _omitFieldNames ? '' : 'thumbnailStep')
+    ..a<$fixnum.Int64>(
+        10, _omitFieldNames ? '' : 'activeClip', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2801,6 +2874,16 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasThumbnailStep() => $_has(8);
   @$pb.TagNumber(9)
   void clearThumbnailStep() => $_clearField(9);
+
+  /// The clip canvas gestures act on (topmost visible video clip at the playhead); 0 = none.
+  @$pb.TagNumber(10)
+  $fixnum.Int64 get activeClip => $_getI64(9);
+  @$pb.TagNumber(10)
+  set activeClip($fixnum.Int64 value) => $_setInt64(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasActiveClip() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearActiveClip() => $_clearField(10);
 }
 
 /// A track and its clips, sorted by start.
@@ -2945,6 +3028,9 @@ class Clip extends $pb.GeneratedMessage {
     $core.int? cropTop,
     $core.int? cropRight,
     $core.int? cropBottom,
+    $core.int? x,
+    $core.int? y,
+    $core.int? scale,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -2960,6 +3046,9 @@ class Clip extends $pb.GeneratedMessage {
     if (cropTop != null) result.cropTop = cropTop;
     if (cropRight != null) result.cropRight = cropRight;
     if (cropBottom != null) result.cropBottom = cropBottom;
+    if (x != null) result.x = x;
+    if (y != null) result.y = y;
+    if (scale != null) result.scale = scale;
     return result;
   }
 
@@ -2993,6 +3082,9 @@ class Clip extends $pb.GeneratedMessage {
     ..aI(12, _omitFieldNames ? '' : 'cropRight', fieldType: $pb.PbFieldType.OU3)
     ..aI(13, _omitFieldNames ? '' : 'cropBottom',
         fieldType: $pb.PbFieldType.OU3)
+    ..aI(14, _omitFieldNames ? '' : 'x')
+    ..aI(15, _omitFieldNames ? '' : 'y')
+    ..aI(16, _omitFieldNames ? '' : 'scale', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3133,6 +3225,33 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasCropBottom() => $_has(12);
   @$pb.TagNumber(13)
   void clearCropBottom() => $_clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.int get x => $_getIZ(13);
+  @$pb.TagNumber(14)
+  set x($core.int value) => $_setSignedInt32(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasX() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearX() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get y => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set y($core.int value) => $_setSignedInt32(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasY() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearY() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.int get scale => $_getIZ(15);
+  @$pb.TagNumber(16)
+  set scale($core.int value) => $_setUnsignedInt32(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasScale() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearScale() => $_clearField(16);
 }
 
 /// SaveProject finished.

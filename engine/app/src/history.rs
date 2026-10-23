@@ -50,6 +50,16 @@ impl History {
         Ok(value)
     }
 
+    /// Like [`History::apply`], but consecutive calls with the same `key` make one undo step
+    /// (one gesture); any other apply, undo or redo ends the run.
+    pub fn apply_merged<T, E>(
+        &mut self,
+        _key: u64,
+        edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
+    ) -> Result<T, E> {
+        self.apply(edit)
+    }
+
     /// Whether [`History::undo`] would do anything.
     pub fn can_undo(&self) -> bool {
         !self.undo.is_empty()

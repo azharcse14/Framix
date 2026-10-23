@@ -102,6 +102,7 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
                     crop_top: c.transform.crop.top,
                     crop_right: c.transform.crop.right,
                     crop_bottom: c.transform.crop.bottom,
+                    ..Default::default()
                 })
                 .collect(),
             muted: track.flags().muted,
@@ -235,6 +236,7 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                     right: c.crop_right,
                     bottom: c.crop_bottom,
                 },
+                ..ClipTransform::default()
             };
             // Untrusted: checked like an edit, and set at insert so loading stays linear.
             timeline.insert_clip_with(track, placement, transform)?;
