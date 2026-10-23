@@ -149,3 +149,17 @@ fn ids_after_recovery_do_not_collide() {
         other => panic!("expected TimelineChanged, got {other:?}"),
     }
 }
+
+#[test]
+fn enabling_for_another_file_is_refused() {
+    let store = FlakyStore::default();
+    let mut engine = Engine::with_store(Box::new(store));
+    enable(&mut engine);
+    let other = run(
+        &mut engine,
+        command::Kind::EnableAutosave(EnableAutosave {
+            path: "/data/other.framix".into(),
+        }),
+    );
+    assert!(failed(Some(other)));
+}

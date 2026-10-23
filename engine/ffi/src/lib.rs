@@ -229,7 +229,16 @@ fn serve(
     // Changes are saved at most AUTOSAVE_DELAY after they happen, even while commands keep
     // coming (a long scrub or drag). With nothing to save the thread sleeps until a message.
     let mut due: Option<Instant> = None;
+    // An autosave panicked: don't retry until a message arrives (a repeating panic would
+    // otherwise report every second).
+    let mut stalled = false;
     loop {
+        // Armed only when something is unsaved, so reads (Seek, GetTimeline) never wake it.
+        // ponytail: a lasting save failure (full disk) retries every AUTOSAVE_DELAY; back off
+        // if that shows up in battery or flash wear.
+        if due.is_none() && !stalled && engine.autosave_pending() {
+            due = Some(Instant::now() + AUTOSAVE_DELAY);
+        }
         let message = match due {
             None => inbox.recv().map_err(|_| RecvTimeoutError::Disconnected),
             Some(due) => inbox.recv_timeout(due.saturating_duration_since(Instant::now())),
@@ -240,21 +249,13 @@ fn serve(
             // Every sender gone: nothing more comes.
             Err(RecvTimeoutError::Disconnected) => break,
         };
+        stalled &= message.is_none();
         if due.is_some_and(|due| Instant::now() >= due) {
-            autosave(&mut engine, *callback);
-            // A failed save stays pending and is tried again after another delay.
-            due = engine
-                .autosave_pending()
-                .then(|| Instant::now() + AUTOSAVE_DELAY);
+            // A failed save stays pending and is re-armed at the top of the loop.
+            stalled = autosave(&mut engine, *callback);
+            due = None;
         }
         let Some(message) = message else { continue };
-        // Anything but a callback change may edit the project.
-        if due.is_none()
-            && engine.autosave_enabled()
-            && !matches!(message, EngineMessage::SetCallback(_))
-        {
-            due = Some(Instant::now() + AUTOSAVE_DELAY);
-        }
         let event = match message {
             EngineMessage::SetCallback(new) => {
                 *callback = new;
@@ -263,7 +264,7 @@ fn serve(
             EngineMessage::Shutdown => {
                 *stopping = true;
                 // The last save happens before EngineStopped.
-                autosave(&mut engine, *callback);
+                let _ = autosave(&mut engine, *callback);
                 break;
             }
             EngineMessage::Command(bytes) => match Command::decode(bytes.as_slice()) {
@@ -288,12 +289,18 @@ fn serve(
     }
 }
 
-/// Autosaves, reporting a failure or a panic as an event.
-fn autosave(engine: &mut framix_app::engine::Engine, callback: EngineEventCallback) {
+/// Autosaves, reporting a failure or a panic as an event. Returns whether it panicked.
+fn autosave(engine: &mut framix_app::engine::Engine, callback: EngineEventCallback) -> bool {
     match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.autosave())) {
-        Ok(None) => {}
-        Ok(Some(failed)) => deliver(callback, &failed),
-        Err(_) => deliver(callback, &command_failed("internal error")),
+        Ok(None) => false,
+        Ok(Some(failed)) => {
+            deliver(callback, &failed);
+            false
+        }
+        Err(_) => {
+            deliver(callback, &command_failed("internal error"));
+            true
+        }
     }
 }
 

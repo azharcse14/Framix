@@ -117,11 +117,6 @@ impl Engine {
         self.autosave.is_some() && *self.history.timeline() != self.autosaved
     }
 
-    /// Whether EnableAutosave succeeded.
-    pub fn autosave_enabled(&self) -> bool {
-        self.autosave.is_some()
-    }
-
     /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
     /// and returns PreviewReady, or CommandFailed if the platform or the GPU failed.
     pub fn preview_texture_ready(&mut self, texture: Result<PlatformTexture, String>) -> Event {
