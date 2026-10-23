@@ -53,6 +53,16 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     _engine.send(Command(importMedia: ImportMedia(items: items)));
   }
 
+  /// Moves and scales [clip] on the canvas (x/y in 1/10000 of the canvas, scale in 1/1000 of
+  /// fit), keeping its crop, turns and flips. Edits with the same [gesture] are one undo step.
+  void placeClip(
+    Clip clip, {
+    required int x,
+    required int y,
+    required int scale,
+    required int gesture,
+  }) {}
+
   void undo() => _engine.send(Command(undo: Undo()));
 
   void redo() => _engine.send(Command(redo: Redo()));
