@@ -12,6 +12,26 @@ use wgpu::hal::vulkan;
 
 use crate::RenderError;
 
+#[link(name = "log")]
+unsafe extern "C" {
+    fn __android_log_write(
+        priority: i32,
+        tag: *const std::ffi::c_char,
+        text: *const std::ffi::c_char,
+    ) -> i32;
+}
+
+/// SPIKE (P1-004): writes `text` to logcat under the "framix" tag (stderr goes nowhere on
+/// Android). Never pass paths or user data.
+pub fn log(text: &str) {
+    const INFO: i32 = 4;
+    let Ok(text) = std::ffi::CString::new(text) else {
+        return;
+    };
+    // SAFETY: both strings are NUL-terminated and live for the call.
+    unsafe { __android_log_write(INFO, c"framix".as_ptr(), text.as_ptr()) };
+}
+
 /// Device extensions the import needs, enabled when the adapter has them all.
 const AHB_EXTENSIONS: [&CStr; 2] = [
     ash::android::external_memory_android_hardware_buffer::NAME,
@@ -19,7 +39,8 @@ const AHB_EXTENSIONS: [&CStr; 2] = [
 ];
 
 /// Opens the device. On Vulkan with the AHB extensions it goes through wgpu-hal to enable them
-/// (returns `true` with the device); otherwise it is a plain request.
+/// (returns `true` with the device); otherwise it is a plain request, which can import frames
+/// only on the GLES backend.
 pub(crate) fn request_device(
     adapter: &wgpu::Adapter,
     desc: &wgpu::DeviceDescriptor<'_>,
@@ -53,7 +74,9 @@ pub(crate) fn request_device(
         }
         None => {
             let (device, queue) = pollster::block_on(adapter.request_device(desc))?;
-            Ok((device, queue, false))
+            // The GLES fallback imports through an EGLImage instead (P1-004).
+            let gles = adapter.get_info().backend == wgpu::Backend::Gl;
+            Ok((device, queue, gles))
         }
     }
 }
@@ -105,7 +128,7 @@ pub(crate) unsafe fn window_size(window: NonNull<c_void>) -> Result<(u32, u32), 
 /// # Safety
 /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be done,
 /// and nothing may write it while the returned texture is used. `device` must have been opened by
-/// [`request_device`] with the AHB extensions. No other thread may use wgpu's queue (submit or
+/// [`request_device`] with the AHB extensions, or be on the GLES backend. No other thread may use wgpu's queue (submit or
 /// present) during the call: it submits on the raw VkQueue behind wgpu.
 pub(crate) unsafe fn import_ahb(
     device: &wgpu::Device,
@@ -123,7 +146,11 @@ pub(crate) unsafe fn import_ahb(
         return Err(RenderError::InvalidTexture);
     }
     // SAFETY: as_hal only borrows wgpu's device for the raw handles.
-    let hal = unsafe { device.as_hal::<Vulkan>() }.ok_or(RenderError::InvalidTexture)?;
+    let Some(hal) = (unsafe { device.as_hal::<Vulkan>() }) else {
+        // SAFETY: forwarded from this function's contract; not Vulkan means the GLES fallback
+        // (request_device enables imports only for those two).
+        return unsafe { crate::android_gles::import_ahb(device, ahb, desc.width, desc.height) };
+    };
     // SAFETY: the extension was enabled by request_device (contract), so its functions load.
     let (raw, image, memory) = unsafe { import_image(&hal, ahb, desc.width, desc.height) }?;
     let size = wgpu::Extent3d {

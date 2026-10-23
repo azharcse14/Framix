@@ -61,3 +61,26 @@ decision rests on structure. Timings come with the device check (P1-051).
   when the Surface changes.
 - On API 29-32 Flutter samples producer buffers without waiting on their fences. The
   real-device check (P1-051) must look for torn or partial frames there.
+
+## GLES result (P1-004, 2026-10-23)
+Run on the Pixel_8 emulator (API 37, arm64) with `-feature -Vulkan`. wgpu then gets the
+ANGLE-on-SwiftShader GLES adapter; everything is software, so nothing here says anything about
+speed.
+- **Output works.** The test pattern reaches the Flutter Texture through the same surface path.
+  Two fixes were needed:
+  - One backend per wgpu instance. With both Vulkan and GL enabled, wgpu also made a Vulkan
+    surface, and Android's Vulkan loader connects the window as soon as that surface exists. The
+    GLES surface then failed with "already connected". `Gpu::new` now tries a Vulkan-only
+    instance first and falls back to a GL-only one.
+  - Keep the wgpu surface between draws (`Gpu::window_surface`), as this ADR already asked
+    P1-055 to do. One shared `Gpu` (`Gpu::shared`) serves the renderer and the spikes, so only
+    one surface owns the window.
+- **Decoder import works.** The RGBA8 AHardwareBuffer from the Kotlin OES pass is bound to a GL
+  texture through an EGLImage (`android_gles.rs`, no new crate) and drawn by the same blit. No
+  compute shaders are used anywhere, so GLES 3.0 has no missing stage.
+- **Colours are too dark on GLES.** Mid-gray shows at about 0x33 instead of 0x80, which looks
+  like an extra sRGB→linear step, while Vulkan on the same emulator is correct. This is open
+  (P1-068).
+- **Not tested:** real GLES 3.0 hardware (Mali/Adreno/PowerVR drivers), performance, and EGL
+  fences instead of `glFinish` (P1-053). The device blocklist that picks GLES on a broken Vulkan
+  driver is GOT-015. The real-device run is P1-051.

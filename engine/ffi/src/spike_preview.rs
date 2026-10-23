@@ -11,16 +11,11 @@ use crate::{ENGINE_ERR_GPU, ENGINE_ERR_NULL, ffi_guard};
 #[cfg(target_vendor = "apple")]
 use framix_render::{YcbcrMatrix, YcbcrRange, YcbcrSpace};
 
-/// The engine's one GPU, opened on first use; None if it could not be opened.
+/// The engine's one GPU (shared with the preview renderer); None if it could not be opened.
 fn gpu() -> Option<&'static framix_render::Gpu> {
-    use std::sync::OnceLock;
-    static GPU: OnceLock<Option<framix_render::Gpu>> = OnceLock::new();
-    GPU.get_or_init(|| {
-        framix_render::Gpu::new()
-            .inspect_err(|e| eprintln!("framix spike: {e}"))
-            .ok()
-    })
-    .as_ref()
+    framix_render::Gpu::shared()
+        .inspect_err(|e| eprintln!("framix spike: {e}"))
+        .ok()
 }
 
 /// Maps a draw result to an FFI code, logging the reason on failure.
@@ -29,6 +24,8 @@ fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
         Ok(()) => crate::ENGINE_OK,
         Err(e) => {
             eprintln!("framix spike: {e}");
+            #[cfg(target_os = "android")]
+            framix_render::android_log(&format!("spike: {e}"));
             ENGINE_ERR_GPU
         }
     }

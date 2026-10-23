@@ -6,6 +6,10 @@ use framix_app::preview::{PlatformTexture, PreviewRenderer};
 
 #[cfg(target_os = "android")]
 mod android;
+#[cfg(target_os = "android")]
+mod android_gles;
+#[cfg(target_os = "android")]
+pub use android::log as android_log;
 use thiserror::Error;
 
 /// Preview texture format: what the platform layer allocates (kCVPixelFormatType_32BGRA).
@@ -39,8 +43,11 @@ pub enum RenderError {
     /// The surface is not usable by this adapter, or gave no frame to draw into.
     #[error("surface unusable")]
     SurfaceUnusable,
-    /// A Vulkan call of the Android frame import failed, or the device cannot import frames
-    /// (GLES backend, or no AHardwareBuffer extensions).
+    /// The shared GPU failed to open earlier (the first error, kept as text).
+    #[error("GPU unavailable: {0}")]
+    Unavailable(String),
+    /// A Vulkan or EGL call of the Android frame import failed, or the device cannot import
+    /// frames (Vulkan without the AHardwareBuffer extensions).
     #[cfg(target_os = "android")]
     #[error("Android frame import: {0}")]
     Android(String),
@@ -170,25 +177,55 @@ pub struct Gpu {
     frame_sampler: wgpu::Sampler,
     nv12: Nv12Pass,
     blit: wgpu::RenderPipeline,
-    /// The device was opened with the AHardwareBuffer import extensions.
+    /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
     imports_frames: bool,
+    /// The preview window's surface, kept between draws and used under this lock. On GLES a
+    /// window takes one EGL connection, and a dropped surface may disconnect late, so a fresh
+    /// surface per draw fails with "already connected" (P1-004).
+    #[cfg(target_os = "android")]
+    window_surface: std::sync::Mutex<Option<WindowSurface>>,
+}
+
+/// A configured surface on one ANativeWindow.
+#[cfg(target_os = "android")]
+struct WindowSurface {
+    window: usize,
+    surface: wgpu::Surface<'static>,
+    config: wgpu::SurfaceConfiguration,
 }
 
 impl Gpu {
+    /// SPIKE (P1-004): the process's one GPU, opened on first use, shared by the preview
+    /// renderer and the decode spikes so they draw through one device and one window surface.
+    /// The render thread (P1-053) owns it instead.
+    pub fn shared() -> Result<&'static Gpu, RenderError> {
+        static GPU: std::sync::OnceLock<Result<Gpu, String>> = std::sync::OnceLock::new();
+        GPU.get_or_init(|| Gpu::new().map_err(|e| e.to_string()))
+            .as_ref()
+            .map_err(|e| RenderError::Unavailable(e.clone()))
+    }
+
     /// Opens the default GPU: Metal on Apple platforms, Vulkan (GLES fallback) on Android.
     pub fn new() -> Result<Self, RenderError> {
-        let backends = if cfg!(target_os = "android") {
-            wgpu::Backends::VULKAN | wgpu::Backends::GL
-        } else {
-            wgpu::Backends::METAL
+        // One backend per instance: on Android a Vulkan surface connects the window when it is
+        // created, so an instance with both backends would block GLES from the same window.
+        // Vulkan first; GLES when there is no Vulkan adapter (P1-004).
+        let open = |backends| {
+            let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+                backends,
+                ..wgpu::InstanceDescriptor::new_without_display_handle()
+            });
+            let adapter = pollster::block_on(
+                instance.request_adapter(&wgpu::RequestAdapterOptions::default()),
+            );
+            adapter.map(|adapter| (instance, adapter))
         };
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends,
-            ..wgpu::InstanceDescriptor::new_without_display_handle()
-        });
-        let adapter =
-            pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default()))?;
+        let (instance, adapter) = if cfg!(target_os = "android") {
+            open(wgpu::Backends::VULKAN).or_else(|_| open(wgpu::Backends::GL))?
+        } else {
+            open(wgpu::Backends::METAL)?
+        };
         // Ask only for what this adapter has: the iOS simulator's Metal device is below
         // wgpu's default limits.
         let desc = wgpu::DeviceDescriptor {
@@ -197,6 +234,12 @@ impl Gpu {
         };
         #[cfg(target_os = "android")]
         let (device, queue, imports_frames) = android::request_device(&adapter, &desc)?;
+        #[cfg(target_os = "android")]
+        android::log(&format!(
+            "gpu: {:?} {} imports_frames={imports_frames}",
+            adapter.get_info().backend,
+            adapter.get_info().name
+        ));
         #[cfg(not(target_os = "android"))]
         let (device, queue) = pollster::block_on(adapter.request_device(&desc))?;
         let pipeline = test_pattern_pipeline(&device, PREVIEW_FORMAT);
@@ -219,6 +262,8 @@ impl Gpu {
             blit,
             #[cfg(target_os = "android")]
             imports_frames,
+            #[cfg(target_os = "android")]
+            window_surface: std::sync::Mutex::new(None),
         })
     }
 
@@ -295,7 +340,7 @@ impl Gpu {
             ));
         }
         // SAFETY: forwarded from this function's contract; the device was opened with the
-        // import extensions (checked above).
+        // import extensions or is GLES (checked above).
         unsafe { android::import_ahb(&self.device, ahb) }
     }
 
@@ -391,32 +436,33 @@ impl Gpu {
     ) -> Result<(), RenderError> {
         // SAFETY: the caller guarantees a live window for the whole call.
         let (width, height) = unsafe { android::window_size(window) }?;
-        use wgpu::rwh::{
-            AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
-        };
-        // SAFETY: the caller guarantees a live window for the whole call, and the surface is
-        // dropped before returning.
-        let surface = unsafe {
-            self.instance
-                .create_surface_unsafe(wgpu::SurfaceTargetUnsafe::RawHandle {
-                    raw_display_handle: Some(
-                        RawDisplayHandle::Android(AndroidDisplayHandle::new()),
-                    ),
-                    raw_window_handle: RawWindowHandle::AndroidNdk(AndroidNdkWindowHandle::new(
-                        window,
-                    )),
-                })
-        }?;
-        let mut config = surface
-            .get_default_config(&self.adapter, width, height)
-            .ok_or(RenderError::SurfaceUnusable)?;
-        // Same look as iOS: write the shader output as is, no sRGB encode.
-        let caps = surface.get_capabilities(&self.adapter);
-        let linear = config.format.remove_srgb_suffix();
-        if caps.formats.contains(&linear) {
-            config.format = linear;
+        let mut cached = self
+            .window_surface
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let reuse = cached
+            .as_ref()
+            .is_some_and(|c| c.window == window.as_ptr() as usize);
+        if !reuse {
+            // The old window's surface goes first, so it disconnects before a new one connects.
+            *cached = None;
+            // SAFETY: the caller guarantees the window is live for this call; the engine keeps
+            // its reference to the preview window for the app's lifetime today (releasing it
+            // is P1-055, which must drop this cache first).
+            *cached = Some(unsafe { self.window_surface(window, width, height) }?);
         }
-        surface.configure(&self.device, &config);
+        let Some(WindowSurface {
+            surface, config, ..
+        }) = cached.as_mut()
+        else {
+            return Err(RenderError::SurfaceUnusable);
+        };
+        if (config.width, config.height) != (width, height) {
+            config.width = width;
+            config.height = height;
+            surface.configure(&self.device, config);
+        }
+        let config = config.clone();
         let frame = match surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(frame)
             | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
@@ -438,6 +484,49 @@ impl Gpu {
         }
         self.queue.present(frame);
         Ok(())
+    }
+
+    /// Creates and configures a surface on `window`.
+    ///
+    /// # Safety
+    /// `window` must stay live as long as the returned surface.
+    #[cfg(target_os = "android")]
+    unsafe fn window_surface(
+        &self,
+        window: std::ptr::NonNull<std::ffi::c_void>,
+        width: u32,
+        height: u32,
+    ) -> Result<WindowSurface, RenderError> {
+        use wgpu::rwh::{
+            AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
+        };
+        // SAFETY: the window outlives the surface per the contract.
+        let surface = unsafe {
+            self.instance
+                .create_surface_unsafe(wgpu::SurfaceTargetUnsafe::RawHandle {
+                    raw_display_handle: Some(
+                        RawDisplayHandle::Android(AndroidDisplayHandle::new()),
+                    ),
+                    raw_window_handle: RawWindowHandle::AndroidNdk(AndroidNdkWindowHandle::new(
+                        window,
+                    )),
+                })
+        }?;
+        let mut config = surface
+            .get_default_config(&self.adapter, width, height)
+            .ok_or(RenderError::SurfaceUnusable)?;
+        // Same look as iOS: write the shader output as is, no sRGB encode.
+        let caps = surface.get_capabilities(&self.adapter);
+        let linear = config.format.remove_srgb_suffix();
+        if caps.formats.contains(&linear) {
+            config.format = linear;
+        }
+        surface.configure(&self.device, &config);
+        Ok(WindowSurface {
+            window: window.as_ptr() as usize,
+            surface,
+            config,
+        })
     }
 
     /// Wraps a Metal texture owned by the platform layer as a render target, without copying.
@@ -625,7 +714,7 @@ fn fullscreen_pipeline(
 /// [`PreviewRenderer`] on [`Gpu`]: draws the test pattern into the platform's texture. Opens
 /// the GPU on first use.
 pub struct GpuRenderer {
-    gpu: Option<Gpu>,
+    gpu: Option<&'static Gpu>,
 }
 
 impl GpuRenderer {
@@ -648,11 +737,16 @@ impl PreviewRenderer for GpuRenderer {
         target: PlatformTexture,
         _time: framix_core::time::Time,
     ) -> Result<(), String> {
-        let gpu = match &mut self.gpu {
+        let gpu = match self.gpu {
             Some(gpu) => gpu,
-            empty => empty.insert(Gpu::new().map_err(|e| e.to_string())?),
+            None => *self.gpu.insert(Gpu::shared().map_err(|e| e.to_string())?),
         };
-        draw_into(gpu, target)
+        let drawn = draw_into(gpu, target);
+        #[cfg(target_os = "android")]
+        if let Err(e) = &drawn {
+            android::log(&format!("preview draw: {e}"));
+        }
+        drawn
     }
 }
 
@@ -670,7 +764,7 @@ fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
         .ok_or("null preview window")?;
     // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
-    // reported as made; wgpu's surface is dropped inside the call.
+    // reported as made.
     unsafe { gpu.draw_to_android_window(window, None) }.map_err(|e| e.to_string())
 }
 
