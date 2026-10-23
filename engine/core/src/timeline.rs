@@ -252,11 +252,13 @@ impl Timeline {
         id
     }
 
-    /// Places a clip on `track`. Fails if it would overlap a clip already there.
-    pub fn insert_clip(
+    /// Places a clip on `track` with `transform` (checked like [`Timeline::set_clip_transform`]).
+    /// Fails if it would overlap a clip already there.
+    pub fn insert_clip_with(
         &mut self,
         track: TrackId,
         placement: ClipPlacement,
+        transform: ClipTransform,
     ) -> Result<ClipId, TimelineError> {
         if placement.start.0 < 0 || placement.source_start.0 < 0 {
             return Err(TimelineError::NegativeTime);
@@ -278,6 +280,7 @@ impl Timeline {
             return Err(TimelineError::TrackLocked(track));
         }
         let at = free_slot(&self.tracks[index].clips, placement.start, end, None)?;
+        self.check_transform(placement.media, transform)?;
         let id = ClipId(self.allocate_id());
         let clip = Clip {
             id,
@@ -285,10 +288,20 @@ impl Timeline {
             source_start: placement.source_start,
             start: placement.start,
             duration: placement.duration,
-            transform: ClipTransform::default(),
+            transform,
         };
         self.tracks[index].clips.insert(at, clip);
         Ok(id)
+    }
+
+    /// Places a clip on `track` with the identity transform. Fails if it would overlap a clip
+    /// already there.
+    pub fn insert_clip(
+        &mut self,
+        track: TrackId,
+        placement: ClipPlacement,
+    ) -> Result<ClipId, TimelineError> {
+        self.insert_clip_with(track, placement, ClipTransform::default())
     }
 
     /// Sets a track's mute, hide and lock switches (allowed on a locked track, so it can be
@@ -523,10 +536,7 @@ impl Timeline {
             start: c.end(),
             duration: c.duration,
         };
-        let id = self.insert_clip(self.tracks[t].id, copy)?;
-        let (t, i) = self.locate(id)?;
-        self.tracks[t].clips[i].transform = c.transform;
-        Ok(id)
+        self.insert_clip_with(self.tracks[t].id, copy, c.transform)
     }
 
     /// Sets a clip's crop, turns and flips. The crop must leave at least one pixel each way of
@@ -536,16 +546,24 @@ impl Timeline {
         clip: ClipId,
         transform: ClipTransform,
     ) -> Result<(), TimelineError> {
+        let (t, i) = self.locate(clip)?;
+        self.check_transform(self.tracks[t].clips[i].media, transform)?;
+        self.tracks[t].clips[i].transform = transform;
+        Ok(())
+    }
+
+    /// Turns 0..=3, and a crop that leaves at least one pixel each way of `media`.
+    fn check_transform(
+        &self,
+        media: MediaId,
+        transform: ClipTransform,
+    ) -> Result<(), TimelineError> {
         if transform.turns > 3 {
             return Err(TimelineError::BadTransform);
         }
-        let (t, i) = self.locate(clip)?;
         let crop = transform.crop;
         if crop != Crop::default() {
-            let (width, height) = self
-                .media(self.tracks[t].clips[i].media)
-                .ok_or(TimelineError::BadCrop)?
-                .size();
+            let (width, height) = self.media(media).ok_or(TimelineError::BadCrop)?.size();
             // u64 sums: four u32 insets cannot overflow.
             let across = u64::from(crop.left) + u64::from(crop.right);
             let down = u64::from(crop.top) + u64::from(crop.bottom);
@@ -553,7 +571,6 @@ impl Timeline {
                 return Err(TimelineError::BadCrop);
             }
         }
-        self.tracks[t].clips[i].transform = transform;
         Ok(())
     }
 

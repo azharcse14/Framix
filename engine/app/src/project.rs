@@ -225,7 +225,6 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
             if file.format_version >= 2 && timeline.media(placement.media).is_none() {
                 return Err(ProjectError::UnknownMedia(c.media_id));
             }
-            let id = timeline.insert_clip(track, placement)?;
             let transform = ClipTransform {
                 turns: u8::try_from(c.turns).map_err(|_| TimelineError::BadTransform)?,
                 flip_h: c.flip_h,
@@ -237,10 +236,8 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                     bottom: c.crop_bottom,
                 },
             };
-            // Untrusted: the same checks as an edit (turns, crop against the media size).
-            if transform != ClipTransform::default() {
-                timeline.set_clip_transform(id, transform)?;
-            }
+            // Untrusted: checked like an edit, and set at insert so loading stays linear.
+            timeline.insert_clip_with(track, placement, transform)?;
         }
         // After the clips: a locked track refuses inserts.
         timeline.set_track_flags(track, flags)?;
