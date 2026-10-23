@@ -2,7 +2,7 @@
 //! export flow come later; they read these settings.
 
 use crate::aspect::AspectRatio;
-use crate::time::{Rate, Time};
+use crate::time::{Rate, TICKS_PER_SECOND, Time};
 
 /// Output size class, by the frame's short side.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -113,8 +113,15 @@ impl ExportSettings {
 
     /// About how many bytes an export of `duration` makes: video plus audio bitrate, plus
     /// ~1 % container overhead, rounded up.
-    pub fn estimated_bytes(&self, _aspect: AspectRatio, _duration: Time) -> u64 {
-        0
+    pub fn estimated_bytes(&self, aspect: AspectRatio, duration: Time) -> u64 {
+        // ponytail: audio is counted even without audio clips; drop it once audio tracks
+        // carry clips and the timeline can say it has none.
+        let kbps = u128::from(self.effective_kbps(aspect)) + u128::from(AUDIO_KBPS);
+        let ticks = u128::try_from(duration.0).unwrap_or(0);
+        // kbps * 1000 / 8 bytes per second, * ticks / TICKS_PER_SECOND, * 101 / 100, rounded up.
+        let num = kbps * 1000 * ticks * 101;
+        let den = 8 * u128::from(TICKS_PER_SECOND.unsigned_abs()) * 100;
+        u64::try_from(num.div_ceil(den)).unwrap_or(u64::MAX)
     }
 
     /// The bitrate the encoder gets, in kbit/s.
