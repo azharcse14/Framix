@@ -1,7 +1,8 @@
 //! SPIKE (P1-056): Android decoder frames reach wgpu with no CPU copy. The platform layer
 //! converts a MediaCodec frame to an RGBA8 AHardwareBuffer with one GLES pass (wgpu's Vulkan
 //! backend cannot sample opaque YCbCr); this module imports that buffer as a Vulkan image.
-//! Single-threaded and blocking: the render thread (P1-053) replaces the queue waits.
+//! Blocking: the import waits on the queue under the Gpu's queue lock; the render thread
+//! (P1-053) replaces the waits.
 
 use std::ffi::{CStr, c_void};
 use std::ptr::NonNull;
@@ -107,10 +108,6 @@ unsafe extern "C" {
     fn ANativeWindow_getHeight(window: *mut c_void) -> i32;
 }
 
-/// The window's size, or `SurfaceUnusable` if it has none.
-///
-/// # Safety
-/// `window` must be a live `ANativeWindow*` for the call.
 /// An owned reference to an ANativeWindow, released on drop.
 pub(crate) struct WindowRef(NonNull<c_void>);
 
@@ -141,6 +138,10 @@ impl Drop for WindowRef {
 // released.
 unsafe impl Send for WindowRef {}
 
+/// The window's size, or `SurfaceUnusable` if it has none.
+///
+/// # Safety
+/// `window` must be a live `ANativeWindow*` for the call.
 pub(crate) unsafe fn window_size(window: NonNull<c_void>) -> Result<(u32, u32), RenderError> {
     // SAFETY: `window` is live per the contract.
     let (width, height) = unsafe {

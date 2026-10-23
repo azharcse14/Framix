@@ -180,9 +180,12 @@ pub struct Gpu {
     /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
     imports_frames: bool,
-    /// The preview window's surface, kept between draws. Its lock is also the queue lock:
-    /// every submit and present on Android (draws, and the Vulkan frame import's raw queue
-    /// submit) happens under it, so the renderer and the decode spike never overlap (P1-004).
+    /// The preview window's surface, kept between draws. Its lock is also the queue lock for
+    /// the window-draw and frame-import paths (the Vulkan import submits on the raw queue), so
+    /// the renderer and the decode spike never overlap (P1-004). The other draw methods take
+    /// no lock and must not run concurrently with an import. SPIKE: the cache (and its window
+    /// reference) lives until another window is drawn; releasing the preview (P1-055) must
+    /// drop it.
     #[cfg(target_os = "android")]
     window_surface: std::sync::Mutex<Option<WindowSurface>>,
 }
