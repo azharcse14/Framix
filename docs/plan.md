@@ -364,7 +364,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-001` wgpu output ke copy chhara Flutter Texture e dekhano (iOS IOSurface/CVPixelBuffer, Android HardwareBuffer) \[Rust\]\[Native\]
 - [x] `P1-002` Hardware decoder theke GPU te zero-copy frame. Android e MediaCodec output prai opaque YCbCr AHardwareBuffer, Vulkan e YCbCr sampler lage; wgpu te support na thakle Plan B: native pass (Vulkan YCbCr sampler ba GLES samplerExternalOES) diye RGBA te convert, tarpor wgpu te import (ek GPU copy, CPU copy na) \[Native\]\[Rust\]
 - [x] `P1-003` Android preview output: SurfaceProducer er Surface theke ANativeWindow baniye sorasori wgpu surface e render; AHardwareBuffer path er sathe tulona \[Native\]\[Rust\]
-- [ ] `P1-004` Low-end Android e GLES fallback: Texture output ar decoder import dui backend e kaj kore kina (GLES 3.0 e compute shader nai) \[Rust\]\[Native\]
+- [x] `P1-004` Low-end Android e GLES fallback: Texture output ar decoder import dui backend e kaj kore kina (GLES 3.0 e compute shader nai) \[Rust\]\[Native\]
 - [x] `P1-005` Rust ↔ platform layer interop: C ABI + init e callback register (FFI niyom dekho) \[Rust\]\[Native\]
 - [x] `P1-006` dart:ffi command-event API (engine\_create with protocol version, engine\_send, engine\_set\_event\_callback, engine\_destroy) \[Dart\]\[Rust\]
 - [x] `P1-007` cbindgen → ffigen binding pipeline \[Rust\]\[Dart\]
@@ -443,6 +443,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-065` Platform answers arriving after engine Shutdown drop their PlatformTexture without releasing it (small leak; send error path in ffi platform host) \[Rust\] \[Native\]
 - [ ] `P1-066` Autosave wiring: platform gives the app-support dir (create it), app sends EnableAutosave at startup before edits, shows 'Shesh kaj porjonto save ache' after a recovery, and decides clean exit vs crash (the file stays after a normal shutdown; add Discard/Disable if needed) \[Dart\] \[Native\]
 - [ ] `P1-067` Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart \[Rust\]
+- [ ] `P1-068` GLES preview colours too dark (mid-gray ~0x33 vs 0x80; Vulkan correct): find the extra sRGB step in the GLES surface/blit path (ADR 0004, P1-004) \[Rust\]
 
 ## Phase 2: Audio
 
@@ -918,6 +919,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-028` Analytics funnel: import → edit → export, kothay user chhere jay \[Dart\]\[Backend\]
 - [ ] `UX-029` Protita boro feature er age 5 jon real user diye usability test (Figma prototype ba beta) \[—\]
 - [ ] `UX-030` Beta te in-app feedback (screenshot shoho) \[Dart\]
+- [ ] `UX-031` Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas \[Dart\]
 
 ## Design system
 

@@ -839,11 +839,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "bb0479d",
+   "branch": "p1-004-gles",
    "notes": [
     {
      "date": "2026-10-19",
@@ -10851,7 +10851,16 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "P1-004: Gpu::new tries a Vulkan-only instance, then GL-only (one backend per instance is required: a Vulkan surface connects the window). A blocklist plugs in there."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "P1-004: GL is used only when no Vulkan adapter exists; Vulkan 1.0, missing AHB extensions or a failing Vulkan device open don't fall back yet (decoded frames fail or no GPU). Retry on GL there."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12747,6 +12756,10 @@
     {
      "date": "2026-10-20",
      "text": "From ADR 0004 (P1-003): on the Android preview also measure present-mode pacing (dropped/late frames) and ImageReader memory at preview size (SurfaceProducer MAX_IMAGES = 7), and look for torn frames on an API 29-32 phone (Flutter waits on producer fences only on API 33+)."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "From P1-004: on a real low-end phone check the GLES path too (no Vulkan or blocklisted): test pattern, decoded frame, colours (P1-068), and whether the Vulkan-first/GL-fallback choice picks right."
     }
    ],
    "source": "added"
@@ -12865,6 +12878,10 @@
     {
      "date": "2026-10-21",
      "text": "Also release a SurfaceProducer whose setSize/surface threw after createSurfaceProducer succeeded (EnginePlatform.kt createPreviewTexture)."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "P1-004 keeps one wgpu surface per window in Gpu (window_surface cache, shared Gpu). Releasing the ANativeWindow must drop that cache first."
     }
    ],
    "source": "added"
@@ -13219,6 +13236,49 @@
    "title": "Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-068",
+   "section": "P1",
+   "group": "Architecture risk test (prototype)",
+   "title": "GLES preview colours too dark (mid-gray ~0x33 vs 0x80; Vulkan correct): find the extra sRGB step in the GLES surface/blit path (ADR 0004, P1-004)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "Not reproduced after the P1-004 review fix (one queue lock in Gpu): GLES colours correct on the emulator. Likely the import racing a draw. Confirm on a real GLES device (P1-051), then close."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "UX-031",
+   "section": "UX",
+   "group": null,
+   "title": "Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
