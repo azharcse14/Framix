@@ -1525,10 +1525,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-23",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-23",
+   "commit": "5f3e962",
    "branch": "p1-031-replace-clip",
    "notes": [],
    "source": "plan"
@@ -12488,6 +12488,10 @@
     {
      "date": "2026-10-21",
      "text": "Reuse Timeline::snap (P1-022) for trim handles."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "The clip UI's Replace action sends ReplaceClip (P1-031) with a picked MediaItem."
     }
    ],
    "source": "added"
