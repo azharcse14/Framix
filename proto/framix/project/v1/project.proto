@@ -18,6 +18,11 @@ message ProjectFile {
   uint32 aspect_height = 5;
   // Media the clips play (format 2+). Clips refer to these ids.
   repeated SavedMedia media = 6;
+  // Format 5: export settings (0 = default). Resolution 1..=4 = 720p, 1080p, 2K, 4K; fps
+  // 1..=3 = 24, 30, 60; kbps 0 = automatic, else 1000..=150000.
+  uint32 export_resolution = 7;
+  uint32 export_fps = 8;
+  uint32 export_kbps = 9;
 }
 
 // What a saved media entry is.

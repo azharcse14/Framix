@@ -253,6 +253,14 @@ impl PartialEq for Timeline {
 impl Eq for Timeline {}
 
 impl Timeline {
+    /// How the project exports.
+    pub fn export(&self) -> crate::export::ExportSettings {
+        crate::export::ExportSettings::default()
+    }
+
+    /// Sets how the project exports.
+    pub fn set_export(&mut self, _settings: crate::export::ExportSettings) {}
+
     /// Canvas aspect ratio.
     pub fn aspect(&self) -> AspectRatio {
         self.aspect

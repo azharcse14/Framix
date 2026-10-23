@@ -1,6 +1,6 @@
 //! Canvas position and scale in the project file (P1-030, format 4).
 
-use framix_app::project::{FORMAT_VERSION, ProjectError, decode, encode};
+use framix_app::project::{ProjectError, decode, encode};
 use framix_app::project_proto::{
     ProjectFile, SavedClip, SavedMedia, SavedMediaKind, SavedTrack, SavedTrackKind,
 };
@@ -45,7 +45,6 @@ fn position_and_scale_round_trip() {
     let back = decode(&encode(&t)).unwrap();
     let tr = back.tracks()[0].clips()[0].transform;
     assert_eq!((tr.x, tr.y, tr.scale), (-1234, 567, 2500));
-    assert_eq!(FORMAT_VERSION, 4);
 }
 
 #[test]

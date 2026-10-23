@@ -44,6 +44,7 @@ enum Command_Kind {
   requestThumbnails,
   setClipTransform,
   replaceClip,
+  setExportSettings,
   notSet
 }
 
@@ -72,6 +73,7 @@ class Command extends $pb.GeneratedMessage {
     RequestThumbnails? requestThumbnails,
     SetClipTransform? setClipTransform,
     ReplaceClip? replaceClip,
+    SetExportSettings? setExportSettings,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -96,6 +98,7 @@ class Command extends $pb.GeneratedMessage {
     if (requestThumbnails != null) result.requestThumbnails = requestThumbnails;
     if (setClipTransform != null) result.setClipTransform = setClipTransform;
     if (replaceClip != null) result.replaceClip = replaceClip;
+    if (setExportSettings != null) result.setExportSettings = setExportSettings;
     return result;
   }
 
@@ -131,6 +134,7 @@ class Command extends $pb.GeneratedMessage {
     20: Command_Kind.requestThumbnails,
     21: Command_Kind.setClipTransform,
     22: Command_Kind.replaceClip,
+    23: Command_Kind.setExportSettings,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -159,7 +163,8 @@ class Command extends $pb.GeneratedMessage {
       19,
       20,
       21,
-      22
+      22,
+      23
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -205,6 +210,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: SetClipTransform.$_createMessage)
     ..aOM<ReplaceClip>(22, _omitFieldNames ? '' : 'replaceClip',
         subBuilder: ReplaceClip.$_createMessage)
+    ..aOM<SetExportSettings>(23, _omitFieldNames ? '' : 'setExportSettings',
+        subBuilder: SetExportSettings.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -249,6 +256,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
+  @$pb.TagNumber(23)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -272,6 +280,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
+  @$pb.TagNumber(23)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -515,6 +524,222 @@ class Command extends $pb.GeneratedMessage {
   void clearReplaceClip() => $_clearField(22);
   @$pb.TagNumber(22)
   ReplaceClip ensureReplaceClip() => $_ensure(21);
+
+  @$pb.TagNumber(23)
+  SetExportSettings get setExportSettings => $_getN(22);
+  @$pb.TagNumber(23)
+  set setExportSettings(SetExportSettings value) => $_setField(23, value);
+  @$pb.TagNumber(23)
+  $core.bool hasSetExportSettings() => $_has(22);
+  @$pb.TagNumber(23)
+  void clearSetExportSettings() => $_clearField(23);
+  @$pb.TagNumber(23)
+  SetExportSettings ensureSetExportSettings() => $_ensure(22);
+}
+
+/// Sets how the project exports. kbps 0 picks the bitrate from the frame size and rate;
+/// otherwise 1000..=150000. One undo step.
+class SetExportSettings extends $pb.GeneratedMessage {
+  factory SetExportSettings({
+    ExportResolution? resolution,
+    ExportFps? fps,
+    $core.int? kbps,
+  }) {
+    final result = SetExportSettings._();
+    if (resolution != null) result.resolution = resolution;
+    if (fps != null) result.fps = fps;
+    if (kbps != null) result.kbps = kbps;
+    return result;
+  }
+
+  SetExportSettings._();
+
+  factory SetExportSettings.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetExportSettings()..mergeFromBuffer(data, registry);
+  factory SetExportSettings.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetExportSettings()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetExportSettings',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SetExportSettings.$_createMessage)
+    ..aE<ExportResolution>(1, _omitFieldNames ? '' : 'resolution',
+        enumValues: ExportResolution.values)
+    ..aE<ExportFps>(2, _omitFieldNames ? '' : 'fps',
+        enumValues: ExportFps.values)
+    ..aI(3, _omitFieldNames ? '' : 'kbps', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetExportSettings clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetExportSettings copyWith(void Function(SetExportSettings) updates) =>
+      super.copyWith((message) => updates(message as SetExportSettings))
+          as SetExportSettings;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SetExportSettings() / SetExportSettings.new instead')
+  static SetExportSettings create() => SetExportSettings._();
+  static $pb.GeneratedMessage $_createMessage() => SetExportSettings._();
+  @$core.override
+  SetExportSettings createEmptyInstance() => SetExportSettings._();
+  @$core.pragma('dart2js:noInline')
+  static SetExportSettings getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetExportSettings>(
+          SetExportSettings.$_createMessage);
+  static SetExportSettings? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ExportResolution get resolution => $_getN(0);
+  @$pb.TagNumber(1)
+  set resolution(ExportResolution value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasResolution() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearResolution() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  ExportFps get fps => $_getN(1);
+  @$pb.TagNumber(2)
+  set fps(ExportFps value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFps() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFps() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get kbps => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set kbps($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKbps() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKbps() => $_clearField(3);
+}
+
+/// The project's export settings and what they mean for the current canvas.
+class ExportInfo extends $pb.GeneratedMessage {
+  factory ExportInfo({
+    ExportResolution? resolution,
+    ExportFps? fps,
+    $core.int? kbps,
+    $core.int? width,
+    $core.int? height,
+    $core.int? effectiveKbps,
+  }) {
+    final result = ExportInfo._();
+    if (resolution != null) result.resolution = resolution;
+    if (fps != null) result.fps = fps;
+    if (kbps != null) result.kbps = kbps;
+    if (width != null) result.width = width;
+    if (height != null) result.height = height;
+    if (effectiveKbps != null) result.effectiveKbps = effectiveKbps;
+    return result;
+  }
+
+  ExportInfo._();
+
+  factory ExportInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ExportInfo()..mergeFromBuffer(data, registry);
+  factory ExportInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ExportInfo()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ExportInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ExportInfo.$_createMessage)
+    ..aE<ExportResolution>(1, _omitFieldNames ? '' : 'resolution',
+        enumValues: ExportResolution.values)
+    ..aE<ExportFps>(2, _omitFieldNames ? '' : 'fps',
+        enumValues: ExportFps.values)
+    ..aI(3, _omitFieldNames ? '' : 'kbps', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'width', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'effectiveKbps',
+        fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ExportInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ExportInfo copyWith(void Function(ExportInfo) updates) =>
+      super.copyWith((message) => updates(message as ExportInfo)) as ExportInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ExportInfo() / ExportInfo.new instead')
+  static ExportInfo create() => ExportInfo._();
+  static $pb.GeneratedMessage $_createMessage() => ExportInfo._();
+  @$core.override
+  ExportInfo createEmptyInstance() => ExportInfo._();
+  @$core.pragma('dart2js:noInline')
+  static ExportInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ExportInfo>(ExportInfo.$_createMessage);
+  static ExportInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ExportResolution get resolution => $_getN(0);
+  @$pb.TagNumber(1)
+  set resolution(ExportResolution value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasResolution() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearResolution() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  ExportFps get fps => $_getN(1);
+  @$pb.TagNumber(2)
+  set fps(ExportFps value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFps() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFps() => $_clearField(2);
+
+  /// 0 = automatic.
+  @$pb.TagNumber(3)
+  $core.int get kbps => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set kbps($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKbps() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKbps() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get width => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set width($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasWidth() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearWidth() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get height => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set height($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasHeight() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearHeight() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get effectiveKbps => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set effectiveKbps($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasEffectiveKbps() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearEffectiveKbps() => $_clearField(6);
 }
 
 /// Puts newly picked media under a clip, keeping its track, start and duration (the source
@@ -2729,6 +2954,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $fixnum.Int64? ticksPerSecond,
     $fixnum.Int64? thumbnailStep,
     $fixnum.Int64? activeClip,
+    ExportInfo? export,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -2741,6 +2967,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (ticksPerSecond != null) result.ticksPerSecond = ticksPerSecond;
     if (thumbnailStep != null) result.thumbnailStep = thumbnailStep;
     if (activeClip != null) result.activeClip = activeClip;
+    if (export != null) result.export = export;
     return result;
   }
 
@@ -2772,6 +2999,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         10, _omitFieldNames ? '' : 'activeClip', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<ExportInfo>(11, _omitFieldNames ? '' : 'export',
+        subBuilder: ExportInfo.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2884,6 +3113,17 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasActiveClip() => $_has(9);
   @$pb.TagNumber(10)
   void clearActiveClip() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  ExportInfo get export => $_getN(10);
+  @$pb.TagNumber(11)
+  set export(ExportInfo value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasExport() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearExport() => $_clearField(11);
+  @$pb.TagNumber(11)
+  ExportInfo ensureExport() => $_ensure(10);
 }
 
 /// A track and its clips, sorted by start.

@@ -284,6 +284,7 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
+            command::Kind::SetExportSettings(_) => Err("not implemented yet".into()),
             command::Kind::ReplaceClip(op) => {
                 let media = media_from_item(op.media.ok_or("replace without media")?)?;
                 timeline(self.edit(|tl| tl.replace_clip(ClipId(op.clip_id), media).map(drop)))
@@ -477,6 +478,7 @@ impl Engine {
                 ticks_per_second: TICKS_PER_SECOND,
                 thumbnail_step: crate::thumbnail::THUMBNAIL_STEP.0,
                 active_clip: self.active_clip(),
+                export: None,
             })),
         }
     }

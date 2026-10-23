@@ -65,6 +65,9 @@ pub enum ProjectError {
     #[error("clip refers to unlisted media {0}")]
     UnknownMedia(u64),
     /// A media kind this engine does not know.
+    /// Export settings out of range.
+    #[error("invalid export settings")]
+    InvalidExport,
     #[error("unknown media kind {0}")]
     UnknownMediaKind(i32),
     /// Two media entries share an id.
@@ -120,6 +123,7 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         aspect_width: timeline.aspect().width(),
         aspect_height: timeline.aspect().height(),
         media: timeline.all_media().map(saved_media).collect(),
+        ..Default::default()
     }
     .encode_to_vec()
 }

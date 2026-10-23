@@ -30,7 +30,42 @@ message Command {
     RequestThumbnails request_thumbnails = 20;
     SetClipTransform set_clip_transform = 21;
     ReplaceClip replace_clip = 22;
+    SetExportSettings set_export_settings = 23;
   }
+}
+
+enum ExportResolution {
+  EXPORT_RESOLUTION_UNSPECIFIED = 0;
+  EXPORT_RESOLUTION_720P = 1;
+  EXPORT_RESOLUTION_1080P = 2;
+  EXPORT_RESOLUTION_2K = 3;
+  EXPORT_RESOLUTION_4K = 4;
+}
+
+enum ExportFps {
+  EXPORT_FPS_UNSPECIFIED = 0;
+  EXPORT_FPS_24 = 1;
+  EXPORT_FPS_30 = 2;
+  EXPORT_FPS_60 = 3;
+}
+
+// Sets how the project exports. kbps 0 picks the bitrate from the frame size and rate;
+// otherwise 1000..=150000. One undo step.
+message SetExportSettings {
+  ExportResolution resolution = 1;
+  ExportFps fps = 2;
+  uint32 kbps = 3;
+}
+
+// The project's export settings and what they mean for the current canvas.
+message ExportInfo {
+  ExportResolution resolution = 1;
+  ExportFps fps = 2;
+  // 0 = automatic.
+  uint32 kbps = 3;
+  uint32 width = 4;
+  uint32 height = 5;
+  uint32 effective_kbps = 6;
 }
 
 // Puts newly picked media under a clip, keeping its track, start and duration (the source
@@ -275,6 +310,7 @@ message TimelineChanged {
   int64 thumbnail_step = 9;
   // The clip canvas gestures act on (topmost visible video clip at the playhead); 0 = none.
   uint64 active_clip = 10;
+  ExportInfo export = 11;
 }
 
 // A track and its clips, sorted by start.

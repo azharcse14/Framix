@@ -15,6 +15,40 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
+@$core.Deprecated('Use exportResolutionDescriptor instead')
+const ExportResolution$json = {
+  '1': 'ExportResolution',
+  '2': [
+    {'1': 'EXPORT_RESOLUTION_UNSPECIFIED', '2': 0},
+    {'1': 'EXPORT_RESOLUTION_720P', '2': 1},
+    {'1': 'EXPORT_RESOLUTION_1080P', '2': 2},
+    {'1': 'EXPORT_RESOLUTION_2K', '2': 3},
+    {'1': 'EXPORT_RESOLUTION_4K', '2': 4},
+  ],
+};
+
+/// Descriptor for `ExportResolution`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List exportResolutionDescriptor = $convert.base64Decode(
+    'ChBFeHBvcnRSZXNvbHV0aW9uEiEKHUVYUE9SVF9SRVNPTFVUSU9OX1VOU1BFQ0lGSUVEEAASGg'
+    'oWRVhQT1JUX1JFU09MVVRJT05fNzIwUBABEhsKF0VYUE9SVF9SRVNPTFVUSU9OXzEwODBQEAIS'
+    'GAoURVhQT1JUX1JFU09MVVRJT05fMksQAxIYChRFWFBPUlRfUkVTT0xVVElPTl80SxAE');
+
+@$core.Deprecated('Use exportFpsDescriptor instead')
+const ExportFps$json = {
+  '1': 'ExportFps',
+  '2': [
+    {'1': 'EXPORT_FPS_UNSPECIFIED', '2': 0},
+    {'1': 'EXPORT_FPS_24', '2': 1},
+    {'1': 'EXPORT_FPS_30', '2': 2},
+    {'1': 'EXPORT_FPS_60', '2': 3},
+  ],
+};
+
+/// Descriptor for `ExportFps`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List exportFpsDescriptor = $convert.base64Decode(
+    'CglFeHBvcnRGcHMSGgoWRVhQT1JUX0ZQU19VTlNQRUNJRklFRBAAEhEKDUVYUE9SVF9GUFNfMj'
+    'QQARIRCg1FWFBPUlRfRlBTXzMwEAISEQoNRVhQT1JUX0ZQU182MBAD');
+
 @$core.Deprecated('Use trackKindDescriptor instead')
 const TrackKind$json = {
   '1': 'TrackKind',
@@ -247,6 +281,15 @@ const Command$json = {
       '9': 0,
       '10': 'replaceClip'
     },
+    {
+      '1': 'set_export_settings',
+      '3': 23,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SetExportSettings',
+      '9': 0,
+      '10': 'setExportSettings'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -278,7 +321,73 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'IAEoCzIcLmZyYW1peC52MS5SZXF1ZXN0VGh1bWJuYWlsc0gAUhFyZXF1ZXN0VGh1bWJuYWlscx'
     'JLChJzZXRfY2xpcF90cmFuc2Zvcm0YFSABKAsyGy5mcmFtaXgudjEuU2V0Q2xpcFRyYW5zZm9y'
     'bUgAUhBzZXRDbGlwVHJhbnNmb3JtEjsKDHJlcGxhY2VfY2xpcBgWIAEoCzIWLmZyYW1peC52MS'
-    '5SZXBsYWNlQ2xpcEgAUgtyZXBsYWNlQ2xpcEIGCgRraW5k');
+    '5SZXBsYWNlQ2xpcEgAUgtyZXBsYWNlQ2xpcBJOChNzZXRfZXhwb3J0X3NldHRpbmdzGBcgASgL'
+    'MhwuZnJhbWl4LnYxLlNldEV4cG9ydFNldHRpbmdzSABSEXNldEV4cG9ydFNldHRpbmdzQgYKBG'
+    'tpbmQ=');
+
+@$core.Deprecated('Use setExportSettingsDescriptor instead')
+const SetExportSettings$json = {
+  '1': 'SetExportSettings',
+  '2': [
+    {
+      '1': 'resolution',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportResolution',
+      '10': 'resolution'
+    },
+    {
+      '1': 'fps',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportFps',
+      '10': 'fps'
+    },
+    {'1': 'kbps', '3': 3, '4': 1, '5': 13, '10': 'kbps'},
+  ],
+};
+
+/// Descriptor for `SetExportSettings`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setExportSettingsDescriptor = $convert.base64Decode(
+    'ChFTZXRFeHBvcnRTZXR0aW5ncxI7CgpyZXNvbHV0aW9uGAEgASgOMhsuZnJhbWl4LnYxLkV4cG'
+    '9ydFJlc29sdXRpb25SCnJlc29sdXRpb24SJgoDZnBzGAIgASgOMhQuZnJhbWl4LnYxLkV4cG9y'
+    'dEZwc1IDZnBzEhIKBGticHMYAyABKA1SBGticHM=');
+
+@$core.Deprecated('Use exportInfoDescriptor instead')
+const ExportInfo$json = {
+  '1': 'ExportInfo',
+  '2': [
+    {
+      '1': 'resolution',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportResolution',
+      '10': 'resolution'
+    },
+    {
+      '1': 'fps',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportFps',
+      '10': 'fps'
+    },
+    {'1': 'kbps', '3': 3, '4': 1, '5': 13, '10': 'kbps'},
+    {'1': 'width', '3': 4, '4': 1, '5': 13, '10': 'width'},
+    {'1': 'height', '3': 5, '4': 1, '5': 13, '10': 'height'},
+    {'1': 'effective_kbps', '3': 6, '4': 1, '5': 13, '10': 'effectiveKbps'},
+  ],
+};
+
+/// Descriptor for `ExportInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List exportInfoDescriptor = $convert.base64Decode(
+    'CgpFeHBvcnRJbmZvEjsKCnJlc29sdXRpb24YASABKA4yGy5mcmFtaXgudjEuRXhwb3J0UmVzb2'
+    'x1dGlvblIKcmVzb2x1dGlvbhImCgNmcHMYAiABKA4yFC5mcmFtaXgudjEuRXhwb3J0RnBzUgNm'
+    'cHMSEgoEa2JwcxgDIAEoDVIEa2JwcxIUCgV3aWR0aBgEIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GA'
+    'UgASgNUgZoZWlnaHQSJQoOZWZmZWN0aXZlX2ticHMYBiABKA1SDWVmZmVjdGl2ZUticHM=');
 
 @$core.Deprecated('Use replaceClipDescriptor instead')
 const ReplaceClip$json = {
@@ -799,6 +908,14 @@ const TimelineChanged$json = {
     {'1': 'ticks_per_second', '3': 8, '4': 1, '5': 3, '10': 'ticksPerSecond'},
     {'1': 'thumbnail_step', '3': 9, '4': 1, '5': 3, '10': 'thumbnailStep'},
     {'1': 'active_clip', '3': 10, '4': 1, '5': 4, '10': 'activeClip'},
+    {
+      '1': 'export',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ExportInfo',
+      '10': 'export'
+    },
   ],
 };
 
@@ -810,7 +927,8 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'NwZWN0V2lkdGgSIwoNYXNwZWN0X2hlaWdodBgGIAEoDVIMYXNwZWN0SGVpZ2h0EhoKCHBsYXlo'
     'ZWFkGAcgASgDUghwbGF5aGVhZBIoChB0aWNrc19wZXJfc2Vjb25kGAggASgDUg50aWNrc1Blcl'
     'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcBIfCgthY3RpdmVf'
-    'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcA==');
+    'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcBItCgZleHBvcnQYCyABKAsyFS5mcmFtaXgudjEuRXhwb3'
+    'J0SW5mb1IGZXhwb3J0');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {
