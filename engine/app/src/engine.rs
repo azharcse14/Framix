@@ -154,6 +154,11 @@ impl Engine {
         }
     }
 
+    /// The worker's result for the running export: one ExportFinished.
+    pub fn export_result(&mut self, _result: Result<(), crate::export::ExportError>) -> Event {
+        command_failed("not implemented yet")
+    }
+
     /// The running export stopped because it was cancelled: ExportFinished, cancelled.
     pub fn export_cancelled(&mut self) -> Event {
         self.export_cancel = None;
