@@ -559,6 +559,7 @@ fn export_info(timeline: &Timeline) -> proto::ExportInfo {
         width,
         height,
         effective_kbps: settings.effective_kbps(timeline.aspect()),
+        estimated_bytes: 0,
     }
 }
 

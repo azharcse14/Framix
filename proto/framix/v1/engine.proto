@@ -66,6 +66,8 @@ message ExportInfo {
   uint32 width = 4;
   uint32 height = 5;
   uint32 effective_kbps = 6;
+  // About how big the export of the whole timeline will be.
+  uint64 estimated_bytes = 7;
 }
 
 // Puts newly picked media under a clip, keeping its track, start and duration (the source

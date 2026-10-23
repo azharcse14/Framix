@@ -379,6 +379,7 @@ const ExportInfo$json = {
     {'1': 'width', '3': 4, '4': 1, '5': 13, '10': 'width'},
     {'1': 'height', '3': 5, '4': 1, '5': 13, '10': 'height'},
     {'1': 'effective_kbps', '3': 6, '4': 1, '5': 13, '10': 'effectiveKbps'},
+    {'1': 'estimated_bytes', '3': 7, '4': 1, '5': 4, '10': 'estimatedBytes'},
   ],
 };
 
@@ -387,7 +388,8 @@ final $typed_data.Uint8List exportInfoDescriptor = $convert.base64Decode(
     'CgpFeHBvcnRJbmZvEjsKCnJlc29sdXRpb24YASABKA4yGy5mcmFtaXgudjEuRXhwb3J0UmVzb2'
     'x1dGlvblIKcmVzb2x1dGlvbhImCgNmcHMYAiABKA4yFC5mcmFtaXgudjEuRXhwb3J0RnBzUgNm'
     'cHMSEgoEa2JwcxgDIAEoDVIEa2JwcxIUCgV3aWR0aBgEIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GA'
-    'UgASgNUgZoZWlnaHQSJQoOZWZmZWN0aXZlX2ticHMYBiABKA1SDWVmZmVjdGl2ZUticHM=');
+    'UgASgNUgZoZWlnaHQSJQoOZWZmZWN0aXZlX2ticHMYBiABKA1SDWVmZmVjdGl2ZUticHMSJwoP'
+    'ZXN0aW1hdGVkX2J5dGVzGAcgASgEUg5lc3RpbWF0ZWRCeXRlcw==');
 
 @$core.Deprecated('Use replaceClipDescriptor instead')
 const ReplaceClip$json = {

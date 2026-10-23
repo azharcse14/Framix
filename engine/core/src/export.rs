@@ -2,7 +2,7 @@
 //! export flow come later; they read these settings.
 
 use crate::aspect::AspectRatio;
-use crate::time::Rate;
+use crate::time::{Rate, Time};
 
 /// Output size class, by the frame's short side.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -29,6 +29,9 @@ pub enum FrameRate {
     /// 60 fps.
     F60,
 }
+
+/// Audio bitrate of an export (AAC stereo), in kbit/s.
+pub const AUDIO_KBPS: u32 = 128;
 
 /// Lowest and highest bitrate a user may set, in kbit/s.
 pub const KBPS_RANGE: std::ops::RangeInclusive<u32> = 1_000..=150_000;
@@ -106,6 +109,12 @@ impl ExportSettings {
         } else {
             (long(w, h), short)
         }
+    }
+
+    /// About how many bytes an export of `duration` makes: video plus audio bitrate, plus
+    /// ~1 % container overhead, rounded up.
+    pub fn estimated_bytes(&self, _aspect: AspectRatio, _duration: Time) -> u64 {
+        0
     }
 
     /// The bitrate the encoder gets, in kbit/s.

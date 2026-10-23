@@ -631,6 +631,7 @@ class ExportInfo extends $pb.GeneratedMessage {
     $core.int? width,
     $core.int? height,
     $core.int? effectiveKbps,
+    $fixnum.Int64? estimatedBytes,
   }) {
     final result = ExportInfo._();
     if (resolution != null) result.resolution = resolution;
@@ -639,6 +640,7 @@ class ExportInfo extends $pb.GeneratedMessage {
     if (width != null) result.width = width;
     if (height != null) result.height = height;
     if (effectiveKbps != null) result.effectiveKbps = effectiveKbps;
+    if (estimatedBytes != null) result.estimatedBytes = estimatedBytes;
     return result;
   }
 
@@ -664,6 +666,9 @@ class ExportInfo extends $pb.GeneratedMessage {
     ..aI(5, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
     ..aI(6, _omitFieldNames ? '' : 'effectiveKbps',
         fieldType: $pb.PbFieldType.OU3)
+    ..a<$fixnum.Int64>(
+        7, _omitFieldNames ? '' : 'estimatedBytes', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -740,6 +745,16 @@ class ExportInfo extends $pb.GeneratedMessage {
   $core.bool hasEffectiveKbps() => $_has(5);
   @$pb.TagNumber(6)
   void clearEffectiveKbps() => $_clearField(6);
+
+  /// About how big the export of the whole timeline will be.
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get estimatedBytes => $_getI64(6);
+  @$pb.TagNumber(7)
+  set estimatedBytes($fixnum.Int64 value) => $_setInt64(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasEstimatedBytes() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearEstimatedBytes() => $_clearField(7);
 }
 
 /// Puts newly picked media under a clip, keeping its track, start and duration (the source
