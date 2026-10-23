@@ -47,12 +47,12 @@
 /**
  * Version of the command/event contract (proto/framix/v1/engine.proto).
  */
-#define ENGINE_PROTOCOL_VERSION 20
+#define ENGINE_PROTOCOL_VERSION 21
 
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 2
+#define ENGINE_PLATFORM_VERSION 3
 
 /**
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
@@ -113,8 +113,10 @@ typedef void (*EngineThumbnailDone)(void *done_ctx,
                                     size_t path_len);
 
 /**
- * Callbacks the platform layer gives the engine once at startup. Each is called on an engine
- * thread and must return at once; `ctx` is passed back unchanged and must live for the process.
+ * Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
+ * and must live for the process. The preview and thumbnail calls come from the engine thread
+ * and must return at once; the `encoder_*` calls come only from the export worker thread and
+ * may block (docs/adr/0005-export-encoder.md).
  */
 typedef struct EnginePlatform {
   /**
@@ -150,6 +152,30 @@ typedef struct EnginePlatform {
                             uint32_t max_side,
                             EngineThumbnailDone done,
                             void *done_ctx);
+  /**
+   * Opens a hardware video encoder writing an MP4 to `path` (`path_len` UTF-8 bytes, valid
+   * for the call): `width` x `height` (even), `fps` frames per second, `kbps` kbit/s. Returns
+   * the encoder, or null if it could not open.
+   */
+  void *(*encoder_open)(void *ctx,
+                        uint32_t width,
+                        uint32_t height,
+                        uint32_t fps,
+                        uint32_t kbps,
+                        const uint8_t *path,
+                        size_t path_len);
+  /**
+   * Appends the previous frame (if any), then returns the render target for the frame at
+   * `time_us` microseconds: a BGRA texture (an `id<MTLTexture>` on iOS) valid until the next
+   * `encoder_frame` or `encoder_finish`. Null on failure.
+   */
+  void *(*encoder_frame)(void *ctx, void *encoder, int64_t time_us);
+  /**
+   * `ok`: appends the last frame and closes the file; otherwise cancels and removes it.
+   * Returns once the file is closed, frees `encoder`, and gives [`crate::ENGINE_OK`] or
+   * another value for failure. Called exactly once per opened encoder.
+   */
+  int32_t (*encoder_finish)(void *ctx, void *encoder, bool ok);
 } EnginePlatform;
 
 /**

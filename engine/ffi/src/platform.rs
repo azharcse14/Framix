@@ -4,16 +4,18 @@ use std::ffi::c_void;
 use std::sync::OnceLock;
 use std::sync::mpsc::Sender;
 
+use framix_app::export::{Encoder, EncoderConfig, EncoderHost};
 use framix_app::preview::{PlatformTexture, PreviewHost};
 use framix_app::thumbnail::{ThumbnailHost, ThumbnailKey, ThumbnailRequest};
 use framix_core::media::MediaKind;
+use framix_core::time::Time;
 
 use crate::{
     ENGINE_ERR_ALREADY, ENGINE_ERR_NULL, ENGINE_ERR_PROTOCOL, ENGINE_OK, EngineMessage, ffi_guard,
 };
 
 /// Version of [`EnginePlatform`]; bump when its layout or meaning changes.
-pub const ENGINE_PLATFORM_VERSION: u32 = 2;
+pub const ENGINE_PLATFORM_VERSION: u32 = 3;
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
@@ -34,8 +36,10 @@ pub const ENGINE_MEDIA_VIDEO: u32 = 1;
 /// [`EnginePlatform::request_thumbnail`]'s `kind`: a photo.
 pub const ENGINE_MEDIA_IMAGE: u32 = 2;
 
-/// Callbacks the platform layer gives the engine once at startup. Each is called on an engine
-/// thread and must return at once; `ctx` is passed back unchanged and must live for the process.
+/// Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
+/// and must live for the process. The preview and thumbnail calls come from the engine thread
+/// and must return at once; the `encoder_*` calls come only from the export worker thread and
+/// may block (docs/adr/0005-export-encoder.md).
 #[repr(C)]
 pub struct EnginePlatform {
     /// Must be [`ENGINE_PLATFORM_VERSION`].
@@ -69,6 +73,31 @@ pub struct EnginePlatform {
             done_ctx: *mut c_void,
         ),
     >,
+    /// Opens a hardware video encoder writing an MP4 to `path` (`path_len` UTF-8 bytes, valid
+    /// for the call): `width` x `height` (even), `fps` frames per second, `kbps` kbit/s. Returns
+    /// the encoder, or null if it could not open.
+    pub encoder_open: Option<
+        unsafe extern "C" fn(
+            ctx: *mut c_void,
+            width: u32,
+            height: u32,
+            fps: u32,
+            kbps: u32,
+            path: *const u8,
+            path_len: usize,
+        ) -> *mut c_void,
+    >,
+    /// Appends the previous frame (if any), then returns the render target for the frame at
+    /// `time_us` microseconds: a BGRA texture (an `id<MTLTexture>` on iOS) valid until the next
+    /// `encoder_frame` or `encoder_finish`. Null on failure.
+    pub encoder_frame: Option<
+        unsafe extern "C" fn(ctx: *mut c_void, encoder: *mut c_void, time_us: i64) -> *mut c_void,
+    >,
+    /// `ok`: appends the last frame and closes the file; otherwise cancels and removes it.
+    /// Returns once the file is closed, frees `encoder`, and gives [`crate::ENGINE_OK`] or
+    /// another value for failure. Called exactly once per opened encoder.
+    pub encoder_finish:
+        Option<unsafe extern "C" fn(ctx: *mut c_void, encoder: *mut c_void, ok: bool) -> i32>,
 }
 
 /// Registers the platform callbacks for the whole process. Only the first valid call counts.
@@ -89,11 +118,22 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
         if platform.version != ENGINE_PLATFORM_VERSION {
             return ENGINE_ERR_PROTOCOL;
         }
-        let (Some(create_preview_texture), Some(frame_available), Some(request_thumbnail)) = (
+        let (
+            Some(create_preview_texture),
+            Some(frame_available),
+            Some(request_thumbnail),
+            Some(encoder_open),
+            Some(encoder_frame),
+            Some(encoder_finish),
+        ) = (
             platform.create_preview_texture,
             platform.frame_available,
             platform.request_thumbnail,
-        ) else {
+            platform.encoder_open,
+            platform.encoder_frame,
+            platform.encoder_finish,
+        )
+        else {
             return ENGINE_ERR_NULL;
         };
         let registered = Registered {
@@ -101,6 +141,9 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             create_preview_texture,
             frame_available,
             request_thumbnail,
+            encoder_open,
+            encoder_frame,
+            encoder_finish,
         };
         match PLATFORM.set(registered) {
             Ok(()) => ENGINE_OK,
@@ -125,6 +168,10 @@ struct Registered {
         EngineThumbnailDone,
         *mut c_void,
     ),
+    encoder_open:
+        unsafe extern "C" fn(*mut c_void, u32, u32, u32, u32, *const u8, usize) -> *mut c_void,
+    encoder_frame: unsafe extern "C" fn(*mut c_void, *mut c_void, i64) -> *mut c_void,
+    encoder_finish: unsafe extern "C" fn(*mut c_void, *mut c_void, bool) -> i32,
 }
 
 // SAFETY: engine_platform_register's contract makes the callbacks callable from any engine
@@ -257,4 +304,82 @@ pub(crate) unsafe extern "C" fn preview_texture_done(
         let _ = engine.send(EngineMessage::PreviewTexture(texture));
         ENGINE_OK
     });
+}
+
+/// [`EncoderHost`] over the registered `encoder_*` callbacks. Used only on the export worker.
+pub(crate) struct PlatformEncoderHost;
+
+impl EncoderHost for PlatformEncoderHost {
+    fn open(&self, config: &EncoderConfig) -> Result<Box<dyn Encoder>, String> {
+        let platform = PLATFORM.get().ok_or("no platform registered")?;
+        // SAFETY: registered callback (engine_platform_register's contract); `path` is valid
+        // for the call.
+        let encoder = unsafe {
+            (platform.encoder_open)(
+                platform.ctx,
+                config.width,
+                config.height,
+                config.fps,
+                config.kbps,
+                config.path.as_ptr(),
+                config.path.len(),
+            )
+        };
+        if encoder.is_null() {
+            return Err("the encoder could not open".into());
+        }
+        Ok(Box::new(PlatformEncoder {
+            platform,
+            encoder: Some(encoder),
+        }))
+    }
+}
+
+/// One open platform encoder; finished exactly once (by `finish`, or cancelled on drop).
+struct PlatformEncoder {
+    platform: &'static Registered,
+    encoder: Option<*mut c_void>,
+}
+
+// SAFETY: the encoder handle is only passed back to the platform, from the one worker thread
+// that owns this value; the platform's encoder calls may come from any thread (ADR 0005).
+unsafe impl Send for PlatformEncoder {}
+
+impl Encoder for PlatformEncoder {
+    fn frame(&mut self, time: Time) -> Result<PlatformTexture, String> {
+        let encoder = self.encoder.ok_or("the encoder is finished")?;
+        // Whole microseconds, rounded down; ticks stay the engine's time unit.
+        let time_us = i64::try_from(
+            i128::from(time.0) * 1_000_000 / i128::from(framix_core::time::TICKS_PER_SECOND),
+        )
+        .map_err(|_| "frame time out of range")?;
+        // SAFETY: registered callback; `encoder` came from encoder_open and is not finished.
+        let target = unsafe { (self.platform.encoder_frame)(self.platform.ctx, encoder, time_us) };
+        if target.is_null() {
+            return Err("the encoder gave no buffer".into());
+        }
+        Ok(PlatformTexture {
+            id: 0,
+            handle: target as usize,
+        })
+    }
+
+    fn finish(mut self: Box<Self>, ok: bool) -> Result<(), String> {
+        let encoder = self.encoder.take().ok_or("the encoder is finished")?;
+        // SAFETY: registered callback; `encoder` is finished exactly once (taken above).
+        let status = unsafe { (self.platform.encoder_finish)(self.platform.ctx, encoder, ok) };
+        match status {
+            ENGINE_OK => Ok(()),
+            _ => Err("the encoder could not finish the file".into()),
+        }
+    }
+}
+
+impl Drop for PlatformEncoder {
+    fn drop(&mut self) {
+        if let Some(encoder) = self.encoder.take() {
+            // SAFETY: as in finish; this encoder was never finished.
+            unsafe { (self.platform.encoder_finish)(self.platform.ctx, encoder, false) };
+        }
+    }
 }

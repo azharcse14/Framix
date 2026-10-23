@@ -57,6 +57,24 @@ unsafe extern "C" fn create(
 
 unsafe extern "C" fn frame(_: *mut c_void, _: i64) {}
 
+unsafe extern "C" fn no_encoder(
+    _: *mut c_void,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: *const u8,
+    _: usize,
+) -> *mut c_void {
+    std::ptr::null_mut()
+}
+unsafe extern "C" fn no_frame(_: *mut c_void, _: *mut c_void, _: i64) -> *mut c_void {
+    std::ptr::null_mut()
+}
+unsafe extern "C" fn no_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
+    -1
+}
+
 static SINK: Mutex<Option<Sender<Vec<u8>>>> = Mutex::new(None);
 static TURN: Mutex<()> = Mutex::new(());
 
@@ -101,6 +119,9 @@ impl Session {
                 create_preview_texture: Some(create),
                 frame_available: Some(frame),
                 request_thumbnail: Some(no_thumbnail),
+                encoder_open: Some(no_encoder),
+                encoder_frame: Some(no_frame),
+                encoder_finish: Some(no_finish),
             };
             // SAFETY: valid platform with static callbacks and a null ctx.
             assert_eq!(unsafe { engine_platform_register(&platform) }, ENGINE_OK);

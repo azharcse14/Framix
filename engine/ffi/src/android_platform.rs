@@ -65,6 +65,10 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             create_preview_texture: Some(create_preview_texture),
             frame_available: Some(frame_available),
             request_thumbnail: Some(request_thumbnail),
+            // The MediaCodec encoder is its own task; until then exports fail to open.
+            encoder_open: Some(no_encoder_open),
+            encoder_frame: Some(no_encoder_frame),
+            encoder_finish: Some(no_encoder_finish),
         };
         // SAFETY: `platform` is a valid EnginePlatform; the callbacks are 'static fns.
         unsafe { engine_platform_register(&platform) }
@@ -329,4 +333,27 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativePreviewTex
         unsafe { preview_texture_done(done_ctx, status, texture_id, handle) };
         ENGINE_OK
     });
+}
+
+/// No encoder on Android yet: every export fails to open.
+unsafe extern "C" fn no_encoder_open(
+    _: *mut c_void,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: *const u8,
+    _: usize,
+) -> *mut c_void {
+    null_mut()
+}
+
+/// Never called: no encoder opens.
+unsafe extern "C" fn no_encoder_frame(_: *mut c_void, _: *mut c_void, _: i64) -> *mut c_void {
+    null_mut()
+}
+
+/// Never called: no encoder opens.
+unsafe extern "C" fn no_encoder_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
+    crate::ENGINE_ERR_GPU
 }

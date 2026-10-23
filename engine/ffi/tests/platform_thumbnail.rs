@@ -28,6 +28,24 @@ unsafe extern "C" fn create(
 }
 unsafe extern "C" fn frame(_: *mut c_void, _: i64) {}
 
+unsafe extern "C" fn no_encoder(
+    _: *mut c_void,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: *const u8,
+    _: usize,
+) -> *mut c_void {
+    std::ptr::null_mut()
+}
+unsafe extern "C" fn no_frame(_: *mut c_void, _: *mut c_void, _: i64) -> *mut c_void {
+    std::ptr::null_mut()
+}
+unsafe extern "C" fn no_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
+    -1
+}
+
 /// What the fake saw: uri, kind, time in microseconds, max side.
 static SEEN: Mutex<Vec<(String, u32, i64, u32)>> = Mutex::new(Vec::new());
 
@@ -73,13 +91,16 @@ fn a_thumbnail_made_by_the_platform_comes_back_as_thumbnail_ready() {
         create_preview_texture: Some(create),
         frame_available: Some(frame),
         request_thumbnail: None,
+        encoder_open: Some(no_encoder),
+        encoder_frame: Some(no_frame),
+        encoder_finish: Some(no_finish),
     };
     // SAFETY: valid platform with static callbacks and a null ctx.
     unsafe {
         assert_eq!(
             engine_platform_register(&platform),
             ENGINE_ERR_NULL,
-            "v2 needs thumbnails"
+            "thumbnails are required"
         );
         platform.request_thumbnail = Some(thumbnail);
         assert_eq!(engine_platform_register(&platform), ENGINE_OK);

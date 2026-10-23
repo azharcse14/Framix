@@ -32,7 +32,15 @@ message Command {
     ReplaceClip replace_clip = 22;
     SetExportSettings set_export_settings = 23;
     EnableAutosave enable_autosave = 24;
+    ExportProject export_project = 25;
   }
+}
+
+// Exports the timeline with its export settings to an MP4 at `path`. Answered with
+// CommandAccepted, then exactly one ExportFinished; refused for an empty timeline, while
+// another export runs, or when this engine has no encoder.
+message ExportProject {
+  string path = 1;
 }
 
 // Recovers the project saved at `path` (undo cleared) if there is one, then saves the project
@@ -278,7 +286,14 @@ message Event {
     PlayheadChanged playhead_changed = 6;
     ThumbnailReady thumbnail_ready = 7;
     EngineStopped engine_stopped = 8;
+    ExportFinished export_finished = 9;
   }
+}
+
+// The end of an accepted ExportProject. `reason` says why it failed (never a path).
+message ExportFinished {
+  bool ok = 1;
+  string reason = 2;
 }
 
 // The last event after engine_destroy: queued work is done and no event follows, so the

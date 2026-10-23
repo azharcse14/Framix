@@ -299,6 +299,15 @@ const Command$json = {
       '9': 0,
       '10': 'enableAutosave'
     },
+    {
+      '1': 'export_project',
+      '3': 25,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ExportProject',
+      '9': 0,
+      '10': 'exportProject'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -333,7 +342,20 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     '5SZXBsYWNlQ2xpcEgAUgtyZXBsYWNlQ2xpcBJOChNzZXRfZXhwb3J0X3NldHRpbmdzGBcgASgL'
     'MhwuZnJhbWl4LnYxLlNldEV4cG9ydFNldHRpbmdzSABSEXNldEV4cG9ydFNldHRpbmdzEkQKD2'
     'VuYWJsZV9hdXRvc2F2ZRgYIAEoCzIZLmZyYW1peC52MS5FbmFibGVBdXRvc2F2ZUgAUg5lbmFi'
-    'bGVBdXRvc2F2ZUIGCgRraW5k');
+    'bGVBdXRvc2F2ZRJBCg5leHBvcnRfcHJvamVjdBgZIAEoCzIYLmZyYW1peC52MS5FeHBvcnRQcm'
+    '9qZWN0SABSDWV4cG9ydFByb2plY3RCBgoEa2luZA==');
+
+@$core.Deprecated('Use exportProjectDescriptor instead')
+const ExportProject$json = {
+  '1': 'ExportProject',
+  '2': [
+    {'1': 'path', '3': 1, '4': 1, '5': 9, '10': 'path'},
+  ],
+};
+
+/// Descriptor for `ExportProject`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List exportProjectDescriptor =
+    $convert.base64Decode('Cg1FeHBvcnRQcm9qZWN0EhIKBHBhdGgYASABKAlSBHBhdGg=');
 
 @$core.Deprecated('Use enableAutosaveDescriptor instead')
 const EnableAutosave$json = {
@@ -849,6 +871,15 @@ const Event$json = {
       '9': 0,
       '10': 'engineStopped'
     },
+    {
+      '1': 'export_finished',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ExportFinished',
+      '9': 0,
+      '10': 'exportFinished'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -867,7 +898,22 @@ final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     'xheWhlYWRDaGFuZ2VkSABSD3BsYXloZWFkQ2hhbmdlZBJECg90aHVtYm5haWxfcmVhZHkYByAB'
     'KAsyGS5mcmFtaXgudjEuVGh1bWJuYWlsUmVhZHlIAFIOdGh1bWJuYWlsUmVhZHkSQQoOZW5naW'
     '5lX3N0b3BwZWQYCCABKAsyGC5mcmFtaXgudjEuRW5naW5lU3RvcHBlZEgAUg1lbmdpbmVTdG9w'
-    'cGVkQgYKBGtpbmQ=');
+    'cGVkEkQKD2V4cG9ydF9maW5pc2hlZBgJIAEoCzIZLmZyYW1peC52MS5FeHBvcnRGaW5pc2hlZE'
+    'gAUg5leHBvcnRGaW5pc2hlZEIGCgRraW5k');
+
+@$core.Deprecated('Use exportFinishedDescriptor instead')
+const ExportFinished$json = {
+  '1': 'ExportFinished',
+  '2': [
+    {'1': 'ok', '3': 1, '4': 1, '5': 8, '10': 'ok'},
+    {'1': 'reason', '3': 2, '4': 1, '5': 9, '10': 'reason'},
+  ],
+};
+
+/// Descriptor for `ExportFinished`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List exportFinishedDescriptor = $convert.base64Decode(
+    'Cg5FeHBvcnRGaW5pc2hlZBIOCgJvaxgBIAEoCFICb2sSFgoGcmVhc29uGAIgASgJUgZyZWFzb2'
+    '4=');
 
 @$core.Deprecated('Use engineStoppedDescriptor instead')
 const EngineStopped$json = {

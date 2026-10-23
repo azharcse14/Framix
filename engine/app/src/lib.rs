@@ -1,6 +1,7 @@
 //! Command handling, undo, and orchestration on top of `framix_core`.
 
 pub mod engine;
+pub mod export;
 pub mod history;
 pub mod preview;
 pub mod project;

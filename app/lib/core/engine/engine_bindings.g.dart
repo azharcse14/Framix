@@ -93,9 +93,9 @@ const int ENGINE_MEDIA_VIDEO = 1;
 
 const int ENGINE_OK = 0;
 
-const int ENGINE_PLATFORM_VERSION = 2;
+const int ENGINE_PLATFORM_VERSION = 3;
 
-const int ENGINE_PROTOCOL_VERSION = 20;
+const int ENGINE_PROTOCOL_VERSION = 21;
 
 final class Engine extends ffi.Opaque {}
 
@@ -131,8 +131,10 @@ typedef DartEngineEventCallbackFunction = void Function(
   int len,
 );
 
-/// Callbacks the platform layer gives the engine once at startup. Each is called on an engine
-/// thread and must return at once; `ctx` is passed back unchanged and must live for the process.
+/// Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
+/// and must live for the process. The preview and thumbnail calls come from the engine thread
+/// and must return at once; the `encoder_*` calls come only from the export worker thread and
+/// may block (docs/adr/0005-export-encoder.md).
 final class EnginePlatform extends ffi.Struct {
   /// Must be [`ENGINE_PLATFORM_VERSION`].
   @ffi.Uint32()
@@ -182,6 +184,52 @@ final class EnginePlatform extends ffi.Struct {
   >
   request_thumbnail;
 
+  /// Opens a hardware video encoder writing an MP4 to `path` (`path_len` UTF-8 bytes, valid
+  /// for the call): `width` x `height` (even), `fps` frames per second, `kbps` kbit/s. Returns
+  /// the encoder, or null if it could not open.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Pointer<ffi.Void> Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Uint32 width,
+        ffi.Uint32 height,
+        ffi.Uint32 fps,
+        ffi.Uint32 kbps,
+        ffi.Pointer<ffi.Uint8> path,
+        ffi.Size path_len,
+      )
+    >
+  >
+  encoder_open;
+
+  /// Appends the previous frame (if any), then returns the render target for the frame at
+  /// `time_us` microseconds: a BGRA texture (an `id<MTLTexture>` on iOS) valid until the next
+  /// `encoder_frame` or `encoder_finish`. Null on failure.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Pointer<ffi.Void> Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Void> encoder,
+        ffi.Int64 time_us,
+      )
+    >
+  >
+  encoder_frame;
+
+  /// `ok`: appends the last frame and closes the file; otherwise cancels and removes it.
+  /// Returns once the file is closed, frees `encoder`, and gives [`crate::ENGINE_OK`] or
+  /// another value for failure. Called exactly once per opened encoder.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Int32 Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Void> encoder,
+        ffi.Bool ok,
+      )
+    >
+  >
+  encoder_finish;
+
   static ffi.Pointer<EnginePlatform> $allocate(
     ffi.Allocator $allocator, {
     required int version,
@@ -219,12 +267,49 @@ final class EnginePlatform extends ffi.Struct {
       >
     >
     request_thumbnail,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Pointer<ffi.Void> Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Uint32 width,
+          ffi.Uint32 height,
+          ffi.Uint32 fps,
+          ffi.Uint32 kbps,
+          ffi.Pointer<ffi.Uint8> path,
+          ffi.Size path_len,
+        )
+      >
+    >
+    encoder_open,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Pointer<ffi.Void> Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Void> encoder,
+          ffi.Int64 time_us,
+        )
+      >
+    >
+    encoder_frame,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Int32 Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Void> encoder,
+          ffi.Bool ok,
+        )
+      >
+    >
+    encoder_finish,
   }) => $allocator<EnginePlatform>()
     ..ref.version = version
     ..ref.ctx = ctx
     ..ref.create_preview_texture = create_preview_texture
     ..ref.frame_available = frame_available
-    ..ref.request_thumbnail = request_thumbnail;
+    ..ref.request_thumbnail = request_thumbnail
+    ..ref.encoder_open = encoder_open
+    ..ref.encoder_frame = encoder_frame
+    ..ref.encoder_finish = encoder_finish;
 }
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,

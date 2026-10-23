@@ -112,6 +112,22 @@ impl Engine {
         }
     }
 
+    /// Lets this engine accept ExportProject (it has an encoder); without it the command is
+    /// refused.
+    pub fn with_export(self) -> Self {
+        self
+    }
+
+    /// The export accepted by the last command, for the worker to run; None if there is none.
+    pub fn take_export_job(&mut self) -> Option<crate::export::ExportJob> {
+        None
+    }
+
+    /// The worker's result for the running export: ExportFinished.
+    pub fn export_finished(&mut self, _result: Result<(), String>) -> Event {
+        command_failed("not implemented yet")
+    }
+
     /// Whether [`Engine::autosave`] has something to write.
     pub fn autosave_pending(&self) -> bool {
         self.autosave.is_some() && *self.history.timeline() != self.autosaved
@@ -328,6 +344,7 @@ impl Engine {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
+            command::Kind::ExportProject(_) => Err("not implemented yet".into()),
             command::Kind::SetExportSettings(op) => {
                 let settings = export_settings(op)?;
                 timeline(self.edit(|tl| {
