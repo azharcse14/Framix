@@ -195,6 +195,9 @@ pub enum TimelineError {
     /// Merging needs both clips to look the same.
     #[error("clips have different transforms")]
     TransformsDiffer,
+    /// The replacement video is shorter than the clip.
+    #[error("replacement media is shorter than the clip")]
+    MediaTooShort,
 }
 
 /// The editable timeline of a video project.
@@ -572,6 +575,13 @@ impl Timeline {
             }
         }
         Ok(())
+    }
+
+    /// Puts `media` under `clip`, keeping its track, start and duration: the media is
+    /// registered under a new id, the source starts at 0 and the transform resets. A video must
+    /// be at least as long as the clip. The old media stays registered (undo needs it).
+    pub fn replace_clip(&mut self, clip: ClipId, _media: Media) -> Result<MediaId, TimelineError> {
+        Err(TimelineError::UnknownClip(clip))
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.

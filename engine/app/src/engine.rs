@@ -283,6 +283,7 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
+            command::Kind::ReplaceClip(_) => Err("not implemented yet".into()),
             command::Kind::SetClipTransform(op) => {
                 let turns = match op.rotation {
                     0 => 0,

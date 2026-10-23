@@ -29,7 +29,16 @@ message Command {
     Seek seek = 19;
     RequestThumbnails request_thumbnails = 20;
     SetClipTransform set_clip_transform = 21;
+    ReplaceClip replace_clip = 22;
   }
+}
+
+// Puts newly picked media under a clip, keeping its track, start and duration (the source
+// starts at 0, the transform resets). A video must be at least as long as the clip. One undo
+// step; answered with TimelineChanged.
+message ReplaceClip {
+  uint64 clip_id = 1;
+  MediaItem media = 2;
 }
 
 // Sets a clip's crop (source pixels cut from each side; at least one pixel must remain),

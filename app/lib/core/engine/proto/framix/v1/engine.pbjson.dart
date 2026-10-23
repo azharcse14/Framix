@@ -238,6 +238,15 @@ const Command$json = {
       '9': 0,
       '10': 'setClipTransform'
     },
+    {
+      '1': 'replace_clip',
+      '3': 22,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ReplaceClip',
+      '9': 0,
+      '10': 'replaceClip'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -268,7 +277,29 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'sYEyABKAsyDy5mcmFtaXgudjEuU2Vla0gAUgRzZWVrEk0KEnJlcXVlc3RfdGh1bWJuYWlscxgU'
     'IAEoCzIcLmZyYW1peC52MS5SZXF1ZXN0VGh1bWJuYWlsc0gAUhFyZXF1ZXN0VGh1bWJuYWlscx'
     'JLChJzZXRfY2xpcF90cmFuc2Zvcm0YFSABKAsyGy5mcmFtaXgudjEuU2V0Q2xpcFRyYW5zZm9y'
-    'bUgAUhBzZXRDbGlwVHJhbnNmb3JtQgYKBGtpbmQ=');
+    'bUgAUhBzZXRDbGlwVHJhbnNmb3JtEjsKDHJlcGxhY2VfY2xpcBgWIAEoCzIWLmZyYW1peC52MS'
+    '5SZXBsYWNlQ2xpcEgAUgtyZXBsYWNlQ2xpcEIGCgRraW5k');
+
+@$core.Deprecated('Use replaceClipDescriptor instead')
+const ReplaceClip$json = {
+  '1': 'ReplaceClip',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {
+      '1': 'media',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.MediaItem',
+      '10': 'media'
+    },
+  ],
+};
+
+/// Descriptor for `ReplaceClip`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List replaceClipDescriptor = $convert.base64Decode(
+    'CgtSZXBsYWNlQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSKgoFbWVkaWEYAiABKAsyFC'
+    '5mcmFtaXgudjEuTWVkaWFJdGVtUgVtZWRpYQ==');
 
 @$core.Deprecated('Use setClipTransformDescriptor instead')
 const SetClipTransform$json = {

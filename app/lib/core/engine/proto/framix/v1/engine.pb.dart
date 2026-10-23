@@ -43,6 +43,7 @@ enum Command_Kind {
   seek,
   requestThumbnails,
   setClipTransform,
+  replaceClip,
   notSet
 }
 
@@ -70,6 +71,7 @@ class Command extends $pb.GeneratedMessage {
     Seek? seek,
     RequestThumbnails? requestThumbnails,
     SetClipTransform? setClipTransform,
+    ReplaceClip? replaceClip,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -93,6 +95,7 @@ class Command extends $pb.GeneratedMessage {
     if (seek != null) result.seek = seek;
     if (requestThumbnails != null) result.requestThumbnails = requestThumbnails;
     if (setClipTransform != null) result.setClipTransform = setClipTransform;
+    if (replaceClip != null) result.replaceClip = replaceClip;
     return result;
   }
 
@@ -127,6 +130,7 @@ class Command extends $pb.GeneratedMessage {
     19: Command_Kind.seek,
     20: Command_Kind.requestThumbnails,
     21: Command_Kind.setClipTransform,
+    22: Command_Kind.replaceClip,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -154,7 +158,8 @@ class Command extends $pb.GeneratedMessage {
       18,
       19,
       20,
-      21
+      21,
+      22
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -198,6 +203,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: RequestThumbnails.$_createMessage)
     ..aOM<SetClipTransform>(21, _omitFieldNames ? '' : 'setClipTransform',
         subBuilder: SetClipTransform.$_createMessage)
+    ..aOM<ReplaceClip>(22, _omitFieldNames ? '' : 'replaceClip',
+        subBuilder: ReplaceClip.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -241,6 +248,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
   @$pb.TagNumber(21)
+  @$pb.TagNumber(22)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -263,6 +271,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
   @$pb.TagNumber(21)
+  @$pb.TagNumber(22)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -495,6 +504,93 @@ class Command extends $pb.GeneratedMessage {
   void clearSetClipTransform() => $_clearField(21);
   @$pb.TagNumber(21)
   SetClipTransform ensureSetClipTransform() => $_ensure(20);
+
+  @$pb.TagNumber(22)
+  ReplaceClip get replaceClip => $_getN(21);
+  @$pb.TagNumber(22)
+  set replaceClip(ReplaceClip value) => $_setField(22, value);
+  @$pb.TagNumber(22)
+  $core.bool hasReplaceClip() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearReplaceClip() => $_clearField(22);
+  @$pb.TagNumber(22)
+  ReplaceClip ensureReplaceClip() => $_ensure(21);
+}
+
+/// Puts newly picked media under a clip, keeping its track, start and duration (the source
+/// starts at 0, the transform resets). A video must be at least as long as the clip. One undo
+/// step; answered with TimelineChanged.
+class ReplaceClip extends $pb.GeneratedMessage {
+  factory ReplaceClip({
+    $fixnum.Int64? clipId,
+    MediaItem? media,
+  }) {
+    final result = ReplaceClip._();
+    if (clipId != null) result.clipId = clipId;
+    if (media != null) result.media = media;
+    return result;
+  }
+
+  ReplaceClip._();
+
+  factory ReplaceClip.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ReplaceClip()..mergeFromBuffer(data, registry);
+  factory ReplaceClip.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ReplaceClip()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ReplaceClip',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ReplaceClip.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<MediaItem>(2, _omitFieldNames ? '' : 'media',
+        subBuilder: MediaItem.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ReplaceClip clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ReplaceClip copyWith(void Function(ReplaceClip) updates) =>
+      super.copyWith((message) => updates(message as ReplaceClip))
+          as ReplaceClip;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ReplaceClip() / ReplaceClip.new instead')
+  static ReplaceClip create() => ReplaceClip._();
+  static $pb.GeneratedMessage $_createMessage() => ReplaceClip._();
+  @$core.override
+  ReplaceClip createEmptyInstance() => ReplaceClip._();
+  @$core.pragma('dart2js:noInline')
+  static ReplaceClip getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ReplaceClip>(
+          ReplaceClip.$_createMessage);
+  static ReplaceClip? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  MediaItem get media => $_getN(1);
+  @$pb.TagNumber(2)
+  set media(MediaItem value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMedia() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMedia() => $_clearField(2);
+  @$pb.TagNumber(2)
+  MediaItem ensureMedia() => $_ensure(1);
 }
 
 /// Sets a clip's crop (source pixels cut from each side; at least one pixel must remain),
