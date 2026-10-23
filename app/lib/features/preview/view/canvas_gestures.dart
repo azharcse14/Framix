@@ -25,8 +25,11 @@ class CanvasGestures extends StatefulWidget {
 class _CanvasGesturesState extends State<CanvasGestures> {
   int _gesture = 0;
 
-  /// The clip the gesture acts on, its place so far, and its scale when the gesture began.
+  /// The clip the gesture acts on, its place so far, and the scale `d.scale` is relative to.
   ({int clip, double x, double y, int scale})? _start;
+
+  /// The scale last sent; the base again when the recognizer restarts.
+  late int _scale;
 
   Clip? _active(TimelineChanged t) {
     final id = t.activeClip;
@@ -52,7 +55,20 @@ class _CanvasGesturesState extends State<CanvasGestures> {
             behavior: HitTestBehavior.opaque,
             onScaleStart: (_) {
               if (clip == null) return;
+              final going = _start;
+              // A finger landed or lifted mid-gesture: the recognizer restarts. Carry on from
+              // what was sent (the engine's reply may not be here yet), as the same undo step.
+              if (going != null && going.clip == clip.id.toInt()) {
+                _start = (
+                  clip: going.clip,
+                  x: going.x,
+                  y: going.y,
+                  scale: _scale,
+                );
+                return;
+              }
               _gesture = cubit.nextGesture();
+              _scale = clip.scale;
               _start = (
                 clip: clip.id.toInt(),
                 x: clip.x.toDouble(),
@@ -76,16 +92,20 @@ class _CanvasGesturesState extends State<CanvasGestures> {
                 scale: start.scale,
               );
               _start = moved;
+              _scale = (moved.scale * d.scale).round();
               // The engine checks the ranges; an out-of-range edit is refused there.
               cubit.placeClip(
                 clip,
                 x: moved.x.round(),
                 y: moved.y.round(),
-                scale: (moved.scale * d.scale).round(),
+                scale: _scale,
                 gesture: _gesture,
               );
             },
-            onScaleEnd: (_) => _start = null,
+            // Fingers still down: a restart follows, so the gesture is not over.
+            onScaleEnd: (d) {
+              if (d.pointerCount == 0) _start = null;
+            },
             child: Stack(
               children: [if (clip != null) _outline(context, clip, size)],
             ),
