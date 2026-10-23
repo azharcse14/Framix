@@ -33,6 +33,8 @@ pub struct Engine {
     autosave: Option<PathBuf>,
     /// The timeline last autosaved or recovered; autosave writes only when it differs.
     autosaved: Timeline,
+    /// The last autosave failed and was reported; later failures stay quiet until a success.
+    autosave_failed: bool,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -95,12 +97,29 @@ impl Engine {
                 // The kind only: an io error's text could name the path.
                 (self.store()?.save(&path, &bytes)).map_err(|e| e.kind().to_string())
             });
-        // ponytail: a failed save is retried after the next change, not every second, so a
-        // full disk reports once per edit; retry on a timer if lost idle edits matter.
-        self.autosaved = self.history.timeline().clone();
-        saved
-            .err()
-            .map(|reason| command_failed(format!("autosave failed: {reason}")))
+        match saved {
+            Ok(()) => {
+                self.autosaved = self.history.timeline().clone();
+                self.autosave_failed = false;
+                None
+            }
+            // Still unsaved, so the next call tries again; report only the first failure.
+            Err(_) if self.autosave_failed => None,
+            Err(reason) => {
+                self.autosave_failed = true;
+                Some(command_failed(format!("autosave failed: {reason}")))
+            }
+        }
+    }
+
+    /// Whether [`Engine::autosave`] has something to write.
+    pub fn autosave_pending(&self) -> bool {
+        self.autosave.is_some() && *self.history.timeline() != self.autosaved
+    }
+
+    /// Whether EnableAutosave succeeded.
+    pub fn autosave_enabled(&self) -> bool {
+        self.autosave.is_some()
     }
 
     /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
@@ -437,6 +456,14 @@ impl Engine {
     /// exists but doesn't load or decode is refused and autosave stays off, so it is kept.
     fn enable_autosave(&mut self, path: &str) -> Result<(), String> {
         let path = PathBuf::from(path);
+        // Already on (a retry or a lifecycle repeat): reloading would drop unsaved edits.
+        if let Some(on) = &self.autosave {
+            return if *on == path {
+                Ok(())
+            } else {
+                Err("autosave is already on for another file".into())
+            };
+        }
         match self.store()?.load(&path) {
             Ok(bytes) => {
                 let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;

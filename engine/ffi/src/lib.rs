@@ -3,9 +3,7 @@
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
 use std::time::Instant;
 
-use framix_app::engine::AUTOSAVE_DELAY;
-
-use framix_app::engine::command_failed;
+use framix_app::engine::{AUTOSAVE_DELAY, command_failed};
 use framix_app::preview::PlatformTexture;
 use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
@@ -229,22 +227,34 @@ fn serve(
             ),
         );
     // Changes are saved at most AUTOSAVE_DELAY after they happen, even while commands keep
-    // coming (a long scrub or drag); autosave is a no-op when nothing changed.
-    let mut due = Instant::now() + AUTOSAVE_DELAY;
+    // coming (a long scrub or drag). With nothing to save the thread sleeps until a message.
+    let mut due: Option<Instant> = None;
     loop {
-        let message = match inbox.recv_timeout(due.saturating_duration_since(Instant::now())) {
+        let message = match due {
+            None => inbox.recv().map_err(|_| RecvTimeoutError::Disconnected),
+            Some(due) => inbox.recv_timeout(due.saturating_duration_since(Instant::now())),
+        };
+        let message = match message {
             Ok(message) => Some(message),
             Err(RecvTimeoutError::Timeout) => None,
             // Every sender gone: nothing more comes.
             Err(RecvTimeoutError::Disconnected) => break,
         };
-        if Instant::now() >= due {
-            due = Instant::now() + AUTOSAVE_DELAY;
-            if let Some(failed) = engine.autosave() {
-                deliver(*callback, &failed);
-            }
+        if due.is_some_and(|due| Instant::now() >= due) {
+            autosave(&mut engine, *callback);
+            // A failed save stays pending and is tried again after another delay.
+            due = engine
+                .autosave_pending()
+                .then(|| Instant::now() + AUTOSAVE_DELAY);
         }
         let Some(message) = message else { continue };
+        // Anything but a callback change may edit the project.
+        if due.is_none()
+            && engine.autosave_enabled()
+            && !matches!(message, EngineMessage::SetCallback(_))
+        {
+            due = Some(Instant::now() + AUTOSAVE_DELAY);
+        }
         let event = match message {
             EngineMessage::SetCallback(new) => {
                 *callback = new;
@@ -253,9 +263,7 @@ fn serve(
             EngineMessage::Shutdown => {
                 *stopping = true;
                 // The last save happens before EngineStopped.
-                if let Some(failed) = engine.autosave() {
-                    deliver(*callback, &failed);
-                }
+                autosave(&mut engine, *callback);
                 break;
             }
             EngineMessage::Command(bytes) => match Command::decode(bytes.as_slice()) {
@@ -277,6 +285,15 @@ fn serve(
             }
         };
         deliver(*callback, &event);
+    }
+}
+
+/// Autosaves, reporting a failure or a panic as an event.
+fn autosave(engine: &mut framix_app::engine::Engine, callback: EngineEventCallback) {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.autosave())) {
+        Ok(None) => {}
+        Ok(Some(failed)) => deliver(callback, &failed),
+        Err(_) => deliver(callback, &command_failed("internal error")),
     }
 }
 
