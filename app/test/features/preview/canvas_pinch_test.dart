@@ -98,4 +98,53 @@ void main() {
     await b.up();
     expect(cubit.placed.last.x, closeTo(dragged, 50));
   });
+
+  testWidgets('after a pinch, the next drag is a new gesture from the mirror', (
+    tester,
+  ) async {
+    final engine = FramixEngine.create();
+    final cubit = RecordingTimeline(engine)..seed(timeline());
+    addTearDown(() async {
+      await cubit.close();
+      engine.dispose();
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: framixDarkTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<TimelineCubit>.value(
+          value: cubit,
+          child: const Center(
+            child: SizedBox(width: 400, height: 225, child: CanvasGestures()),
+          ),
+        ),
+      ),
+    );
+    final centre = tester.getCenter(find.byType(CanvasGestures));
+    final a = await tester.startGesture(
+      centre - const Offset(40, 0),
+      pointer: 1,
+    );
+    final b = await tester.startGesture(
+      centre + const Offset(40, 0),
+      pointer: 2,
+    );
+    await tester.pump();
+    for (var i = 1; i <= 4; i++) {
+      await a.moveTo(centre - Offset(40.0 + 10 * i, 0));
+      await b.moveTo(centre + Offset(40.0 + 10 * i, 0));
+      await tester.pump();
+    }
+    // Both lift with no move between: the recognizer reports no final end.
+    await a.up();
+    await b.up();
+    await tester.pump();
+    final pinch = cubit.placed.last.gesture;
+    await tester.drag(find.byType(CanvasGestures), const Offset(100, 0));
+    await tester.pump();
+    expect(cubit.placed.last.gesture, isNot(pinch));
+    // The mirror still says scale 1000: the drag starts from it, not the pinch.
+    expect(cubit.placed.last.scale, 1000);
+  });
 }
