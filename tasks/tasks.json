@@ -1592,15 +1592,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-23",
+   "done": "2026-10-23",
+   "commit": "861e833",
+   "branch": "p1-034-ios-encoder",
    "notes": [
     {
      "date": "2026-10-23",
      "text": "Encoder reads Timeline::export(): frame_size(aspect) and effective_kbps(aspect) from core::export (P1-032); don't re-derive sizes or bitrates. The device check for unsupported settings (4K60, HEVC) is still open."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "Done for iOS only; Android is P1-069 (user chose the split, 2026-10-23). Verified on the iOS 27 simulator with a dart-define spike (removed before merge; recover from commit 613351c): MP4 avc1 1080x1920, 30 fps, 3.0 s, test-pattern frames. Not measured: encode speed (no device baseline yet); a new MTLTexture + wgpu wrap per frame breaks performance.md pooling - cache per pool buffer when export gets a benchmark. BT.709 tagging unchecked with real photos until the Decoder port."
     }
    ],
    "source": "plan"
@@ -1622,7 +1626,16 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "P1-034: export runs on the framix-export worker (ADR 0005) and ends with one ExportFinished; there is no progress or cancel yet, and engine_destroy does not stop a running export."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "From P1-034 review: the export worker outlives engine_destroy and has no cancel flag (hot restart can start a second export to the same path); add cancel/join on destroy, an iOS background task (Metal submits fail in background), and send worker panics to Sentry."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1641,7 +1654,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-23",
+     "text": "P1-034 writes the MP4 to the path ExportProject gives (the spike uses the app's temp folder)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13185,6 +13203,10 @@
     {
      "date": "2026-10-23",
      "text": "Show TimelineChanged.export.estimated_bytes (P1-033) as MB/GB, labelled as an estimate (audio is counted even without audio clips)."
+    },
+    {
+     "date": "2026-10-23",
+     "text": "P1-034: ExportProject{path} -> CommandAccepted, then ExportFinished{ok, reason}. Remove app/lib/core/engine/spike_export.dart when the export screen lands."
     }
    ],
    "source": "added"
@@ -13279,6 +13301,26 @@
    "title": "Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-069",
+   "section": "P1",
+   "group": "Export",
+   "title": "Android export encoder: MediaCodec H.264 + MediaMuxer behind encoder_open/_frame/_finish, the codec's input Surface as the wgpu render target (ADR 0005; same surface path as the preview)",
+   "tags": [
+    "Native",
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,

@@ -406,7 +406,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 - [x] `P1-032` Resolution (720p, 1080p, 2K, 4K), frame rate (24/30/60), bitrate \[Rust\]\[Native\]
 - [x] `P1-033` Estimated file size dekhano \[Rust\]
-- [ ] `P1-034` Hardware encoder (VideoToolbox, MediaCodec) \[Native\]
+- [x] `P1-034` Hardware encoder (VideoToolbox, MediaCodec) \[Native\]
 - [ ] `P1-035` Progress, cancel, fail handling \[Rust\]\[Dart\]
 - [ ] `P1-036` Save to gallery, share sheet \[Dart\]
 - [ ] `P1-037` **1b:** Platform export preset (TikTok/Reels/Shorts 9:16 1080p, YouTube 16:9, Instagram 4:5) \[Dart\]\[Rust\]
@@ -444,6 +444,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-066` Autosave wiring: platform gives the app-support dir (create it), app sends EnableAutosave at startup before edits, shows 'Shesh kaj porjonto save ache' after a recovery, and decides clean exit vs crash (the file stays after a normal shutdown; add Discard/Disable if needed) \[Dart\] \[Native\]
 - [ ] `P1-067` Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart \[Rust\]
 - [ ] `P1-068` GLES preview colours too dark (mid-gray ~0x33 vs 0x80; Vulkan correct): find the extra sRGB step in the GLES surface/blit path (ADR 0004, P1-004) \[Rust\]
+- [ ] `P1-069` Android export encoder: MediaCodec H.264 + MediaMuxer behind encoder_open/_frame/_finish, the codec's input Surface as the wgpu render target (ADR 0005; same surface path as the preview) \[Native\] \[Rust\]
 
 ## Phase 2: Audio
 
