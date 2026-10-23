@@ -36,14 +36,46 @@ pub trait EncoderHost: Send + Sync {
     fn open(&self, config: &EncoderConfig) -> Result<Box<dyn Encoder>, String>;
 }
 
-/// Renders `timeline` frame by frame into an encoder opened from its export settings.
+/// Renders `timeline` frame by frame into an encoder opened from its export settings. A partial
+/// last frame is encoded whole. Any failure cancels the file.
 pub fn run_export(
-    _timeline: &Timeline,
-    _renderer: &mut dyn PreviewRenderer,
-    _host: &dyn EncoderHost,
-    _path: &str,
+    timeline: &Timeline,
+    renderer: &mut dyn PreviewRenderer,
+    host: &dyn EncoderHost,
+    path: &str,
 ) -> Result<(), String> {
-    Err("not implemented yet".into())
+    let settings = timeline.export();
+    let (width, height) = settings.frame_size(timeline.aspect());
+    let config = EncoderConfig {
+        width,
+        height,
+        fps: settings.fps.per_second(),
+        kbps: settings.effective_kbps(timeline.aspect()),
+        path: path.to_owned(),
+    };
+    let rate = settings.fps.rate();
+    let frames = frame_count(rate, timeline.duration()).ok_or("timeline too long")?;
+    let mut encoder = host.open(&config)?;
+    let rendered = (0..frames).try_for_each(|n| {
+        let time = rate.frame_to_time(n).ok_or("frame time out of range")?;
+        let target = encoder.frame(time)?;
+        renderer.draw(target, time)
+    });
+    match rendered {
+        Ok(()) => encoder.finish(true),
+        Err(e) => {
+            // The render error is the one worth reporting; the cancel's own result is not.
+            let _ = encoder.finish(false);
+            Err(e)
+        }
+    }
+}
+
+/// Frames needed to cover `duration` at `rate`, counting a partial last frame.
+fn frame_count(rate: framix_core::time::Rate, duration: Time) -> Option<i64> {
+    let whole = rate.time_to_frame(duration)?;
+    let covered = rate.frame_to_time(whole)?;
+    Some(if covered < duration { whole + 1 } else { whole })
 }
 
 /// An accepted export, for the worker: a snapshot of the timeline and where the file goes.

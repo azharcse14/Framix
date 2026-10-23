@@ -35,6 +35,12 @@ pub struct Engine {
     autosaved: Timeline,
     /// The last autosave failed and was reported; later failures stay quiet until a success.
     autosave_failed: bool,
+    /// ExportProject is possible (the platform has an encoder).
+    exports: bool,
+    /// An export was accepted and has not finished.
+    exporting: bool,
+    /// The accepted export, until the worker takes it.
+    export_job: Option<crate::export::ExportJob>,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -115,17 +121,46 @@ impl Engine {
     /// Lets this engine accept ExportProject (it has an encoder); without it the command is
     /// refused.
     pub fn with_export(self) -> Self {
-        self
+        Self {
+            exports: true,
+            ..self
+        }
     }
 
     /// The export accepted by the last command, for the worker to run; None if there is none.
     pub fn take_export_job(&mut self) -> Option<crate::export::ExportJob> {
-        None
+        self.export_job.take()
     }
 
     /// The worker's result for the running export: ExportFinished.
-    pub fn export_finished(&mut self, _result: Result<(), String>) -> Event {
-        command_failed("not implemented yet")
+    pub fn export_finished(&mut self, result: Result<(), String>) -> Event {
+        self.exporting = false;
+        Event {
+            kind: Some(proto::event::Kind::ExportFinished(proto::ExportFinished {
+                ok: result.is_ok(),
+                reason: result.err().unwrap_or_default(),
+            })),
+        }
+    }
+
+    /// Accepts an export of the current timeline: one at a time, never of an empty timeline.
+    fn start_export(&mut self, path: String) -> Result<(), String> {
+        if !self.exports {
+            return Err("this engine cannot export".into());
+        }
+        if self.exporting {
+            return Err("an export is already running".into());
+        }
+        let timeline = self.history.timeline();
+        if timeline.duration() == Time(0) {
+            return Err("nothing to export".into());
+        }
+        self.export_job = Some(crate::export::ExportJob {
+            timeline: timeline.clone(),
+            path,
+        });
+        self.exporting = true;
+        Ok(())
     }
 
     /// Whether [`Engine::autosave`] has something to write.
@@ -344,7 +379,9 @@ impl Engine {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
-            command::Kind::ExportProject(_) => Err("not implemented yet".into()),
+            command::Kind::ExportProject(op) => {
+                self.start_export(op.path).map(|()| Reply::Accepted)
+            }
             command::Kind::SetExportSettings(op) => {
                 let settings = export_settings(op)?;
                 timeline(self.edit(|tl| {

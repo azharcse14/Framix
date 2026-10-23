@@ -62,7 +62,7 @@ fn an_export_is_accepted_once_and_finishes_with_one_event() {
     ));
     let job = engine.take_export_job().expect("a job");
     assert_eq!(job.path, "/tmp/out.mp4");
-    assert_eq!(job.timeline.duration().0 > 0, true);
+    assert!(job.timeline.duration().0 > 0);
     assert!(engine.take_export_job().is_none(), "taken once");
 
     assert!(failed(&export(&mut engine)), "one export at a time");

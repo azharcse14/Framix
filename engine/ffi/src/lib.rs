@@ -64,6 +64,8 @@ enum EngineMessage {
     PreviewTexture(Result<PlatformTexture, String>),
     /// The platform's answer to a thumbnail request: the image file's path, or why not.
     Thumbnail(framix_app::thumbnail::ThumbnailKey, Result<String, String>),
+    /// The export worker's result for the running export.
+    Export(Result<(), String>),
     /// Stop after the messages queued before this one. Needed because pending platform
     /// answers hold senders, so the queue never closes by itself.
     Shutdown,
@@ -192,7 +194,9 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 EngineMessage::SetCallback(new) => callback = new,
                 EngineMessage::Shutdown => break,
                 EngineMessage::Command(_) => deliver(callback, &command_failed("engine stopped")),
-                EngineMessage::PreviewTexture(_) | EngineMessage::Thumbnail(..) => {}
+                EngineMessage::PreviewTexture(_)
+                | EngineMessage::Thumbnail(..)
+                | EngineMessage::Export(_) => {}
             }
         }
     }
@@ -216,7 +220,9 @@ fn serve(
     let thumbnails = platform::PlatformHost {
         engine: host.engine.clone(),
     };
+    let exports = host.engine.clone();
     let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
+        .with_export()
         .with_thumbnails(Box::new(thumbnails))
         .with_preview(
             Box::new(host),
@@ -267,10 +273,17 @@ fn serve(
                 let _ = autosave(&mut engine, *callback);
                 break;
             }
-            EngineMessage::Command(bytes) => match Command::decode(bytes.as_slice()) {
-                Ok(command) => guarded(|| engine.handle(command)),
-                Err(_) => command_failed("undecodable command"),
-            },
+            EngineMessage::Command(bytes) => {
+                let reply = match Command::decode(bytes.as_slice()) {
+                    Ok(command) => guarded(|| engine.handle(command)),
+                    Err(_) => command_failed("undecodable command"),
+                };
+                if let Some(job) = engine.take_export_job() {
+                    start_export(job, exports.clone());
+                }
+                reply
+            }
+            EngineMessage::Export(result) => guarded(|| engine.export_finished(result)),
             EngineMessage::PreviewTexture(texture) => {
                 guarded(|| engine.preview_texture_ready(texture))
             }
@@ -286,6 +299,33 @@ fn serve(
             }
         };
         deliver(*callback, &event);
+    }
+}
+
+/// Runs `job` on its own thread (the export worker) and sends the result back to the engine
+/// thread, which answers ExportFinished. The engine never waits for it.
+fn start_export(job: framix_app::export::ExportJob, engine: Sender<EngineMessage>) {
+    let worker = engine.clone();
+    let spawned = std::thread::Builder::new()
+        .name("framix-export".into())
+        .spawn(move || {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                // SAFETY: run_export draws only into targets the platform encoder returned
+                // (encoder_frame's contract: a live BGRA render target until the next call).
+                let mut renderer = unsafe { framix_render::GpuRenderer::new() };
+                framix_app::export::run_export(
+                    &job.timeline,
+                    &mut renderer,
+                    &platform::PlatformEncoderHost,
+                    &job.path,
+                )
+            }))
+            .unwrap_or_else(|_| Err("internal error".into()));
+            // The engine may have stopped; then nobody waits for the result.
+            let _ = worker.send(EngineMessage::Export(result));
+        });
+    if spawned.is_err() {
+        let _ = engine.send(EngineMessage::Export(Err("no export thread".into())));
     }
 }
 

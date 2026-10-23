@@ -736,8 +736,8 @@ impl GpuRenderer {
     ///
     /// # Safety
     /// `draw` must only get textures whose `handle` came from a successful
-    /// `EnginePreviewTextureDone` (a live `id<MTLTexture>` on Apple, an owned `ANativeWindow*` on
-    /// Android) and stays alive for the call.
+    /// `EnginePreviewTextureDone` or `encoder_frame` (a live BGRA `id<MTLTexture>` with render
+    /// target usage on Apple, an owned `ANativeWindow*` on Android) and stays alive for the call.
     pub unsafe fn new() -> Self {
         Self { gpu: None }
     }
