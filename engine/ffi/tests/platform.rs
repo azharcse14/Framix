@@ -76,6 +76,21 @@ struct Session {
     _turn: MutexGuard<'static, ()>,
 }
 
+impl Drop for Session {
+    /// Tests destroy the engine themselves; hold the turn until its last event (P1-044:
+    /// destroy returns at once) so the marker can't land in the next session.
+    fn drop(&mut self) {
+        while let Ok(bytes) = self.events.recv_timeout(Duration::from_secs(5)) {
+            if matches!(
+                Event::decode(bytes.as_slice()).map(|e| e.kind),
+                Ok(Some(event::Kind::EngineStopped(_)))
+            ) {
+                break;
+            }
+        }
+    }
+}
+
 impl Session {
     fn start(mode: u8) -> Self {
         static REGISTER: Once = Once::new();
