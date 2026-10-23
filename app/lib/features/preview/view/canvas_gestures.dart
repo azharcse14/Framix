@@ -10,6 +10,8 @@ import '../../timeline/bloc/timeline_cubit.dart';
 
 /// Drag and pinch on the preview move and scale the active clip; an outline shows its frame.
 /// Positions are 1/10000 of the canvas from its centre, scale 1/1000 of fit (engine units).
+/// The outline is the canvas box times the scale; a clip whose shape differs from the canvas
+/// (or is cropped or turned) will not match it until the engine reports the frame rectangle.
 class CanvasGestures extends StatefulWidget {
   const CanvasGestures({super.key});
 
@@ -21,15 +23,10 @@ class CanvasGestures extends StatefulWidget {
 }
 
 class _CanvasGesturesState extends State<CanvasGestures> {
-  /// UI guard for the engine's ranges; the engine still validates.
-  static const _maxOffset = 20000;
-  static const _minScale = 10;
-  static const _maxScale = 10000;
-
   int _gesture = 0;
 
-  /// The clip's place and the finger position when the gesture began.
-  ({int x, int y, int scale, Offset focal})? _start;
+  /// The clip the gesture acts on, its place so far, and its scale when the gesture began.
+  ({int clip, double x, double y, int scale})? _start;
 
   Clip? _active(TimelineChanged t) {
     final id = t.activeClip;
@@ -53,36 +50,38 @@ class _CanvasGesturesState extends State<CanvasGestures> {
           label: AppLocalizations.of(context).canvasPlaceClip,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onScaleStart: (d) {
+            onScaleStart: (_) {
               if (clip == null) return;
-              // Unique per gesture across rebuilds and restarts: edits with one id merge
-              // into one undo step.
-              _gesture = DateTime.now().microsecondsSinceEpoch;
+              _gesture = cubit.nextGesture();
               _start = (
-                x: clip.x,
-                y: clip.y,
-                scale: _scaleOf(clip),
-                focal: d.localFocalPoint,
+                clip: clip.id.toInt(),
+                x: clip.x.toDouble(),
+                y: clip.y.toDouble(),
+                scale: clip.scale,
               );
             },
             onScaleUpdate: (d) {
               final start = _start;
-              if (clip == null || start == null) return;
-              final moved = d.localFocalPoint - start.focal;
+              // The active clip can change under a gesture (a seek): stop acting on it.
+              if (clip == null ||
+                  start == null ||
+                  start.clip != clip.id.toInt()) {
+                return;
+              }
+              // Deltas, not the focal point: it jumps when a second finger lands.
+              final moved = (
+                clip: start.clip,
+                x: start.x + d.focalPointDelta.dx / size.width * 10000,
+                y: start.y + d.focalPointDelta.dy / size.height * 10000,
+                scale: start.scale,
+              );
+              _start = moved;
+              // The engine checks the ranges; an out-of-range edit is refused there.
               cubit.placeClip(
                 clip,
-                x: (start.x + moved.dx / size.width * 10000).round().clamp(
-                  -_maxOffset,
-                  _maxOffset,
-                ),
-                y: (start.y + moved.dy / size.height * 10000).round().clamp(
-                  -_maxOffset,
-                  _maxOffset,
-                ),
-                scale: (start.scale * d.scale).round().clamp(
-                  _minScale,
-                  _maxScale,
-                ),
+                x: moved.x.round(),
+                y: moved.y.round(),
+                scale: (moved.scale * d.scale).round(),
                 gesture: _gesture,
               );
             },
@@ -96,11 +95,9 @@ class _CanvasGesturesState extends State<CanvasGestures> {
     );
   }
 
-  static int _scaleOf(Clip clip) => clip.scale == 0 ? 1000 : clip.scale;
-
   /// The clip's frame at fit (the whole canvas) times its scale, centred at its offset.
   Widget _outline(BuildContext context, Clip clip, Size canvas) {
-    final scale = _scaleOf(clip) / 1000;
+    final scale = clip.scale / 1000;
     final width = canvas.width * scale;
     final height = canvas.height * scale;
     final centre = Offset(

@@ -47,6 +47,9 @@ pub struct ClipPlacement {
 /// canvases.
 pub const MAX_OFFSET: i32 = 20_000;
 
+/// The scale at which a clip fits the canvas, in 1/1000.
+pub const FIT_SCALE: u32 = 1000;
+
 /// Allowed clip scales, in 1/1000 of fit-to-canvas: 1 % to 1000 %.
 pub const SCALE_RANGE: std::ops::RangeInclusive<u32> = 10..=10_000;
 
@@ -93,7 +96,7 @@ impl Default for ClipTransform {
             crop: Crop::default(),
             x: 0,
             y: 0,
-            scale: 1000,
+            scale: FIT_SCALE,
         }
     }
 }

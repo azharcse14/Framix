@@ -12,7 +12,13 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     // CommandFailed has no UI yet (import can fail: too many items, bad metadata); a
     // generic failure message is filed as its own task.
     _events = _engine.events
-        .where((e) => e.hasTimelineChanged() || e.hasPlayheadChanged())
+        // A playhead event only matters when it changes the active clip.
+        .where(
+          (e) =>
+              e.hasTimelineChanged() ||
+              (e.hasPlayheadChanged() &&
+                  e.playheadChanged.activeClip != state.activeClip),
+        )
         .map(
           (e) => e.hasTimelineChanged()
               ? (e.timelineChanged..freeze())
@@ -90,6 +96,10 @@ class TimelineCubit extends Cubit<TimelineChanged> {
   }
 
   SetClipTransform? _placing;
+  int _gestures = 0;
+
+  /// A fresh gesture id: edits sent with it are one undo step.
+  int nextGesture() => ++_gestures;
 
   void _sendPlacing() {
     final placing = _placing;

@@ -4,7 +4,8 @@ use framix_core::aspect::AspectRatio;
 use framix_core::media::{Media, MediaKind, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
-    ClipPlacement, ClipTransform, Crop, MediaId, Timeline, TimelineError, TrackFlags, TrackKind,
+    ClipPlacement, ClipTransform, Crop, FIT_SCALE, MediaId, Timeline, TimelineError, TrackFlags,
+    TrackKind,
 };
 use prost::Message as _;
 use thiserror::Error;
@@ -241,7 +242,7 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                 x: c.x,
                 y: c.y,
                 // Files before format 4 have no scale: fit.
-                scale: if c.scale == 0 { 1000 } else { c.scale },
+                scale: if c.scale == 0 { FIT_SCALE } else { c.scale },
             };
             // Untrusted: checked like an edit, and set at insert so loading stays linear.
             timeline.insert_clip_with(track, placement, transform)?;

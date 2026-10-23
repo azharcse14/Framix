@@ -309,7 +309,11 @@ impl Engine {
                     x: op.x,
                     y: op.y,
                     // 0 is what senders before P1-030 leave unset: fit.
-                    scale: if op.scale == 0 { 1000 } else { op.scale },
+                    scale: if op.scale == 0 {
+                        timeline::FIT_SCALE
+                    } else {
+                        op.scale
+                    },
                 };
                 let set = |tl: &mut Timeline| tl.set_clip_transform(ClipId(op.clip_id), transform);
                 let applied = if op.gesture == 0 {
