@@ -818,6 +818,15 @@ const Event$json = {
       '9': 0,
       '10': 'thumbnailReady'
     },
+    {
+      '1': 'engine_stopped',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.EngineStopped',
+      '9': 0,
+      '10': 'engineStopped'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -834,8 +843,18 @@ final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     'NjZXB0ZWQSPgoNcHJldmlld19yZWFkeRgFIAEoCzIXLmZyYW1peC52MS5QcmV2aWV3UmVhZHlI'
     'AFIMcHJldmlld1JlYWR5EkcKEHBsYXloZWFkX2NoYW5nZWQYBiABKAsyGi5mcmFtaXgudjEuUG'
     'xheWhlYWRDaGFuZ2VkSABSD3BsYXloZWFkQ2hhbmdlZBJECg90aHVtYm5haWxfcmVhZHkYByAB'
-    'KAsyGS5mcmFtaXgudjEuVGh1bWJuYWlsUmVhZHlIAFIOdGh1bWJuYWlsUmVhZHlCBgoEa2luZA'
-    '==');
+    'KAsyGS5mcmFtaXgudjEuVGh1bWJuYWlsUmVhZHlIAFIOdGh1bWJuYWlsUmVhZHkSQQoOZW5naW'
+    '5lX3N0b3BwZWQYCCABKAsyGC5mcmFtaXgudjEuRW5naW5lU3RvcHBlZEgAUg1lbmdpbmVTdG9w'
+    'cGVkQgYKBGtpbmQ=');
+
+@$core.Deprecated('Use engineStoppedDescriptor instead')
+const EngineStopped$json = {
+  '1': 'EngineStopped',
+};
+
+/// Descriptor for `EngineStopped`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List engineStoppedDescriptor =
+    $convert.base64Decode('Cg1FbmdpbmVTdG9wcGVk');
 
 @$core.Deprecated('Use thumbnailReadyDescriptor instead')
 const ThumbnailReady$json = {

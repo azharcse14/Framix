@@ -267,8 +267,13 @@ message Event {
     PreviewReady preview_ready = 5;
     PlayheadChanged playhead_changed = 6;
     ThumbnailReady thumbnail_ready = 7;
+    EngineStopped engine_stopped = 8;
   }
 }
+
+// The last event after engine_destroy: queued work is done and no event follows, so the
+// callback may be released.
+message EngineStopped {}
 
 // A thumbnail file for one media at a snapped source time; show it as an image file.
 message ThumbnailReady {

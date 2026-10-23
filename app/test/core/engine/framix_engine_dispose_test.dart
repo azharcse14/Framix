@@ -11,6 +11,16 @@ void main() {
     await done.timeout(const Duration(seconds: 5));
   });
 
+  test('a reply in flight at dispose is delivered, not dropped', () async {
+    final engine = FramixEngine.create();
+    final events = engine.events.toList();
+    engine.send(Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_VIDEO)));
+    engine.dispose();
+    final got = await events.timeout(const Duration(seconds: 5));
+    expect(got.where((e) => e.hasTimelineChanged()), isNotEmpty);
+    expect(got.where((e) => e.hasEngineStopped()), isEmpty);
+  });
+
   test('send after dispose throws instead of touching freed memory', () {
     final engine = FramixEngine.create()..dispose();
     expect(

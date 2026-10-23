@@ -42,9 +42,19 @@ fn destroy_answers_queued_commands_first() {
         }
         assert_eq!(engine_destroy(engine), ENGINE_OK);
     }
-    let counts: Vec<usize> = EVENTS
+    // P1-044: destroy returns at once; wait for the end-of-stream marker.
+    let start = std::time::Instant::now();
+    while !EVENTS
         .lock()
         .unwrap()
+        .last()
+        .is_some_and(|e| matches!(e.kind, Some(event::Kind::EngineStopped(_))))
+    {
+        assert!(start.elapsed().as_secs() < 5, "no EngineStopped");
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    let events = EVENTS.lock().unwrap();
+    let counts: Vec<usize> = events[..events.len() - 1]
         .iter()
         .map(|e| match &e.kind {
             Some(event::Kind::TimelineChanged(t)) => t.tracks.len(),

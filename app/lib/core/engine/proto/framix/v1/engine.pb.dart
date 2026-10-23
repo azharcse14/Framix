@@ -2493,6 +2493,7 @@ enum Event_Kind {
   previewReady,
   playheadChanged,
   thumbnailReady,
+  engineStopped,
   notSet
 }
 
@@ -2508,6 +2509,7 @@ class Event extends $pb.GeneratedMessage {
     PreviewReady? previewReady,
     PlayheadChanged? playheadChanged,
     ThumbnailReady? thumbnailReady,
+    EngineStopped? engineStopped,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
@@ -2517,6 +2519,7 @@ class Event extends $pb.GeneratedMessage {
     if (previewReady != null) result.previewReady = previewReady;
     if (playheadChanged != null) result.playheadChanged = playheadChanged;
     if (thumbnailReady != null) result.thumbnailReady = thumbnailReady;
+    if (engineStopped != null) result.engineStopped = engineStopped;
     return result;
   }
 
@@ -2537,13 +2540,14 @@ class Event extends $pb.GeneratedMessage {
     5: Event_Kind.previewReady,
     6: Event_Kind.playheadChanged,
     7: Event_Kind.thumbnailReady,
+    8: Event_Kind.engineStopped,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
@@ -2558,6 +2562,8 @@ class Event extends $pb.GeneratedMessage {
         subBuilder: PlayheadChanged.$_createMessage)
     ..aOM<ThumbnailReady>(7, _omitFieldNames ? '' : 'thumbnailReady',
         subBuilder: ThumbnailReady.$_createMessage)
+    ..aOM<EngineStopped>(8, _omitFieldNames ? '' : 'engineStopped',
+        subBuilder: EngineStopped.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2587,6 +2593,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -2595,6 +2602,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2673,6 +2681,60 @@ class Event extends $pb.GeneratedMessage {
   void clearThumbnailReady() => $_clearField(7);
   @$pb.TagNumber(7)
   ThumbnailReady ensureThumbnailReady() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  EngineStopped get engineStopped => $_getN(7);
+  @$pb.TagNumber(8)
+  set engineStopped(EngineStopped value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasEngineStopped() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearEngineStopped() => $_clearField(8);
+  @$pb.TagNumber(8)
+  EngineStopped ensureEngineStopped() => $_ensure(7);
+}
+
+/// The last event after engine_destroy: queued work is done and no event follows, so the
+/// callback may be released.
+class EngineStopped extends $pb.GeneratedMessage {
+  factory EngineStopped() => EngineStopped._();
+
+  EngineStopped._();
+
+  factory EngineStopped.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      EngineStopped()..mergeFromBuffer(data, registry);
+  factory EngineStopped.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      EngineStopped()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EngineStopped',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: EngineStopped.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EngineStopped clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EngineStopped copyWith(void Function(EngineStopped) updates) =>
+      super.copyWith((message) => updates(message as EngineStopped))
+          as EngineStopped;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use EngineStopped() / EngineStopped.new instead')
+  static EngineStopped create() => EngineStopped._();
+  static $pb.GeneratedMessage $_createMessage() => EngineStopped._();
+  @$core.override
+  EngineStopped createEmptyInstance() => EngineStopped._();
+  @$core.pragma('dart2js:noInline')
+  static EngineStopped getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EngineStopped>(
+          EngineStopped.$_createMessage);
+  static EngineStopped? _defaultInstance;
 }
 
 /// A thumbnail file for one media at a snapped source time; show it as an image file.
