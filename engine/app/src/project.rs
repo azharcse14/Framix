@@ -94,6 +94,7 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
                     source_start: c.source_start.0,
                     start: c.start.0,
                     duration: c.duration.0,
+                    ..Default::default()
                 })
                 .collect(),
             muted: track.flags().muted,

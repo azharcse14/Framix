@@ -283,6 +283,7 @@ impl Engine {
             command::Kind::RequestThumbnails(op) => {
                 self.request_thumbnails(op).map(|()| Reply::Accepted)
             }
+            command::Kind::SetClipTransform(_) => Err("not implemented yet".into()),
             command::Kind::Seek(seek) => {
                 if seek.snap_within < 0 {
                     return Err("negative snap tolerance".into());
@@ -398,6 +399,7 @@ impl Engine {
                                 Some(media::MediaKind::Image) => proto::MediaKind::Image,
                                 None => proto::MediaKind::Unspecified,
                             } as i32,
+                            ..Default::default()
                         })
                         .collect(),
                     number: *count,

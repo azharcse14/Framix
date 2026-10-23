@@ -60,10 +60,10 @@ fn the_v1_fixture_opens() {
 #[test]
 fn encoded_files_carry_the_format_version() {
     let file = ProjectFile::decode(encode(&Timeline::default()).as_slice()).unwrap();
-    // P1-011: format 2 needs reader 2 (a format-1 reader would drop the media list).
+    // P1-029: format 3 needs reader 3 (a format-2 reader would drop clip transforms).
     assert_eq!(
         (file.format_version, file.min_reader_version),
-        (FORMAT_VERSION, 2)
+        (FORMAT_VERSION, 3)
     );
 }
 
@@ -99,6 +99,7 @@ fn clip(start: i64, duration: i64) -> SavedClip {
         source_start: 0,
         start,
         duration,
+        ..Default::default()
     }
 }
 

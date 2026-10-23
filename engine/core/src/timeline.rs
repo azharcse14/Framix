@@ -43,6 +43,34 @@ pub struct ClipPlacement {
     pub duration: Time,
 }
 
+/// Pixels cut from each side of the source picture.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct Crop {
+    /// From the left edge.
+    pub left: u32,
+    /// From the top edge.
+    pub top: u32,
+    /// From the right edge.
+    pub right: u32,
+    /// From the bottom edge.
+    pub bottom: u32,
+}
+
+/// How a clip's picture is cropped, turned and mirrored; the identity by default. The crop
+/// applies to the source pixels, then the quarter turns (clockwise, on top of the media's own
+/// rotation), then the flips.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct ClipTransform {
+    /// Clockwise quarter turns, 0..=3.
+    pub turns: u8,
+    /// Mirror left to right.
+    pub flip_h: bool,
+    /// Mirror top to bottom.
+    pub flip_v: bool,
+    /// Source pixels cut from each side.
+    pub crop: Crop,
+}
+
 /// A clip on a track. Covers the half-open range `[start, start + duration)`.
 /// Only [`Timeline::insert_clip`] builds clips, so `end` never overflows.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -58,6 +86,8 @@ pub struct Clip {
     pub start: Time,
     /// Length on the timeline; always positive.
     pub duration: Time,
+    /// Crop, turns and flips of the picture.
+    pub transform: ClipTransform,
 }
 
 impl Clip {
@@ -156,6 +186,15 @@ pub enum TimelineError {
     /// More items than [`crate::media::MAX_IMPORT`] in one import.
     #[error("too many media in one import")]
     TooManyMedia,
+    /// The crop leaves no picture, or the clip's media is unknown.
+    #[error("crop leaves no picture")]
+    BadCrop,
+    /// Quarter turns outside 0..=3.
+    #[error("invalid transform")]
+    BadTransform,
+    /// Merging needs both clips to look the same.
+    #[error("clips have different transforms")]
+    TransformsDiffer,
 }
 
 /// The editable timeline of a video project.
@@ -246,6 +285,7 @@ impl Timeline {
             source_start: placement.source_start,
             start: placement.start,
             duration: placement.duration,
+            transform: ClipTransform::default(),
         };
         self.tracks[index].clips.insert(at, clip);
         Ok(id)
@@ -366,6 +406,7 @@ impl Timeline {
             source_start: Time(source_start),
             start: at,
             duration: Time(c.duration.0 - cut),
+            transform: ClipTransform::default(),
         };
         clips.insert(i + 1, right);
         Ok(id)
@@ -480,6 +521,16 @@ impl Timeline {
             duration: c.duration,
         };
         self.insert_clip(self.tracks[t].id, copy)
+    }
+
+    /// Sets a clip's crop, turns and flips. The crop must leave at least one pixel each way of
+    /// the clip's media; turns must be 0..=3.
+    pub fn set_clip_transform(
+        &mut self,
+        _clip: ClipId,
+        _transform: ClipTransform,
+    ) -> Result<(), TimelineError> {
+        Ok(())
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.

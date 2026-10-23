@@ -39,6 +39,7 @@ fn track_with_clip(media_id: u64) -> SavedTrack {
             source_start: 0,
             start: 0,
             duration: 10,
+            ..Default::default()
         }],
         ..Default::default()
     }

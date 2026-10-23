@@ -32,6 +32,7 @@ fn clip(start: i64) -> SavedClip {
         source_start: 0,
         start,
         duration: 1,
+        ..Default::default()
     }
 }
 

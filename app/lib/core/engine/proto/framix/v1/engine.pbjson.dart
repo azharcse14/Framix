@@ -229,6 +229,15 @@ const Command$json = {
       '9': 0,
       '10': 'requestThumbnails'
     },
+    {
+      '1': 'set_clip_transform',
+      '3': 21,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SetClipTransform',
+      '9': 0,
+      '10': 'setClipTransform'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -257,8 +266,32 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     '5mcmFtaXgudjEuSW1wb3J0TWVkaWFIAFILaW1wb3J0TWVkaWESQQoOY3JlYXRlX3ByZXZpZXcY'
     'EiABKAsyGC5mcmFtaXgudjEuQ3JlYXRlUHJldmlld0gAUg1jcmVhdGVQcmV2aWV3EiUKBHNlZW'
     'sYEyABKAsyDy5mcmFtaXgudjEuU2Vla0gAUgRzZWVrEk0KEnJlcXVlc3RfdGh1bWJuYWlscxgU'
-    'IAEoCzIcLmZyYW1peC52MS5SZXF1ZXN0VGh1bWJuYWlsc0gAUhFyZXF1ZXN0VGh1bWJuYWlsc0'
-    'IGCgRraW5k');
+    'IAEoCzIcLmZyYW1peC52MS5SZXF1ZXN0VGh1bWJuYWlsc0gAUhFyZXF1ZXN0VGh1bWJuYWlscx'
+    'JLChJzZXRfY2xpcF90cmFuc2Zvcm0YFSABKAsyGy5mcmFtaXgudjEuU2V0Q2xpcFRyYW5zZm9y'
+    'bUgAUhBzZXRDbGlwVHJhbnNmb3JtQgYKBGtpbmQ=');
+
+@$core.Deprecated('Use setClipTransformDescriptor instead')
+const SetClipTransform$json = {
+  '1': 'SetClipTransform',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {'1': 'rotation', '3': 2, '4': 1, '5': 13, '10': 'rotation'},
+    {'1': 'flip_h', '3': 3, '4': 1, '5': 8, '10': 'flipH'},
+    {'1': 'flip_v', '3': 4, '4': 1, '5': 8, '10': 'flipV'},
+    {'1': 'crop_left', '3': 5, '4': 1, '5': 13, '10': 'cropLeft'},
+    {'1': 'crop_top', '3': 6, '4': 1, '5': 13, '10': 'cropTop'},
+    {'1': 'crop_right', '3': 7, '4': 1, '5': 13, '10': 'cropRight'},
+    {'1': 'crop_bottom', '3': 8, '4': 1, '5': 13, '10': 'cropBottom'},
+  ],
+};
+
+/// Descriptor for `SetClipTransform`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setClipTransformDescriptor = $convert.base64Decode(
+    'ChBTZXRDbGlwVHJhbnNmb3JtEhcKB2NsaXBfaWQYASABKARSBmNsaXBJZBIaCghyb3RhdGlvbh'
+    'gCIAEoDVIIcm90YXRpb24SFQoGZmxpcF9oGAMgASgIUgVmbGlwSBIVCgZmbGlwX3YYBCABKAhS'
+    'BWZsaXBWEhsKCWNyb3BfbGVmdBgFIAEoDVIIY3JvcExlZnQSGQoIY3JvcF90b3AYBiABKA1SB2'
+    'Nyb3BUb3ASHQoKY3JvcF9yaWdodBgHIAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGAgg'
+    'ASgNUgpjcm9wQm90dG9t');
 
 @$core.Deprecated('Use addTrackDescriptor instead')
 const AddTrack$json = {
@@ -792,6 +825,13 @@ const Clip$json = {
       '6': '.framix.v1.MediaKind',
       '10': 'mediaKind'
     },
+    {'1': 'rotation', '3': 7, '4': 1, '5': 13, '10': 'rotation'},
+    {'1': 'flip_h', '3': 8, '4': 1, '5': 8, '10': 'flipH'},
+    {'1': 'flip_v', '3': 9, '4': 1, '5': 8, '10': 'flipV'},
+    {'1': 'crop_left', '3': 10, '4': 1, '5': 13, '10': 'cropLeft'},
+    {'1': 'crop_top', '3': 11, '4': 1, '5': 13, '10': 'cropTop'},
+    {'1': 'crop_right', '3': 12, '4': 1, '5': 13, '10': 'cropRight'},
+    {'1': 'crop_bottom', '3': 13, '4': 1, '5': 13, '10': 'cropBottom'},
   ],
 };
 
@@ -800,7 +840,10 @@ final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     'CgRDbGlwEg4KAmlkGAEgASgEUgJpZBIZCghtZWRpYV9pZBgCIAEoBFIHbWVkaWFJZBIhCgxzb3'
     'VyY2Vfc3RhcnQYAyABKANSC3NvdXJjZVN0YXJ0EhQKBXN0YXJ0GAQgASgDUgVzdGFydBIaCghk'
     'dXJhdGlvbhgFIAEoA1IIZHVyYXRpb24SMwoKbWVkaWFfa2luZBgGIAEoDjIULmZyYW1peC52MS'
-    '5NZWRpYUtpbmRSCW1lZGlhS2luZA==');
+    '5NZWRpYUtpbmRSCW1lZGlhS2luZBIaCghyb3RhdGlvbhgHIAEoDVIIcm90YXRpb24SFQoGZmxp'
+    'cF9oGAggASgIUgVmbGlwSBIVCgZmbGlwX3YYCSABKAhSBWZsaXBWEhsKCWNyb3BfbGVmdBgKIA'
+    'EoDVIIY3JvcExlZnQSGQoIY3JvcF90b3AYCyABKA1SB2Nyb3BUb3ASHQoKY3JvcF9yaWdodBgM'
+    'IAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGA0gASgNUgpjcm9wQm90dG9t');
 
 @$core.Deprecated('Use projectSavedDescriptor instead')
 const ProjectSaved$json = {

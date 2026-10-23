@@ -63,4 +63,12 @@ message SavedClip {
   int64 source_start = 2;
   int64 start = 3;
   int64 duration = 4;
+  // Format 3: crop, clockwise quarter turns and mirroring (all zero = untouched).
+  uint32 turns = 5;
+  bool flip_h = 6;
+  bool flip_v = 7;
+  uint32 crop_left = 8;
+  uint32 crop_top = 9;
+  uint32 crop_right = 10;
+  uint32 crop_bottom = 11;
 }

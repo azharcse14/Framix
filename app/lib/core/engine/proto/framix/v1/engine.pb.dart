@@ -42,6 +42,7 @@ enum Command_Kind {
   createPreview,
   seek,
   requestThumbnails,
+  setClipTransform,
   notSet
 }
 
@@ -68,6 +69,7 @@ class Command extends $pb.GeneratedMessage {
     CreatePreview? createPreview,
     Seek? seek,
     RequestThumbnails? requestThumbnails,
+    SetClipTransform? setClipTransform,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -90,6 +92,7 @@ class Command extends $pb.GeneratedMessage {
     if (createPreview != null) result.createPreview = createPreview;
     if (seek != null) result.seek = seek;
     if (requestThumbnails != null) result.requestThumbnails = requestThumbnails;
+    if (setClipTransform != null) result.setClipTransform = setClipTransform;
     return result;
   }
 
@@ -123,14 +126,36 @@ class Command extends $pb.GeneratedMessage {
     18: Command_Kind.createPreview,
     19: Command_Kind.seek,
     20: Command_Kind.requestThumbnails,
+    21: Command_Kind.setClipTransform,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Command',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Command.$_createMessage)
-    ..oo(0,
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    ..oo(0, [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
     ..aOM<InsertClip>(2, _omitFieldNames ? '' : 'insertClip',
@@ -171,6 +196,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Seek.$_createMessage)
     ..aOM<RequestThumbnails>(20, _omitFieldNames ? '' : 'requestThumbnails',
         subBuilder: RequestThumbnails.$_createMessage)
+    ..aOM<SetClipTransform>(21, _omitFieldNames ? '' : 'setClipTransform',
+        subBuilder: SetClipTransform.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -213,6 +240,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
+  @$pb.TagNumber(21)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -234,6 +262,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
+  @$pb.TagNumber(21)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -455,6 +484,162 @@ class Command extends $pb.GeneratedMessage {
   void clearRequestThumbnails() => $_clearField(20);
   @$pb.TagNumber(20)
   RequestThumbnails ensureRequestThumbnails() => $_ensure(19);
+
+  @$pb.TagNumber(21)
+  SetClipTransform get setClipTransform => $_getN(20);
+  @$pb.TagNumber(21)
+  set setClipTransform(SetClipTransform value) => $_setField(21, value);
+  @$pb.TagNumber(21)
+  $core.bool hasSetClipTransform() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearSetClipTransform() => $_clearField(21);
+  @$pb.TagNumber(21)
+  SetClipTransform ensureSetClipTransform() => $_ensure(20);
+}
+
+/// Sets a clip's crop (source pixels cut from each side; at least one pixel must remain),
+/// clockwise rotation (0, 90, 180 or 270, on top of the media's own) and mirroring. One undo
+/// step; setting the current values is no step.
+class SetClipTransform extends $pb.GeneratedMessage {
+  factory SetClipTransform({
+    $fixnum.Int64? clipId,
+    $core.int? rotation,
+    $core.bool? flipH,
+    $core.bool? flipV,
+    $core.int? cropLeft,
+    $core.int? cropTop,
+    $core.int? cropRight,
+    $core.int? cropBottom,
+  }) {
+    final result = SetClipTransform._();
+    if (clipId != null) result.clipId = clipId;
+    if (rotation != null) result.rotation = rotation;
+    if (flipH != null) result.flipH = flipH;
+    if (flipV != null) result.flipV = flipV;
+    if (cropLeft != null) result.cropLeft = cropLeft;
+    if (cropTop != null) result.cropTop = cropTop;
+    if (cropRight != null) result.cropRight = cropRight;
+    if (cropBottom != null) result.cropBottom = cropBottom;
+    return result;
+  }
+
+  SetClipTransform._();
+
+  factory SetClipTransform.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetClipTransform()..mergeFromBuffer(data, registry);
+  factory SetClipTransform.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetClipTransform()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetClipTransform',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SetClipTransform.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aI(2, _omitFieldNames ? '' : 'rotation', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(3, _omitFieldNames ? '' : 'flipH')
+    ..aOB(4, _omitFieldNames ? '' : 'flipV')
+    ..aI(5, _omitFieldNames ? '' : 'cropLeft', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'cropTop', fieldType: $pb.PbFieldType.OU3)
+    ..aI(7, _omitFieldNames ? '' : 'cropRight', fieldType: $pb.PbFieldType.OU3)
+    ..aI(8, _omitFieldNames ? '' : 'cropBottom', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetClipTransform clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetClipTransform copyWith(void Function(SetClipTransform) updates) =>
+      super.copyWith((message) => updates(message as SetClipTransform))
+          as SetClipTransform;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SetClipTransform() / SetClipTransform.new instead')
+  static SetClipTransform create() => SetClipTransform._();
+  static $pb.GeneratedMessage $_createMessage() => SetClipTransform._();
+  @$core.override
+  SetClipTransform createEmptyInstance() => SetClipTransform._();
+  @$core.pragma('dart2js:noInline')
+  static SetClipTransform getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetClipTransform>(
+          SetClipTransform.$_createMessage);
+  static SetClipTransform? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get rotation => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set rotation($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRotation() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRotation() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get flipH => $_getBF(2);
+  @$pb.TagNumber(3)
+  set flipH($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFlipH() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFlipH() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get flipV => $_getBF(3);
+  @$pb.TagNumber(4)
+  set flipV($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFlipV() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFlipV() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get cropLeft => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set cropLeft($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasCropLeft() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearCropLeft() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get cropTop => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set cropTop($core.int value) => $_setUnsignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasCropTop() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearCropTop() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get cropRight => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set cropRight($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasCropRight() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearCropRight() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get cropBottom => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set cropBottom($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasCropBottom() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearCropBottom() => $_clearField(8);
 }
 
 /// Appends an empty track.
@@ -2657,6 +2842,13 @@ class Clip extends $pb.GeneratedMessage {
     $fixnum.Int64? start,
     $fixnum.Int64? duration,
     MediaKind? mediaKind,
+    $core.int? rotation,
+    $core.bool? flipH,
+    $core.bool? flipV,
+    $core.int? cropLeft,
+    $core.int? cropTop,
+    $core.int? cropRight,
+    $core.int? cropBottom,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -2665,6 +2857,13 @@ class Clip extends $pb.GeneratedMessage {
     if (start != null) result.start = start;
     if (duration != null) result.duration = duration;
     if (mediaKind != null) result.mediaKind = mediaKind;
+    if (rotation != null) result.rotation = rotation;
+    if (flipH != null) result.flipH = flipH;
+    if (flipV != null) result.flipV = flipV;
+    if (cropLeft != null) result.cropLeft = cropLeft;
+    if (cropTop != null) result.cropTop = cropTop;
+    if (cropRight != null) result.cropRight = cropRight;
+    if (cropBottom != null) result.cropBottom = cropBottom;
     return result;
   }
 
@@ -2690,6 +2889,14 @@ class Clip extends $pb.GeneratedMessage {
     ..aInt64(5, _omitFieldNames ? '' : 'duration')
     ..aE<MediaKind>(6, _omitFieldNames ? '' : 'mediaKind',
         enumValues: MediaKind.values)
+    ..aI(7, _omitFieldNames ? '' : 'rotation', fieldType: $pb.PbFieldType.OU3)
+    ..aOB(8, _omitFieldNames ? '' : 'flipH')
+    ..aOB(9, _omitFieldNames ? '' : 'flipV')
+    ..aI(10, _omitFieldNames ? '' : 'cropLeft', fieldType: $pb.PbFieldType.OU3)
+    ..aI(11, _omitFieldNames ? '' : 'cropTop', fieldType: $pb.PbFieldType.OU3)
+    ..aI(12, _omitFieldNames ? '' : 'cropRight', fieldType: $pb.PbFieldType.OU3)
+    ..aI(13, _omitFieldNames ? '' : 'cropBottom',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2766,6 +2973,70 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasMediaKind() => $_has(5);
   @$pb.TagNumber(6)
   void clearMediaKind() => $_clearField(6);
+
+  /// Transform, as set by SetClipTransform.
+  @$pb.TagNumber(7)
+  $core.int get rotation => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set rotation($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasRotation() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearRotation() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get flipH => $_getBF(7);
+  @$pb.TagNumber(8)
+  set flipH($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasFlipH() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearFlipH() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.bool get flipV => $_getBF(8);
+  @$pb.TagNumber(9)
+  set flipV($core.bool value) => $_setBool(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasFlipV() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearFlipV() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get cropLeft => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set cropLeft($core.int value) => $_setUnsignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasCropLeft() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearCropLeft() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get cropTop => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set cropTop($core.int value) => $_setUnsignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasCropTop() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearCropTop() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.int get cropRight => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set cropRight($core.int value) => $_setUnsignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasCropRight() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearCropRight() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.int get cropBottom => $_getIZ(12);
+  @$pb.TagNumber(13)
+  set cropBottom($core.int value) => $_setUnsignedInt32(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasCropBottom() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearCropBottom() => $_clearField(13);
 }
 
 /// SaveProject finished.
