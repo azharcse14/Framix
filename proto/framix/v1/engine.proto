@@ -37,8 +37,9 @@ message Command {
   }
 }
 
-// Stops the running export: CommandAccepted, then ExportFinished with cancelled set. Refused
-// when no export runs (or it is already being cancelled).
+// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
+// cancelled set, unless the export had already rendered its last frame (then it finishes ok).
+// Refused when no export runs (or it is already being cancelled).
 message CancelExport {}
 
 // Exports the timeline with its export settings to an MP4 at `path`. Answered with

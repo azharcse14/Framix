@@ -597,8 +597,9 @@ class Command extends $pb.GeneratedMessage {
   CancelExport ensureCancelExport() => $_ensure(25);
 }
 
-/// Stops the running export: CommandAccepted, then ExportFinished with cancelled set. Refused
-/// when no export runs (or it is already being cancelled).
+/// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
+/// cancelled set, unless the export had already rendered its last frame (then it finishes ok).
+/// Refused when no export runs (or it is already being cancelled).
 class CancelExport extends $pb.GeneratedMessage {
   factory CancelExport() => CancelExport._();
 

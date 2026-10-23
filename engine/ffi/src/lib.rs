@@ -292,13 +292,7 @@ fn serve(
             EngineMessage::ExportProgress(frame, frames) => {
                 guarded(|| engine.export_progress(frame, frames))
             }
-            EngineMessage::Export(result) => guarded(|| match result {
-                Err(framix_app::export::ExportError::Cancelled) => engine.export_cancelled(),
-                Err(framix_app::export::ExportError::Failed(reason)) => {
-                    engine.export_finished(Err(reason))
-                }
-                Ok(()) => engine.export_finished(Ok(())),
-            }),
+            EngineMessage::Export(result) => guarded(|| engine.export_result(result)),
             EngineMessage::PreviewTexture(texture) => {
                 guarded(|| engine.preview_texture_ready(texture))
             }

@@ -15,7 +15,8 @@ final class ExportIdle extends ExportState {
   const ExportIdle();
 }
 
-/// Rendering: [frame] of [frames] done.
+/// Rendering: [frame] of [frames] done. Right after the engine accepts the export both are 0
+/// until its first progress, so never divide by [frames] without checking it.
 final class ExportRunning extends ExportState {
   const ExportRunning(this.frame, this.frames);
 
@@ -93,10 +94,12 @@ class ExportCubit extends Cubit<ExportState> {
     return ExportFailed(f.reason);
   }
 
-  /// Exports the project to [path] (an .mp4 file).
+  /// Exports the project to [path] (an .mp4 file). Ignored while an export runs.
   void start(String path) {
-    _starting = true;
+    if (state is ExportRunning) return;
     _engine.send(Command(exportProject: ExportProject(path: path)));
+    // Only once it was sent: a send that throws must not leave a start waiting for a reply.
+    _starting = true;
   }
 
   /// Stops the running export; the engine refuses it when none runs.
