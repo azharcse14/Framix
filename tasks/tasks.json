@@ -1525,11 +1525,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-23",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "p1-031-replace-clip",
    "notes": [],
    "source": "plan"
   },
@@ -13020,6 +13020,25 @@
    "title": "ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart)",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-055",
+   "section": "ENG",
+   "group": null,
+   "title": "Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
