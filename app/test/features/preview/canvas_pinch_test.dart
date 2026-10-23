@@ -56,4 +56,46 @@ void main() {
       expect(cubit.placed.last.x, closeTo(0, 20));
     },
   );
+
+  testWidgets('a second finger landing mid-drag does not move the clip', (
+    tester,
+  ) async {
+    final engine = FramixEngine.create();
+    final cubit = RecordingTimeline(engine)..seed(timeline());
+    addTearDown(() async {
+      await cubit.close();
+      engine.dispose();
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: framixDarkTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<TimelineCubit>.value(
+          value: cubit,
+          child: const Center(
+            child: SizedBox(width: 400, height: 225, child: CanvasGestures()),
+          ),
+        ),
+      ),
+    );
+    final centre = tester.getCenter(find.byType(CanvasGestures));
+    final a = await tester.startGesture(centre, pointer: 1);
+    for (var i = 1; i <= 6; i++) {
+      await a.moveTo(centre + Offset(10.0 * i, 0));
+      await tester.pump();
+    }
+    final dragged = cubit.placed.last.x;
+    // The focal point jumps 40 px right when the second finger lands.
+    final b = await tester.startGesture(
+      centre + const Offset(140, 0),
+      pointer: 2,
+    );
+    await tester.pump();
+    await b.moveTo(centre + const Offset(140, 1));
+    await tester.pump();
+    await a.up();
+    await b.up();
+    expect(cubit.placed.last.x, closeTo(dragged, 50));
+  });
 }
