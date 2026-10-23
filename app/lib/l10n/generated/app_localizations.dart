@@ -217,6 +217,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Timeline'**
   String get timelineRuler;
+
+  /// No description provided for @canvasPlaceClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Move and resize the clip on the canvas'**
+  String get canvasPlaceClip;
 }
 
 class _AppLocalizationsDelegate

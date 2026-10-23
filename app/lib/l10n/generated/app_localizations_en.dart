@@ -84,4 +84,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timelineRuler => 'Timeline';
+
+  @override
+  String get canvasPlaceClip => 'Move and resize the clip on the canvas';
 }

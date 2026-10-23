@@ -83,4 +83,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get timelineRuler => 'টাইমলাইন';
+
+  @override
+  String get canvasPlaceClip => 'ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন';
 }

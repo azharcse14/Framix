@@ -23,5 +23,6 @@
   "importing": "Importing media",
   "zoomIn": "Zoom in",
   "zoomOut": "Zoom out",
-  "timelineRuler": "Timeline"
+  "timelineRuler": "Timeline",
+  "canvasPlaceClip": "Move and resize the clip on the canvas"
 }

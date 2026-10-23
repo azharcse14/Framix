@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/engine/framix_engine.dart';
@@ -11,8 +12,15 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     // CommandFailed has no UI yet (import can fail: too many items, bad metadata); a
     // generic failure message is filed as its own task.
     _events = _engine.events
-        .where((e) => e.hasTimelineChanged())
-        .map((e) => e.timelineChanged..freeze())
+        .where((e) => e.hasTimelineChanged() || e.hasPlayheadChanged())
+        .map(
+          (e) => e.hasTimelineChanged()
+              ? (e.timelineChanged..freeze())
+              // The playhead moved: only the active clip changes.
+              : (state.rebuild(
+                  (t) => t.activeClip = e.playheadChanged.activeClip,
+                )..freeze()),
+        )
         // Cubit always lets the first emit through, even if equal; skip no-op replies.
         .where((t) => t != state)
         .listen(emit);
@@ -61,7 +69,35 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     required int y,
     required int scale,
     required int gesture,
-  }) {}
+  }) {
+    final scheduled = _placing != null;
+    _placing = SetClipTransform(
+      clipId: clip.id,
+      rotation: clip.rotation,
+      flipH: clip.flipH,
+      flipV: clip.flipV,
+      cropLeft: clip.cropLeft,
+      cropTop: clip.cropTop,
+      cropRight: clip.cropRight,
+      cropBottom: clip.cropBottom,
+      x: x,
+      y: y,
+      scale: scale,
+      gesture: Int64(gesture),
+    );
+    // One send per event-loop turn of gesture updates, always the latest.
+    if (!scheduled) scheduleMicrotask(_sendPlacing);
+  }
+
+  SetClipTransform? _placing;
+
+  void _sendPlacing() {
+    final placing = _placing;
+    _placing = null;
+    if (placing != null && !isClosed) {
+      _engine.send(Command(setClipTransform: placing));
+    }
+  }
 
   void undo() => _engine.send(Command(undo: Undo()));
 

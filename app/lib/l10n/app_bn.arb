@@ -19,5 +19,6 @@
   "importing": "মিডিয়া আনা হচ্ছে",
   "zoomIn": "জুম ইন",
   "zoomOut": "জুম আউট",
-  "timelineRuler": "টাইমলাইন"
+  "timelineRuler": "টাইমলাইন",
+  "canvasPlaceClip": "ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন"
 }
