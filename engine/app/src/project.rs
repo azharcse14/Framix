@@ -65,10 +65,10 @@ pub enum ProjectError {
     /// A clip refers to media the file does not list (format 2+).
     #[error("clip refers to unlisted media {0}")]
     UnknownMedia(u64),
-    /// A media kind this engine does not know.
     /// Export settings out of range.
     #[error("invalid export settings")]
     InvalidExport,
+    /// A media kind this engine does not know.
     #[error("unknown media kind {0}")]
     UnknownMediaKind(i32),
     /// Two media entries share an id.
