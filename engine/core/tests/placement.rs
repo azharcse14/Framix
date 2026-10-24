@@ -178,7 +178,7 @@ fn scale_and_position_move_the_fitted_picture() {
         &media(100, 100, 0),
         double,
         aspect(1, 1),
-        &[((0.25, 0.25), (0.0, 0.0)), ((0.5, 0.5), (0.5, 0.5))],
+        &[((0.0, 0.0), (0.25, 0.25)), ((0.5, 0.5), (0.5, 0.5))],
     );
     // x and y are in 1/10000 of the canvas: half a canvas right, a quarter down.
     let moved = ClipTransform {
