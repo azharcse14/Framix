@@ -408,7 +408,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-033` Estimated file size dekhano \[Rust\]
 - [x] `P1-034` Hardware encoder (VideoToolbox, MediaCodec) \[Native\]
 - [x] `P1-035` Progress, cancel, fail handling \[Rust\]\[Dart\]
-- [ ] `P1-036` Save to gallery, share sheet \[Dart\]
+- [x] `P1-036` Save to gallery, share sheet \[Dart\]
 - [ ] `P1-037` **1b:** Platform export preset (TikTok/Reels/Shorts 9:16 1080p, YouTube 16:9, Instagram 4:5) \[Dart\]\[Rust\]
 
 **Reliability (Phase 1 ei lagbe)**
@@ -921,6 +921,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-029` Protita boro feature er age 5 jon real user diye usability test (Figma prototype ba beta) \[—\]
 - [ ] `UX-030` Beta te in-app feedback (screenshot shoho) \[Dart\]
 - [ ] `UX-031` Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas \[Dart\]
+- [ ] `UX-032` Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons \[Dart\]
 
 ## Design system
 

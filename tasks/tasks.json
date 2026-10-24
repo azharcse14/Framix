@@ -1653,15 +1653,23 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-10-24",
+   "done": "2026-10-24",
+   "commit": "dca2eb4",
+   "branch": "p1-036-save-share",
    "notes": [
     {
      "date": "2026-10-23",
      "text": "P1-034 writes the MP4 to the path ExportProject gives (the spike uses the app's temp folder)."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "Also ships Swift + Kotlin (framix/media saveToGallery/share/exportDir), not only Dart. Minimal UI only: app bar Export -> progress/cancel -> Save/Share; the Result screen (preview, Back to edit, Done) is not built. iOS save verified on the simulator with a corpus video; share sheet not run manually. androidx.core 1.13.1 declared with user approval."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "Open review Warning: Export is tappable before exportDir answers (first frames) and exportDir falls back to Dart temp on a channel error; on Android that export lands in code_cache and Save/Share then fail with no-file. Disabling Export until the answer conflicts with the frozen widget test (no platform in tests); fix with UX-032."
     }
    ],
    "source": "plan"
@@ -6405,7 +6413,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-036 uses Photos add-only permission (requestAuthorization .addOnly) on save; no explainer screen yet. Android MediaStore insert needs no permission on API 29+."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -9600,7 +9613,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-036 added androidx FileProvider (authority <appId>.files, exported=false, grantUriPermissions, cache-path only); native save/share accept only files in cache (Android) / tmp (iOS)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -10834,7 +10852,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-036: exports always go to <exportDir>/framix-export.mp4; Export is locked only while a save/share call runs, but a share target (Gmail, iOS activities) can read the file after the sheet closes, so a new export can truncate it underneath. A per-export temp file renamed on success fixes this."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -10983,7 +11006,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-036 added NSPhotoLibraryAddUsageDescription (English only; bn InfoPlist.strings still missing)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13338,7 +13366,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-036: verify on device/emulator: export lands in exportDir (cacheDir, not Dart's code_cache systemTemp), Save writes Movies/Framix, Share via FileProvider (.files authority, cache-path). Emulator install kept failing on 2026-10-24, so Android save/share is built but never run."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13348,6 +13381,25 @@
    "title": "Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035)",
    "tags": [
     "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-032",
+   "section": "UX",
+   "group": null,
+   "title": "Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons",
+   "tags": [
     "Dart"
    ],
    "owner": "claude",
