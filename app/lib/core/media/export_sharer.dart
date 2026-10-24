@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'channel_media_importer.dart';
+
 /// How a save to the gallery ended.
 enum SaveResult { saved, denied, failed }
 
@@ -9,12 +11,10 @@ enum SaveResult { saved, denied, failed }
 class ExportSharer {
   const ExportSharer();
 
-  static const _channel = MethodChannel('framix/media');
-
   /// Copies the file at [path] into the gallery (Photos, or Movies/Framix on Android).
   Future<SaveResult> saveToGallery(String path) async {
     try {
-      final answer = await _channel.invokeMethod<String>('saveToGallery', {
+      final answer = await mediaChannel.invokeMethod<String>('saveToGallery', {
         'path': path,
       });
       return switch (answer) {
@@ -32,7 +32,7 @@ class ExportSharer {
   /// Opens the system share sheet for the file at [path]; false if it could not open.
   Future<bool> share(String path) async {
     try {
-      await _channel.invokeMethod<void>('share', {'path': path});
+      await mediaChannel.invokeMethod<void>('share', {'path': path});
       return true;
     } on PlatformException catch (e) {
       debugPrint('share failed: ${e.code}');

@@ -8,31 +8,48 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/export_cubit.dart';
 
 /// Export, its progress and cancel, then save to gallery and share for the finished file.
-class ExportButtons extends StatelessWidget {
+class ExportButtons extends StatefulWidget {
   const ExportButtons({super.key});
 
   /// One export file in the app's temp folder; each export replaces it.
   static String get exportPath =>
       '${Directory.systemTemp.path}/framix-export.mp4';
 
-  static void _tell(BuildContext context, String text) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(text)));
+  @override
+  State<ExportButtons> createState() => _ExportButtonsState();
+}
 
-  Future<void> _save(BuildContext context, AppLocalizations l10n) async {
-    final result = await const ExportSharer().saveToGallery(exportPath);
-    if (!context.mounted) return;
-    _tell(context, switch (result) {
+class _ExportButtonsState extends State<ExportButtons> {
+  /// A save or share is reading the file; a new export would overwrite it underneath.
+  bool _busy = false;
+
+  void _tell(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  Future<void> _whileBusy(Future<void> Function() work) async {
+    setState(() => _busy = true);
+    try {
+      await work();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _save(AppLocalizations l10n) => _whileBusy(() async {
+    final path = ExportButtons.exportPath;
+    final result = await const ExportSharer().saveToGallery(path);
+    if (!mounted) return;
+    _tell(switch (result) {
       SaveResult.saved => l10n.savedToGallery,
       SaveResult.denied => l10n.saveDenied,
       SaveResult.failed => l10n.saveFailed,
     });
-  }
+  });
 
-  Future<void> _share(BuildContext context, AppLocalizations l10n) async {
-    if (await const ExportSharer().share(exportPath)) return;
-    if (context.mounted) _tell(context, l10n.shareFailed);
-  }
+  Future<void> _share(AppLocalizations l10n) => _whileBusy(() async {
+    if (await const ExportSharer().share(ExportButtons.exportPath)) return;
+    if (mounted) _tell(l10n.shareFailed);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +57,7 @@ class ExportButtons extends StatelessWidget {
     final cubit = context.read<ExportCubit>();
     return BlocConsumer<ExportCubit, ExportState>(
       listenWhen: (_, next) => next is ExportFailed,
-      listener: (context, _) => _tell(context, l10n.exportFailed),
+      listener: (_, _) => _tell(l10n.exportFailed),
       builder: (context, state) {
         if (state is ExportRunning) {
           return Row(
@@ -69,18 +86,20 @@ class ExportButtons extends StatelessWidget {
               IconButton(
                 tooltip: l10n.saveToGallery,
                 icon: const Icon(Icons.save_alt),
-                onPressed: () => _save(context, l10n),
+                onPressed: _busy ? null : () => _save(l10n),
               ),
               IconButton(
                 tooltip: l10n.share,
                 icon: const Icon(Icons.share),
-                onPressed: () => _share(context, l10n),
+                onPressed: _busy ? null : () => _share(l10n),
               ),
             ],
             IconButton(
               tooltip: l10n.export,
               icon: const Icon(Icons.movie),
-              onPressed: () => cubit.start(exportPath),
+              onPressed: _busy
+                  ? null
+                  : () => cubit.start(ExportButtons.exportPath),
             ),
           ],
         );

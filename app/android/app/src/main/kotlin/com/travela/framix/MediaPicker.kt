@@ -31,7 +31,10 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         if (call.method == "saveToGallery" || call.method == "share") {
-            val file = call.argument<String>("path")?.let(::File)?.takeIf { it.isFile }
+            // Only files in the cache (the export), never other app-private files.
+            val cache = activity.cacheDir.canonicalPath + File.separator
+            val file = call.argument<String>("path")?.let { File(it).canonicalFile }
+                ?.takeIf { it.isFile && it.path.startsWith(cache) }
                 ?: return result.error("no-file", null, null)
             return if (call.method == "share") share(file, result) else save(file, result)
         }
@@ -79,7 +82,7 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
             val out = resolver.openOutputStream(uri) ?: error("no output stream")
             out.use { o -> file.inputStream().use { it.copyTo(o) } }
             val done = ContentValues().apply { put(MediaStore.Video.Media.IS_PENDING, 0) }
-            resolver.update(uri, done, null, null)
+            check(resolver.update(uri, done, null, null) == 1) { "still pending" }
         }.isSuccess
         if (!saved && uri != null) runCatching { resolver.delete(uri, null, null) }
         main.post {

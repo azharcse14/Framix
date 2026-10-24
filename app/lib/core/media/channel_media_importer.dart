@@ -5,13 +5,14 @@ import 'package:flutter/services.dart';
 import '../engine/proto/framix/v1/engine.pb.dart';
 import 'media_importer.dart';
 
+/// The `framix/media` method channel: picking media, and saving or sharing an export.
+const mediaChannel = MethodChannel('framix/media');
+
 /// [MediaImporter] over the `framix/media` method channel (app/ios/Runner/MediaPicker.swift,
 /// app/android/.../MediaPicker.kt). Missing fields stay at their defaults, so the engine
 /// refuses them instead of Dart guessing.
 class ChannelMediaImporter implements MediaImporter {
   const ChannelMediaImporter();
-
-  static const _channel = MethodChannel('framix/media');
 
   @override
   Future<List<MediaItem>> pickFromGallery() => _pick('pickGallery');
@@ -22,7 +23,7 @@ class ChannelMediaImporter implements MediaImporter {
   Future<List<MediaItem>> _pick(String method) async {
     try {
       final picked =
-          await _channel.invokeListMethod<Map<Object?, Object?>>(method) ??
+          await mediaChannel.invokeListMethod<Map<Object?, Object?>>(method) ??
           const [];
       return [for (final m in picked) ?_item(m)];
     } on PlatformException catch (e) {

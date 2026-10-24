@@ -27,12 +27,14 @@ final class MediaPicker: NSObject {
 
   private func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
     if call.method == "saveToGallery" || call.method == "share" {
+      // Only files in tmp (the export), never other app-private files into the public gallery.
+      let tmp = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().path + "/"
       guard let path = (call.arguments as? [String: Any])?["path"] as? String,
-        FileManager.default.fileExists(atPath: path)
+        case let url = URL(fileURLWithPath: path).resolvingSymlinksInPath(),
+        url.path.hasPrefix(tmp), FileManager.default.fileExists(atPath: url.path)
       else {
         return result(FlutterError(code: "no-file", message: nil, details: nil))
       }
-      let url = URL(fileURLWithPath: path)
       return call.method == "share" ? share(url, result) : save(url, result)
     }
     guard call.method == "pickGallery" || call.method == "pickFiles" else {
@@ -71,7 +73,8 @@ final class MediaPicker: NSObject {
       let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
       guard status == .authorized || status == .limited else { return result("denied") }
       do {
-        try await PHPhotoLibrary.shared().performChanges {
+        // @Sendable: Photos runs the block on its own queue, not the main actor.
+        try await PHPhotoLibrary.shared().performChanges { @Sendable in
           _ = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
         }
         result("saved")
