@@ -15,7 +15,10 @@ fn a_tall_canvas_is_pillarboxed_in_a_wide_target() {
     let left = (1280.0 - 405.0) / 2.0 / 1280.0;
     assert!(close(t.apply(left, 0.0), (0.0, 0.0)));
     assert!(close(t.apply(1.0 - left, 1.0), (1.0, 1.0)));
-    assert!(t.apply(0.0, 0.5).0 < 0.0, "left of the canvas is outside it");
+    assert!(
+        t.apply(0.0, 0.5).0 < 0.0,
+        "left of the canvas is outside it"
+    );
 }
 
 #[test]
@@ -35,5 +38,8 @@ fn maps_compose_in_order() {
     };
     // Halve, then shift.
     assert!(close(half.then(&shift).apply(1.0, 1.0), (0.75, 0.5)));
-    assert!(close(Affine::IDENTITY.then(&shift).apply(0.0, 0.0), (0.25, 0.0)));
+    assert!(close(
+        Affine::IDENTITY.then(&shift).apply(0.0, 0.0),
+        (0.25, 0.0)
+    ));
 }

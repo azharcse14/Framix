@@ -9,7 +9,7 @@ use std::ffi::c_void;
 use crate::{ENGINE_ERR_GPU, ENGINE_ERR_NULL, ffi_guard};
 
 #[cfg(target_vendor = "apple")]
-use framix_render::{YcbcrMatrix, YcbcrRange, YcbcrSpace};
+use framix_render::{Placement, YcbcrMatrix, YcbcrRange, YcbcrSpace};
 
 /// The engine's one GPU (shared with the preview renderer); None if it could not be opened.
 fn gpu() -> Option<&'static framix_render::Gpu> {
@@ -71,7 +71,7 @@ pub unsafe extern "C" fn engine_spike_draw_nv12(
         let drawn = unsafe { gpu.wrap_metal_texture(target) }.and_then(|out| {
             // SAFETY: as above; the decoder is done with the frame.
             let (y, cbcr) = unsafe { (gpu.wrap_metal_plane(y)?, gpu.wrap_metal_plane(cbcr)?) };
-            gpu.draw_nv12(&out, &y, &cbcr, space)
+            gpu.draw_nv12(&out, &y, &cbcr, space, &Placement::FILL)
         });
         report(drawn)
     })

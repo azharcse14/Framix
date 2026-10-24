@@ -64,7 +64,11 @@ fn the_layer_is_the_clip_on_the_top_visible_video_track() {
     place(&mut tl, high, 2, 0, 500, 1000);
 
     let l = tl.layer_at(Time(200)).unwrap();
-    assert_eq!(l.media_id, MediaId(1), "only the lower track has a clip at 200");
+    assert_eq!(
+        l.media_id,
+        MediaId(1),
+        "only the lower track has a clip at 200"
+    );
     let l = tl.layer_at(Time(600)).unwrap();
     assert_eq!(l.media_id, MediaId(2), "the later track draws on top");
 

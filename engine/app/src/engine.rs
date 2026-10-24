@@ -5,13 +5,13 @@ use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{self, Media, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
-    self, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
+    self, ClipId, ClipPlacement, LayerKey, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
 };
 
 use std::path::{Path, PathBuf};
 
 use crate::history::History;
-use crate::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
+use crate::preview::{DrawError, PlatformTexture, PreviewHost, PreviewRenderer};
 use crate::project;
 use crate::proto::{
     self, Command, CommandFailed, Event, ProjectSaved, TimelineChanged, TrackKind, command,
@@ -51,6 +51,8 @@ struct Preview {
     pending: u32,
     /// The texture last shown, redrawn when the playhead moves.
     shown: Option<PlatformTexture>,
+    /// The picture last drawn into it (None: an empty canvas).
+    drawn: Option<LayerKey>,
 }
 
 /// Longest time a change waits before the engine autosaves it.
@@ -85,6 +87,7 @@ impl Engine {
                 renderer,
                 pending: 0,
                 shown: None,
+                drawn: None,
             }),
             ..self
         }
@@ -257,10 +260,19 @@ impl Engine {
             .ok_or("no preview was requested")?;
         preview.pending -= 1;
         let texture = texture?;
-        preview.renderer.draw(texture, self.playhead)?;
+        let layer = self.history.timeline().layer_at(self.playhead);
+        match preview
+            .renderer
+            .draw(texture, self.playhead, layer.as_ref())
+        {
+            // A frame that can't be decoded shows black; the preview itself works.
+            Ok(()) | Err(DrawError::Decode(_)) => {}
+            Err(DrawError::Gpu(reason)) => return Err(reason),
+        }
         preview.host.frame_available(texture.id);
         // Only a preview that drew once is redrawn later.
         preview.shown = Some(texture);
+        preview.drawn = layer.map(|l| l.key());
         Ok(texture.id)
     }
 
@@ -274,9 +286,31 @@ impl Engine {
         let Some(texture) = preview.shown else {
             return;
         };
-        match preview.renderer.draw(texture, self.playhead) {
-            Ok(()) => preview.host.frame_available(texture.id),
-            Err(_) => preview.shown = None,
+        let layer = self.history.timeline().layer_at(self.playhead);
+        match preview
+            .renderer
+            .draw(texture, self.playhead, layer.as_ref())
+        {
+            Ok(()) | Err(DrawError::Decode(_)) => {
+                preview.host.frame_available(texture.id);
+                preview.drawn = layer.map(|l| l.key());
+            }
+            Err(DrawError::Gpu(_)) => preview.shown = None,
+        }
+    }
+
+    /// Redraws if an edit changed the picture under a playhead that did not move.
+    fn redraw_if_changed(&mut self) {
+        let Some(preview) = self.preview.as_ref() else {
+            return;
+        };
+        let now = self
+            .history
+            .timeline()
+            .layer_at(self.playhead)
+            .map(|l| l.key());
+        if preview.shown.is_some() && now != preview.drawn {
+            self.redraw();
         }
     }
 
@@ -329,8 +363,10 @@ impl Engine {
         match self.apply(kind) {
             // An edit may have shortened the timeline under the playhead.
             Ok(Reply::Timeline) => {
-                // An edit may have shortened the timeline under the playhead.
+                // An edit may have shortened the timeline under the playhead, or changed what
+                // shows there.
                 self.move_playhead(self.playhead);
+                self.redraw_if_changed();
                 self.timeline_changed()
             }
             Ok(Reply::Playhead(snapped)) => Event {

@@ -4,12 +4,13 @@
 use std::sync::{Arc, Mutex};
 
 use framix_app::engine::Engine;
-use framix_app::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
+use framix_app::preview::{DrawError, PlatformTexture, PreviewHost, PreviewRenderer};
 use framix_app::proto::{
     Command, CreatePreview, Event, ImportMedia, MediaItem, MediaKind, RemoveClip, Seek,
     TimelineChanged, Undo, command, event,
 };
 use framix_core::time::{TICKS_PER_SECOND, Time};
+use framix_core::timeline::Layer;
 
 const SECOND: i64 = TICKS_PER_SECOND;
 
@@ -140,7 +141,12 @@ impl PreviewHost for Host {
 struct Renderer(Draws);
 
 impl PreviewRenderer for Renderer {
-    fn draw(&mut self, target: PlatformTexture, time: Time) -> Result<(), String> {
+    fn draw(
+        &mut self,
+        target: PlatformTexture,
+        time: Time,
+        _: Option<&Layer>,
+    ) -> Result<(), DrawError> {
         self.0.lock().unwrap().push((target.id, time));
         Ok(())
     }

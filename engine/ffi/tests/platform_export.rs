@@ -100,6 +100,9 @@ fn an_export_opens_the_encoder_and_ends_with_export_finished() {
         encoder_open: Some(open),
         encoder_frame: Some(next_frame),
         encoder_finish: Some(finish),
+        decoder_open: Some(no_decoder_open),
+        decoder_frame: Some(no_decoder_frame),
+        decoder_close: Some(no_decoder_close),
     };
     let no_encoder = EnginePlatform {
         encoder_finish: None,
@@ -183,3 +186,22 @@ fn an_export_opens_the_encoder_and_ends_with_export_finished() {
     // SAFETY: not used after this.
     assert_eq!(unsafe { engine_destroy(engine) }, ENGINE_OK);
 }
+
+/// The decoder is not exercised here (platform_frame.rs and the simulator check it).
+unsafe extern "C" fn no_decoder_open(_: *mut c_void) -> *mut c_void {
+    std::ptr::null_mut()
+}
+
+unsafe extern "C" fn no_decoder_frame(
+    _: *mut c_void,
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: *mut framix_ffi::EngineFrame,
+) -> i32 {
+    -1
+}
+
+unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}

@@ -2,12 +2,13 @@
 //! playhead and the timeline are state, the redraw is best effort.
 
 use framix_app::engine::Engine;
-use framix_app::preview::{PlatformTexture, PreviewHost, PreviewRenderer};
+use framix_app::preview::{DrawError, PlatformTexture, PreviewHost, PreviewRenderer};
 use framix_app::proto::{
     Command, CreatePreview, Event, ImportMedia, MediaItem, MediaKind, NewProject, RemoveClip, Seek,
     command, event,
 };
 use framix_core::time::{TICKS_PER_SECOND, Time};
+use framix_core::timeline::Layer;
 
 const SECOND: i64 = TICKS_PER_SECOND;
 
@@ -24,8 +25,8 @@ impl PreviewHost for Host {
 struct Dead;
 
 impl PreviewRenderer for Dead {
-    fn draw(&mut self, _: PlatformTexture, _: Time) -> Result<(), String> {
-        Err("device lost".into())
+    fn draw(&mut self, _: PlatformTexture, _: Time, _: Option<&Layer>) -> Result<(), DrawError> {
+        Err(DrawError::Gpu("device lost".into()))
     }
 }
 
@@ -131,12 +132,12 @@ fn a_new_project_starts_at_zero() {
 struct DiesAfterFirst(std::sync::Arc<std::sync::atomic::AtomicU32>);
 
 impl PreviewRenderer for DiesAfterFirst {
-    fn draw(&mut self, _: PlatformTexture, _: Time) -> Result<(), String> {
+    fn draw(&mut self, _: PlatformTexture, _: Time, _: Option<&Layer>) -> Result<(), DrawError> {
         let n = self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         if n == 0 {
             Ok(())
         } else {
-            Err("device lost".into())
+            Err(DrawError::Gpu("device lost".into()))
         }
     }
 }

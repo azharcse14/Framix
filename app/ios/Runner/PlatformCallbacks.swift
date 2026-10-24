@@ -71,7 +71,8 @@ enum PlatformCallbacks {
       version: UInt32(ENGINE_PLATFORM_VERSION), ctx: nil,
       create_preview_texture: createPreviewTexture, frame_available: frameAvailable,
       request_thumbnail: requestThumbnail, encoder_open: encoderOpen,
-      encoder_frame: encoderFrame, encoder_finish: encoderFinish)
+      encoder_frame: encoderFrame, encoder_finish: encoderFinish, decoder_open: decoderOpen,
+      decoder_frame: decoderFrame, decoder_close: decoderClose)
     let code = unsafeBitCast(symbol, to: Register.self)(&platform)
     assert(code == ENGINE_OK, "engine_platform_register failed: \(code)")
   }
@@ -163,10 +164,7 @@ enum Thumbnails {
     let file = dir.appendingPathComponent("\(name)-\(timeUs)-\(maxSide).jpg")
     if manager.fileExists(atPath: file.path) { return file.path }
 
-    // The engine's media references are relative to Application Support (MediaPicker.store).
-    let source = try manager.url(
-      for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false
-    ).appendingPathComponent(reference)
+    let source = try MediaFiles.url(for: reference)
     let picture = image
       ? try photo(source, maxSide: maxSide)
       : try await frame(source, timeUs: timeUs, maxSide: maxSide)

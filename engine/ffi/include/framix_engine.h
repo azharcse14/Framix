@@ -52,7 +52,7 @@
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 3
+#define ENGINE_PLATFORM_VERSION 4
 
 /**
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
@@ -63,6 +63,46 @@
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a photo.
  */
 #define ENGINE_MEDIA_IMAGE 2
+
+/**
+ * [`EngineFrame::format`]: NV12, `planes` luma (R8) and chroma (RG8).
+ */
+#define ENGINE_FRAME_NV12 1
+
+/**
+ * [`EngineFrame::format`]: one RGBA8 texture in `planes[0]`.
+ */
+#define ENGINE_FRAME_RGBA 2
+
+/**
+ * [`EngineFrame::matrix`]: the frame carries no matrix tag (the engine assumes BT.709).
+ */
+#define ENGINE_YCBCR_UNKNOWN 0
+
+/**
+ * [`EngineFrame::matrix`]: tagged ITU-R BT.601.
+ */
+#define ENGINE_YCBCR_601 1
+
+/**
+ * [`EngineFrame::matrix`]: tagged ITU-R BT.709.
+ */
+#define ENGINE_YCBCR_709 2
+
+/**
+ * [`EngineFrame::range`]: no range tag (the engine assumes video range).
+ */
+#define ENGINE_RANGE_UNKNOWN 0
+
+/**
+ * [`EngineFrame::range`]: video range (Y 16-235).
+ */
+#define ENGINE_RANGE_VIDEO 1
+
+/**
+ * [`EngineFrame::range`]: full range (0-255).
+ */
+#define ENGINE_RANGE_FULL 2
 
 /**
  * Opaque engine instance: a channel into the engine thread.
@@ -111,6 +151,30 @@ typedef void (*EngineThumbnailDone)(void *done_ctx,
                                     int32_t status,
                                     const uint8_t *path,
                                     size_t path_len);
+
+/**
+ * A decoded frame as the platform reports it from `decoder_frame`: GPU textures (each an
+ * `id<MTLTexture>` on iOS, on the engine's Metal device) plus the raw colour tags. The engine
+ * picks the colour space; the platform only reports what the file says.
+ */
+typedef struct EngineFrame {
+  /**
+   * [`ENGINE_FRAME_NV12`] or [`ENGINE_FRAME_RGBA`].
+   */
+  uint32_t format;
+  /**
+   * The textures; unused entries null.
+   */
+  void *planes[2];
+  /**
+   * One of the `ENGINE_YCBCR_*` tags (NV12 only).
+   */
+  uint32_t matrix;
+  /**
+   * One of the `ENGINE_RANGE_*` tags (NV12 only).
+   */
+  uint32_t range;
+} EngineFrame;
 
 /**
  * Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
@@ -176,6 +240,28 @@ typedef struct EnginePlatform {
    * another value for failure. Called exactly once per opened encoder.
    */
   int32_t (*encoder_finish)(void *ctx, void *encoder, bool ok);
+  /**
+   * Opens a decoder for one engine thread (docs/adr/0006-decoder-port.md). Returns it, or
+   * null if it could not open.
+   */
+  void *(*decoder_open)(void *ctx);
+  /**
+   * Blocks until the frame of the media `uri` (`uri_len` UTF-8 bytes, valid for the call) of
+   * `kind` at `time_us` microseconds is decoded, fills `out`, and returns
+   * [`crate::ENGINE_OK`]; any other value is a failure (`out` untouched). The frame's
+   * textures stay valid until the next `decoder_frame` or `decoder_close` on `decoder`.
+   */
+  int32_t (*decoder_frame)(void *ctx,
+                           void *decoder,
+                           const uint8_t *uri,
+                           size_t uri_len,
+                           uint32_t kind,
+                           int64_t time_us,
+                           struct EngineFrame *out);
+  /**
+   * Frees `decoder` and its last frame. Called exactly once per opened decoder.
+   */
+  void (*decoder_close)(void *ctx, void *decoder);
 } EnginePlatform;
 
 /**

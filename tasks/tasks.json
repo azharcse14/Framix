@@ -13097,11 +13097,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-24",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "p1-060-decoded-preview",
    "notes": [
     {
      "date": "2026-10-23",

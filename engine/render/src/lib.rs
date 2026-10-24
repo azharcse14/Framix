@@ -2,7 +2,10 @@
 //! shows, with no copies: on iOS an IOSurface-backed Metal texture, on Android the window of a
 //! Flutter SurfaceProducer (its buffers are the HardwareBuffers Flutter samples).
 
-use framix_app::preview::{PlatformTexture, PreviewRenderer};
+use framix_app::preview::{Decoder, DrawError, Frame, PlatformTexture, PreviewRenderer};
+pub use framix_app::preview::{YcbcrMatrix, YcbcrRange, YcbcrSpace};
+use framix_core::placement::{Affine, canvas_to_source, target_to_canvas};
+use framix_core::timeline::Layer;
 
 #[cfg(target_os = "android")]
 mod android;
@@ -18,6 +21,7 @@ pub const PREVIEW_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8Unorm;
 /// The RGBA frame blit: fullscreen vertex stage plus src/blit.wgsl.
 const BLIT_WGSL: &str = concat!(
     include_str!("../shaders/common/fullscreen.wgsl"),
+    include_str!("../shaders/common/placement.wgsl"),
     include_str!("blit.wgsl"),
 );
 
@@ -53,68 +57,70 @@ pub enum RenderError {
     Android(String),
 }
 
-/// The YCbCr -> RGB matrix a decoder frame was encoded with.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum YcbcrMatrix {
-    /// ITU-R BT.601 (SD video, JPEG).
-    Bt601,
-    /// ITU-R BT.709 (HD video).
-    Bt709,
+/// Every YCbCr space, in [`space_index`] order.
+const ALL_SPACES: [YcbcrSpace; 4] = [
+    space(YcbcrMatrix::Bt601, YcbcrRange::Video),
+    space(YcbcrMatrix::Bt601, YcbcrRange::Full),
+    space(YcbcrMatrix::Bt709, YcbcrRange::Video),
+    space(YcbcrMatrix::Bt709, YcbcrRange::Full),
+];
+
+const fn space(matrix: YcbcrMatrix, range: YcbcrRange) -> YcbcrSpace {
+    YcbcrSpace { matrix, range }
 }
 
-/// Whether Y and CbCr use the video (16-235/240) or the full (0-255) code range.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum YcbcrRange {
-    /// Y 16-235, CbCr 16-240 (8-bit codes).
-    Video,
-    /// 0-255.
-    Full,
+/// Position of `space` in [`ALL_SPACES`].
+fn space_index(space: YcbcrSpace) -> usize {
+    let matrix = match space.matrix {
+        YcbcrMatrix::Bt601 => 0,
+        YcbcrMatrix::Bt709 => 2,
+    };
+    matrix + usize::from(space.range == YcbcrRange::Full)
 }
 
-/// How to turn a frame's YCbCr samples into RGB.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct YcbcrSpace {
-    /// Conversion matrix.
-    pub matrix: YcbcrMatrix,
-    /// Code range.
-    pub range: YcbcrRange,
+/// The `Ycbcr` uniform of shaders/common/ycbcr.wgsl: kr, kb (f32), video_range, pad (u32).
+fn space_uniform(space: YcbcrSpace) -> [u8; 16] {
+    let (kr, kb): (f32, f32) = match space.matrix {
+        YcbcrMatrix::Bt601 => (0.299, 0.114),
+        YcbcrMatrix::Bt709 => (0.2126, 0.0722),
+    };
+    let video = u32::from(space.range == YcbcrRange::Video);
+    let mut out = [0; 16];
+    out[0..4].copy_from_slice(&kr.to_le_bytes());
+    out[4..8].copy_from_slice(&kb.to_le_bytes());
+    out[8..12].copy_from_slice(&video.to_le_bytes());
+    out
 }
 
-impl YcbcrSpace {
-    /// Every space, in [`YcbcrSpace::index`] order.
-    const ALL: [Self; 4] = [
-        Self::new(YcbcrMatrix::Bt601, YcbcrRange::Video),
-        Self::new(YcbcrMatrix::Bt601, YcbcrRange::Full),
-        Self::new(YcbcrMatrix::Bt709, YcbcrRange::Video),
-        Self::new(YcbcrMatrix::Bt709, YcbcrRange::Full),
+/// Where a frame lands on a render target: the canvas fitted in the target, and the picture
+/// on the canvas. Both map the target's UV (0..1 from the top-left).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Placement {
+    /// Target UV to canvas UV; outside 0..1 is the bars around the canvas.
+    pub canvas: Affine,
+    /// Target UV to source UV; outside 0..1 is off the picture.
+    pub source: Affine,
+}
+
+impl Placement {
+    /// The frame stretched over the whole target.
+    pub const FILL: Self = Self {
+        canvas: Affine::IDENTITY,
+        source: Affine::IDENTITY,
+    };
+}
+
+/// The `Placement` uniform of shaders/common/placement.wgsl: two maps, two vec4 rows each.
+fn placement_uniform(placement: &Placement) -> [u8; 64] {
+    let (c, m) = (placement.canvas.m, placement.source.m);
+    let rows = [
+        c[0], c[1], c[2], 0.0, c[3], c[4], c[5], 0.0, m[0], m[1], m[2], 0.0, m[3], m[4], m[5], 0.0,
     ];
-
-    const fn new(matrix: YcbcrMatrix, range: YcbcrRange) -> Self {
-        Self { matrix, range }
+    let mut out = [0; 64];
+    for (i, v) in rows.into_iter().enumerate() {
+        out[i * 4..i * 4 + 4].copy_from_slice(&v.to_le_bytes());
     }
-
-    /// Position in [`YcbcrSpace::ALL`].
-    fn index(self) -> usize {
-        let matrix = match self.matrix {
-            YcbcrMatrix::Bt601 => 0,
-            YcbcrMatrix::Bt709 => 2,
-        };
-        matrix + usize::from(self.range == YcbcrRange::Full)
-    }
-
-    /// The `Ycbcr` uniform of shaders/common/ycbcr.wgsl: kr, kb (f32), video_range, pad (u32).
-    fn uniform(self) -> [u8; 16] {
-        let (kr, kb): (f32, f32) = match self.matrix {
-            YcbcrMatrix::Bt601 => (0.299, 0.114),
-            YcbcrMatrix::Bt709 => (0.2126, 0.0722),
-        };
-        let video = u32::from(self.range == YcbcrRange::Video);
-        let mut out = [0; 16];
-        out[0..4].copy_from_slice(&kr.to_le_bytes());
-        out[4..8].copy_from_slice(&kb.to_le_bytes());
-        out[8..12].copy_from_slice(&video.to_le_bytes());
-        out
-    }
+    out
 }
 
 /// What one Metal wrap accepts and how wgpu sees the result.
@@ -141,15 +147,16 @@ impl Nv12Pass {
         let source = concat!(
             include_str!("../shaders/common/fullscreen.wgsl"),
             include_str!("../shaders/common/ycbcr.wgsl"),
+            include_str!("../shaders/common/placement.wgsl"),
             include_str!("nv12.wgsl"),
         );
         Self {
             pipeline: fullscreen_pipeline(device, "nv12", source, PREVIEW_FORMAT),
-            spaces: YcbcrSpace::ALL.map(|space| {
+            spaces: ALL_SPACES.map(|space| {
                 use wgpu::util::DeviceExt as _;
                 device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("nv12 space"),
-                    contents: &space.uniform(),
+                    contents: &space_uniform(space),
                     usage: wgpu::BufferUsages::UNIFORM,
                 })
             }),
@@ -285,29 +292,53 @@ impl Gpu {
     /// Draws the test pattern into `target` and waits until the GPU is done, so the platform
     /// layer can tell Flutter a new frame is ready right after this returns.
     pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
-        self.draw(target, &self.pipeline, None)
+        self.draw(target, Some(&self.pipeline), None)
     }
 
-    /// Draws an RGBA8 frame (a decoder frame already converted to RGB, e.g. the Android GLES
-    /// pass's HardwareBuffer) into `target` and waits until the GPU is done.
+    /// Draws an RGBA8 frame (a photo, or a decoder frame already converted to RGB, e.g. the
+    /// Android GLES pass's HardwareBuffer) placed on `target` by `placement` (black around
+    /// it), and waits until the GPU is done.
     pub fn draw_rgba(
         &self,
         target: &wgpu::Texture,
         frame: &wgpu::Texture,
+        placement: &Placement,
     ) -> Result<(), RenderError> {
         if target.format() != PREVIEW_FORMAT || frame.format() != wgpu::TextureFormat::Rgba8Unorm {
             return Err(RenderError::InvalidTexture);
         }
-        let bind_group = self.rgba_bind_group(&self.blit, frame);
-        self.draw(target, &self.blit, Some(&bind_group))
+        let bind_group = self.rgba_bind_group(&self.blit, frame, placement);
+        self.draw(target, Some(&self.blit), Some(&bind_group))
     }
 
-    /// The blit pass's bindings for `frame`.
+    /// Fills `target` with black (an empty canvas) and waits until the GPU is done.
+    pub fn draw_black(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
+        if target.format() != PREVIEW_FORMAT {
+            return Err(RenderError::InvalidTexture);
+        }
+        self.draw(target, None, None)
+    }
+
+    /// A uniform buffer holding `placement`.
+    fn placement_buffer(&self, placement: &Placement) -> wgpu::Buffer {
+        use wgpu::util::DeviceExt as _;
+        // SPIKE: a buffer per frame, like the bind groups; pooled with them (P1-058).
+        self.device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("placement"),
+                contents: &placement_uniform(placement),
+                usage: wgpu::BufferUsages::UNIFORM,
+            })
+    }
+
+    /// The blit pass's bindings for `frame` placed by `placement`.
     fn rgba_bind_group(
         &self,
         pipeline: &wgpu::RenderPipeline,
         frame: &wgpu::Texture,
+        placement: &Placement,
     ) -> wgpu::BindGroup {
+        let placement = self.placement_buffer(placement);
         // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
         self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("rgba frame"),
@@ -322,6 +353,10 @@ impl Gpu {
                 wgpu::BindGroupEntry {
                     binding: 1,
                     resource: wgpu::BindingResource::Sampler(&self.frame_sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: placement.as_entire_binding(),
                 },
             ],
         })
@@ -355,14 +390,15 @@ impl Gpu {
         unsafe { android::import_ahb(&self.device, ahb) }
     }
 
-    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB into `target`
-    /// and waits until the GPU is done.
+    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB, placed on
+    /// `target` by `placement` (black around it), and waits until the GPU is done.
     pub fn draw_nv12(
         &self,
         target: &wgpu::Texture,
         y: &wgpu::Texture,
         cbcr: &wgpu::Texture,
         space: YcbcrSpace,
+        placement: &Placement,
     ) -> Result<(), RenderError> {
         if target.format() != PREVIEW_FORMAT
             || y.format() != wgpu::TextureFormat::R8Unorm
@@ -371,6 +407,7 @@ impl Gpu {
             return Err(RenderError::InvalidTexture);
         }
         let pass = &self.nv12;
+        let placement = self.placement_buffer(placement);
         // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
         let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("nv12 frame"),
@@ -394,17 +431,22 @@ impl Gpu {
                 },
                 wgpu::BindGroupEntry {
                     binding: 3,
-                    resource: pass.spaces[space.index()].as_entire_binding(),
+                    resource: pass.spaces[space_index(space)].as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: placement.as_entire_binding(),
                 },
             ],
         });
-        self.draw(target, &pass.pipeline, Some(&bind_group))
+        self.draw(target, Some(&pass.pipeline), Some(&bind_group))
     }
 
+    /// One fullscreen draw of `pipeline` over black; without one, just the black.
     fn draw(
         &self,
         target: &wgpu::Texture,
-        pipeline: &wgpu::RenderPipeline,
+        pipeline: Option<&wgpu::RenderPipeline>,
         bind_group: Option<&wgpu::BindGroup>,
     ) -> Result<(), RenderError> {
         let view = target.create_view(&Default::default());
@@ -423,9 +465,11 @@ impl Gpu {
                 })],
                 ..Default::default()
             });
-            pass.set_pipeline(pipeline);
-            pass.set_bind_group(0, bind_group, &[]);
-            pass.draw(0..3, 0..1);
+            if let Some(pipeline) = pipeline {
+                pass.set_pipeline(pipeline);
+                pass.set_bind_group(0, bind_group, &[]);
+                pass.draw(0..3, 0..1);
+            }
         }
         self.queue.submit([encoder.finish()]);
         // SPIKE: blocking wait; the real render thread will signal via a fence instead.
@@ -485,12 +529,12 @@ impl Gpu {
             Some(source) => {
                 let pipeline =
                     fullscreen_pipeline(&self.device, "rgba frame", BLIT_WGSL, config.format);
-                let bind_group = self.rgba_bind_group(&pipeline, source);
-                self.draw(&frame.texture, &pipeline, Some(&bind_group))?;
+                let bind_group = self.rgba_bind_group(&pipeline, source, &Placement::FILL);
+                self.draw(&frame.texture, Some(&pipeline), Some(&bind_group))?;
             }
             None => self.draw(
                 &frame.texture,
-                &test_pattern_pipeline(&self.device, config.format),
+                Some(&test_pattern_pipeline(&self.device, config.format)),
                 None,
             )?,
         }
@@ -568,7 +612,7 @@ impl Gpu {
     }
 
     /// Wraps one plane of a decoder frame (a Metal texture on an IOSurface plane: R8Unorm luma
-    /// or RG8Unorm chroma) for sampling, without copying.
+    /// or RG8Unorm chroma), or a decoded photo (RGBA8Unorm), for sampling, without copying.
     ///
     /// # Safety
     /// `mtl_texture` must be null or a live `id<MTLTexture>`. It is retained here, so the caller
@@ -585,6 +629,8 @@ impl Gpu {
             format: |f| match f {
                 MTLPixelFormat::R8Unorm => Some(wgpu::TextureFormat::R8Unorm),
                 MTLPixelFormat::RG8Unorm => Some(wgpu::TextureFormat::Rg8Unorm),
+                // A decoded photo.
+                MTLPixelFormat::RGBA8Unorm => Some(wgpu::TextureFormat::Rgba8Unorm),
                 _ => None,
             },
             needs: MTLTextureUsage::ShaderRead,
@@ -725,37 +771,42 @@ fn fullscreen_pipeline(
     })
 }
 
-/// [`PreviewRenderer`] on [`Gpu`]: draws the test pattern into the platform's texture. Uses
-/// [`Gpu::shared`], opened on first use.
+/// [`PreviewRenderer`] on [`Gpu`]: draws each layer's decoded frame, placed on the canvas,
+/// into the platform's texture. Uses [`Gpu::shared`], opened on first use.
 pub struct GpuRenderer {
     gpu: Option<&'static Gpu>,
+    /// Frames for the layers; None draws black (Android until its decoder lands).
+    decoder: Option<Box<dyn Decoder>>,
 }
 
 impl GpuRenderer {
-    /// A renderer that has not opened the GPU yet.
+    /// A renderer that has not opened the GPU yet, decoding through `decoder`.
     ///
     /// # Safety
     /// `draw` must only get textures whose `handle` came from a successful
     /// `EnginePreviewTextureDone` or `encoder_frame` (a live BGRA `id<MTLTexture>` with render
     /// target usage on Apple, an owned `ANativeWindow*` on Android) and stays alive for the call.
-    pub unsafe fn new() -> Self {
-        Self { gpu: None }
+    /// The decoder's frames must be live textures of the kinds [`Frame`] names, on the same
+    /// Metal device, until its next call.
+    pub unsafe fn new(decoder: Option<Box<dyn Decoder>>) -> Self {
+        Self { gpu: None, decoder }
     }
 }
 
 impl PreviewRenderer for GpuRenderer {
-    // The time picks the frame once the Decoder port exists; today every time shows the test
-    // pattern.
     fn draw(
         &mut self,
         target: PlatformTexture,
         _time: framix_core::time::Time,
-    ) -> Result<(), String> {
+        layer: Option<&Layer>,
+    ) -> Result<(), DrawError> {
         let gpu = match self.gpu {
             Some(gpu) => gpu,
-            None => *self.gpu.insert(Gpu::shared().map_err(|e| e.to_string())?),
+            None => *self
+                .gpu
+                .insert(Gpu::shared().map_err(|e| DrawError::Gpu(e.to_string()))?),
         };
-        let drawn = draw_into(gpu, target);
+        let drawn = draw_into(gpu, target, &mut self.decoder, layer);
         #[cfg(target_os = "android")]
         if let Err(e) = &drawn {
             android::log(&format!("preview draw: {e}"));
@@ -765,36 +816,101 @@ impl PreviewRenderer for GpuRenderer {
 }
 
 #[cfg(target_vendor = "apple")]
-fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
+fn draw_into(
+    gpu: &Gpu,
+    target: PlatformTexture,
+    decoder: &mut Option<Box<dyn Decoder>>,
+    layer: Option<&Layer>,
+) -> Result<(), DrawError> {
+    let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     // SAFETY: GpuRenderer::new's contract: the handle is a live id<MTLTexture> the platform
     // reported as made.
     let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut std::ffi::c_void) }
-        .map_err(|e| e.to_string())?;
-    gpu.draw_test_pattern(&texture).map_err(|e| e.to_string())
+        .map_err(gpu_err)?;
+    let (Some(decoder), Some(layer)) = (decoder.as_mut(), layer) else {
+        return gpu.draw_black(&texture).map_err(gpu_err);
+    };
+    let frame = match decoder.frame(layer.media, layer.source_time) {
+        Ok(frame) => frame,
+        Err(reason) => {
+            gpu.draw_black(&texture).map_err(gpu_err)?;
+            return Err(DrawError::Decode(reason));
+        }
+    };
+    let canvas = target_to_canvas(layer.canvas, texture.width(), texture.height());
+    let placement = Placement {
+        canvas,
+        source: canvas.then(&canvas_to_source(
+            layer.media,
+            &layer.transform,
+            layer.canvas,
+        )),
+    };
+    let bad_frame = |e: RenderError| DrawError::Decode(e.to_string());
+    match frame {
+        Frame::Nv12 { y, cbcr, space } => {
+            // SAFETY: GpuRenderer::new's contract: the decoder's planes are live R8/RG8
+            // textures on this device until its next call, which comes after this draw.
+            let (y, cbcr) = unsafe {
+                (
+                    gpu.wrap_metal_plane(y as *mut std::ffi::c_void),
+                    gpu.wrap_metal_plane(cbcr as *mut std::ffi::c_void),
+                )
+            };
+            gpu.draw_nv12(
+                &texture,
+                &y.map_err(bad_frame)?,
+                &cbcr.map_err(bad_frame)?,
+                space,
+                &placement,
+            )
+            .map_err(gpu_err)
+        }
+        Frame::Rgba { texture: picture } => {
+            // SAFETY: as above, for the decoder's RGBA8 texture.
+            let picture = unsafe { gpu.wrap_metal_plane(picture as *mut std::ffi::c_void) }
+                .map_err(bad_frame)?;
+            gpu.draw_rgba(&texture, &picture, &placement)
+                .map_err(gpu_err)
+        }
+    }
 }
 
+// ponytail: Android keeps the test pattern until its decoder lands (the Android Decoder task).
 #[cfg(target_os = "android")]
-fn draw_into(gpu: &Gpu, target: PlatformTexture) -> Result<(), String> {
+fn draw_into(
+    gpu: &Gpu,
+    target: PlatformTexture,
+    _decoder: &mut Option<Box<dyn Decoder>>,
+    _layer: Option<&Layer>,
+) -> Result<(), DrawError> {
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
-        .ok_or("null preview window")?;
+        .ok_or_else(|| DrawError::Gpu("null preview window".into()))?;
     // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
     // reported as made.
-    unsafe { gpu.draw_to_android_window(window, None) }.map_err(|e| e.to_string())
+    unsafe { gpu.draw_to_android_window(window, None) }.map_err(|e| DrawError::Gpu(e.to_string()))
 }
 
 #[cfg(not(any(target_vendor = "apple", target_os = "android")))]
-fn draw_into(_: &Gpu, _: PlatformTexture) -> Result<(), String> {
-    Err("no platform texture support on this OS yet".to_owned())
+fn draw_into(
+    _: &Gpu,
+    _: PlatformTexture,
+    _: &mut Option<Box<dyn Decoder>>,
+    _: Option<&Layer>,
+) -> Result<(), DrawError> {
+    Err(DrawError::Gpu(
+        "no platform texture support on this OS yet".to_owned(),
+    ))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::YcbcrSpace;
+    use super::{ALL_SPACES, space_index};
 
     #[test]
     fn every_space_indexes_its_own_uniform() {
-        for (i, space) in YcbcrSpace::ALL.into_iter().enumerate() {
-            assert_eq!(space.index(), i, "{space:?}");
+        for (i, space) in ALL_SPACES.into_iter().enumerate() {
+            assert_eq!(space_index(space), i, "{space:?}");
         }
     }
 }

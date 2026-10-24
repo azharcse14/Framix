@@ -4,9 +4,10 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use framix_app::export::{Encoder, EncoderConfig, EncoderHost, ExportError, run_export_with};
-use framix_app::preview::{PlatformTexture, PreviewRenderer};
+use framix_app::preview::{DrawError, PlatformTexture, PreviewRenderer};
 use framix_core::media::{Media, MediaKind, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
+use framix_core::timeline::Layer;
 use framix_core::timeline::Timeline;
 
 /// Counts frames and records how the file was finished; cancels before frame `cancel_at`.
@@ -56,7 +57,7 @@ impl EncoderHost for Host {
 
 struct Draw;
 impl PreviewRenderer for Draw {
-    fn draw(&mut self, _: PlatformTexture, _: Time) -> Result<(), String> {
+    fn draw(&mut self, _: PlatformTexture, _: Time, _: Option<&Layer>) -> Result<(), DrawError> {
         Ok(())
     }
 }

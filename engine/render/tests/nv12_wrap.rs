@@ -6,7 +6,8 @@
 mod common;
 
 use common::{Texture, bgra_target, ptr, rgb};
-use framix_render::{Gpu, YcbcrMatrix, YcbcrRange, YcbcrSpace};
+
+use framix_render::{Gpu, Placement, YcbcrMatrix, YcbcrRange, YcbcrSpace};
 use objc2_core_foundation::{CFArray, CFDictionary, CFNumber, CFRetained, CFString, CFType};
 use objc2_io_surface::{
     IOSurfaceLockOptions, IOSurfaceRef, kIOSurfaceAllocSize, kIOSurfaceHeight,
@@ -136,7 +137,8 @@ fn convert(format: i32, quadrants: &Quadrants, space: YcbcrSpace) -> [[u8; 3]; 4
             gpu.wrap_metal_texture(ptr(&target)).expect("wrap target"),
         )
     };
-    gpu.draw_nv12(&out, &y, &cbcr, space).expect("draw");
+    gpu.draw_nv12(&out, &y, &cbcr, space, &Placement::FILL)
+        .expect("draw");
     let (qx, qy) = (W / 4, H / 4);
     [
         rgb(&target, qx, qy),
@@ -238,5 +240,8 @@ fn rejects_planes_of_the_wrong_format_or_usage() {
         matrix: YcbcrMatrix::Bt709,
         range: YcbcrRange::Video,
     };
-    assert!(gpu.draw_nv12(&out, &cbcr, &y, space).is_err());
+    assert!(
+        gpu.draw_nv12(&out, &cbcr, &y, space, &Placement::FILL)
+            .is_err()
+    );
 }

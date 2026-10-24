@@ -6,7 +6,8 @@
 mod common;
 
 use common::{bgra_target, ptr, rgb};
-use framix_render::Gpu;
+
+use framix_render::{Gpu, Placement};
 
 const W: u32 = 16;
 const H: u32 = 8;
@@ -57,7 +58,7 @@ fn draws_an_rgba_frame_into_the_preview() {
     let target = bgra_target(W as usize, H as usize);
     // SAFETY: `target` is a live id<MTLTexture> on the system default device.
     let out = unsafe { gpu.wrap_metal_texture(ptr(&target)) }.expect("wrap target");
-    gpu.draw_rgba(&out, &frame).expect("draw");
+    gpu.draw_rgba(&out, &frame, &Placement::FILL).expect("draw");
 
     let (w, h, qx, qy) = (W as usize, H as usize, W as usize / 4, H as usize / 4);
     let got = [
@@ -77,5 +78,5 @@ fn rejects_a_frame_that_is_not_rgba8() {
     let target = bgra_target(W as usize, H as usize);
     // SAFETY: `target` is a live id<MTLTexture> on the system default device.
     let out = unsafe { gpu.wrap_metal_texture(ptr(&target)) }.expect("wrap target");
-    assert!(gpu.draw_rgba(&out, &frame).is_err());
+    assert!(gpu.draw_rgba(&out, &frame, &Placement::FILL).is_err());
 }

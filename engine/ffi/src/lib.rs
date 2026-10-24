@@ -20,7 +20,9 @@ pub use android_platform::{
     Java_com_travela_framix_EnginePlatform_nativeThumbnailDone,
 };
 pub use platform::{
-    ENGINE_MEDIA_IMAGE, ENGINE_MEDIA_VIDEO, ENGINE_PLATFORM_VERSION, EnginePlatform,
+    ENGINE_FRAME_NV12, ENGINE_FRAME_RGBA, ENGINE_MEDIA_IMAGE, ENGINE_MEDIA_VIDEO,
+    ENGINE_PLATFORM_VERSION, ENGINE_RANGE_FULL, ENGINE_RANGE_UNKNOWN, ENGINE_RANGE_VIDEO,
+    ENGINE_YCBCR_601, ENGINE_YCBCR_709, ENGINE_YCBCR_UNKNOWN, EngineFrame, EnginePlatform,
     EnginePreviewTextureDone, EngineThumbnailDone, engine_platform_register,
 };
 #[cfg(target_os = "android")]
@@ -231,8 +233,13 @@ fn serve(
             Box::new(host),
             Box::new(
                 // SAFETY: app::Engine draws only textures from preview_texture_done, which passes
-                // on only non-null handles the platform reported as made (EnginePreviewTextureDone).
-                unsafe { framix_render::GpuRenderer::new() },
+                // on only non-null handles the platform reported as made (EnginePreviewTextureDone);
+                // the decoder's frames follow decoder_frame's contract.
+                unsafe {
+                    framix_render::GpuRenderer::new(Some(Box::new(
+                        platform::PlatformDecoder::default(),
+                    )))
+                },
             ),
         );
     // Changes are saved at most AUTOSAVE_DELAY after they happen, even while commands keep
@@ -321,8 +328,13 @@ fn start_export(job: framix_app::export::ExportJob, engine: Sender<EngineMessage
             let progress = worker.clone();
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 // SAFETY: run_export draws only into targets the platform encoder returned
-                // (encoder_frame's contract: a live BGRA render target until the next call).
-                let mut renderer = unsafe { framix_render::GpuRenderer::new() };
+                // (encoder_frame's contract: a live BGRA render target until the next call);
+                // this worker's own decoder follows decoder_frame's contract.
+                let mut renderer = unsafe {
+                    framix_render::GpuRenderer::new(Some(Box::new(
+                        platform::PlatformDecoder::default(),
+                    )))
+                };
                 framix_app::export::run_export_with(
                     &job.timeline,
                     &mut renderer,

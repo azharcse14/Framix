@@ -3,11 +3,12 @@
 use std::sync::{Arc, Mutex};
 
 use framix_app::export::{Encoder, EncoderConfig, EncoderHost, run_export};
-use framix_app::preview::{PlatformTexture, PreviewRenderer};
+use framix_app::preview::{DrawError, PlatformTexture, PreviewRenderer};
 use framix_core::aspect::AspectRatio;
 use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{Media, MediaKind, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
+use framix_core::timeline::Layer;
 use framix_core::timeline::Timeline;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -81,11 +82,16 @@ struct FakeRenderer {
 }
 
 impl PreviewRenderer for FakeRenderer {
-    fn draw(&mut self, target: PlatformTexture, time: Time) -> Result<(), String> {
+    fn draw(
+        &mut self,
+        target: PlatformTexture,
+        time: Time,
+        _: Option<&Layer>,
+    ) -> Result<(), DrawError> {
         self.log.push(Call::Draw(target.id, time));
         self.draws += 1;
         if self.fail_at == Some(self.draws) {
-            return Err("gpu".into());
+            return Err(DrawError::Gpu("gpu".into()));
         }
         Ok(())
     }

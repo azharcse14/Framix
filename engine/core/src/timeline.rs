@@ -128,6 +128,46 @@ impl Clip {
     }
 }
 
+/// The picture under a time: which media, where in it, and how it is placed (P1-060).
+#[derive(Clone, Copy, Debug)]
+pub struct Layer<'a> {
+    /// The media's id in the pool.
+    pub media_id: MediaId,
+    /// The media itself.
+    pub media: &'a Media,
+    /// Time inside the media; always 0 for a photo.
+    pub source_time: Time,
+    /// The clip's crop, turns, flips, scale and position.
+    pub transform: ClipTransform,
+    /// The canvas it is placed on.
+    pub canvas: AspectRatio,
+}
+
+impl Layer<'_> {
+    /// An owned value that differs exactly when the picture does.
+    pub fn key(&self) -> LayerKey {
+        LayerKey {
+            media: self.media_id,
+            source_time: self.source_time,
+            transform: self.transform,
+            canvas: self.canvas,
+        }
+    }
+}
+
+/// [`Layer::key`]: compares layers without borrowing the timeline.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LayerKey {
+    /// The media's id.
+    pub media: MediaId,
+    /// Time inside the media.
+    pub source_time: Time,
+    /// The clip's placement.
+    pub transform: ClipTransform,
+    /// The canvas shape.
+    pub canvas: AspectRatio,
+}
+
 /// Per-track switches. All off by default.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct TrackFlags {
@@ -646,15 +686,36 @@ impl Timeline {
     }
 
     /// The clip at `time` on the topmost visible video track that has one: the clip canvas
-    /// gestures act on.
+    /// gestures act on, and the one the preview shows.
     pub fn top_clip_at(&self, time: Time) -> Option<ClipId> {
+        self.top_clip(time).map(|c| c.id)
+    }
+
+    /// The picture the preview and export show at `time`: [`Timeline::top_clip_at`]'s clip.
+    pub fn layer_at(&self, time: Time) -> Option<Layer<'_>> {
+        let clip = self.top_clip(time)?;
+        let media = self.media(clip.media)?;
+        let source_time = match media.kind() {
+            MediaKind::Image => Time(0),
+            // Inside the clip, so start <= time < end and the sum stays in the source range.
+            MediaKind::Video => Time(clip.source_start.0 + (time.0 - clip.start.0)),
+        };
+        Some(Layer {
+            media_id: clip.media,
+            media,
+            source_time,
+            transform: clip.transform,
+            canvas: self.aspect,
+        })
+    }
+
+    fn top_clip(&self, time: Time) -> Option<&Clip> {
         // Later tracks draw over earlier ones.
         self.tracks
             .iter()
             .rev()
             .filter(|t| t.kind == TrackKind::Video && !t.flags.hidden)
             .find_map(|t| t.clip_at(time))
-            .map(|c| c.id)
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.

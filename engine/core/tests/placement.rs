@@ -24,13 +24,11 @@ fn aspect(w: u32, h: u32) -> AspectRatio {
     AspectRatio::new(w, h).unwrap()
 }
 
+/// A canvas UV and the source UV it must map to.
+type Pair = ((f32, f32), (f32, f32));
+
 #[track_caller]
-fn maps(
-    m: &Media,
-    t: ClipTransform,
-    canvas: AspectRatio,
-    pairs: &[((f32, f32), (f32, f32))],
-) {
+fn maps(m: &Media, t: ClipTransform, canvas: AspectRatio, pairs: &[Pair]) {
     let a = canvas_to_source(m, &t, canvas);
     for &((u, v), (su, sv)) in pairs {
         let (x, y) = a.apply(u, v);
@@ -71,7 +69,10 @@ fn a_wide_picture_is_letterboxed_on_a_tall_canvas() {
     );
     let a = canvas_to_source(&media(160, 90, 0), &ClipTransform::default(), aspect(9, 16));
     let (_, v) = a.apply(0.5, 0.0);
-    assert!(v < 0.0, "the bar above the picture samples outside the source");
+    assert!(
+        v < 0.0,
+        "the bar above the picture samples outside the source"
+    );
 }
 
 #[test]

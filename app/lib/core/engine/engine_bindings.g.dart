@@ -87,15 +87,31 @@ const int ENGINE_ERR_PROTOCOL = -3;
 
 const int ENGINE_ERR_STOPPED = -4;
 
+const int ENGINE_FRAME_NV12 = 1;
+
+const int ENGINE_FRAME_RGBA = 2;
+
 const int ENGINE_MEDIA_IMAGE = 2;
 
 const int ENGINE_MEDIA_VIDEO = 1;
 
 const int ENGINE_OK = 0;
 
-const int ENGINE_PLATFORM_VERSION = 3;
+const int ENGINE_PLATFORM_VERSION = 4;
 
 const int ENGINE_PROTOCOL_VERSION = 22;
+
+const int ENGINE_RANGE_FULL = 2;
+
+const int ENGINE_RANGE_UNKNOWN = 0;
+
+const int ENGINE_RANGE_VIDEO = 1;
+
+const int ENGINE_YCBCR_601 = 1;
+
+const int ENGINE_YCBCR_709 = 2;
+
+const int ENGINE_YCBCR_UNKNOWN = 0;
 
 final class Engine extends ffi.Opaque {}
 
@@ -130,6 +146,27 @@ typedef DartEngineEventCallbackFunction = void Function(
   ffi.Pointer<ffi.Uint8> ptr,
   int len,
 );
+
+/// A decoded frame as the platform reports it from `decoder_frame`: GPU textures (each an
+/// `id<MTLTexture>` on iOS, on the engine's Metal device) plus the raw colour tags. The engine
+/// picks the colour space; the platform only reports what the file says.
+final class EngineFrame extends ffi.Struct {
+  /// [`ENGINE_FRAME_NV12`] or [`ENGINE_FRAME_RGBA`].
+  @ffi.Uint32()
+  external int format;
+
+  /// The textures; unused entries null.
+  @ffi.Array.multi([2])
+  external ffi.Array<ffi.Pointer<ffi.Void>> planes;
+
+  /// One of the `ENGINE_YCBCR_*` tags (NV12 only).
+  @ffi.Uint32()
+  external int matrix;
+
+  /// One of the `ENGINE_RANGE_*` tags (NV12 only).
+  @ffi.Uint32()
+  external int range;
+}
 
 /// Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
 /// and must live for the process. The preview and thumbnail calls come from the engine thread
@@ -230,6 +267,45 @@ final class EnginePlatform extends ffi.Struct {
   >
   encoder_finish;
 
+  /// Opens a decoder for one engine thread (docs/adr/0006-decoder-port.md). Returns it, or
+  /// null if it could not open.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void> ctx)
+    >
+  >
+  decoder_open;
+
+  /// Blocks until the frame of the media `uri` (`uri_len` UTF-8 bytes, valid for the call) of
+  /// `kind` at `time_us` microseconds is decoded, fills `out`, and returns
+  /// [`crate::ENGINE_OK`]; any other value is a failure (`out` untouched). The frame's
+  /// textures stay valid until the next `decoder_frame` or `decoder_close` on `decoder`.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Int32 Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Void> decoder,
+        ffi.Pointer<ffi.Uint8> uri,
+        ffi.Size uri_len,
+        ffi.Uint32 kind,
+        ffi.Int64 time_us,
+        ffi.Pointer<EngineFrame> out,
+      )
+    >
+  >
+  decoder_frame;
+
+  /// Frees `decoder` and its last frame. Called exactly once per opened decoder.
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Void Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Void> decoder,
+      )
+    >
+  >
+  decoder_close;
+
   static ffi.Pointer<EnginePlatform> $allocate(
     ffi.Allocator $allocator, {
     required int version,
@@ -301,6 +377,35 @@ final class EnginePlatform extends ffi.Struct {
       >
     >
     encoder_finish,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void> ctx)
+      >
+    >
+    decoder_open,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Int32 Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Void> decoder,
+          ffi.Pointer<ffi.Uint8> uri,
+          ffi.Size uri_len,
+          ffi.Uint32 kind,
+          ffi.Int64 time_us,
+          ffi.Pointer<EngineFrame> out,
+        )
+      >
+    >
+    decoder_frame,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Void Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Void> decoder,
+        )
+      >
+    >
+    decoder_close,
   }) => $allocator<EnginePlatform>()
     ..ref.version = version
     ..ref.ctx = ctx
@@ -309,7 +414,10 @@ final class EnginePlatform extends ffi.Struct {
     ..ref.request_thumbnail = request_thumbnail
     ..ref.encoder_open = encoder_open
     ..ref.encoder_frame = encoder_frame
-    ..ref.encoder_finish = encoder_finish;
+    ..ref.encoder_finish = encoder_finish
+    ..ref.decoder_open = decoder_open
+    ..ref.decoder_frame = decoder_frame
+    ..ref.decoder_close = decoder_close;
 }
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,

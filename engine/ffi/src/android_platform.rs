@@ -69,6 +69,9 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             encoder_open: Some(no_encoder_open),
             encoder_frame: Some(no_encoder_frame),
             encoder_finish: Some(no_encoder_finish),
+            decoder_open: Some(no_decoder_open),
+            decoder_frame: Some(no_decoder_frame),
+            decoder_close: Some(no_decoder_close),
         };
         // SAFETY: `platform` is a valid EnginePlatform; the callbacks are 'static fns.
         unsafe { engine_platform_register(&platform) }
@@ -357,3 +360,22 @@ unsafe extern "C" fn no_encoder_frame(_: *mut c_void, _: *mut c_void, _: i64) ->
 unsafe extern "C" fn no_encoder_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
     crate::ENGINE_ERR_GPU
 }
+
+/// The Android Decoder port is its own task; until then every decoder fails to open.
+unsafe extern "C" fn no_decoder_open(_: *mut c_void) -> *mut c_void {
+    null_mut()
+}
+
+unsafe extern "C" fn no_decoder_frame(
+    _: *mut c_void,
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: *mut crate::platform::EngineFrame,
+) -> i32 {
+    crate::ENGINE_ERR_GPU
+}
+
+unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}

@@ -126,7 +126,11 @@ fn the_renderer_gets_the_clip_under_the_playhead() {
         vec![Some("media/0.mp4".into()), Some("media/1.mp4".into())]
     );
     let last = draws.lock().unwrap().last().cloned().flatten().unwrap().0;
-    assert_eq!(last.source_time, Time(SECOND / 2), "half a second into the second clip");
+    assert_eq!(
+        last.source_time,
+        Time(SECOND / 2),
+        "half a second into the second clip"
+    );
 }
 
 #[test]
@@ -144,7 +148,11 @@ fn an_edit_under_a_still_playhead_redraws_once() {
             ..SetClipTransform::default()
         }),
     );
-    assert_eq!(draws.lock().unwrap().len(), before + 1, "the flip shows at once");
+    assert_eq!(
+        draws.lock().unwrap().len(),
+        before + 1,
+        "the flip shows at once"
+    );
     let last = draws.lock().unwrap().last().cloned().flatten().unwrap().0;
     assert!(last.transform.flip_h);
 
@@ -258,7 +266,10 @@ fn export_draws_the_clip_in_every_frame() {
     run_export(&tl, &mut renderer, &NullHost, "/out.mp4").unwrap();
     let seen = seen.0.lock().unwrap();
     assert!(!seen.is_empty());
-    assert!(seen.iter().all(|m| m.is_some()), "the clip covers the whole export");
+    assert!(
+        seen.iter().all(|m| m.is_some()),
+        "the clip covers the whole export"
+    );
 }
 
 #[test]

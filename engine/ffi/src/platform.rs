@@ -5,9 +5,11 @@ use std::sync::OnceLock;
 use std::sync::mpsc::Sender;
 
 use framix_app::export::{Encoder, EncoderConfig, EncoderHost};
-use framix_app::preview::{PlatformTexture, PreviewHost};
+use framix_app::preview::{
+    Decoder, Frame, PlatformTexture, PreviewHost, YcbcrMatrix, YcbcrRange, YcbcrSpace,
+};
 use framix_app::thumbnail::{ThumbnailHost, ThumbnailKey, ThumbnailRequest};
-use framix_core::media::MediaKind;
+use framix_core::media::{Media, MediaKind};
 use framix_core::time::Time;
 
 use crate::{
@@ -15,7 +17,7 @@ use crate::{
 };
 
 /// Version of [`EnginePlatform`]; bump when its layout or meaning changes.
-pub const ENGINE_PLATFORM_VERSION: u32 = 3;
+pub const ENGINE_PLATFORM_VERSION: u32 = 4;
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
@@ -35,6 +37,69 @@ pub type EngineThumbnailDone =
 pub const ENGINE_MEDIA_VIDEO: u32 = 1;
 /// [`EnginePlatform::request_thumbnail`]'s `kind`: a photo.
 pub const ENGINE_MEDIA_IMAGE: u32 = 2;
+
+/// [`EngineFrame::format`]: NV12, `planes` luma (R8) and chroma (RG8).
+pub const ENGINE_FRAME_NV12: u32 = 1;
+/// [`EngineFrame::format`]: one RGBA8 texture in `planes[0]`.
+pub const ENGINE_FRAME_RGBA: u32 = 2;
+/// [`EngineFrame::matrix`]: the frame carries no matrix tag (the engine assumes BT.709).
+pub const ENGINE_YCBCR_UNKNOWN: u32 = 0;
+/// [`EngineFrame::matrix`]: tagged ITU-R BT.601.
+pub const ENGINE_YCBCR_601: u32 = 1;
+/// [`EngineFrame::matrix`]: tagged ITU-R BT.709.
+pub const ENGINE_YCBCR_709: u32 = 2;
+/// [`EngineFrame::range`]: no range tag (the engine assumes video range).
+pub const ENGINE_RANGE_UNKNOWN: u32 = 0;
+/// [`EngineFrame::range`]: video range (Y 16-235).
+pub const ENGINE_RANGE_VIDEO: u32 = 1;
+/// [`EngineFrame::range`]: full range (0-255).
+pub const ENGINE_RANGE_FULL: u32 = 2;
+
+/// A decoded frame as the platform reports it from `decoder_frame`: GPU textures (each an
+/// `id<MTLTexture>` on iOS, on the engine's Metal device) plus the raw colour tags. The engine
+/// picks the colour space; the platform only reports what the file says.
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct EngineFrame {
+    /// [`ENGINE_FRAME_NV12`] or [`ENGINE_FRAME_RGBA`].
+    pub format: u32,
+    /// The textures; unused entries null.
+    pub planes: [*mut c_void; 2],
+    /// One of the `ENGINE_YCBCR_*` tags (NV12 only).
+    pub matrix: u32,
+    /// One of the `ENGINE_RANGE_*` tags (NV12 only).
+    pub range: u32,
+}
+
+impl TryFrom<&EngineFrame> for Frame {
+    type Error = String;
+
+    fn try_from(f: &EngineFrame) -> Result<Self, String> {
+        let plane = |i: usize| match f.planes[i] as usize {
+            0 => Err(format!("frame plane {i} is null")),
+            handle => Ok(handle),
+        };
+        match f.format {
+            ENGINE_FRAME_NV12 => Ok(Frame::Nv12 {
+                y: plane(0)?,
+                cbcr: plane(1)?,
+                space: YcbcrSpace {
+                    // Untagged video is HD, so BT.709 in video range.
+                    matrix: match f.matrix {
+                        ENGINE_YCBCR_601 => YcbcrMatrix::Bt601,
+                        _ => YcbcrMatrix::Bt709,
+                    },
+                    range: match f.range {
+                        ENGINE_RANGE_FULL => YcbcrRange::Full,
+                        _ => YcbcrRange::Video,
+                    },
+                },
+            }),
+            ENGINE_FRAME_RGBA => Ok(Frame::Rgba { texture: plane(0)? }),
+            other => Err(format!("unknown frame format {other}")),
+        }
+    }
+}
 
 /// Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
 /// and must live for the process. The preview and thumbnail calls come from the engine thread
@@ -98,6 +163,26 @@ pub struct EnginePlatform {
     /// another value for failure. Called exactly once per opened encoder.
     pub encoder_finish:
         Option<unsafe extern "C" fn(ctx: *mut c_void, encoder: *mut c_void, ok: bool) -> i32>,
+    /// Opens a decoder for one engine thread (docs/adr/0006-decoder-port.md). Returns it, or
+    /// null if it could not open.
+    pub decoder_open: Option<unsafe extern "C" fn(ctx: *mut c_void) -> *mut c_void>,
+    /// Blocks until the frame of the media `uri` (`uri_len` UTF-8 bytes, valid for the call) of
+    /// `kind` at `time_us` microseconds is decoded, fills `out`, and returns
+    /// [`crate::ENGINE_OK`]; any other value is a failure (`out` untouched). The frame's
+    /// textures stay valid until the next `decoder_frame` or `decoder_close` on `decoder`.
+    pub decoder_frame: Option<
+        unsafe extern "C" fn(
+            ctx: *mut c_void,
+            decoder: *mut c_void,
+            uri: *const u8,
+            uri_len: usize,
+            kind: u32,
+            time_us: i64,
+            out: *mut EngineFrame,
+        ) -> i32,
+    >,
+    /// Frees `decoder` and its last frame. Called exactly once per opened decoder.
+    pub decoder_close: Option<unsafe extern "C" fn(ctx: *mut c_void, decoder: *mut c_void)>,
 }
 
 /// Registers the platform callbacks for the whole process. Only the first valid call counts.
@@ -125,6 +210,9 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             Some(encoder_open),
             Some(encoder_frame),
             Some(encoder_finish),
+            Some(decoder_open),
+            Some(decoder_frame),
+            Some(decoder_close),
         ) = (
             platform.create_preview_texture,
             platform.frame_available,
@@ -132,6 +220,9 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             platform.encoder_open,
             platform.encoder_frame,
             platform.encoder_finish,
+            platform.decoder_open,
+            platform.decoder_frame,
+            platform.decoder_close,
         )
         else {
             return ENGINE_ERR_NULL;
@@ -144,6 +235,9 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             encoder_open,
             encoder_frame,
             encoder_finish,
+            decoder_open,
+            decoder_frame,
+            decoder_close,
         };
         match PLATFORM.set(registered) {
             Ok(()) => ENGINE_OK,
@@ -172,6 +266,17 @@ struct Registered {
         unsafe extern "C" fn(*mut c_void, u32, u32, u32, u32, *const u8, usize) -> *mut c_void,
     encoder_frame: unsafe extern "C" fn(*mut c_void, *mut c_void, i64) -> *mut c_void,
     encoder_finish: unsafe extern "C" fn(*mut c_void, *mut c_void, bool) -> i32,
+    decoder_open: unsafe extern "C" fn(*mut c_void) -> *mut c_void,
+    decoder_frame: unsafe extern "C" fn(
+        *mut c_void,
+        *mut c_void,
+        *const u8,
+        usize,
+        u32,
+        i64,
+        *mut EngineFrame,
+    ) -> i32,
+    decoder_close: unsafe extern "C" fn(*mut c_void, *mut c_void),
 }
 
 // SAFETY: engine_platform_register's contract makes the callbacks callable from any engine
@@ -216,10 +321,7 @@ impl PreviewHost for PlatformHost {
 impl ThumbnailHost for PlatformHost {
     fn request(&self, request: ThumbnailRequest) -> Result<(), String> {
         let platform = PLATFORM.get().ok_or("no platform registered")?;
-        let kind = match request.kind {
-            MediaKind::Video => ENGINE_MEDIA_VIDEO,
-            MediaKind::Image => ENGINE_MEDIA_IMAGE,
-        };
+        let kind = media_kind(request.kind);
         // Owned by the platform until it calls `thumbnail_done` with it.
         let done_ctx = Box::into_raw(Box::new((self.engine.clone(), request.key))).cast::<c_void>();
         // SAFETY: registered callbacks stay valid for the process (register's contract); the
@@ -348,11 +450,7 @@ unsafe impl Send for PlatformEncoder {}
 impl Encoder for PlatformEncoder {
     fn frame(&mut self, time: Time) -> Result<PlatformTexture, String> {
         let encoder = self.encoder.ok_or("the encoder is finished")?;
-        // Whole microseconds, rounded down; ticks stay the engine's time unit.
-        let time_us = i64::try_from(
-            i128::from(time.0) * 1_000_000 / i128::from(framix_core::time::TICKS_PER_SECOND),
-        )
-        .map_err(|_| "frame time out of range")?;
+        let time_us = time.micros();
         // SAFETY: registered callback; `encoder` came from encoder_open and is not finished.
         let target = unsafe { (self.platform.encoder_frame)(self.platform.ctx, encoder, time_us) };
         if target.is_null() {
@@ -380,6 +478,75 @@ impl Drop for PlatformEncoder {
         if let Some(encoder) = self.encoder.take() {
             // SAFETY: as in finish; this encoder was never finished.
             unsafe { (self.platform.encoder_finish)(self.platform.ctx, encoder, false) };
+        }
+    }
+}
+
+/// The `ENGINE_MEDIA_*` code of `kind`.
+fn media_kind(kind: MediaKind) -> u32 {
+    match kind {
+        MediaKind::Video => ENGINE_MEDIA_VIDEO,
+        MediaKind::Image => ENGINE_MEDIA_IMAGE,
+    }
+}
+
+/// [`Decoder`] over the registered `decoder_*` callbacks, one per engine thread. Opens the
+/// platform decoder on first use, so it can be made before the platform registers.
+#[derive(Default)]
+pub(crate) struct PlatformDecoder {
+    opened: Option<(&'static Registered, *mut c_void)>,
+}
+
+// SAFETY: the decoder handle is only passed back to the platform, from the one thread that owns
+// this value (docs/adr/0006-decoder-port.md).
+unsafe impl Send for PlatformDecoder {}
+
+impl Decoder for PlatformDecoder {
+    fn frame(&mut self, media: &Media, source_time: Time) -> Result<Frame, String> {
+        let (platform, decoder) = match self.opened {
+            Some(opened) => opened,
+            None => {
+                let platform = PLATFORM.get().ok_or("no platform registered")?;
+                // SAFETY: registered callback (engine_platform_register's contract).
+                let decoder = unsafe { (platform.decoder_open)(platform.ctx) };
+                if decoder.is_null() {
+                    return Err("the decoder could not open".into());
+                }
+                *self.opened.insert((platform, decoder))
+            }
+        };
+        let uri = media.uri();
+        let mut out = EngineFrame {
+            format: 0,
+            planes: [std::ptr::null_mut(); 2],
+            matrix: ENGINE_YCBCR_UNKNOWN,
+            range: ENGINE_RANGE_UNKNOWN,
+        };
+        // SAFETY: registered callback; `decoder` is open and not closed; `uri` and `out` are
+        // valid for the call.
+        let status = unsafe {
+            (platform.decoder_frame)(
+                platform.ctx,
+                decoder,
+                uri.as_ptr(),
+                uri.len(),
+                media_kind(media.kind()),
+                source_time.micros(),
+                &mut out,
+            )
+        };
+        if status != ENGINE_OK {
+            return Err("the frame could not be decoded".into());
+        }
+        Frame::try_from(&out)
+    }
+}
+
+impl Drop for PlatformDecoder {
+    fn drop(&mut self) {
+        if let Some((platform, decoder)) = self.opened.take() {
+            // SAFETY: registered callback; `decoder` came from decoder_open and is closed once.
+            unsafe { (platform.decoder_close)(platform.ctx, decoder) };
         }
     }
 }

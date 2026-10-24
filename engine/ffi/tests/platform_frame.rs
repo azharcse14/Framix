@@ -24,7 +24,12 @@ fn frame(format: u32, planes: [usize; 2], matrix: u32, range: u32) -> EngineFram
 
 #[test]
 fn nv12_keeps_both_planes_and_the_tagged_space() {
-    let f = frame(ENGINE_FRAME_NV12, [0x10, 0x20], ENGINE_YCBCR_601, ENGINE_RANGE_FULL);
+    let f = frame(
+        ENGINE_FRAME_NV12,
+        [0x10, 0x20],
+        ENGINE_YCBCR_601,
+        ENGINE_RANGE_FULL,
+    );
     assert_eq!(
         Frame::try_from(&f),
         Ok(Frame::Nv12 {

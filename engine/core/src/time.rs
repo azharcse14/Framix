@@ -8,6 +8,15 @@ pub const TICKS_PER_SECOND: i64 = 705_600_000;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Time(pub i64);
 
+impl Time {
+    /// Whole microseconds, rounded toward zero: the unit platform media APIs take.
+    pub fn micros(self) -> i64 {
+        // A microsecond is 705.6 ticks, so the quotient always fits; i128 keeps the product in
+        // range for any tick count.
+        (i128::from(self.0) * 1_000_000 / i128::from(TICKS_PER_SECOND)) as i64
+    }
+}
+
 /// Frames (or samples) per second as an exact fraction `num / den`, e.g. 30000/1001.
 ///
 /// Conversions are exact only while `num <= den * TICKS_PER_SECOND`; faster rates make a

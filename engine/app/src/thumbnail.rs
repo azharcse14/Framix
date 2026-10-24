@@ -105,7 +105,7 @@ impl Thumbnails {
                     key,
                     uri: media.uri().to_owned(),
                     kind: media.kind(),
-                    time_us: micros(time),
+                    time_us: time.micros(),
                 });
             }
         }
@@ -149,10 +149,4 @@ fn snap(media: &Media, time: i64) -> Time {
     let last = (media.duration().0 - 1).max(0);
     let time = time.clamp(0, last);
     Time(time - time % THUMBNAIL_STEP.0)
-}
-
-/// Ticks to microseconds, rounded down.
-fn micros(time: Time) -> i64 {
-    // Exact for step multiples; i128 keeps the product in range for any i64 tick count.
-    (i128::from(time.0) * 1_000_000 / i128::from(TICKS_PER_SECOND)) as i64
 }

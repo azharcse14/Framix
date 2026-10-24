@@ -3,5 +3,6 @@
 pub mod aspect;
 pub mod export;
 pub mod media;
+pub mod placement;
 pub mod time;
 pub mod timeline;

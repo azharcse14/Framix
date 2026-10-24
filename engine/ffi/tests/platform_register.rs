@@ -59,6 +59,9 @@ fn platform(version: u32) -> EnginePlatform {
         encoder_open: Some(no_encoder),
         encoder_frame: Some(no_frame),
         encoder_finish: Some(no_finish),
+        decoder_open: Some(no_decoder_open),
+        decoder_frame: Some(no_decoder_frame),
+        decoder_close: Some(no_decoder_close),
     }
 }
 
@@ -88,3 +91,22 @@ fn register_validates_then_accepts_once() {
         );
     }
 }
+
+/// The decoder is not exercised here (platform_frame.rs and the simulator check it).
+unsafe extern "C" fn no_decoder_open(_: *mut c_void) -> *mut c_void {
+    std::ptr::null_mut()
+}
+
+unsafe extern "C" fn no_decoder_frame(
+    _: *mut c_void,
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: *mut framix_ffi::EngineFrame,
+) -> i32 {
+    -1
+}
+
+unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
