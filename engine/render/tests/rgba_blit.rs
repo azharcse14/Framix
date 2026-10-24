@@ -7,6 +7,7 @@ mod common;
 
 use common::{bgra_target, ptr, rgb};
 
+use framix_core::placement::Affine;
 use framix_render::{Gpu, Placement};
 
 const W: u32 = 16;
@@ -79,4 +80,41 @@ fn rejects_a_frame_that_is_not_rgba8() {
     // SAFETY: `target` is a live id<MTLTexture> on the system default device.
     let out = unsafe { gpu.wrap_metal_texture(ptr(&target)) }.expect("wrap target");
     assert!(gpu.draw_rgba(&out, &frame, &Placement::FILL).is_err());
+}
+
+#[test]
+fn places_the_frame_on_the_canvas_with_black_around() {
+    let gpu = Gpu::new().expect("gpu");
+    let frame = source(&gpu, wgpu::TextureFormat::Rgba8Unorm);
+    let (w, h) = (2 * W as usize, H as usize);
+    let target = bgra_target(w, h);
+    // SAFETY: `target` is a live id<MTLTexture> on the system default device.
+    let out = unsafe { gpu.wrap_metal_texture(ptr(&target)) }.expect("wrap target");
+    // The canvas is the target's left half; the picture fills it, flipped left to right.
+    let canvas = Affine {
+        m: [2.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    };
+    let flip = Affine {
+        m: [-1.0, 0.0, 1.0, 0.0, 1.0, 0.0],
+    };
+    let placement = Placement {
+        canvas,
+        source: canvas.then(&flip),
+    };
+    gpu.draw_rgba(&out, &frame, &placement).expect("draw");
+
+    let (qx, qy) = (w / 8, h / 4);
+    let [tl, tr, bl, br] = QUADRANTS.map(|[r, g, b, _]| [r, g, b]);
+    let got = [
+        rgb(&target, qx, qy),
+        rgb(&target, w / 2 - qx, qy),
+        rgb(&target, qx, h - qy),
+        rgb(&target, w / 2 - qx, h - qy),
+    ];
+    assert_eq!(got, [tr, tl, br, bl], "mirrored on the canvas");
+    assert_eq!(
+        rgb(&target, w - qx, qy),
+        [0, 0, 0],
+        "off the canvas is black"
+    );
 }

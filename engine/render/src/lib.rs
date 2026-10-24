@@ -322,7 +322,7 @@ impl Gpu {
     /// A uniform buffer holding `placement`.
     fn placement_buffer(&self, placement: &Placement) -> wgpu::Buffer {
         use wgpu::util::DeviceExt as _;
-        // SPIKE: a buffer per frame, like the bind groups; pooled with them (P1-058).
+        // ponytail: a buffer per frame, like the bind groups; pooled with them in P1-058.
         self.device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("placement"),
@@ -846,8 +846,7 @@ fn draw_into(
             layer.canvas,
         )),
     };
-    let bad_frame = |e: RenderError| DrawError::Decode(e.to_string());
-    match frame {
+    let drawn = match frame {
         Frame::Nv12 { y, cbcr, space } => {
             // SAFETY: GpuRenderer::new's contract: the decoder's planes are live R8/RG8
             // textures on this device until its next call, which comes after this draw.
@@ -857,22 +856,22 @@ fn draw_into(
                     gpu.wrap_metal_plane(cbcr as *mut std::ffi::c_void),
                 )
             };
-            gpu.draw_nv12(
-                &texture,
-                &y.map_err(bad_frame)?,
-                &cbcr.map_err(bad_frame)?,
-                space,
-                &placement,
-            )
-            .map_err(gpu_err)
+            y.and_then(|y| cbcr.map(|cbcr| (y, cbcr)))
+                .and_then(|(y, cbcr)| gpu.draw_nv12(&texture, &y, &cbcr, space, &placement))
         }
         Frame::Rgba { texture: picture } => {
             // SAFETY: as above, for the decoder's RGBA8 texture.
-            let picture = unsafe { gpu.wrap_metal_plane(picture as *mut std::ffi::c_void) }
-                .map_err(bad_frame)?;
-            gpu.draw_rgba(&texture, &picture, &placement)
-                .map_err(gpu_err)
+            unsafe { gpu.wrap_metal_plane(picture as *mut std::ffi::c_void) }
+                .and_then(|picture| gpu.draw_rgba(&texture, &picture, &placement))
         }
+    };
+    match drawn {
+        // The target was checked above, so an unusable texture is the frame's: it shows black.
+        Err(RenderError::InvalidTexture) => {
+            gpu.draw_black(&texture).map_err(gpu_err)?;
+            Err(DrawError::Decode(RenderError::InvalidTexture.to_string()))
+        }
+        other => other.map_err(gpu_err),
     }
 }
 

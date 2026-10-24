@@ -6988,7 +6988,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-060: iOS FrameDecoder reads forward under 1 s, else reopens AVAssetReader at the target; replace with keyframe-aware seek + frame cache"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12877,6 +12882,10 @@
     {
      "date": "2026-10-21",
      "text": "From P1-020 review: a failed preview redraw clears the shown texture silently and the preview never redraws again; report preview loss as an event so Dart can send a new CreatePreview (a transient failure leaves a frozen frame today)."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "P1-060: decode blocks the command thread; a scrub queues Seeks that each decode. Coalesce queued Seeks (latest wins) when drawing moves here."
     }
    ],
    "source": "added"
@@ -12995,6 +13004,10 @@
     {
      "date": "2026-10-19",
      "text": "Also remove the Android P1-056 spike: SpikeDecode.kt, nativeRenderFrame + render_into_surface's GPU_USE lock in engine/ffi/src/spike_preview.rs, engine/render/src/android.rs, and the Android-only ash dependency if the Decoder port no longer needs it."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "P1-060: the platform now passes raw YCbCr matrix/range tags (EngineFrame); only the spike removal remains"
     }
    ],
    "source": "added"
@@ -13015,7 +13028,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "P1-060: placement uniform buffer is created per draw (render/src/lib.rs placement_buffer); pool it with the bind groups"
+    }
+   ],
    "source": "added"
   },
   {
@@ -13110,6 +13128,14 @@
     {
      "date": "2026-10-23",
      "text": "Also apply x/y/scale (P1-030) after crop, turns and flips."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "scope (user decision 2026-10-24): iOS only; Android decoder is P1-070, multi-track compositing P1-071. Blocking decode on the engine thread until P1-053. iOS 17-25 uses copyNextSampleBuffer, 26+ the Provider API (user decision)."
+    },
+    {
+     "date": "2026-10-24",
+     "text": "81b6787 fixed a wrong frozen expectation (scale 2x shows the middle half), user approved. Frozen tests later got cargo fmt + a clippy type alias only."
     }
    ],
    "source": "added"
@@ -13406,6 +13432,64 @@
    "title": "Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-070",
+   "section": "P1",
+   "group": null,
+   "title": "Android Decoder port: MediaCodec frames for preview and export (decoder_open/frame/close, AHB import or GLES convert per P1-056)",
+   "tags": [
+    "Rust",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-071",
+   "section": "P1",
+   "group": null,
+   "title": "Composite several visible video tracks (PIP) in preview and export; today only the top layer is drawn",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-072",
+   "section": "P1",
+   "group": null,
+   "title": "Check the P1-060 iOS 17-25 decode path (LegacySource, copyNextSampleBuffer) on an iOS 17/18 simulator: scrub, flip, export; needs the runtime installed",
+   "tags": [
+    "Native"
    ],
    "owner": "claude",
    "deferred": false,

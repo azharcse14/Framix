@@ -445,6 +445,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-067` Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart \[Rust\]
 - [ ] `P1-068` GLES preview colours too dark (mid-gray ~0x33 vs 0x80; Vulkan correct): find the extra sRGB step in the GLES surface/blit path (ADR 0004, P1-004) \[Rust\]
 - [ ] `P1-069` Android export encoder: MediaCodec H.264 + MediaMuxer behind encoder_open/_frame/_finish, the codec's input Surface as the wgpu render target (ADR 0005; same surface path as the preview) \[Native\] \[Rust\]
+- [ ] `P1-070` Android Decoder port: MediaCodec frames for preview and export (decoder_open/frame/close, AHB import or GLES convert per P1-056) \[Rust\] \[Native\]
+- [ ] `P1-071` Composite several visible video tracks (PIP) in preview and export; today only the top layer is drawn \[Rust\]
+- [ ] `P1-072` Check the P1-060 iOS 17-25 decode path (LegacySource, copyNextSampleBuffer) on an iOS 17/18 simulator: scrub, flip, export; needs the runtime installed \[Native\]
 
 ## Phase 2: Audio
 

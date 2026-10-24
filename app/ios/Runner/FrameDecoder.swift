@@ -54,15 +54,32 @@ final class FrameDecoder {
       held = nil
       video = VideoReader(reference: reference, url: url, from: time)
     }
+    if let frame = readForward(reference, to: time) { return frame }
+    // Nothing at or after `time`: it is past the last video frame (audio can outlast the
+    // video), so read the last second before it to find the frame still showing.
+    let back = CMTimeMaximum(.zero, CMTimeSubtract(time, CMTime(value: 1, timescale: 1)))
+    video = VideoReader(reference: reference, url: url, from: back)
+    return readForward(reference, to: time)
+  }
+
+  /// Reads up to the frame showing at `time`. A reader that ends (or fails) is dropped, so the
+  /// next call reopens it; its last frame, if it started by `time`, keeps showing after it.
+  private func readForward(_ reference: String, to time: CMTime) -> VideoFrame? {
     guard let video else { return nil }
+    var last: Sample?
     while let sample = video.next() {
       // The first frame that is still showing at `time`.
       if CMTimeCompare(sample.end, time) > 0 {
         held = VideoFrame(reference: reference, sample: sample, device: device)
         return held
       }
+      last = sample
     }
-    return nil
+    self.video = nil
+    guard let last, CMTimeCompare(last.start, time) <= 0 else { return nil }
+    let lasting = Sample(pixels: last.pixels, start: last.start, end: .positiveInfinity)
+    held = VideoFrame(reference: reference, sample: lasting, device: device)
+    return held
   }
 
   // MARK: Photo
@@ -170,7 +187,9 @@ private struct Sample {
   let pixels: CVPixelBuffer
   let start: CMTime
   let end: CMTime
+}
 
+extension Sample {
   init?(_ buffer: CMSampleBuffer) {
     guard let pixels = CMSampleBufferGetImageBuffer(buffer) else { return nil }
     self.pixels = pixels

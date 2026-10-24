@@ -411,14 +411,11 @@ impl Engine {
             command::Kind::GetTimeline(_) => Ok(Reply::Timeline),
             command::Kind::NewProject(_) => {
                 self.history = History::default();
-                self.forget_thumbnails();
-                self.move_playhead(Time(0));
+                self.start_project();
                 Ok(Reply::Timeline)
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path).map(|()| {
-                // Another project starts at its beginning, with its own media ids.
-                self.forget_thumbnails();
-                self.move_playhead(Time(0));
+                self.start_project();
             })),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
@@ -555,6 +552,14 @@ impl Engine {
             .map_or(0, |c| c.0)
     }
 
+    /// After the timeline was replaced by another project: it starts at its beginning, with
+    /// its own media ids, so cached thumbnails and the drawn picture's key mean nothing now.
+    fn start_project(&mut self) {
+        self.forget_thumbnails();
+        self.move_playhead(Time(0));
+        self.redraw();
+    }
+
     fn forget_thumbnails(&mut self) {
         if let Some(thumbnails) = self.thumbnails.as_mut() {
             thumbnails.reset();
@@ -612,8 +617,7 @@ impl Engine {
                 let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
                 self.autosaved = timeline.clone();
                 self.history = History::new(timeline);
-                self.forget_thumbnails();
-                self.move_playhead(Time(0));
+                self.start_project();
             }
             // Nothing saved yet: the current project is new work to save.
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
