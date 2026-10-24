@@ -1724,12 +1724,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-10-24",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "p1-039-proxy",
+   "notes": [
+    {
+     "date": "2026-10-24",
+     "text": "blocked: preview still draws the test pattern (render/src/lib.rs GpuRenderer::draw ignores time); there is no Decoder port yet, so a proxy has no consumer. Needs P1-060 (decoded frame at the playhead, which brings the Decoder port) first."
+    }
+   ],
    "source": "plan"
   },
   {
