@@ -30,6 +30,9 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
     private val main = Handler(Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        // Exports go to the cache, the only folder save and FileProvider share accept (Dart's
+        // own temp folder is code_cache, which FileProvider can't serve).
+        if (call.method == "exportDir") return result.success(activity.cacheDir.path)
         if (call.method == "saveToGallery" || call.method == "share") {
             // Only files in the cache (the export), never other app-private files.
             val cache = activity.cacheDir.canonicalPath + File.separator

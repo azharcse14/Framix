@@ -47,3 +47,9 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // FileProvider for sharing exports (MediaPicker.share); the version the Flutter embedding
+    // already brings, declared so a Flutter upgrade can't drop it.
+    implementation("androidx.core:core:1.13.1")
+}

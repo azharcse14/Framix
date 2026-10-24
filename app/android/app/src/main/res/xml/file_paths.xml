@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Only the cache folder, where Dart's temp folder (the export file) lives. -->
+<!-- Only the cache folder: exports go there (MediaPicker exportDir). -->
 <paths>
     <cache-path name="cache" path="." />
 </paths>

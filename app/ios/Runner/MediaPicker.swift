@@ -26,6 +26,10 @@ final class MediaPicker: NSObject {
   }
 
   private func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    // Exports go to tmp, the only folder save and share accept.
+    if call.method == "exportDir" {
+      return result(FileManager.default.temporaryDirectory.path)
+    }
     if call.method == "saveToGallery" || call.method == "share" {
       // Only files in tmp (the export), never other app-private files into the public gallery.
       let tmp = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().path + "/"

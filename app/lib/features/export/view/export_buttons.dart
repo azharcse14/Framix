@@ -11,15 +11,32 @@ import '../bloc/export_cubit.dart';
 class ExportButtons extends StatefulWidget {
   const ExportButtons({super.key});
 
-  /// One export file in the app's temp folder; each export replaces it.
-  static String get exportPath =>
-      '${Directory.systemTemp.path}/framix-export.mp4';
-
   @override
   State<ExportButtons> createState() => _ExportButtonsState();
 }
 
 class _ExportButtonsState extends State<ExportButtons> {
+  /// The export folder: Dart temp until the platform answers (within the first frames).
+  String _dir = Directory.systemTemp.path;
+
+  /// Where the last export was written; save and share read this file.
+  String? _exported;
+
+  /// One export file; each export replaces it.
+  String get _path => _exported ?? '$_dir/framix-export.mp4';
+
+  @override
+  void initState() {
+    super.initState();
+    ExportSharer.exportDir().then((dir) => _dir = dir);
+  }
+
+  void _export(ExportCubit cubit) {
+    final path = '$_dir/framix-export.mp4';
+    _exported = path;
+    cubit.start(path);
+  }
+
   /// A save or share is reading the file; a new export would overwrite it underneath.
   bool _busy = false;
 
@@ -36,8 +53,7 @@ class _ExportButtonsState extends State<ExportButtons> {
   }
 
   Future<void> _save(AppLocalizations l10n) => _whileBusy(() async {
-    final path = ExportButtons.exportPath;
-    final result = await const ExportSharer().saveToGallery(path);
+    final result = await const ExportSharer().saveToGallery(_path);
     if (!mounted) return;
     _tell(switch (result) {
       SaveResult.saved => l10n.savedToGallery,
@@ -47,7 +63,7 @@ class _ExportButtonsState extends State<ExportButtons> {
   });
 
   Future<void> _share(AppLocalizations l10n) => _whileBusy(() async {
-    if (await const ExportSharer().share(ExportButtons.exportPath)) return;
+    if (await const ExportSharer().share(_path)) return;
     if (mounted) _tell(l10n.shareFailed);
   });
 
@@ -97,9 +113,7 @@ class _ExportButtonsState extends State<ExportButtons> {
             IconButton(
               tooltip: l10n.export,
               icon: const Icon(Icons.movie),
-              onPressed: _busy
-                  ? null
-                  : () => cubit.start(ExportButtons.exportPath),
+              onPressed: _busy ? null : () => _export(cubit),
             ),
           ],
         );
