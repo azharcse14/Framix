@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../export/view/export_buttons.dart';
 import '../../preview/view/preview_view.dart';
 import '../bloc/timeline_cubit.dart';
 import 'aspect_ratio_bar.dart';
@@ -39,6 +40,7 @@ class TimelinePage extends StatelessWidget {
               onPressed: canRedo ? cubit.redo : null,
             ),
           ),
+          const ExportButtons(),
         ],
       ),
       body: Column(

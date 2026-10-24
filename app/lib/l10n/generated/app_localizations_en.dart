@@ -87,4 +87,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get canvasPlaceClip => 'Move and resize the clip on the canvas';
+
+  @override
+  String get export => 'Export';
+
+  @override
+  String get exporting => 'Exporting video';
+
+  @override
+  String get cancelExport => 'Cancel export';
+
+  @override
+  String get exportFailed => 'Export failed. Try again.';
+
+  @override
+  String get saveToGallery => 'Save to gallery';
+
+  @override
+  String get savedToGallery => 'Saved to gallery';
+
+  @override
+  String get saveDenied =>
+      'Saving to the gallery needs permission. Or use Share to save to Files.';
+
+  @override
+  String get saveFailed => 'Couldn\'t save the video. Try again.';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get shareFailed => 'Couldn\'t open sharing. Try again.';
 }

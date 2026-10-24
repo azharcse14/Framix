@@ -86,4 +86,35 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get canvasPlaceClip => 'ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন';
+
+  @override
+  String get export => 'এক্সপোর্ট';
+
+  @override
+  String get exporting => 'ভিডিও এক্সপোর্ট হচ্ছে';
+
+  @override
+  String get cancelExport => 'এক্সপোর্ট বাতিল';
+
+  @override
+  String get exportFailed => 'এক্সপোর্ট হয়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get saveToGallery => 'গ্যালারিতে সেভ করুন';
+
+  @override
+  String get savedToGallery => 'গ্যালারিতে সেভ হয়েছে';
+
+  @override
+  String get saveDenied =>
+      'গ্যালারিতে সেভ করতে অনুমতি লাগবে। অথবা শেয়ার থেকে ফাইলে সেভ করুন।';
+
+  @override
+  String get saveFailed => 'ভিডিও সেভ হয়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get share => 'শেয়ার';
+
+  @override
+  String get shareFailed => 'শেয়ার খোলা যায়নি। আবার চেষ্টা করুন।';
 }

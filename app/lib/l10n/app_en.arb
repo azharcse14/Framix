@@ -24,5 +24,15 @@
   "zoomIn": "Zoom in",
   "zoomOut": "Zoom out",
   "timelineRuler": "Timeline",
-  "canvasPlaceClip": "Move and resize the clip on the canvas"
+  "canvasPlaceClip": "Move and resize the clip on the canvas",
+  "export": "Export",
+  "exporting": "Exporting video",
+  "cancelExport": "Cancel export",
+  "exportFailed": "Export failed. Try again.",
+  "saveToGallery": "Save to gallery",
+  "savedToGallery": "Saved to gallery",
+  "saveDenied": "Saving to the gallery needs permission. Or use Share to save to Files.",
+  "saveFailed": "Couldn't save the video. Try again.",
+  "share": "Share",
+  "shareFailed": "Couldn't open sharing. Try again."
 }

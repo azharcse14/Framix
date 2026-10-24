@@ -1,7 +1,8 @@
-// Method channel `framix/media` (P1-011): the system pickers plus the metadata the engine
-// needs. Picked files are stored in Application Support/media and reported as the relative
-// path `media/<uuid>.<ext>` (the container path changes between installs). The engine
-// validates every field; nothing here decides what is allowed.
+// Method channel `framix/media`: the system pickers plus the metadata the engine needs (P1-011),
+// and saving or sharing an exported video (P1-036). Picked files are stored in Application
+// Support/media and reported as the relative path `media/<uuid>.<ext>` (the container path
+// changes between installs). The engine validates every field; nothing here decides what is
+// allowed.
 import AVFoundation
 import Flutter
 import ImageIO
@@ -25,6 +26,15 @@ final class MediaPicker: NSObject {
   }
 
   private func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    if call.method == "saveToGallery" || call.method == "share" {
+      guard let path = (call.arguments as? [String: Any])?["path"] as? String,
+        FileManager.default.fileExists(atPath: path)
+      else {
+        return result(FlutterError(code: "no-file", message: nil, details: nil))
+      }
+      let url = URL(fileURLWithPath: path)
+      return call.method == "share" ? share(url, result) : save(url, result)
+    }
     guard call.method == "pickGallery" || call.method == "pickFiles" else {
       return result(FlutterMethodNotImplemented)
     }
@@ -53,6 +63,35 @@ final class MediaPicker: NSObject {
       picker.isModalInPresentation = true
       presenter.present(picker, animated: true)
     }
+  }
+
+  /// Adds the video to Photos (add-only access): "saved", "denied", or a FlutterError.
+  private func save(_ url: URL, _ result: @escaping FlutterResult) {
+    Task {
+      let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+      guard status == .authorized || status == .limited else { return result("denied") }
+      do {
+        try await PHPhotoLibrary.shared().performChanges {
+          _ = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+        }
+        result("saved")
+      } catch {
+        result(FlutterError(code: "save-failed", message: nil, details: nil))
+      }
+    }
+  }
+
+  /// The system share sheet (it also offers Save to Files); answers once it is shown.
+  private func share(_ url: URL, _ result: @escaping FlutterResult) {
+    guard let presenter = Self.topViewController() else {
+      return result(FlutterError(code: "no-presenter", message: nil, details: nil))
+    }
+    let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    // iPad shows it as a popover, which needs an anchor.
+    sheet.popoverPresentationController?.sourceView = presenter.view
+    sheet.popoverPresentationController?.sourceRect = CGRect(
+      x: presenter.view.bounds.midX, y: presenter.view.bounds.midY, width: 0, height: 0)
+    presenter.present(sheet, animated: true) { result(nil) }
   }
 
   private func finish(_ items: [[String: Any]]) {

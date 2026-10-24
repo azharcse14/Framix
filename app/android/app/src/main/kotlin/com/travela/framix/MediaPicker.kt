@@ -1,6 +1,7 @@
 package com.travela.framix
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.ExifInterface
@@ -10,14 +11,18 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
+import androidx.core.content.FileProvider
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 import java.util.concurrent.Executors
 
 /**
- * Method channel `framix/media` (P1-011): the system document picker plus the metadata the
- * engine needs. Files are not copied: the engine stores the content:// URI and the app keeps
- * a persistable read permission. The engine validates every field.
+ * Method channel `framix/media`: the system document picker plus the metadata the engine needs
+ * (P1-011), and saving or sharing an exported video (P1-036). Picked files are not copied: the
+ * engine stores the content:// URI and the app keeps a persistable read permission. The engine
+ * validates every field.
  */
 class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHandler {
     private var pending: MethodChannel.Result? = null
@@ -25,6 +30,11 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
     private val main = Handler(Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        if (call.method == "saveToGallery" || call.method == "share") {
+            val file = call.argument<String>("path")?.let(::File)?.takeIf { it.isFile }
+                ?: return result.error("no-file", null, null)
+            return if (call.method == "share") share(file, result) else save(file, result)
+        }
         if (call.method != "pickGallery" && call.method != "pickFiles") {
             return result.notImplemented()
         }
@@ -51,6 +61,44 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
             main.post { result.success(items) }
         }
         return true
+    }
+
+    /** Copies the video into Movies/Framix; own inserts need no permission on API 29+. */
+    private fun save(file: File, result: MethodChannel.Result) = io.execute {
+        val resolver = activity.contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, "Framix_${System.currentTimeMillis()}.mp4")
+            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/Framix")
+            // Hidden until complete, so the gallery never shows half a file.
+            put(MediaStore.Video.Media.IS_PENDING, 1)
+        }
+        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val uri = runCatching { resolver.insert(collection, values) }.getOrNull()
+        val saved = uri != null && runCatching {
+            val out = resolver.openOutputStream(uri) ?: error("no output stream")
+            out.use { o -> file.inputStream().use { it.copyTo(o) } }
+            val done = ContentValues().apply { put(MediaStore.Video.Media.IS_PENDING, 0) }
+            resolver.update(uri, done, null, null)
+        }.isSuccess
+        if (!saved && uri != null) runCatching { resolver.delete(uri, null, null) }
+        main.post {
+            if (saved) result.success("saved") else result.error("save-failed", null, null)
+        }
+    }
+
+    /** The system share sheet over a FileProvider URI (res/xml/file_paths.xml: the cache). */
+    private fun share(file: File, result: MethodChannel.Result) {
+        val uri = runCatching {
+            FileProvider.getUriForFile(activity, "${activity.packageName}.files", file)
+        }.getOrElse { return result.error("no-file", null, null) }
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "video/mp4"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        activity.startActivity(Intent.createChooser(send, null))
+        result.success(null)
     }
 
     private fun picked(data: Intent?): List<Uri> {

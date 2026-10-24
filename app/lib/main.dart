@@ -6,6 +6,7 @@ import 'core/engine/framix_engine.dart';
 import 'core/media/channel_media_importer.dart';
 import 'core/media/media_importer.dart';
 import 'core/ui/framix_theme.dart';
+import 'features/export/bloc/export_cubit.dart';
 import 'features/preview/bloc/preview_cubit.dart';
 import 'features/timeline/bloc/playhead_cubit.dart';
 import 'features/timeline/bloc/thumbnail_cubit.dart';
@@ -60,6 +61,7 @@ class FramixApp extends StatelessWidget {
             BlocProvider(create: (_) => PlayheadCubit(engine), lazy: false),
             BlocProvider(create: (_) => TimelineZoomCubit()),
             BlocProvider(create: (_) => ThumbnailCubit(engine)),
+            BlocProvider(create: (_) => ExportCubit(engine)),
           ],
           child: const TimelinePage(),
         ),

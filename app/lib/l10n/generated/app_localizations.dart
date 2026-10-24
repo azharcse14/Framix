@@ -223,6 +223,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move and resize the clip on the canvas'**
   String get canvasPlaceClip;
+
+  /// No description provided for @export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get export;
+
+  /// No description provided for @exporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting video'**
+  String get exporting;
+
+  /// No description provided for @cancelExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel export'**
+  String get cancelExport;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed. Try again.'**
+  String get exportFailed;
+
+  /// No description provided for @saveToGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to gallery'**
+  String get saveToGallery;
+
+  /// No description provided for @savedToGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to gallery'**
+  String get savedToGallery;
+
+  /// No description provided for @saveDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving to the gallery needs permission. Or use Share to save to Files.'**
+  String get saveDenied;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the video. Try again.'**
+  String get saveFailed;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open sharing. Try again.'**
+  String get shareFailed;
 }
 
 class _AppLocalizationsDelegate
