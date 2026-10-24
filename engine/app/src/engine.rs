@@ -556,7 +556,7 @@ impl Engine {
     /// its own media ids, so cached thumbnails and the drawn picture's key mean nothing now.
     fn start_project(&mut self) {
         self.forget_thumbnails();
-        self.move_playhead(Time(0));
+        self.playhead = Time(0);
         self.redraw();
     }
 

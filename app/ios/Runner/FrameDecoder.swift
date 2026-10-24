@@ -76,7 +76,8 @@ final class FrameDecoder {
       last = sample
     }
     self.video = nil
-    guard let last, CMTimeCompare(last.start, time) <= 0 else { return nil }
+    // A reader that failed (not ended) may have stopped anywhere: no frame to hold.
+    guard video.completed, let last, CMTimeCompare(last.start, time) <= 0 else { return nil }
     let lasting = Sample(pixels: last.pixels, start: last.start, end: .positiveInfinity)
     held = VideoFrame(reference: reference, sample: lasting, device: device)
     return held
@@ -238,6 +239,9 @@ private final class VideoReader {
       && CMTimeCompare(CMTimeSubtract(time, position), CMTime(value: 1, timescale: 1)) < 0
   }
 
+  /// True once the reader read to the end of its range (not when it failed).
+  var completed: Bool { source.reader.status == .completed }
+
   func next() -> Sample? {
     guard let sample = source.next() else { return nil }
     position = sample.start
@@ -246,6 +250,7 @@ private final class VideoReader {
 }
 
 private protocol SampleSource {
+  var reader: AVAssetReader { get }
   func next() -> Sample?
 }
 
@@ -254,7 +259,7 @@ private protocol SampleSource {
 private final class ProviderSource: SampleSource, @unchecked Sendable {
   // @unchecked: used by one engine thread at a time, and only inside `blocking` while that
   // thread waits.
-  private let reader: AVAssetReader
+  let reader: AVAssetReader
   private let frames: AVAssetReaderOutput.Provider<CMReadySampleBuffer<CMSampleBuffer.DynamicContent>>
 
   init?(reader: AVAssetReader, output: AVAssetReaderTrackOutput) {
@@ -274,7 +279,7 @@ private final class ProviderSource: SampleSource, @unchecked Sendable {
 /// iOS 17-25: the synchronous reader calls (deprecated in the iOS 27 SDK, which has the
 /// Provider above). Remove once the minimum is iOS 26.
 private final class LegacySource: SampleSource {
-  private let reader: AVAssetReader
+  let reader: AVAssetReader
   private let output: AVAssetReaderTrackOutput
 
   init?(reader: AVAssetReader, output: AVAssetReaderTrackOutput) {

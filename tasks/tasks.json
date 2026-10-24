@@ -6992,6 +6992,10 @@
     {
      "date": "2026-10-24",
      "text": "P1-060: iOS FrameDecoder reads forward under 1 s, else reopens AVAssetReader at the target; replace with keyframe-aware seek + frame cache"
+    },
+    {
+     "date": "2026-10-24",
+     "text": "P1-060: past the video end the iOS decoder reopens only 1 s back; a video ending over 1 s before its container (long audio) still fails there"
     }
    ],
    "source": "plan"
