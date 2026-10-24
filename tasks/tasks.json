@@ -13119,10 +13119,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-24",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-24",
+   "commit": "d8e830c",
    "branch": "p1-060-decoded-preview",
    "notes": [
     {
