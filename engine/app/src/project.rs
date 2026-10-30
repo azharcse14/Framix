@@ -264,6 +264,16 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                 // Files before format 4 have no scale: fit.
                 scale: if c.scale == 0 { FIT_SCALE } else { c.scale },
             };
+            // Format 5 files from before P1-078 may hold a moved color clip; the renderer
+            // ignored it, so dropping it changes nothing on screen.
+            let transform = if timeline
+                .media(placement.media)
+                .is_some_and(|m| m.kind() == MediaKind::Color)
+            {
+                ClipTransform::default()
+            } else {
+                transform
+            };
             // Untrusted: checked like an edit, and set at insert so loading stays linear.
             timeline.insert_clip_with(track, placement, transform)?;
         }
