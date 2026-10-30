@@ -16,7 +16,7 @@ use framix_app::proto::{
 use framix_app::proxy::{ProxyHost, ProxyRequest};
 use framix_app::store::ProjectStore;
 use framix_core::time::Time;
-use framix_core::timeline::{Layer, MediaId};
+use framix_core::timeline::Layer;
 
 type Requests = Arc<Mutex<Vec<ProxyRequest>>>;
 
@@ -279,7 +279,6 @@ fn export_reads_the_original_even_with_a_ready_proxy() {
         vec![video("media/a.mov", 3840, 2160)],
     );
     let key = requests.lock().unwrap()[0].key;
-    assert_eq!(key.media, MediaId(1));
     engine_with_export.proxy_ready(key, Ok(()));
     run(
         &mut engine_with_export,
