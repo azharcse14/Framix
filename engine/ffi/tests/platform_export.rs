@@ -104,6 +104,7 @@ fn an_export_opens_the_encoder_and_ends_with_export_finished() {
         decoder_frame: Some(no_decoder_frame),
         decoder_close: Some(no_decoder_close),
         request_proxy: Some(no_proxy),
+        free_bytes: Some(no_free_bytes),
     };
     let no_encoder = EnginePlatform {
         encoder_finish: None,
@@ -216,4 +217,8 @@ unsafe extern "C" fn no_proxy(
     _: framix_ffi::EngineProxyDone,
     _: *mut c_void,
 ) {
+}
+
+unsafe extern "C" fn no_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
+    -1
 }

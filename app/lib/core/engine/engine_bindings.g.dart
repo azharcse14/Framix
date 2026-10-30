@@ -97,7 +97,7 @@ const int ENGINE_MEDIA_VIDEO = 1;
 
 const int ENGINE_OK = 0;
 
-const int ENGINE_PLATFORM_VERSION = 5;
+const int ENGINE_PLATFORM_VERSION = 6;
 
 const int ENGINE_PROTOCOL_VERSION = 22;
 
@@ -326,6 +326,20 @@ final class EnginePlatform extends ffi.Struct {
   >
   request_proxy;
 
+  /// Bytes free for a new file at `path` (`path_len` UTF-8 bytes, valid for the call), or a
+  /// negative value if unknown. Returns at once; called from the engine thread before an
+  /// export starts (docs/adr/0005-export-encoder.md, export pre-flight).
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Int64 Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Uint8> path,
+        ffi.Size path_len,
+      )
+    >
+  >
+  free_bytes;
+
   static ffi.Pointer<EnginePlatform> $allocate(
     ffi.Allocator $allocator, {
     required int version,
@@ -440,6 +454,16 @@ final class EnginePlatform extends ffi.Struct {
       >
     >
     request_proxy,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Int64 Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Uint8> path,
+          ffi.Size path_len,
+        )
+      >
+    >
+    free_bytes,
   }) => $allocator<EnginePlatform>()
     ..ref.version = version
     ..ref.ctx = ctx
@@ -452,7 +476,8 @@ final class EnginePlatform extends ffi.Struct {
     ..ref.decoder_open = decoder_open
     ..ref.decoder_frame = decoder_frame
     ..ref.decoder_close = decoder_close
-    ..ref.request_proxy = request_proxy;
+    ..ref.request_proxy = request_proxy
+    ..ref.free_bytes = free_bytes;
 }
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,

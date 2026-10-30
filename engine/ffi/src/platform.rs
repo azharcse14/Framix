@@ -4,7 +4,7 @@ use std::ffi::c_void;
 use std::sync::OnceLock;
 use std::sync::mpsc::Sender;
 
-use framix_app::export::{Encoder, EncoderConfig, EncoderHost};
+use framix_app::export::{Encoder, EncoderConfig, EncoderHost, FreeSpace};
 use framix_app::preview::{
     Decoder, Frame, PlatformTexture, PreviewHost, YcbcrMatrix, YcbcrRange, YcbcrSpace,
 };
@@ -18,7 +18,7 @@ use crate::{
 };
 
 /// Version of [`EnginePlatform`]; bump when its layout or meaning changes.
-pub const ENGINE_PLATFORM_VERSION: u32 = 5;
+pub const ENGINE_PLATFORM_VERSION: u32 = 6;
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
@@ -205,6 +205,11 @@ pub struct EnginePlatform {
             done_ctx: *mut c_void,
         ),
     >,
+    /// Bytes free for a new file at `path` (`path_len` UTF-8 bytes, valid for the call), or a
+    /// negative value if unknown. Returns at once; called from the engine thread before an
+    /// export starts (docs/adr/0005-export-encoder.md, export pre-flight).
+    pub free_bytes:
+        Option<unsafe extern "C" fn(ctx: *mut c_void, path: *const u8, path_len: usize) -> i64>,
 }
 
 /// Registers the platform callbacks for the whole process. Only the first valid call counts.
@@ -236,6 +241,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             Some(decoder_frame),
             Some(decoder_close),
             Some(request_proxy),
+            Some(free_bytes),
         ) = (
             platform.create_preview_texture,
             platform.frame_available,
@@ -247,6 +253,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             platform.decoder_frame,
             platform.decoder_close,
             platform.request_proxy,
+            platform.free_bytes,
         )
         else {
             return ENGINE_ERR_NULL;
@@ -263,6 +270,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             decoder_frame,
             decoder_close,
             request_proxy,
+            free_bytes,
         };
         match PLATFORM.set(registered) {
             Ok(()) => ENGINE_OK,
@@ -305,6 +313,7 @@ struct Registered {
     decoder_close: unsafe extern "C" fn(*mut c_void, *mut c_void),
     request_proxy:
         unsafe extern "C" fn(*mut c_void, *const u8, usize, u32, EngineProxyDone, *mut c_void),
+    free_bytes: unsafe extern "C" fn(*mut c_void, *const u8, usize) -> i64,
 }
 
 // SAFETY: engine_platform_register's contract makes the callbacks callable from any engine
@@ -421,6 +430,15 @@ impl ProxyHost for PlatformHost {
             )
         };
         Ok(())
+    }
+}
+
+impl FreeSpace for PlatformHost {
+    fn free_bytes(&self, path: &str) -> Option<u64> {
+        let platform = PLATFORM.get()?;
+        // SAFETY: registered callback (register's contract); the path bytes outlive the call.
+        let free = unsafe { (platform.free_bytes)(platform.ctx, path.as_ptr(), path.len()) };
+        u64::try_from(free).ok()
     }
 }
 

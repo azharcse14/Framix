@@ -39,6 +39,8 @@ pub struct Engine {
     autosave_failed: bool,
     /// ExportProject is possible (the platform has an encoder).
     exports: bool,
+    /// Where ExportProject checks the free storage first; None skips the check.
+    free_space: Option<Box<dyn crate::export::FreeSpace>>,
     /// The accepted export, until the worker takes it.
     export_job: Option<crate::export::ExportJob>,
     /// The running export's cancel flag; Some while an export runs (accepted, not finished).
@@ -132,6 +134,14 @@ impl Engine {
         }
     }
 
+    /// Lets this engine refuse an export that would not fit the storage `space` reports.
+    pub fn with_free_space(self, space: Box<dyn crate::export::FreeSpace>) -> Self {
+        Self {
+            free_space: Some(space),
+            ..self
+        }
+    }
+
     /// The export accepted by the last command, for the worker to run; None if there is none.
     pub fn take_export_job(&mut self) -> Option<crate::export::ExportJob> {
         self.export_job.take()
@@ -145,6 +155,7 @@ impl Engine {
                 ok: result.is_ok(),
                 reason: result.err().unwrap_or_default(),
                 cancelled: false,
+                ..Default::default()
             })),
         }
     }
@@ -176,6 +187,7 @@ impl Engine {
                 ok: false,
                 reason: String::new(),
                 cancelled: true,
+                ..Default::default()
             })),
         }
     }
@@ -199,8 +211,9 @@ impl Engine {
         }
     }
 
-    /// Accepts an export of the current timeline: one at a time, never of an empty timeline.
-    fn start_export(&mut self, path: String) -> Result<(), String> {
+    /// Accepts an export of the current timeline: one at a time, never of an empty timeline,
+    /// and not when the file would not fit the free storage (then the reply says so).
+    fn start_export(&mut self, path: String) -> Result<Reply, String> {
         if !self.exports {
             return Err("this engine cannot export".into());
         }
@@ -215,6 +228,13 @@ impl Engine {
         if timeline.duration() == Time(0) {
             return Err("nothing to export".into());
         }
+        if let Some(free) = self.free_space.as_ref().and_then(|s| s.free_bytes(&path)) {
+            let estimated = export_info(timeline).estimated_bytes;
+            let needed = crate::export::bytes_needed(estimated);
+            if needed > free {
+                return Ok(Reply::NoSpace { needed, free });
+            }
+        }
         let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         self.export_job = Some(crate::export::ExportJob {
             timeline: timeline.clone(),
@@ -222,7 +242,7 @@ impl Engine {
             cancel: cancel.clone(),
         });
         self.export_cancel = Some(cancel);
-        Ok(())
+        Ok(Reply::Accepted)
     }
 
     /// Whether [`Engine::autosave`] has something to write.
@@ -412,6 +432,15 @@ impl Engine {
             Ok(Reply::Saved) => Event {
                 kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
             },
+            Ok(Reply::NoSpace { needed, free }) => Event {
+                kind: Some(proto::event::Kind::ExportFinished(proto::ExportFinished {
+                    ok: false,
+                    reason: "not enough storage".into(),
+                    cancelled: false,
+                    needed_bytes: needed,
+                    free_bytes: free,
+                })),
+            },
             Ok(Reply::Accepted) => Event {
                 kind: Some(proto::event::Kind::CommandAccepted(
                     proto::CommandAccepted {},
@@ -501,9 +530,7 @@ impl Engine {
             }
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
             command::Kind::CancelExport(_) => self.cancel_export().map(|()| Reply::Accepted),
-            command::Kind::ExportProject(op) => {
-                self.start_export(op.path).map(|()| Reply::Accepted)
-            }
+            command::Kind::ExportProject(op) => self.start_export(op.path),
             command::Kind::SetExportSettings(op) => {
                 let settings = export_settings(op)?;
                 timeline(self.edit(|tl| {
@@ -771,6 +798,13 @@ enum Reply {
     Accepted,
     /// Where the playhead is now, and whether the seek snapped.
     Playhead(bool),
+    /// An export was refused before it started: it needs about `needed` bytes, `free` are free.
+    NoSpace {
+        /// Bytes the export needs.
+        needed: u64,
+        /// Bytes free.
+        free: u64,
+    },
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.

@@ -52,7 +52,7 @@
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 5
+#define ENGINE_PLATFORM_VERSION 6
 
 /**
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
@@ -283,6 +283,12 @@ typedef struct EnginePlatform {
                         uint32_t max_side,
                         EngineProxyDone done,
                         void *done_ctx);
+  /**
+   * Bytes free for a new file at `path` (`path_len` UTF-8 bytes, valid for the call), or a
+   * negative value if unknown. Returns at once; called from the engine thread before an
+   * export starts (docs/adr/0005-export-encoder.md, export pre-flight).
+   */
+  int64_t (*free_bytes)(void *ctx, const uint8_t *path, size_t path_len);
 } EnginePlatform;
 
 /**

@@ -72,8 +72,16 @@ class _ExportButtonsState extends State<ExportButtons> {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<ExportCubit>();
     return BlocConsumer<ExportCubit, ExportState>(
-      listenWhen: (_, next) => next is ExportFailed,
-      listener: (_, _) => _tell(l10n.exportFailed),
+      listenWhen: (_, next) => next is ExportFailed || next is ExportNoSpace,
+      listener: (_, state) => _tell(switch (state) {
+        // Megabytes: what is needed rounds up, what is free rounds down.
+        ExportNoSpace(:final neededBytes, :final freeBytes) =>
+          l10n.exportNoSpace(
+            (neededBytes + 999999) ~/ 1000000,
+            freeBytes ~/ 1000000,
+          ),
+        _ => l10n.exportFailed,
+      }),
       builder: (context, state) {
         if (state is ExportRunning) {
           return Row(

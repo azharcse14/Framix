@@ -951,13 +951,16 @@ const ExportFinished$json = {
     {'1': 'ok', '3': 1, '4': 1, '5': 8, '10': 'ok'},
     {'1': 'reason', '3': 2, '4': 1, '5': 9, '10': 'reason'},
     {'1': 'cancelled', '3': 3, '4': 1, '5': 8, '10': 'cancelled'},
+    {'1': 'needed_bytes', '3': 4, '4': 1, '5': 4, '10': 'neededBytes'},
+    {'1': 'free_bytes', '3': 5, '4': 1, '5': 4, '10': 'freeBytes'},
   ],
 };
 
 /// Descriptor for `ExportFinished`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List exportFinishedDescriptor = $convert.base64Decode(
     'Cg5FeHBvcnRGaW5pc2hlZBIOCgJvaxgBIAEoCFICb2sSFgoGcmVhc29uGAIgASgJUgZyZWFzb2'
-    '4SHAoJY2FuY2VsbGVkGAMgASgIUgljYW5jZWxsZWQ=');
+    '4SHAoJY2FuY2VsbGVkGAMgASgIUgljYW5jZWxsZWQSIQoMbmVlZGVkX2J5dGVzGAQgASgEUgtu'
+    'ZWVkZWRCeXRlcxIdCgpmcmVlX2J5dGVzGAUgASgEUglmcmVlQnl0ZXM=');
 
 @$core.Deprecated('Use engineStoppedDescriptor instead')
 const EngineStopped$json = {

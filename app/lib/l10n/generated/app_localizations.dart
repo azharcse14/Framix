@@ -289,6 +289,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Try again.'**
   String get somethingWentWrong;
+
+  /// No description provided for @exportNoSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage: the export needs about {neededMb} MB and {freeMb} MB is free.'**
+  String exportNoSpace(int neededMb, int freeMb);
 }
 
 class _AppLocalizationsDelegate

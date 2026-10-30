@@ -39,6 +39,21 @@ pub trait EncoderHost: Send + Sync {
     fn open(&self, config: &EncoderConfig) -> Result<Box<dyn Encoder>, String>;
 }
 
+/// Free storage where an export would be written (export pre-flight, OVL-020). Calls return at
+/// once; they run on the engine thread.
+pub trait FreeSpace: Send {
+    /// Bytes free for a file at `path`; None if unknown (the export is not blocked then).
+    fn free_bytes(&self, path: &str) -> Option<u64>;
+}
+
+/// Free storage an export of about `estimated` bytes needs: the estimate plus a tenth (the
+/// bitrate is an average) plus 32 MiB left for the system and autosaves.
+pub fn bytes_needed(estimated: u64) -> u64 {
+    estimated
+        .saturating_add(estimated / 10)
+        .saturating_add(32 << 20)
+}
+
 /// Renders `timeline` frame by frame into an encoder opened from its export settings. A partial
 /// last frame is encoded whole. Any failure cancels the file. No cancel or progress: see
 /// [`run_export_with`].

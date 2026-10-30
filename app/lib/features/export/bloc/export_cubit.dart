@@ -55,6 +55,24 @@ final class ExportFailed extends ExportState {
   int get hashCode => reason.hashCode;
 }
 
+/// The engine refused the export before it started: the file needs about [neededBytes] and
+/// only [freeBytes] are free.
+final class ExportNoSpace extends ExportState {
+  const ExportNoSpace(this.neededBytes, this.freeBytes);
+
+  final int neededBytes;
+  final int freeBytes;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ExportNoSpace &&
+      other.neededBytes == neededBytes &&
+      other.freeBytes == freeBytes;
+
+  @override
+  int get hashCode => Object.hash(neededBytes, freeBytes);
+}
+
 /// Mirrors the engine's export. Sends ExportProject and CancelExport only.
 class ExportCubit extends Cubit<ExportState> {
   ExportCubit(this._engine) : super(const ExportIdle()) {
@@ -91,6 +109,9 @@ class ExportCubit extends Cubit<ExportState> {
     final f = event.exportFinished;
     if (f.ok) return const ExportDone();
     if (f.cancelled) return const ExportCancelled();
+    if (f.neededBytes > 0) {
+      return ExportNoSpace(f.neededBytes.toInt(), f.freeBytes.toInt());
+    }
     return ExportFailed(f.reason);
   }
 

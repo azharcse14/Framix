@@ -63,6 +63,7 @@ fn platform(version: u32) -> EnginePlatform {
         decoder_frame: Some(no_decoder_frame),
         decoder_close: Some(no_decoder_close),
         request_proxy: Some(no_proxy),
+        free_bytes: Some(no_free_bytes),
     }
 }
 
@@ -121,4 +122,8 @@ unsafe extern "C" fn no_proxy(
     _: framix_ffi::EngineProxyDone,
     _: *mut c_void,
 ) {
+}
+
+unsafe extern "C" fn no_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
+    -1
 }

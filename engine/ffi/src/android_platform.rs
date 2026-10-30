@@ -73,6 +73,8 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             decoder_frame: Some(no_decoder_frame),
             decoder_close: Some(no_decoder_close),
             request_proxy: Some(no_proxy),
+            // Android export is its own task; until then the pre-flight does not block.
+            free_bytes: Some(unknown_free_bytes),
         };
         // SAFETY: `platform` is a valid EnginePlatform; the callbacks are 'static fns.
         unsafe { engine_platform_register(&platform) }
@@ -381,6 +383,10 @@ unsafe extern "C" fn no_decoder_frame(
 }
 
 unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
+
+unsafe extern "C" fn unknown_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
+    -1
+}
 
 /// Android proxies come with its Decoder port (P1-070); until then every request fails at once.
 unsafe extern "C" fn no_proxy(

@@ -35,5 +35,7 @@
   "saveFailed": "Couldn't save the video. Try again.",
   "share": "Share",
   "shareFailed": "Couldn't open sharing. Try again.",
-  "somethingWentWrong": "Something went wrong. Try again."
+  "somethingWentWrong": "Something went wrong. Try again.",
+  "exportNoSpace": "Not enough storage: the export needs about {neededMb} MB and {freeMb} MB is free.",
+  "@exportNoSpace": {"placeholders": {"neededMb": {"type": "int", "format": "decimalPattern"}, "freeMb": {"type": "int", "format": "decimalPattern"}}}
 }

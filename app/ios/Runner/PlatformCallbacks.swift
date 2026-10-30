@@ -71,7 +71,8 @@ enum PlatformCallbacks {
       create_preview_texture: createPreviewTexture, frame_available: frameAvailable,
       request_thumbnail: requestThumbnail, encoder_open: encoderOpen,
       encoder_frame: encoderFrame, encoder_finish: encoderFinish, decoder_open: decoderOpen,
-      decoder_frame: decoderFrame, decoder_close: decoderClose, request_proxy: requestProxy)
+      decoder_frame: decoderFrame, decoder_close: decoderClose, request_proxy: requestProxy,
+      free_bytes: freeBytes)
     let code = unsafeBitCast(symbol, to: Register.self)(&platform)
     assert(code == ENGINE_OK, "engine_platform_register failed: \(code)")
   }

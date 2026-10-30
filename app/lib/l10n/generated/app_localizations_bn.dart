@@ -120,4 +120,16 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get somethingWentWrong => 'কিছু ভুল হয়েছে। আবার চেষ্টা করুন।';
+
+  @override
+  String exportNoSpace(int neededMb, int freeMb) {
+    final intl.NumberFormat neededMbNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String neededMbString = neededMbNumberFormat.format(neededMb);
+    final intl.NumberFormat freeMbNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String freeMbString = freeMbNumberFormat.format(freeMb);
+
+    return 'জায়গা কম: এক্সপোর্টে প্রায় $neededMbString MB লাগবে, খালি আছে $freeMbString MB।';
+  }
 }

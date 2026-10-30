@@ -231,11 +231,15 @@ fn serve(
     let proxies = platform::PlatformHost {
         engine: host.engine.clone(),
     };
+    let space = platform::PlatformHost {
+        engine: host.engine.clone(),
+    };
     let exports = host.engine.clone();
     let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
         .with_export()
         .with_thumbnails(Box::new(thumbnails))
         .with_proxies(Box::new(proxies))
+        .with_free_space(Box::new(space))
         .with_preview(
             Box::new(host),
             Box::new(

@@ -98,6 +98,7 @@ fn a_thumbnail_made_by_the_platform_comes_back_as_thumbnail_ready() {
         decoder_frame: Some(no_decoder_frame),
         decoder_close: Some(no_decoder_close),
         request_proxy: Some(no_proxy),
+        free_bytes: Some(no_free_bytes),
     };
     // SAFETY: valid platform with static callbacks and a null ctx.
     unsafe {
@@ -212,4 +213,8 @@ unsafe extern "C" fn no_proxy(
     _: framix_ffi::EngineProxyDone,
     _: *mut c_void,
 ) {
+}
+
+unsafe extern "C" fn no_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
+    -1
 }

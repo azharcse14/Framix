@@ -113,6 +113,19 @@ final class ExportEncoder {
   }
 }
 
+/// Export pre-flight: bytes free for a new file at `path` (the capacity iOS frees up for
+/// important work, e.g. by purging caches), or -1 if unknown. Called on the engine thread.
+let freeBytes: @convention(c) (UnsafeMutableRawPointer?, UnsafePointer<UInt8>?, Int) -> Int64 = {
+  _, path, pathLength in
+  guard let path,
+    let file = String(bytes: UnsafeBufferPointer(start: path, count: pathLength), encoding: .utf8),
+    let free = try? URL(fileURLWithPath: file).deletingLastPathComponent()
+      .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+      .volumeAvailableCapacityForImportantUsage
+  else { return -1 }
+  return free
+}
+
 // C callbacks for the engine (export worker thread). The encoder crosses as a retained
 // pointer: retained on open, released exactly once by finish.
 

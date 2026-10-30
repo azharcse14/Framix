@@ -3029,17 +3029,23 @@ class ExportProgress extends $pb.GeneratedMessage {
   void clearFrames() => $_clearField(2);
 }
 
-/// The end of an accepted ExportProject. `reason` says why it failed (never a path).
+/// The end of an accepted ExportProject. `reason` says why it failed (never a path). Also the
+/// reply to an ExportProject refused before it started because the file would not fit: then
+/// `needed_bytes` (> 0) is about what it needs and `free_bytes` what is free.
 class ExportFinished extends $pb.GeneratedMessage {
   factory ExportFinished({
     $core.bool? ok,
     $core.String? reason,
     $core.bool? cancelled,
+    $fixnum.Int64? neededBytes,
+    $fixnum.Int64? freeBytes,
   }) {
     final result = ExportFinished._();
     if (ok != null) result.ok = ok;
     if (reason != null) result.reason = reason;
     if (cancelled != null) result.cancelled = cancelled;
+    if (neededBytes != null) result.neededBytes = neededBytes;
+    if (freeBytes != null) result.freeBytes = freeBytes;
     return result;
   }
 
@@ -3059,6 +3065,12 @@ class ExportFinished extends $pb.GeneratedMessage {
     ..aOB(1, _omitFieldNames ? '' : 'ok')
     ..aOS(2, _omitFieldNames ? '' : 'reason')
     ..aOB(3, _omitFieldNames ? '' : 'cancelled')
+    ..a<$fixnum.Int64>(
+        4, _omitFieldNames ? '' : 'neededBytes', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        5, _omitFieldNames ? '' : 'freeBytes', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3110,6 +3122,24 @@ class ExportFinished extends $pb.GeneratedMessage {
   $core.bool hasCancelled() => $_has(2);
   @$pb.TagNumber(3)
   void clearCancelled() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get neededBytes => $_getI64(3);
+  @$pb.TagNumber(4)
+  set neededBytes($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasNeededBytes() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearNeededBytes() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get freeBytes => $_getI64(4);
+  @$pb.TagNumber(5)
+  set freeBytes($fixnum.Int64 value) => $_setInt64(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasFreeBytes() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearFreeBytes() => $_clearField(5);
 }
 
 /// The last event after engine_destroy: queued work is done and no event follows, so the

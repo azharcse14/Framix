@@ -304,12 +304,16 @@ message ExportProgress {
   uint32 frames = 2;
 }
 
-// The end of an accepted ExportProject. `reason` says why it failed (never a path).
+// The end of an accepted ExportProject. `reason` says why it failed (never a path). Also the
+// reply to an ExportProject refused before it started because the file would not fit: then
+// `needed_bytes` (> 0) is about what it needs and `free_bytes` what is free.
 message ExportFinished {
   bool ok = 1;
   string reason = 2;
   // The user stopped it (CancelExport) or the engine stopped; the file was removed.
   bool cancelled = 3;
+  uint64 needed_bytes = 4;
+  uint64 free_bytes = 5;
 }
 
 // The last event after engine_destroy: queued work is done and no event follows, so the
