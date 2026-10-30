@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
+import '../../../core/media/media_importer.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/clip_selection_cubit.dart';
@@ -79,7 +80,7 @@ class _TimelineViewState extends State<TimelineView> {
     final step = timeline.thumbnailStep.toInt();
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
-    int ticks(double px) => (px / pps * ticksPerSecond).round();
+    int ticks(double px) => _ticksAt(px, pps, ticksPerSecond);
 
     // The selection is this view's own state: it ends when the view does.
     return BlocProvider(
@@ -253,13 +254,17 @@ class _ClipActions extends StatelessWidget {
 
   final TimelineChanged timeline;
 
+  /// One row of icon buttons.
+  static const _rowHeight = 48.0;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<TimelineCubit>();
     final selection = context.watch<ClipSelectionCubit>();
     final found = _find(selection.state);
-    if (found == null) return const SizedBox.shrink();
+    // The row's height stays reserved, so selecting never moves the lanes under the finger.
+    if (found == null) return const SizedBox(height: _rowHeight);
     final (track, clip) = found;
     final end = clip.start + clip.duration;
     // The neighbour that starts where this clip ends, if any.
@@ -273,6 +278,14 @@ class _ClipActions extends StatelessWidget {
             icon: const Icon(Icons.content_cut),
             onPressed: () =>
                 cubit.splitClip(clip, context.read<PlayheadCubit>().state),
+          ),
+          IconButton(
+            tooltip: l10n.replaceClip,
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: () => cubit.replaceClip(
+              clip,
+              context.read<MediaImporter>().pickFromGallery,
+            ),
           ),
           IconButton(
             tooltip: l10n.duplicateClip,
@@ -309,6 +322,10 @@ class _ClipActions extends StatelessWidget {
   }
 }
 
+/// Ticks covered by [px] pixels at [pps] pixels per second.
+int _ticksAt(double px, double pps, int ticksPerSecond) =>
+    (px / pps * ticksPerSecond).round();
+
 /// mm:ss.cc, for display only.
 String _timecode(int ticks, int ticksPerSecond) {
   if (ticksPerSecond == 0) return '00:00.00';
@@ -336,8 +353,8 @@ class _Ruler extends StatelessWidget {
       if (ticksPerSecond == 0) return;
       // A 12 dp touch radius at this zoom; the engine decides what to snap to.
       playhead.seek(
-        (dx / pps * ticksPerSecond).round(),
-        snapWithin: (12 / pps * ticksPerSecond).round(),
+        _ticksAt(dx, pps, ticksPerSecond),
+        snapWithin: _ticksAt(12, pps, ticksPerSecond),
       );
     }
 
@@ -438,6 +455,9 @@ class _Lane extends StatelessWidget {
   final double height;
   final double Function(int ticks) px;
   final int Function(double px) ticks;
+
+  /// Smallest touch target (docs/design-system.md).
+  static const _minTarget = 48.0;
   final _Tiles tiles;
 
   @override
@@ -471,11 +491,28 @@ class _Lane extends StatelessWidget {
                 ),
               ),
             ),
+          // A clip narrower than a touch target at this zoom gets a 48 dp one over it (and over
+          // its neighbour's start).
+          for (final clip in track.clips)
+            if (px(clip.duration.toInt()) < _minTarget)
+              Positioned(
+                left: px(clip.start.toInt()),
+                top: 0,
+                bottom: 0,
+                width: _minTarget,
+                child: ExcludeSemantics(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => selection.toggle(clip.id.toInt()),
+                  ),
+                ),
+              ),
           // Drawn after the clips so they take touches at the edges.
           for (final clip in track.clips)
             if (selection.state == clip.id.toInt()) ...[
               _TrimHandle(
-                at: px(clip.start.toInt()),
+                // Left of the clip, clamped into the lane for a clip at 0.
+                left: math.max(0, px(clip.start.toInt()) - _TrimHandle.size),
                 label: l10n.trimStart,
                 onTrim: (dx) {
                   final end = (clip.start + clip.duration).toInt();
@@ -483,7 +520,7 @@ class _Lane extends StatelessWidget {
                 },
               ),
               _TrimHandle(
-                at: px((clip.start + clip.duration).toInt()),
+                left: px((clip.start + clip.duration).toInt()),
                 label: l10n.trimEnd,
                 onTrim: (dx) {
                   final end = (clip.start + clip.duration).toInt() + ticks(dx);
@@ -497,20 +534,23 @@ class _Lane extends StatelessWidget {
   }
 }
 
-/// A 48 dp drag target centred on a clip edge. It follows the finger and reports the drag
-/// distance in pixels once on release; the clip moves when the engine answers.
+/// A 48 dp drag target just outside a clip edge, so it never covers the clip. It follows the
+/// finger and reports the drag distance in pixels once on release; the clip moves when the
+/// engine answers.
+// ponytail: the handle springs back on release and the clip follows on the engine's reply (a
+// frame later); a refused trim just springs back. Hold the offset until the reply if it shows.
 class _TrimHandle extends StatefulWidget {
   const _TrimHandle({
-    required this.at,
+    required this.left,
     required this.label,
     required this.onTrim,
   });
 
-  final double at;
+  final double left;
   final String label;
   final void Function(double dx) onTrim;
 
-  static const _size = 48.0;
+  static const size = 48.0;
 
   @override
   State<_TrimHandle> createState() => _TrimHandleState();
@@ -522,10 +562,10 @@ class _TrimHandleState extends State<_TrimHandle> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: widget.at - _TrimHandle._size / 2 + _dx,
+      left: widget.left + _dx,
       top: 0,
       bottom: 0,
-      width: _TrimHandle._size,
+      width: _TrimHandle.size,
       child: Semantics(
         label: widget.label,
         child: GestureDetector(
@@ -720,7 +760,7 @@ class _Tiles {
     ];
   }
 
-  int _ticks(double px) => (px / pps * ticksPerSecond).round();
+  int _ticks(double px) => _ticksAt(px, pps, ticksPerSecond);
 
   int _snap(int ticks) => ticks - ticks % step;
 }

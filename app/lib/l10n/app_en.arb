@@ -44,5 +44,6 @@
   "duplicateClip": "Duplicate clip",
   "mergeClip": "Merge with next clip",
   "trimStart": "Trim start",
-  "trimEnd": "Trim end"
+  "trimEnd": "Trim end",
+  "replaceClip": "Replace clip"
 }

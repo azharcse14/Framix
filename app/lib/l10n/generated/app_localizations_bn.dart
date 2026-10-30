@@ -153,4 +153,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get trimEnd => 'শেষ ছাঁটুন';
+
+  @override
+  String get replaceClip => 'ক্লিপ বদলান';
 }

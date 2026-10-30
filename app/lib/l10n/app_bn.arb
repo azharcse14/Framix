@@ -39,5 +39,6 @@
   "duplicateClip": "ক্লিপের কপি করুন",
   "mergeClip": "পরের ক্লিপের সাথে জোড়া দিন",
   "trimStart": "শুরু ছাঁটুন",
-  "trimEnd": "শেষ ছাঁটুন"
+  "trimEnd": "শেষ ছাঁটুন",
+  "replaceClip": "ক্লিপ বদলান"
 }

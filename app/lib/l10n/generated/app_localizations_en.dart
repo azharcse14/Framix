@@ -154,4 +154,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trimEnd => 'Trim end';
+
+  @override
+  String get replaceClip => 'Replace clip';
 }

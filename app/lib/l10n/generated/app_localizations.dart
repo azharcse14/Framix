@@ -337,6 +337,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trim end'**
   String get trimEnd;
+
+  /// No description provided for @replaceClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace clip'**
+  String get replaceClip;
 }
 
 class _AppLocalizationsDelegate

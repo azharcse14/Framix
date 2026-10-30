@@ -123,6 +123,20 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Waits for [pick] and puts its first item under [clip]; a cancelled pick sends nothing.
+  Future<void> replaceClip(
+    Clip clip,
+    Future<List<MediaItem>> Function() pick,
+  ) async {
+    final items = await pick();
+    if (items.isEmpty || isClosed) return;
+    _engine.send(
+      Command(
+        replaceClip: ReplaceClip(clipId: clip.id, media: items.first),
+      ),
+    );
+  }
+
   void removeClip(Clip clip) =>
       _engine.send(Command(removeClip: RemoveClip(clipId: clip.id)));
 
