@@ -100,14 +100,19 @@ class MediaKind extends $pb.ProtobufEnum {
   static const MediaKind MEDIA_KIND_IMAGE =
       MediaKind._(2, _omitEnumNames ? '' : 'MEDIA_KIND_IMAGE');
 
+  /// A solid color with no file (a blank clip); only `color` is read.
+  static const MediaKind MEDIA_KIND_COLOR =
+      MediaKind._(3, _omitEnumNames ? '' : 'MEDIA_KIND_COLOR');
+
   static const $core.List<MediaKind> values = <MediaKind>[
     MEDIA_KIND_UNSPECIFIED,
     MEDIA_KIND_VIDEO,
     MEDIA_KIND_IMAGE,
+    MEDIA_KIND_COLOR,
   ];
 
   static final $core.List<MediaKind?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
   static MediaKind? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 

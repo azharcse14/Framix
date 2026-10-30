@@ -160,4 +160,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commandFailed => 'That didn\'t work. Try again.';
+
+  @override
+  String get addColorClip => 'Add blank clip';
 }

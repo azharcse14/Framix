@@ -184,6 +184,9 @@ pub struct Gpu {
     frame_sampler: wgpu::Sampler,
     nv12: Nv12Pass,
     blit: wgpu::RenderPipeline,
+    /// One RGBA8 pixel holding a color clip's color while it is drawn. The lock keeps the
+    /// preview and the export worker from writing it under each other's draw.
+    color: std::sync::Mutex<wgpu::Texture>,
     /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
     imports_frames: bool,
@@ -263,6 +266,20 @@ impl Gpu {
         });
         let nv12 = Nv12Pass::new(&device);
         let blit = fullscreen_pipeline(&device, "rgba frame", BLIT_WGSL, PREVIEW_FORMAT);
+        let color = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("color clip"),
+            size: wgpu::Extent3d {
+                width: 1,
+                height: 1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
         Ok(Self {
             instance,
             adapter,
@@ -272,6 +289,7 @@ impl Gpu {
             frame_sampler,
             nv12,
             blit,
+            color: std::sync::Mutex::new(color),
             #[cfg(target_os = "android")]
             imports_frames,
             #[cfg(target_os = "android")]
@@ -309,6 +327,37 @@ impl Gpu {
         }
         let bind_group = self.rgba_bind_group(&self.blit, frame, placement);
         self.draw(target, Some(&self.blit), Some(&bind_group))
+    }
+
+    /// Fills the canvas part of `target` (`canvas` maps target UV to canvas UV) with `rgba`
+    /// (0xRRGGBBAA), black around it, and waits until the GPU is done: a color clip.
+    pub fn draw_color(
+        &self,
+        target: &wgpu::Texture,
+        rgba: u32,
+        canvas: Affine,
+    ) -> Result<(), RenderError> {
+        // A poisoned lock only means another draw panicked; the pixel is rewritten anyway.
+        let pixel = self
+            .color
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        self.queue.write_texture(
+            pixel.as_image_copy(),
+            &rgba.to_be_bytes(),
+            wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(4),
+                rows_per_image: None,
+            },
+            pixel.size(),
+        );
+        // Canvas UV is the pixel's UV, so the color covers the canvas exactly.
+        let placement = Placement {
+            canvas,
+            source: canvas,
+        };
+        self.draw_rgba(target, &pixel, &placement)
     }
 
     /// Fills `target` with black (an empty canvas) and waits until the GPU is done.
@@ -823,12 +872,19 @@ fn draw_into(
     layer: Option<&Layer>,
 ) -> Result<(), DrawError> {
     use framix_app::preview::Frame;
+    use framix_core::media::MediaKind;
     use framix_core::placement::{canvas_to_source, target_to_canvas};
     let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     // SAFETY: GpuRenderer::new's contract: the handle is a live id<MTLTexture> the platform
     // reported as made.
     let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut std::ffi::c_void) }
         .map_err(gpu_err)?;
+    if let Some(layer) = layer.filter(|l| l.media.kind() == MediaKind::Color) {
+        let canvas = target_to_canvas(layer.canvas, texture.width(), texture.height());
+        return gpu
+            .draw_color(&texture, layer.media.color(), canvas)
+            .map_err(gpu_err);
+    }
     let (Some(decoder), Some(layer)) = (decoder.as_mut(), layer) else {
         return gpu.draw_black(&texture).map_err(gpu_err);
     };

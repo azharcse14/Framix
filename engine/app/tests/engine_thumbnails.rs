@@ -35,6 +35,7 @@ fn run(engine: &mut Engine, kind: command::Kind) -> Event {
 
 fn item(uri: &str, kind: MediaKind, ms: i64) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: uri.into(),
         kind: kind as i32,
         duration_value: ms,

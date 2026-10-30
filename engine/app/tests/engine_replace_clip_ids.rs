@@ -20,6 +20,7 @@ fn run(engine: &mut Engine, kind: command::Kind) -> TimelineChanged {
 
 fn item(n: u32) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: format!("content://media/external/video/{n}"),
         kind: MediaKind::Video as i32,
         duration_value: 5000,

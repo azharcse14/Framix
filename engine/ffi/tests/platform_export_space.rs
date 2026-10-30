@@ -150,6 +150,7 @@ fn an_export_that_does_not_fit_the_free_storage_is_refused() {
         Event::decode(reply.as_slice()).unwrap().kind.expect("kind")
     };
     let photo = MediaItem {
+        color: 0,
         uri: "media/p.jpg".into(),
         kind: MediaKind::Image as i32,
         duration_value: 0,

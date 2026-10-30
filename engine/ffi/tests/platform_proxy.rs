@@ -96,6 +96,7 @@ unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
 
 fn uhd(uri: &str) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: uri.into(),
         kind: MediaKind::Video as i32,
         duration_value: 4000,

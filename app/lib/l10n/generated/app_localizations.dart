@@ -349,6 +349,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That didn\'t work. Try again.'**
   String get commandFailed;
+
+  /// No description provided for @addColorClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add blank clip'**
+  String get addColorClip;
 }
 
 class _AppLocalizationsDelegate

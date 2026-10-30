@@ -579,6 +579,8 @@ fn media_kind(kind: MediaKind) -> u32 {
     match kind {
         MediaKind::Video => ENGINE_MEDIA_VIDEO,
         MediaKind::Image => ENGINE_MEDIA_IMAGE,
+        // Never sent: colors get no thumbnails and the renderer fills them itself.
+        MediaKind::Color => ENGINE_MEDIA_IMAGE,
     }
 }
 

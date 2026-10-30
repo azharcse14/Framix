@@ -91,6 +91,7 @@ fn run(engine: &mut Engine, kind: command::Kind) {
 
 fn video(uri: &str, width: u32, height: u32) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: uri.into(),
         kind: MediaKind::Video as i32,
         duration_value: 2000,

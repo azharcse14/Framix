@@ -41,5 +41,6 @@
   "trimStart": "শুরু ছাঁটুন",
   "trimEnd": "শেষ ছাঁটুন",
   "replaceClip": "ক্লিপ বদলান",
-  "commandFailed": "কাজটি হয়নি। আবার চেষ্টা করুন।"
+  "commandFailed": "কাজটি হয়নি। আবার চেষ্টা করুন।",
+  "addColorClip": "ফাঁকা ক্লিপ যোগ করুন"
 }

@@ -92,6 +92,9 @@ impl Thumbnails {
         times: &[i64],
         max_side: u32,
     ) -> Result<(), String> {
+        if media.kind() == MediaKind::Color {
+            return Err("a color clip has no thumbnails".into());
+        }
         for &time in times {
             let time = snap(media, time);
             let key = ThumbnailKey {
@@ -143,7 +146,7 @@ impl Thumbnails {
 
 /// `time` snapped down to the step, inside the media (photos: always 0).
 fn snap(media: &Media, time: i64) -> Time {
-    if media.kind() == MediaKind::Image {
+    if media.kind() != MediaKind::Video {
         return Time(0);
     }
     let last = (media.duration().0 - 1).max(0);

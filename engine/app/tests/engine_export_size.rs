@@ -10,6 +10,7 @@ fn import(engine: &mut Engine, n: u32) -> TimelineChanged {
         id: 0,
         kind: Some(command::Kind::ImportMedia(ImportMedia {
             items: vec![MediaItem {
+                color: 0,
                 uri: format!("content://media/external/images/{n}"),
                 kind: MediaKind::Image as i32,
                 duration_value: 0,

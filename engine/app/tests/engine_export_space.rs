@@ -43,6 +43,7 @@ fn setup(free: Option<u64>) -> (Engine, u64, Arc<Mutex<Vec<String>>>) {
         &mut engine,
         command::Kind::ImportMedia(ImportMedia {
             items: vec![MediaItem {
+                color: 0,
                 uri: "media/p.jpg".into(),
                 kind: MediaKind::Image as i32,
                 duration_value: 0,

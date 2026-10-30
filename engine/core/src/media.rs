@@ -17,13 +17,15 @@ pub const MAX_IMPORT: usize = 100;
 /// Timeline length a photo gets on import (P1-028).
 pub const PHOTO_DEFAULT_DURATION: Time = Time(3 * TICKS_PER_SECOND);
 
-/// Video or still image.
+/// Video, still image, or a solid color.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MediaKind {
     /// Has a duration.
     Video,
     /// A still; plays for as long as its clip.
     Image,
+    /// A solid color with no file (a blank clip); plays like a still and fills the canvas.
+    Color,
 }
 
 /// Media facts as the platform reported them; not trusted.
@@ -77,9 +79,25 @@ pub struct Media {
     height: u32,
     rotation: u32,
     codec: String,
+    /// 0xRRGGBBAA for [`MediaKind::Color`]; 0 otherwise.
+    color: u32,
 }
 
 impl Media {
+    /// A solid color (0xRRGGBBAA): no file, 1x1 pixel, no duration. Every value is valid.
+    pub fn solid(rgba: u32) -> Self {
+        Self {
+            uri: String::new(),
+            kind: MediaKind::Color,
+            duration: Time(0),
+            width: 1,
+            height: 1,
+            rotation: 0,
+            codec: String::new(),
+            color: rgba,
+        }
+    }
+
     /// Checks reported media; see [`MediaError`] for the rules.
     pub fn validate(raw: RawMedia) -> Result<Self, MediaError> {
         if !uri_allowed(&raw.uri) {
@@ -98,6 +116,8 @@ impl Media {
         let duration = match raw.kind {
             MediaKind::Video => video_duration(raw.duration_value, raw.duration_timescale)?,
             MediaKind::Image => Time(0),
+            // Colors are made with Media::solid; a reported file is never one.
+            MediaKind::Color => return Err(MediaError::BadUri),
         };
         Ok(Self {
             uri: raw.uri,
@@ -107,6 +127,7 @@ impl Media {
             height: raw.height,
             rotation: raw.rotation,
             codec: raw.codec,
+            color: 0,
         })
     }
 
@@ -115,9 +136,14 @@ impl Media {
         &self.uri
     }
 
-    /// Video or image.
+    /// Video, image or color.
     pub fn kind(&self) -> MediaKind {
         self.kind
+    }
+
+    /// 0xRRGGBBAA of a color media; 0 for others.
+    pub fn color(&self) -> u32 {
+        self.color
     }
 
     /// Video length; zero for images.

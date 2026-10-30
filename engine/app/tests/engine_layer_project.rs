@@ -69,6 +69,7 @@ fn run(engine: &mut Engine, kind: command::Kind) {
 
 fn import(engine: &mut Engine, uri: &str) {
     let item = MediaItem {
+        color: 0,
         uri: uri.into(),
         kind: MediaKind::Video as i32,
         duration_value: 2000,

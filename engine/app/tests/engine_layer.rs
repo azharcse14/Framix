@@ -39,6 +39,7 @@ fn seek(time: i64) -> command::Kind {
 
 fn item(i: usize, seconds: i64) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: format!("media/{i}.mp4"),
         kind: MediaKind::Video as i32,
         duration_value: seconds * 1000,

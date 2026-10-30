@@ -30,6 +30,9 @@ enum SavedMediaKind {
   SAVED_MEDIA_KIND_UNSPECIFIED = 0;
   SAVED_MEDIA_KIND_VIDEO = 1;
   SAVED_MEDIA_KIND_IMAGE = 2;
+  // A solid color, no file. Readers older than P1-048 refuse it (unknown kind), so files
+  // without color clips stay readable by them and the format version is unchanged.
+  SAVED_MEDIA_KIND_COLOR = 3;
 }
 
 // Imported media, validated again on load (the file is untrusted).
@@ -43,6 +46,8 @@ message SavedMedia {
   uint32 height = 6;
   uint32 rotation = 7;
   string codec = 8;
+  // 0xRRGGBBAA for SAVED_MEDIA_KIND_COLOR.
+  fixed32 color = 9;
 }
 
 // What a track carries. Separate from the UI contract's TrackKind so the file format

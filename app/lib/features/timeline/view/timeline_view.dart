@@ -353,6 +353,9 @@ class _ClipActions extends StatelessWidget {
   }
 }
 
+/// The engine's 0xRRGGBBAA as a Flutter color (0xAARRGGBB).
+Color _rgba(int rgba) => Color(((rgba & 0xff) << 24) | (rgba >> 8));
+
 /// Ticks covered by [px] pixels at [pps] pixels per second.
 int _ticksAt(double px, double pps, int ticksPerSecond) =>
     (px / pps * ticksPerSecond).round();
@@ -522,7 +525,12 @@ class _Lane extends StatelessWidget {
                     width: px(clip.duration.toInt()),
                     audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
                     selected: selection.state == clip.id.toInt(),
-                    tiles: track.kind == TrackKind.TRACK_KIND_AUDIO
+                    fill: clip.mediaKind == MediaKind.MEDIA_KIND_COLOR
+                        ? _rgba(clip.color)
+                        : null,
+                    tiles:
+                        track.kind == TrackKind.TRACK_KIND_AUDIO ||
+                            clip.mediaKind == MediaKind.MEDIA_KIND_COLOR
                         ? const []
                         : tiles.of(clip, left: px(clip.start.toInt())),
                   ),
@@ -688,10 +696,14 @@ class ClipBox extends StatelessWidget {
     required this.audio,
     this.selected = false,
     this.tiles = const [],
+    this.fill,
   });
 
   final double width;
   final bool audio;
+
+  /// A color clip's own color, shown instead of thumbnails.
+  final Color? fill;
 
   /// The user selected it; drawn with the accent border.
   final bool selected;
@@ -705,7 +717,7 @@ class ClipBox extends StatelessWidget {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        color: colors.elevated,
+        color: fill ?? colors.elevated,
         border: selected
             ? Border.all(color: colors.accentText, width: 2)
             : Border.all(color: colors.outline),
@@ -719,7 +731,14 @@ class ClipBox extends StatelessWidget {
           if (width >= 24)
             Padding(
               padding: const EdgeInsets.all(4),
-              child: Icon(audio ? Icons.audiotrack : Icons.movie, size: 16),
+              child: Icon(
+                audio
+                    ? Icons.audiotrack
+                    : fill != null
+                    ? Icons.format_color_fill
+                    : Icons.movie,
+                size: 16,
+              ),
             ),
         ],
       ),

@@ -67,6 +67,15 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     _engine.send(Command(importMedia: ImportMedia(items: items)));
   }
 
+  /// Adds a blank clip of [rgba] (0xRRGGBBAA, black by default) where an import would go.
+  void addColorClip({int rgba = 0x000000ff}) => _engine.send(
+    Command(
+      importMedia: ImportMedia(
+        items: [MediaItem(kind: MediaKind.MEDIA_KIND_COLOR, color: rgba)],
+      ),
+    ),
+  );
+
   /// Moves and scales [clip] on the canvas (x/y in 1/10000 of the canvas, scale in 1/1000 of
   /// fit), keeping its crop, turns and flips. Edits with the same [gesture] are one undo step.
   void placeClip(

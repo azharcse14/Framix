@@ -310,12 +310,14 @@ fn saved_media((id, media): (MediaId, &Media)) -> SavedMedia {
         kind: match media.kind() {
             MediaKind::Video => SavedMediaKind::Video,
             MediaKind::Image => SavedMediaKind::Image,
+            MediaKind::Color => SavedMediaKind::Color,
         } as i32,
         duration: media.duration().0,
         width,
         height,
         rotation: media.rotation(),
         codec: media.codec().to_owned(),
+        color: media.color(),
     }
 }
 
@@ -324,6 +326,8 @@ fn restore_media(saved: SavedMedia) -> Result<Media, ProjectError> {
     let kind = match SavedMediaKind::try_from(saved.kind) {
         Ok(SavedMediaKind::Video) => MediaKind::Video,
         Ok(SavedMediaKind::Image) => MediaKind::Image,
+        // Any color is valid; the other fields are not read.
+        Ok(SavedMediaKind::Color) => return Ok(Media::solid(saved.color)),
         _ => return Err(ProjectError::UnknownMediaKind(saved.kind)),
     };
     let raw = RawMedia {

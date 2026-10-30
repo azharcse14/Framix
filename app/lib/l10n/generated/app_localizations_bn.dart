@@ -159,4 +159,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get commandFailed => 'কাজটি হয়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get addColorClip => 'ফাঁকা ক্লিপ যোগ করুন';
 }

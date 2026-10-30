@@ -71,13 +71,14 @@ const MediaKind$json = {
     {'1': 'MEDIA_KIND_UNSPECIFIED', '2': 0},
     {'1': 'MEDIA_KIND_VIDEO', '2': 1},
     {'1': 'MEDIA_KIND_IMAGE', '2': 2},
+    {'1': 'MEDIA_KIND_COLOR', '2': 3},
   ],
 };
 
 /// Descriptor for `MediaKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List mediaKindDescriptor = $convert.base64Decode(
     'CglNZWRpYUtpbmQSGgoWTUVESUFfS0lORF9VTlNQRUNJRklFRBAAEhQKEE1FRElBX0tJTkRfVk'
-    'lERU8QARIUChBNRURJQV9LSU5EX0lNQUdFEAI=');
+    'lERU8QARIUChBNRURJQV9LSU5EX0lNQUdFEAISFAoQTUVESUFfS0lORF9DT0xPUhAD');
 
 @$core.Deprecated('Use commandDescriptor instead')
 const Command$json = {
@@ -761,6 +762,7 @@ const MediaItem$json = {
     {'1': 'height', '3': 6, '4': 1, '5': 13, '10': 'height'},
     {'1': 'rotation', '3': 7, '4': 1, '5': 13, '10': 'rotation'},
     {'1': 'codec', '3': 8, '4': 1, '5': 9, '10': 'codec'},
+    {'1': 'color', '3': 9, '4': 1, '5': 7, '10': 'color'},
   ],
 };
 
@@ -770,7 +772,7 @@ final $typed_data.Uint8List mediaItemDescriptor = $convert.base64Decode(
     '5NZWRpYUtpbmRSBGtpbmQSJQoOZHVyYXRpb25fdmFsdWUYAyABKANSDWR1cmF0aW9uVmFsdWUS'
     'LQoSZHVyYXRpb25fdGltZXNjYWxlGAQgASgNUhFkdXJhdGlvblRpbWVzY2FsZRIUCgV3aWR0aB'
     'gFIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAYgASgNUgZoZWlnaHQSGgoIcm90YXRpb24YByABKA1S'
-    'CHJvdGF0aW9uEhQKBWNvZGVjGAggASgJUgVjb2RlYw==');
+    'CHJvdGF0aW9uEhQKBWNvZGVjGAggASgJUgVjb2RlYxIUCgVjb2xvchgJIAEoB1IFY29sb3I=');
 
 @$core.Deprecated('Use createPreviewDescriptor instead')
 const CreatePreview$json = {
@@ -1132,6 +1134,7 @@ const Clip$json = {
     {'1': 'x', '3': 14, '4': 1, '5': 5, '10': 'x'},
     {'1': 'y', '3': 15, '4': 1, '5': 5, '10': 'y'},
     {'1': 'scale', '3': 16, '4': 1, '5': 13, '10': 'scale'},
+    {'1': 'color', '3': 17, '4': 1, '5': 7, '10': 'color'},
   ],
 };
 
@@ -1144,7 +1147,8 @@ final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     'cF9oGAggASgIUgVmbGlwSBIVCgZmbGlwX3YYCSABKAhSBWZsaXBWEhsKCWNyb3BfbGVmdBgKIA'
     'EoDVIIY3JvcExlZnQSGQoIY3JvcF90b3AYCyABKA1SB2Nyb3BUb3ASHQoKY3JvcF9yaWdodBgM'
     'IAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGA0gASgNUgpjcm9wQm90dG9tEgwKAXgYDi'
-    'ABKAVSAXgSDAoBeRgPIAEoBVIBeRIUCgVzY2FsZRgQIAEoDVIFc2NhbGU=');
+    'ABKAVSAXgSDAoBeRgPIAEoBVIBeRIUCgVzY2FsZRgQIAEoDVIFc2NhbGUSFAoFY29sb3IYESAB'
+    'KAdSBWNvbG9y');
 
 @$core.Deprecated('Use projectSavedDescriptor instead')
 const ProjectSaved$json = {

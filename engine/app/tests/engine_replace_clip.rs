@@ -28,6 +28,7 @@ fn changed(e: Event) -> TimelineChanged {
 
 fn item(uri: &str, ms: i64) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: uri.into(),
         kind: MediaKind::Video as i32,
         duration_value: ms,

@@ -26,6 +26,7 @@ fn changed(e: Option<event::Kind>) -> TimelineChanged {
 
 fn item(uri: &str, kind: MediaKind, ms: i64) -> MediaItem {
     MediaItem {
+        color: 0,
         uri: uri.into(),
         kind: kind as i32,
         duration_value: ms,
@@ -116,6 +117,7 @@ fn tampered_media_in_a_file_is_refused() {
         format_version: 2,
         min_reader_version: 2,
         media: vec![SavedMedia {
+            color: 0,
             id: 1,
             uri: "/private/var/secret.mov".into(),
             kind: SavedMediaKind::Video as i32,

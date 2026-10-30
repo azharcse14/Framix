@@ -48,6 +48,7 @@ fn import(engine: &mut Engine, seconds: &[i64]) -> TimelineChanged {
         .iter()
         .enumerate()
         .map(|(i, s)| MediaItem {
+            color: 0,
             uri: format!("content://media/external/video/{i}"),
             kind: MediaKind::Video as i32,
             duration_value: s * 1000,

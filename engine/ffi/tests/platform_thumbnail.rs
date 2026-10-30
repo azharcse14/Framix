@@ -144,6 +144,7 @@ fn a_thumbnail_made_by_the_platform_comes_back_as_thumbnail_ready() {
         engine,
         command::Kind::ImportMedia(ImportMedia {
             items: vec![MediaItem {
+                color: 0,
                 uri: "content://media/external/video/1".into(),
                 kind: MediaKind::Video as i32,
                 duration_value: 4000,

@@ -452,7 +452,7 @@ impl Timeline {
         for item in media {
             let duration = match item.kind() {
                 MediaKind::Video => item.duration(),
-                MediaKind::Image => PHOTO_DEFAULT_DURATION,
+                MediaKind::Image | MediaKind::Color => PHOTO_DEFAULT_DURATION,
             };
             let id = MediaId(next.allocate_id());
             next.media.insert(id, item);
@@ -702,7 +702,7 @@ impl Timeline {
         let clip = self.top_clip(time)?;
         let media = self.media(clip.media)?;
         let source_time = match media.kind() {
-            MediaKind::Image => Time(0),
+            MediaKind::Image | MediaKind::Color => Time(0),
             // Inside the clip, so start <= time < end and the sum stays in the source range.
             MediaKind::Video => Time(clip.source_start.0 + (time.0 - clip.start.0)),
         };

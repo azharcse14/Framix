@@ -43,6 +43,7 @@ fn engine_with_dead_preview() -> Engine {
         .iter()
         .enumerate()
         .map(|(i, s)| MediaItem {
+            color: 0,
             uri: format!("content://media/external/video/{i}"),
             kind: MediaKind::Video as i32,
             duration_value: s * 1000,
@@ -154,6 +155,7 @@ fn a_preview_lost_after_its_first_frame_stops_being_redrawn() {
         &mut engine,
         command::Kind::ImportMedia(ImportMedia {
             items: vec![MediaItem {
+                color: 0,
                 uri: "content://media/external/video/0".into(),
                 kind: MediaKind::Video as i32,
                 duration_value: 4000,

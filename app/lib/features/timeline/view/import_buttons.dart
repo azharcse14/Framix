@@ -6,7 +6,7 @@ import '../../../core/media/media_importer.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/timeline_cubit.dart';
 
-/// Gallery and Files import buttons; disabled while a pick (copy and metadata) is running.
+/// Gallery and Files import buttons, and a blank clip; disabled while a pick (copy and metadata) is running.
 class ImportButtons extends StatefulWidget {
   const ImportButtons({super.key});
 
@@ -54,6 +54,11 @@ class _ImportButtonsState extends State<ImportButtons> {
           tooltip: l10n.importFromFiles,
           icon: const Icon(Icons.folder_open),
           onPressed: () => _import(importer.pickFromFiles),
+        ),
+        IconButton(
+          tooltip: l10n.addColorClip,
+          icon: const Icon(Icons.format_color_fill),
+          onPressed: context.read<TimelineCubit>().addColorClip,
         ),
       ],
     );

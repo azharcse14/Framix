@@ -2367,6 +2367,7 @@ class MediaItem extends $pb.GeneratedMessage {
     $core.int? height,
     $core.int? rotation,
     $core.String? codec,
+    $core.int? color,
   }) {
     final result = MediaItem._();
     if (uri != null) result.uri = uri;
@@ -2377,6 +2378,7 @@ class MediaItem extends $pb.GeneratedMessage {
     if (height != null) result.height = height;
     if (rotation != null) result.rotation = rotation;
     if (codec != null) result.codec = codec;
+    if (color != null) result.color = color;
     return result;
   }
 
@@ -2403,6 +2405,7 @@ class MediaItem extends $pb.GeneratedMessage {
     ..aI(6, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
     ..aI(7, _omitFieldNames ? '' : 'rotation', fieldType: $pb.PbFieldType.OU3)
     ..aOS(8, _omitFieldNames ? '' : 'codec')
+    ..aI(9, _omitFieldNames ? '' : 'color', fieldType: $pb.PbFieldType.OF3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2500,6 +2503,16 @@ class MediaItem extends $pb.GeneratedMessage {
   $core.bool hasCodec() => $_has(7);
   @$pb.TagNumber(8)
   void clearCodec() => $_clearField(8);
+
+  /// 0xRRGGBBAA for MEDIA_KIND_COLOR; a color item must have no uri.
+  @$pb.TagNumber(9)
+  $core.int get color => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set color($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasColor() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearColor() => $_clearField(9);
 }
 
 /// Asks the platform layer for a preview texture of this size (each side 1..=8192) and draws
@@ -3829,6 +3842,7 @@ class Clip extends $pb.GeneratedMessage {
     $core.int? x,
     $core.int? y,
     $core.int? scale,
+    $core.int? color,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -3847,6 +3861,7 @@ class Clip extends $pb.GeneratedMessage {
     if (x != null) result.x = x;
     if (y != null) result.y = y;
     if (scale != null) result.scale = scale;
+    if (color != null) result.color = color;
     return result;
   }
 
@@ -3883,6 +3898,7 @@ class Clip extends $pb.GeneratedMessage {
     ..aI(14, _omitFieldNames ? '' : 'x')
     ..aI(15, _omitFieldNames ? '' : 'y')
     ..aI(16, _omitFieldNames ? '' : 'scale', fieldType: $pb.PbFieldType.OU3)
+    ..aI(17, _omitFieldNames ? '' : 'color', fieldType: $pb.PbFieldType.OF3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4050,6 +4066,16 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasScale() => $_has(15);
   @$pb.TagNumber(16)
   void clearScale() => $_clearField(16);
+
+  /// 0xRRGGBBAA of a MEDIA_KIND_COLOR clip, 0 for others.
+  @$pb.TagNumber(17)
+  $core.int get color => $_getIZ(16);
+  @$pb.TagNumber(17)
+  set color($core.int value) => $_setUnsignedInt32(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasColor() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearColor() => $_clearField(17);
 }
 
 /// SaveProject finished.

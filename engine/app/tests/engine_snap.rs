@@ -20,6 +20,7 @@ fn engine() -> Engine {
         .iter()
         .enumerate()
         .map(|(i, s)| MediaItem {
+            color: 0,
             uri: format!("content://media/external/video/{i}"),
             kind: MediaKind::Video as i32,
             duration_value: s * 1000,
@@ -83,6 +84,7 @@ fn a_huge_tolerance_is_capped_at_ten_seconds() {
         &mut long,
         command::Kind::ImportMedia(ImportMedia {
             items: vec![MediaItem {
+                color: 0,
                 uri: "content://media/external/video/9".into(),
                 kind: MediaKind::Video as i32,
                 duration_value: 60_000,

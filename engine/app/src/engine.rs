@@ -742,8 +742,10 @@ impl Engine {
                             media_kind: match timeline.media(c.media).map(Media::kind) {
                                 Some(media::MediaKind::Video) => proto::MediaKind::Video,
                                 Some(media::MediaKind::Image) => proto::MediaKind::Image,
+                                Some(media::MediaKind::Color) => proto::MediaKind::Color,
                                 None => proto::MediaKind::Unspecified,
                             } as i32,
+                            color: timeline.media(c.media).map_or(0, Media::color),
                             rotation: u32::from(c.transform.turns) * 90,
                             flip_h: c.transform.flip_h,
                             flip_v: c.transform.flip_v,
@@ -900,6 +902,8 @@ fn media_from_item(item: proto::MediaItem) -> Result<Media, String> {
     let kind = match proto::MediaKind::try_from(item.kind) {
         Ok(proto::MediaKind::Video) => media::MediaKind::Video,
         Ok(proto::MediaKind::Image) => media::MediaKind::Image,
+        Ok(proto::MediaKind::Color) if item.uri.is_empty() => return Ok(Media::solid(item.color)),
+        Ok(proto::MediaKind::Color) => return Err("a color item has no file".into()),
         _ => return Err(format!("unknown media kind {}", item.kind)),
     };
     let raw = RawMedia {
