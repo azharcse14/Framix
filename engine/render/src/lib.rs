@@ -337,6 +337,17 @@ impl Gpu {
         rgba: u32,
         canvas: Affine,
     ) -> Result<(), RenderError> {
+        let pixel = self.color_pixel(rgba);
+        // Canvas UV is the pixel's UV, so the color covers the canvas exactly.
+        let placement = Placement {
+            canvas,
+            source: canvas,
+        };
+        self.draw_rgba(target, &pixel, &placement)
+    }
+
+    /// The shared 1x1 RGBA8 texture, set to `rgba` (0xRRGGBBAA); held until the draw is done.
+    fn color_pixel(&self, rgba: u32) -> std::sync::MutexGuard<'_, wgpu::Texture> {
         // A poisoned lock only means another draw panicked; the pixel is rewritten anyway.
         let pixel = self
             .color
@@ -352,12 +363,7 @@ impl Gpu {
             },
             pixel.size(),
         );
-        // Canvas UV is the pixel's UV, so the color covers the canvas exactly.
-        let placement = Placement {
-            canvas,
-            source: canvas,
-        };
-        self.draw_rgba(target, &pixel, &placement)
+        pixel
     }
 
     /// Fills `target` with black (an empty canvas) and waits until the GPU is done.
@@ -527,7 +533,7 @@ impl Gpu {
     }
 
     /// Draws one frame into an Android window and presents it: `source` (an imported decoder
-    /// frame) or, without one, the test pattern. The window's buffers are what Flutter's
+    /// frame or a color pixel, placed) or, without one, the test pattern. The window's buffers are what Flutter's
     /// SurfaceProducer samples, so nothing is copied.
     ///
     /// # Safety
@@ -536,7 +542,7 @@ impl Gpu {
     pub unsafe fn draw_to_android_window(
         &self,
         window: std::ptr::NonNull<std::ffi::c_void>,
-        source: Option<&wgpu::Texture>,
+        source: Option<(&wgpu::Texture, &Placement)>,
     ) -> Result<(), RenderError> {
         // SAFETY: the caller guarantees a live window for the whole call.
         let (width, height) = unsafe { android::window_size(window) }?;
@@ -575,10 +581,10 @@ impl Gpu {
         };
         // SPIKE: one frame, so the pipeline is built per call.
         match source {
-            Some(source) => {
+            Some((source, placement)) => {
                 let pipeline =
                     fullscreen_pipeline(&self.device, "rgba frame", BLIT_WGSL, config.format);
-                let bind_group = self.rgba_bind_group(&pipeline, source, &Placement::FILL);
+                let bind_group = self.rgba_bind_group(&pipeline, source, placement);
                 self.draw(&frame.texture, Some(&pipeline), Some(&bind_group))?;
             }
             None => self.draw(
@@ -933,19 +939,36 @@ fn draw_into(
     }
 }
 
-// ponytail: Android keeps the test pattern until its decoder lands (the Android Decoder task).
+// ponytail: Android keeps the test pattern for media until its decoder lands (the Android
+// Decoder task); color clips need no decoder and are filled already.
 #[cfg(target_os = "android")]
 fn draw_into(
     gpu: &Gpu,
     target: PlatformTexture,
     _decoder: &mut Option<Box<dyn Decoder>>,
-    _layer: Option<&Layer>,
+    layer: Option<&Layer>,
 ) -> Result<(), DrawError> {
+    use framix_core::media::MediaKind;
+    use framix_core::placement::target_to_canvas;
+    let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
         .ok_or_else(|| DrawError::Gpu("null preview window".into()))?;
-    // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
-    // reported as made.
-    unsafe { gpu.draw_to_android_window(window, None) }.map_err(|e| DrawError::Gpu(e.to_string()))
+    let Some(layer) = layer.filter(|l| l.media.kind() == MediaKind::Color) else {
+        // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
+        // reported as made.
+        return unsafe { gpu.draw_to_android_window(window, None) }.map_err(gpu_err);
+    };
+    // SAFETY: as above.
+    let (width, height) = unsafe { android::window_size(window) }.map_err(gpu_err)?;
+    let canvas = target_to_canvas(layer.canvas, width, height);
+    // Canvas UV is the pixel's UV, so the color covers the canvas exactly (as `draw_color`).
+    let placement = Placement {
+        canvas,
+        source: canvas,
+    };
+    let pixel = gpu.color_pixel(layer.media.color());
+    // SAFETY: as above.
+    unsafe { gpu.draw_to_android_window(window, Some((&pixel, &placement))) }.map_err(gpu_err)
 }
 
 #[cfg(not(any(target_vendor = "apple", target_os = "android")))]

@@ -151,7 +151,9 @@ unsafe fn render_into_surface(
     // import with every draw on its queue (it is shared with the preview renderer).
     let drawn = unsafe { gpu.import_android_frame(frame) }.and_then(|source| {
         // SAFETY: `window` outlives the call; wgpu's surface is dropped inside it.
-        unsafe { gpu.draw_to_android_window(window.0, Some(&source)) }
+        unsafe {
+            gpu.draw_to_android_window(window.0, Some((&source, &framix_render::Placement::FILL)))
+        }
     });
     report(drawn)
 }
