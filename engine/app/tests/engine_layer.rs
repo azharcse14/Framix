@@ -17,7 +17,10 @@ use framix_core::timeline::{Layer, LayerKey, MediaId, Timeline};
 const SECOND: i64 = TICKS_PER_SECOND;
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
-    engine.handle(Command { kind: Some(kind) })
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    })
 }
 
 fn changed(e: Event) -> TimelineChanged {

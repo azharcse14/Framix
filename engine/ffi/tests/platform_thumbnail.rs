@@ -115,7 +115,11 @@ fn a_thumbnail_made_by_the_platform_comes_back_as_thumbnail_ready() {
     *SINK.lock().unwrap() = Some(tx);
     let mut engine = std::ptr::null_mut();
     let send = |engine, kind| {
-        let bytes = Command { kind: Some(kind) }.encode_to_vec();
+        let bytes = Command {
+            id: 0,
+            kind: Some(kind),
+        }
+        .encode_to_vec();
         // SAFETY: live engine; valid slice.
         assert_eq!(
             unsafe { engine_send(engine, bytes.as_ptr(), bytes.len()) },

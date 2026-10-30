@@ -1,3 +1,5 @@
+import 'package:fixnum/fixnum.dart';
+
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:typed_data';
@@ -47,9 +49,12 @@ class FramixEngine {
   /// work (PreviewReady, or CommandFailed) arrive later on their own.
   Stream<Event> get events => _events.stream;
 
-  /// Queues [command]; returns at once.
-  void send(Command command) {
+  /// Queues [command] under a new id and returns the id at once; the command's
+  /// CommandAccepted or CommandFailed carries it back.
+  int send(Command command) {
     if (_disposed) throw StateError('FramixEngine used after dispose');
+    final id = ++_lastId;
+    command.id = Int64(id);
     final bytes = command.writeToBuffer();
     final native = malloc<Uint8>(bytes.length);
     try {
@@ -59,7 +64,10 @@ class FramixEngine {
     } finally {
       malloc.free(native);
     }
+    return id;
   }
+
+  int _lastId = 0;
 
   /// Stops the engine and returns at once. Replies to queued commands still arrive on
   /// [events], which then closes. Safe to call twice.

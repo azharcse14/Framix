@@ -153,6 +153,7 @@ impl Session {
 
     fn create_preview(&self) {
         let bytes = Command {
+            id: 0,
             kind: Some(command::Kind::CreatePreview(CreatePreview {
                 width: 1280,
                 height: 720,

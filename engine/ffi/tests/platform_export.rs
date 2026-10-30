@@ -124,7 +124,11 @@ fn an_export_opens_the_encoder_and_ends_with_export_finished() {
     *SINK.lock().unwrap() = Some(tx);
     let mut engine = std::ptr::null_mut();
     let send = |engine, kind| {
-        let bytes = Command { kind: Some(kind) }.encode_to_vec();
+        let bytes = Command {
+            id: 0,
+            kind: Some(kind),
+        }
+        .encode_to_vec();
         // SAFETY: live engine; valid slice.
         assert_eq!(
             unsafe { engine_send(engine, bytes.as_ptr(), bytes.len()) },

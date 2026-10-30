@@ -28,7 +28,11 @@ unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
 }
 
 fn send(engine: *mut Engine, kind: command::Kind) {
-    let bytes = Command { kind: Some(kind) }.encode_to_vec();
+    let bytes = Command {
+        id: 0,
+        kind: Some(kind),
+    }
+    .encode_to_vec();
     // SAFETY: live engine; `bytes` outlives the call.
     assert_eq!(
         unsafe { engine_send(engine, bytes.as_ptr(), bytes.len()) },

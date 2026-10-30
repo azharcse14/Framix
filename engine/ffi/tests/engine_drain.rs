@@ -23,6 +23,7 @@ unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
 #[test]
 fn destroy_answers_queued_commands_first() {
     let add = Command {
+        id: 0,
         kind: Some(command::Kind::AddTrack(AddTrack {
             kind: TrackKind::Audio as i32,
         })),

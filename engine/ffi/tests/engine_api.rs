@@ -87,6 +87,7 @@ impl Drop for Session {
 
 fn add_track() -> Vec<u8> {
     Command {
+        id: 0,
         kind: Some(command::Kind::AddTrack(AddTrack {
             kind: TrackKind::Video as i32,
         })),

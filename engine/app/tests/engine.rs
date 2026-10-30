@@ -5,7 +5,10 @@ use framix_app::proto::{
 };
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
-    engine.handle(Command { kind: Some(kind) })
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    })
 }
 
 fn changed(e: Event) -> TimelineChanged {
@@ -75,7 +78,7 @@ fn rejected_edit_reports_failure_and_keeps_state() {
 #[test]
 fn bad_commands_are_rejected() {
     let mut engine = Engine::default();
-    assert!(!failed(engine.handle(Command { kind: None })).is_empty());
+    assert!(!failed(engine.handle(Command { id: 0, kind: None })).is_empty());
     let unspecified = command::Kind::AddTrack(AddTrack {
         kind: TrackKind::Unspecified as i32,
     });

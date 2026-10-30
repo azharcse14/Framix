@@ -134,7 +134,11 @@ fn an_export_that_does_not_fit_the_free_storage_is_refused() {
         assert_eq!(engine_set_event_callback(engine, Some(on_event)), ENGINE_OK);
     }
     let send = |kind| {
-        let bytes = Command { kind: Some(kind) }.encode_to_vec();
+        let bytes = Command {
+            id: 0,
+            kind: Some(kind),
+        }
+        .encode_to_vec();
         // SAFETY: live engine; valid slice.
         assert_eq!(
             unsafe { engine_send(engine, bytes.as_ptr(), bytes.len()) },

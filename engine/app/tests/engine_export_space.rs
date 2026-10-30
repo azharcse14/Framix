@@ -24,7 +24,10 @@ impl FreeSpace for Space {
 }
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
-    engine.handle(Command { kind: Some(kind) })
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    })
 }
 
 /// An exporting engine with one 3 s photo clip; returns it and the export's estimated size.

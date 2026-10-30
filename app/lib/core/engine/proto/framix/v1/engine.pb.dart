@@ -80,6 +80,7 @@ class Command extends $pb.GeneratedMessage {
     EnableAutosave? enableAutosave,
     ExportProject? exportProject,
     CancelExport? cancelExport,
+    $fixnum.Int64? id,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -108,6 +109,7 @@ class Command extends $pb.GeneratedMessage {
     if (enableAutosave != null) result.enableAutosave = enableAutosave;
     if (exportProject != null) result.exportProject = exportProject;
     if (cancelExport != null) result.cancelExport = cancelExport;
+    if (id != null) result.id = id;
     return result;
   }
 
@@ -233,6 +235,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: ExportProject.$_createMessage)
     ..aOM<CancelExport>(26, _omitFieldNames ? '' : 'cancelExport',
         subBuilder: CancelExport.$_createMessage)
+    ..a<$fixnum.Int64>(27, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -595,6 +599,16 @@ class Command extends $pb.GeneratedMessage {
   void clearCancelExport() => $_clearField(26);
   @$pb.TagNumber(26)
   CancelExport ensureCancelExport() => $_ensure(25);
+
+  /// Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
+  @$pb.TagNumber(27)
+  $fixnum.Int64 get id => $_getI64(26);
+  @$pb.TagNumber(27)
+  set id($fixnum.Int64 value) => $_setInt64(26, value);
+  @$pb.TagNumber(27)
+  $core.bool hasId() => $_has(26);
+  @$pb.TagNumber(27)
+  void clearId() => $_clearField(27);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -3368,7 +3382,13 @@ class PlayheadChanged extends $pb.GeneratedMessage {
 
 /// The command started work whose result comes later as its own event.
 class CommandAccepted extends $pb.GeneratedMessage {
-  factory CommandAccepted() => CommandAccepted._();
+  factory CommandAccepted({
+    $fixnum.Int64? commandId,
+  }) {
+    final result = CommandAccepted._();
+    if (commandId != null) result.commandId = commandId;
+    return result;
+  }
 
   CommandAccepted._();
 
@@ -3383,6 +3403,9 @@ class CommandAccepted extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'CommandAccepted',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: CommandAccepted.$_createMessage)
+    ..a<$fixnum.Int64>(
+        1, _omitFieldNames ? '' : 'commandId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3406,6 +3429,16 @@ class CommandAccepted extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommandAccepted>(
           CommandAccepted.$_createMessage);
   static CommandAccepted? _defaultInstance;
+
+  /// The id of the command this answers.
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get commandId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set commandId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCommandId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCommandId() => $_clearField(1);
 }
 
 /// The preview texture exists and holds a frame; show it with Flutter's Texture widget.
@@ -4066,9 +4099,11 @@ class ProjectSaved extends $pb.GeneratedMessage {
 class CommandFailed extends $pb.GeneratedMessage {
   factory CommandFailed({
     $core.String? reason,
+    $fixnum.Int64? commandId,
   }) {
     final result = CommandFailed._();
     if (reason != null) result.reason = reason;
+    if (commandId != null) result.commandId = commandId;
     return result;
   }
 
@@ -4086,6 +4121,9 @@ class CommandFailed extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: CommandFailed.$_createMessage)
     ..aOS(1, _omitFieldNames ? '' : 'reason')
+    ..a<$fixnum.Int64>(
+        2, _omitFieldNames ? '' : 'commandId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4118,6 +4156,16 @@ class CommandFailed extends $pb.GeneratedMessage {
   $core.bool hasReason() => $_has(0);
   @$pb.TagNumber(1)
   void clearReason() => $_clearField(1);
+
+  /// The id of the command this answers; 0 for failures no command caused (autosave).
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get commandId => $_getI64(1);
+  @$pb.TagNumber(2)
+  set commandId($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasCommandId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCommandId() => $_clearField(2);
 }
 
 const $core.bool _omitFieldNames =

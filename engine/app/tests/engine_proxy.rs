@@ -83,7 +83,10 @@ impl ProjectStore for MemStore {
 }
 
 fn run(engine: &mut Engine, kind: command::Kind) {
-    engine.handle(Command { kind: Some(kind) });
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    });
 }
 
 fn video(uri: &str, width: u32, height: u32) -> MediaItem {

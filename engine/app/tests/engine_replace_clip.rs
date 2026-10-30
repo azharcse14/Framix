@@ -13,7 +13,10 @@ use framix_app::proto::{
 use framix_app::store::ProjectStore;
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
-    engine.handle(Command { kind: Some(kind) })
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    })
 }
 
 fn changed(e: Event) -> TimelineChanged {

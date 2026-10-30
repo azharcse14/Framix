@@ -149,6 +149,7 @@ fn proxies_are_asked_for_one_after_another() {
         assert_eq!(engine_set_event_callback(engine, Some(on_event)), ENGINE_OK);
     }
     let bytes = Command {
+        id: 0,
         kind: Some(command::Kind::ImportMedia(ImportMedia {
             items: vec![uhd("media/a.mov"), uhd("media/b.mov")],
         })),

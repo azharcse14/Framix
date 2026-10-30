@@ -30,9 +30,10 @@ fn saving_more_than_the_open_limits_fails_without_writing() {
         let kind = Some(command::Kind::AddTrack(AddTrack {
             kind: TrackKind::Video as i32,
         }));
-        engine.handle(Command { kind });
+        engine.handle(Command { id: 0, kind });
     }
     let saved = engine.handle(Command {
+        id: 0,
         kind: Some(command::Kind::SaveProject(SaveProject {
             path: "/p/big.framix".into(),
         })),

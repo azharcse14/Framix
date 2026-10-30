@@ -6,7 +6,13 @@ use framix_app::proto::{
 };
 
 fn run(engine: &mut Engine, kind: command::Kind) -> TimelineChanged {
-    match engine.handle(Command { kind: Some(kind) }).kind {
+    match engine
+        .handle(Command {
+            id: 0,
+            kind: Some(kind),
+        })
+        .kind
+    {
         Some(event::Kind::TimelineChanged(t)) => t,
         other => panic!("expected TimelineChanged, got {other:?}"),
     }

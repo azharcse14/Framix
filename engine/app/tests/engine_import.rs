@@ -9,7 +9,12 @@ use framix_core::timeline::Timeline;
 use prost::Message as _;
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Option<event::Kind> {
-    engine.handle(Command { kind: Some(kind) }).kind
+    engine
+        .handle(Command {
+            id: 0,
+            kind: Some(kind),
+        })
+        .kind
 }
 
 fn changed(e: Option<event::Kind>) -> TimelineChanged {

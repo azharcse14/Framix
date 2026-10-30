@@ -317,6 +317,7 @@ const Command$json = {
       '9': 0,
       '10': 'cancelExport'
     },
+    {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
     {'1': 'kind'},
@@ -353,7 +354,7 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'VuYWJsZV9hdXRvc2F2ZRgYIAEoCzIZLmZyYW1peC52MS5FbmFibGVBdXRvc2F2ZUgAUg5lbmFi'
     'bGVBdXRvc2F2ZRJBCg5leHBvcnRfcHJvamVjdBgZIAEoCzIYLmZyYW1peC52MS5FeHBvcnRQcm'
     '9qZWN0SABSDWV4cG9ydFByb2plY3QSPgoNY2FuY2VsX2V4cG9ydBgaIAEoCzIXLmZyYW1peC52'
-    'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0QgYKBGtpbmQ=');
+    'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0Eg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -1005,11 +1006,14 @@ final $typed_data.Uint8List playheadChangedDescriptor = $convert.base64Decode(
 @$core.Deprecated('Use commandAcceptedDescriptor instead')
 const CommandAccepted$json = {
   '1': 'CommandAccepted',
+  '2': [
+    {'1': 'command_id', '3': 1, '4': 1, '5': 4, '10': 'commandId'},
+  ],
 };
 
 /// Descriptor for `CommandAccepted`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commandAcceptedDescriptor =
-    $convert.base64Decode('Cg9Db21tYW5kQWNjZXB0ZWQ=');
+final $typed_data.Uint8List commandAcceptedDescriptor = $convert.base64Decode(
+    'Cg9Db21tYW5kQWNjZXB0ZWQSHQoKY29tbWFuZF9pZBgBIAEoBFIJY29tbWFuZElk');
 
 @$core.Deprecated('Use previewReadyDescriptor instead')
 const PreviewReady$json = {
@@ -1156,9 +1160,11 @@ const CommandFailed$json = {
   '1': 'CommandFailed',
   '2': [
     {'1': 'reason', '3': 1, '4': 1, '5': 9, '10': 'reason'},
+    {'1': 'command_id', '3': 2, '4': 1, '5': 4, '10': 'commandId'},
   ],
 };
 
 /// Descriptor for `CommandFailed`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commandFailedDescriptor = $convert
-    .base64Decode('Cg1Db21tYW5kRmFpbGVkEhYKBnJlYXNvbhgBIAEoCVIGcmVhc29u');
+final $typed_data.Uint8List commandFailedDescriptor = $convert.base64Decode(
+    'Cg1Db21tYW5kRmFpbGVkEhYKBnJlYXNvbhgBIAEoCVIGcmVhc29uEh0KCmNvbW1hbmRfaWQYAi'
+    'ABKARSCWNvbW1hbmRJZA==');

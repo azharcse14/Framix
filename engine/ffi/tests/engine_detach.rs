@@ -41,6 +41,7 @@ fn destroy_returns_while_the_engine_is_busy_and_stopped_comes_last() {
     RELEASE.set(Mutex::new(release_rx)).unwrap();
 
     let add = Command {
+        id: 0,
         kind: Some(command::Kind::AddTrack(AddTrack {
             kind: TrackKind::Audio as i32,
         })),

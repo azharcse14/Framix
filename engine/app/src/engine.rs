@@ -405,7 +405,17 @@ impl Engine {
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
-        let Some(kind) = command.kind else {
+        let mut event = self.reply(command.kind);
+        match &mut event.kind {
+            Some(proto::event::Kind::CommandFailed(f)) => f.command_id = command.id,
+            Some(proto::event::Kind::CommandAccepted(a)) => a.command_id = command.id,
+            _ => {}
+        }
+        event
+    }
+
+    fn reply(&mut self, kind: Option<command::Kind>) -> Event {
+        let Some(kind) = kind else {
             return command_failed("command has no kind");
         };
         match self.apply(kind) {
@@ -443,7 +453,7 @@ impl Engine {
             },
             Ok(Reply::Accepted) => Event {
                 kind: Some(proto::event::Kind::CommandAccepted(
-                    proto::CommandAccepted {},
+                    proto::CommandAccepted::default(),
                 )),
             },
             Err(reason) => command_failed(reason),
@@ -812,6 +822,8 @@ pub fn command_failed(reason: impl Into<String>) -> Event {
     Event {
         kind: Some(proto::event::Kind::CommandFailed(CommandFailed {
             reason: reason.into(),
+            // `Engine::handle` fills in the command's id.
+            command_id: 0,
         })),
     }
 }

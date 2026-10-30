@@ -61,7 +61,10 @@ impl PreviewRenderer for Renderer {
 }
 
 fn run(engine: &mut Engine, kind: command::Kind) {
-    engine.handle(Command { kind: Some(kind) });
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    });
 }
 
 fn import(engine: &mut Engine, uri: &str) {

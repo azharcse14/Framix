@@ -6,7 +6,12 @@ use framix_app::proto::{
 use framix_core::timeline::{Timeline, TrackFlags, TrackKind as CoreKind};
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Option<event::Kind> {
-    engine.handle(Command { kind: Some(kind) }).kind
+    engine
+        .handle(Command {
+            id: 0,
+            kind: Some(kind),
+        })
+        .kind
 }
 
 fn changed(e: Option<event::Kind>) -> TimelineChanged {

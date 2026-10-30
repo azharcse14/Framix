@@ -79,17 +79,19 @@ class ExportCubit extends Cubit<ExportState> {
     _events = _engine.events.listen((event) {
       final next = fromEvent(event);
       if (next != null) {
-        _starting = false;
+        _starting = null;
         return emit(next);
       }
-      if (!_starting) return;
-      // ponytail: the first reply after start is taken as start's own. Replies to other
-      // features' commands could interleave; correlate by command id if that ever shows.
-      if (event.hasCommandFailed()) {
-        _starting = false;
+      final starting = _starting;
+      if (starting == null) return;
+      // Only the reply to our own ExportProject.
+      if (event.hasCommandFailed() &&
+          event.commandFailed.commandId.toInt() == starting) {
+        _starting = null;
         emit(ExportFailed(event.commandFailed.reason));
-      } else if (event.hasCommandAccepted()) {
-        _starting = false;
+      } else if (event.hasCommandAccepted() &&
+          event.commandAccepted.commandId.toInt() == starting) {
+        _starting = null;
         emit(const ExportRunning(0, 0));
       }
     });
@@ -97,7 +99,9 @@ class ExportCubit extends Cubit<ExportState> {
 
   final FramixEngine _engine;
   late final StreamSubscription<Event> _events;
-  bool _starting = false;
+
+  /// The id of the ExportProject waiting for its reply.
+  int? _starting;
 
   /// The state an engine event moves the export to; null if the event is not about it.
   static ExportState? fromEvent(Event event) {
@@ -120,9 +124,8 @@ class ExportCubit extends Cubit<ExportState> {
     if (state is ExportRunning) return;
     // A retry that fails the same way is a new state again, so it is reported again.
     emit(const ExportIdle());
-    _engine.send(Command(exportProject: ExportProject(path: path)));
     // Only once it was sent: a send that throws must not leave a start waiting for a reply.
-    _starting = true;
+    _starting = _engine.send(Command(exportProject: ExportProject(path: path)));
   }
 
   /// Stops the running export; the engine refuses it when none runs.

@@ -7,6 +7,7 @@ use framix_app::proto::{
 
 fn import(engine: &mut Engine, n: u32) -> TimelineChanged {
     let e = engine.handle(Command {
+        id: 0,
         kind: Some(command::Kind::ImportMedia(ImportMedia {
             items: vec![MediaItem {
                 uri: format!("content://media/external/images/{n}"),

@@ -22,7 +22,16 @@ fn unset_fields_keep_their_value() {
     let add = command::Kind::AddTrack(AddTrack {
         kind: TrackKind::Video as i32,
     });
-    let track_id = changed(engine.handle(Command { kind: Some(add) }).kind).tracks[0].id;
+    let track_id = changed(
+        engine
+            .handle(Command {
+                id: 0,
+                kind: Some(add),
+            })
+            .kind,
+    )
+    .tracks[0]
+        .id;
     let set = |muted, locked| {
         Some(command::Kind::SetTrackFlags(SetTrackFlags {
             track_id,
@@ -32,11 +41,13 @@ fn unset_fields_keep_their_value() {
         }))
     };
     engine.handle(Command {
+        id: 0,
         kind: set(Some(true), None),
     });
     let t = changed(
         engine
             .handle(Command {
+                id: 0,
                 kind: set(None, Some(true)),
             })
             .kind,

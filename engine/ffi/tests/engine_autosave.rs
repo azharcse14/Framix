@@ -40,6 +40,7 @@ fn session(commands: &[command::Kind]) -> Vec<event::Kind> {
         assert_eq!(engine_set_event_callback(engine, Some(on_event)), ENGINE_OK);
         for kind in commands {
             let bytes = Command {
+                id: 0,
                 kind: Some(kind.clone()),
             }
             .encode_to_vec();

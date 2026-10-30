@@ -29,7 +29,10 @@ impl ThumbnailHost for Host {
 }
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
-    engine.handle(Command { kind: Some(kind) })
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    })
 }
 
 fn import(engine: &mut Engine) -> u64 {

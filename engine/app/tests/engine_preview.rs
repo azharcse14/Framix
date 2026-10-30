@@ -77,6 +77,7 @@ fn engine(refuse: bool, fail: bool) -> (Engine, Log) {
 
 fn create(width: u32, height: u32) -> Command {
     Command {
+        id: 0,
         kind: Some(command::Kind::CreatePreview(CreatePreview {
             width,
             height,

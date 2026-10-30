@@ -4,7 +4,13 @@ use framix_app::proto::{AddTrack, Command, SetAspectRatio, TrackKind, Undo, comm
 use framix_core::aspect::AspectRatio;
 
 fn run(engine: &mut Engine, kind: command::Kind) -> (bool, bool) {
-    match engine.handle(Command { kind: Some(kind) }).kind {
+    match engine
+        .handle(Command {
+            id: 0,
+            kind: Some(kind),
+        })
+        .kind
+    {
         Some(event::Kind::TimelineChanged(t)) => (t.can_undo, t.can_redo),
         other => panic!("expected TimelineChanged, got {other:?}"),
     }

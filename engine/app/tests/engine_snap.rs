@@ -7,7 +7,10 @@ use framix_core::time::TICKS_PER_SECOND;
 const SECOND: i64 = TICKS_PER_SECOND;
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Event {
-    engine.handle(Command { kind: Some(kind) })
+    engine.handle(Command {
+        id: 0,
+        kind: Some(kind),
+    })
 }
 
 /// Two videos back to back: [0, 2 s) and [2 s, 5 s).

@@ -35,6 +35,8 @@ message Command {
     ExportProject export_project = 25;
     CancelExport cancel_export = 26;
   }
+  // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
+  uint64 id = 27;
 }
 
 // Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -338,7 +340,10 @@ message PlayheadChanged {
 }
 
 // The command started work whose result comes later as its own event.
-message CommandAccepted {}
+message CommandAccepted {
+  // The id of the command this answers.
+  uint64 command_id = 1;
+}
 
 // The preview texture exists and holds a frame; show it with Flutter's Texture widget.
 message PreviewReady {
@@ -406,4 +411,6 @@ message ProjectSaved {}
 // never shown to users; add a code enum when the UI needs to explain failures.
 message CommandFailed {
   string reason = 1;
+  // The id of the command this answers; 0 for failures no command caused (autosave).
+  uint64 command_id = 2;
 }
