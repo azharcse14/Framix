@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'core/ui/command_failure_messages.dart';
 import 'core/engine/framix_engine.dart';
 import 'core/media/channel_media_importer.dart';
 import 'core/media/media_importer.dart';
@@ -65,7 +66,10 @@ class FramixApp extends StatelessWidget {
             BlocProvider(create: (_) => ThumbnailCubit(engine)),
             BlocProvider(create: (_) => ExportCubit(engine)),
           ],
-          child: const TimelinePage(),
+          child: CommandFailureMessages(
+            engine: engine,
+            child: const TimelinePage(),
+          ),
         ),
       ),
     );

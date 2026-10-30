@@ -45,5 +45,6 @@
   "mergeClip": "Merge with next clip",
   "trimStart": "Trim start",
   "trimEnd": "Trim end",
-  "replaceClip": "Replace clip"
+  "replaceClip": "Replace clip",
+  "commandFailed": "That didn't work. Try again."
 }

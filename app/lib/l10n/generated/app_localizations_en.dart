@@ -157,4 +157,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get replaceClip => 'Replace clip';
+
+  @override
+  String get commandFailed => 'That didn\'t work. Try again.';
 }

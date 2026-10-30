@@ -156,4 +156,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get replaceClip => 'ক্লিপ বদলান';
+
+  @override
+  String get commandFailed => 'কাজটি হয়নি। আবার চেষ্টা করুন।';
 }

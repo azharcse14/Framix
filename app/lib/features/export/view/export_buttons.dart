@@ -40,8 +40,10 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// A save or share is reading the file; a new export would overwrite it underneath.
   bool _busy = false;
 
-  void _tell(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  /// The newest message replaces one still showing, rather than queueing behind it.
+  void _tell(String text) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
 
   Future<void> _whileBusy(Future<void> Function() work) async {
     setState(() => _busy = true);

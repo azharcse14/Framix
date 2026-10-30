@@ -125,7 +125,10 @@ class ExportCubit extends Cubit<ExportState> {
     // A retry that fails the same way is a new state again, so it is reported again.
     emit(const ExportIdle());
     // Only once it was sent: a send that throws must not leave a start waiting for a reply.
-    _starting = _engine.send(Command(exportProject: ExportProject(path: path)));
+    _starting = _engine.send(
+      Command(exportProject: ExportProject(path: path)),
+      reportsFailure: true,
+    );
   }
 
   /// Stops the running export; the engine refuses it when none runs.
