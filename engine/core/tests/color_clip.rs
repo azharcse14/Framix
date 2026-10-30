@@ -91,3 +91,37 @@ fn a_color_clip_refuses_a_transform() {
         "the default is fine"
     );
 }
+
+#[test]
+fn a_color_clip_refuses_a_crop_or_vertical_change_too() {
+    use framix_core::timeline::{ClipTransform, Crop, TimelineError};
+    let mut timeline = Timeline::default();
+    timeline.import(vec![Media::solid(0x00ff_00ff)]).unwrap();
+    let clip = timeline.tracks()[0].clips()[0].id;
+    for transform in [
+        ClipTransform {
+            y: -100,
+            ..Default::default()
+        },
+        ClipTransform {
+            flip_v: true,
+            ..Default::default()
+        },
+        ClipTransform {
+            crop: Crop {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            },
+            scale: ClipTransform::default().scale / 2,
+            ..Default::default()
+        },
+    ] {
+        assert_eq!(
+            timeline.set_clip_transform(clip, transform),
+            Err(TimelineError::BadTransform),
+            "{transform:?}"
+        );
+    }
+}
