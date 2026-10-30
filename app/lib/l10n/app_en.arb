@@ -42,5 +42,7 @@
   "splitClip": "Split at playhead",
   "deleteClip": "Delete clip",
   "duplicateClip": "Duplicate clip",
-  "mergeClip": "Merge with next clip"
+  "mergeClip": "Merge with next clip",
+  "trimStart": "Trim start",
+  "trimEnd": "Trim end"
 }

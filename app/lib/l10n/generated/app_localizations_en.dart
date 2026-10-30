@@ -148,4 +148,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mergeClip => 'Merge with next clip';
+
+  @override
+  String get trimStart => 'Trim start';
+
+  @override
+  String get trimEnd => 'Trim end';
 }

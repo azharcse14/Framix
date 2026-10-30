@@ -147,4 +147,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get mergeClip => 'পরের ক্লিপের সাথে জোড়া দিন';
+
+  @override
+  String get trimStart => 'শুরু ছাঁটুন';
+
+  @override
+  String get trimEnd => 'শেষ ছাঁটুন';
 }

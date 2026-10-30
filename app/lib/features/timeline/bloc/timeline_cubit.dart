@@ -116,6 +116,13 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Moves [clip]'s edges to [start, end) in timeline ticks; the engine checks the result.
+  void trimClip(Clip clip, int start, int end) => _engine.send(
+    Command(
+      trimClip: TrimClip(clipId: clip.id, start: Int64(start), end: Int64(end)),
+    ),
+  );
+
   void removeClip(Clip clip) =>
       _engine.send(Command(removeClip: RemoveClip(clipId: clip.id)));
 

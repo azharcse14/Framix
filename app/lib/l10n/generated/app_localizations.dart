@@ -325,6 +325,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merge with next clip'**
   String get mergeClip;
+
+  /// No description provided for @trimStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim start'**
+  String get trimStart;
+
+  /// No description provided for @trimEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim end'**
+  String get trimEnd;
 }
 
 class _AppLocalizationsDelegate

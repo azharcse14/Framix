@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui show Clip;
 
+import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -78,6 +79,7 @@ class _TimelineViewState extends State<TimelineView> {
     final step = timeline.thumbnailStep.toInt();
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
+    int ticks(double px) => (px / pps * ticksPerSecond).round();
 
     // The selection is this view's own state: it ends when the view does.
     return BlocProvider(
@@ -155,6 +157,7 @@ class _TimelineViewState extends State<TimelineView> {
                                                   track: track,
                                                   height: laneHeight,
                                                   px: px,
+                                                  ticks: ticks,
                                                   tiles: _Tiles(
                                                     pps: pps,
                                                     ticksPerSecond:
@@ -427,18 +430,21 @@ class _Lane extends StatelessWidget {
     required this.track,
     required this.height,
     required this.px,
+    required this.ticks,
     required this.tiles,
   });
 
   final Track track;
   final double height;
   final double Function(int ticks) px;
+  final int Function(double px) ticks;
   final _Tiles tiles;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final selection = context.watch<ClipSelectionCubit>();
+    final cubit = context.read<TimelineCubit>();
     return SizedBox(
       height: height,
       child: Stack(
@@ -465,9 +471,89 @@ class _Lane extends StatelessWidget {
                 ),
               ),
             ),
+          // Drawn after the clips so they take touches at the edges.
+          for (final clip in track.clips)
+            if (selection.state == clip.id.toInt()) ...[
+              _TrimHandle(
+                at: px(clip.start.toInt()),
+                label: l10n.trimStart,
+                onTrim: (dx) {
+                  final end = (clip.start + clip.duration).toInt();
+                  cubit.trimClip(clip, clip.start.toInt() + ticks(dx), end);
+                },
+              ),
+              _TrimHandle(
+                at: px((clip.start + clip.duration).toInt()),
+                label: l10n.trimEnd,
+                onTrim: (dx) {
+                  final end = (clip.start + clip.duration).toInt() + ticks(dx);
+                  cubit.trimClip(clip, clip.start.toInt(), end);
+                },
+              ),
+            ],
         ],
       ),
     );
+  }
+}
+
+/// A 48 dp drag target centred on a clip edge. It follows the finger and reports the drag
+/// distance in pixels once on release; the clip moves when the engine answers.
+class _TrimHandle extends StatefulWidget {
+  const _TrimHandle({
+    required this.at,
+    required this.label,
+    required this.onTrim,
+  });
+
+  final double at;
+  final String label;
+  final void Function(double dx) onTrim;
+
+  static const _size = 48.0;
+
+  @override
+  State<_TrimHandle> createState() => _TrimHandleState();
+}
+
+class _TrimHandleState extends State<_TrimHandle> {
+  double _dx = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: widget.at - _TrimHandle._size / 2 + _dx,
+      top: 0,
+      bottom: 0,
+      width: _TrimHandle._size,
+      child: Semantics(
+        label: widget.label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          // Count the distance from the touch, slop included, so the edge lands under the
+          // finger.
+          dragStartBehavior: DragStartBehavior.down,
+          onHorizontalDragUpdate: (d) => setState(() => _dx += d.delta.dx),
+          onHorizontalDragEnd: (_) => _release(),
+          onHorizontalDragCancel: _release,
+          child: Center(
+            child: Container(
+              width: 6,
+              decoration: BoxDecoration(
+                color: FramixColors.of(context).accentText,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _release() {
+    final dx = _dx;
+    setState(() => _dx = 0);
+    if (dx != 0) widget.onTrim(dx);
   }
 }
 
