@@ -154,4 +154,45 @@ void main() {
     expect(find.byTooltip(bn.mergeClip), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('dragging the trim handles moves the clip edges on release', (
+    tester,
+  ) async {
+    await oneClip(tester);
+    double width() => tester.getSize(find.byType(ClipBox)).width;
+    final full = width();
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    expect(find.bySemanticsLabel(l10n.trimStart), findsOneWidget);
+
+    // The default zoom is 100 px per second: 50 px is half a second.
+    await tester.drag(
+      find.bySemanticsLabel(l10n.trimEnd),
+      const Offset(-50, 0),
+    );
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is ClipBox && (w.width - (full - 50)).abs() < 1,
+      ),
+    );
+
+    await tester.drag(
+      find.bySemanticsLabel(l10n.trimStart),
+      const Offset(50, 0),
+    );
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is ClipBox && (w.width - (full - 100)).abs() < 1,
+      ),
+    );
+    expect(width(), closeTo(full - 100, 1));
+  });
+
+  testWidgets('no trim handles without a selection', (tester) async {
+    await oneClip(tester);
+    expect(find.bySemanticsLabel(l10n.trimStart), findsNothing);
+    expect(find.bySemanticsLabel(l10n.trimEnd), findsNothing);
+  });
 }
