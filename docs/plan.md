@@ -1158,7 +1158,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-053` Trims and splits must stay inside the media's duration (P1-011 media registry has durations) \[Rust\]
 - [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 - [ ] `ENG-055` Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review) \[Rust\]
-- [ ] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
+- [x] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
 
 **Security**
 

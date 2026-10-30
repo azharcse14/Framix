@@ -13451,12 +13451,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "b847454",
    "branch": "eng-056-command-id",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "panic/stopped-engine replies echo the id via answering(); no ffi test: no panic hook exists and platform callbacks are extern \"C\" (a panic aborts). An undecodable command answers with id 0 (Dart builds the bytes, so not expected)."
+    }
+   ],
    "source": "added"
   },
   {
