@@ -71,6 +71,8 @@ class _TimelineViewState extends State<TimelineView> {
   ) {
     final tracks = widget.timeline.tracks;
     final index = tracks.indexWhere((t) => t.id == from.id);
+    // The track went away during the drag.
+    if (index < 0) return;
     final to = (index + (by.dy / laneHeight).round()).clamp(
       0,
       tracks.length - 1,
@@ -536,10 +538,13 @@ class _Lane extends StatelessWidget {
                 top: 0,
                 bottom: 0,
                 width: _minTarget,
+                // ponytail: the clip itself does not follow the finger from here; it lands on
+                // release. Lift it into an overlay if that shows.
                 child: ExcludeSemantics(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
+                  child: _MovableClip(
                     onTap: () => selection.toggle(clip.id.toInt()),
+                    onMove: (by) => onMove(clip, by),
+                    child: const SizedBox.expand(),
                   ),
                 ),
               ),
@@ -659,6 +664,7 @@ class _MovableClipState extends State<_MovableClip> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: widget.onTap,
       onLongPressMoveUpdate: (d) => setState(() => _by = d.offsetFromOrigin),
       onLongPressEnd: (_) => _release(),
