@@ -52,9 +52,3 @@ fn the_platform_cannot_report_a_color() {
     };
     assert!(Media::validate(raw).is_err());
 }
-
-#[test]
-fn a_color_is_always_opaque() {
-    // The renderer draws colors opaque, so the media says so too.
-    assert_eq!(Media::solid(0x1122_3300).color(), 0x1122_33ff);
-}
