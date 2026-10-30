@@ -35,3 +35,26 @@ fn a_color_clip_plays_for_the_photo_duration_and_is_always_at_0() {
     assert_eq!(layer.source_time, Time(0));
     assert_eq!(layer.proxy_side, None);
 }
+
+// P1-048 review.
+
+#[test]
+fn the_platform_cannot_report_a_color() {
+    let raw = framix_core::media::RawMedia {
+        uri: "media/a.jpg".into(),
+        kind: MediaKind::Color,
+        duration_value: 0,
+        duration_timescale: 0,
+        width: 10,
+        height: 10,
+        rotation: 0,
+        codec: String::new(),
+    };
+    assert!(Media::validate(raw).is_err());
+}
+
+#[test]
+fn a_color_is_always_opaque() {
+    // The renderer draws colors opaque, so the media says so too.
+    assert_eq!(Media::solid(0x1122_3300).color(), 0x1122_33ff);
+}

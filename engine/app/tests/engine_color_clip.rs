@@ -73,3 +73,37 @@ fn the_color_survives_save_and_open() {
         .collect();
     assert_eq!(media, vec![(CoreKind::Color, 0x1234_56ff)]);
 }
+
+// P1-048 review.
+
+struct Thumbs(std::sync::Arc<std::sync::Mutex<usize>>);
+
+impl framix_app::thumbnail::ThumbnailHost for Thumbs {
+    fn request(&self, _: framix_app::thumbnail::ThumbnailRequest) -> Result<(), String> {
+        *self.0.lock().unwrap() += 1;
+        Ok(())
+    }
+}
+
+#[test]
+fn a_color_clip_gets_no_thumbnails() {
+    let asked = std::sync::Arc::default();
+    let mut engine =
+        Engine::default().with_thumbnails(Box::new(Thumbs(std::sync::Arc::clone(&asked))));
+    let media_id = match import(&mut engine, vec![color_item(0xff)]).kind {
+        Some(event::Kind::TimelineChanged(t)) => t.tracks[0].clips[0].media_id,
+        other => panic!("{other:?}"),
+    };
+    let e = engine.handle(Command {
+        id: 2,
+        kind: Some(command::Kind::RequestThumbnails(
+            framix_app::proto::RequestThumbnails {
+                media_id,
+                times: vec![0],
+                max_side: 96,
+            },
+        )),
+    });
+    assert!(matches!(e.kind, Some(event::Kind::CommandFailed(_))));
+    assert_eq!(*asked.lock().unwrap(), 0);
+}
