@@ -12619,6 +12619,10 @@
     {
      "date": "2026-10-23",
      "text": "The clip UI's Replace action sends ReplaceClip (P1-031) with a picked MediaItem."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "done: select, split at playhead, duplicate, merge with next, delete, replace, trim handles (release-only). Refused edits still fail silently until the CommandFailed message task; merge is enabled for any touching neighbour (engine decides; see the mergeable task). Trim snap filed separately."
     }
    ],
    "source": "added"
@@ -13545,6 +13549,50 @@
    "done": "2026-10-30",
    "commit": "7160e03",
    "branch": "p1-073-android-clippy",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-074",
+   "section": "P1",
+   "group": null,
+   "title": "Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "tags: Rust and Dart (engine snap + handle sends snap_within)"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-075",
+   "section": "P1",
+   "group": null,
+   "title": "Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
