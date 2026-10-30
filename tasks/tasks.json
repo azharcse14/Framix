@@ -12776,12 +12776,33 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "25cef72",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "test fix: Media::color(rgba) clashed with the color() getter (one name per impl in Rust); renamed the constructor to Media::solid in a separate commit, no assertion changed."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "decisions: color clip = media kind Color (no file, 1x1, photo default duration), fills the canvas via a 1x1 RGBA texture (locked, shared by preview and export); no thumbnails; format version unchanged (additive kind; old readers refuse with UnknownMediaKind, no data loss). UI adds black only."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "old readers (before P1-048) refuse a file with a color clip as 'unknown media kind', not 'needs a newer app'; no data loss (autosave keeps the file)."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "review: alpha is kept in the media but ignored by renderer and UI (normalizing it would contradict the frozen test other_media_have_no_color); a_color_is_always_opaque, added in review, removed in its own commit."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "review: alpha is kept in the media but ignored by renderer and UI (normalizing it would contradict the frozen test other_media_have_no_color); a_color_is_always_opaque, added in review, removed in its own commit."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13617,6 +13638,44 @@
    "tags": [
     "Rust",
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-077",
+   "section": "P1",
+   "group": null,
+   "title": "Color clips on Android: the Android draw_into fills them (today only Apple does); until then Add blank clip shows the test pattern there",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-078",
+   "section": "P1",
+   "group": null,
+   "title": "Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
