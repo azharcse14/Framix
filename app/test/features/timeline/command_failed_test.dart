@@ -2,6 +2,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
+import 'package:framix/features/export/bloc/export_cubit.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
@@ -73,5 +74,24 @@ void main() {
     await pumpUntil(tester, find.text(l10n.exportFailed));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text(l10n.commandFailed), findsNothing);
+  });
+
+  test('a refused cancel stays quiet (P1-049 review)', () async {
+    final failures = <int>[];
+    final sub = engine.failures.listen(
+      (f) => failures.add(f.commandId.toInt()),
+    );
+    final cubit = ExportCubit(engine);
+    // No export runs: the engine refuses the cancel.
+    cubit.cancel();
+    final last = engine.send(
+      Command(removeClip: RemoveClip(clipId: Int64(997))),
+    );
+    while (!failures.contains(last)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    await sub.cancel();
+    await cubit.close();
+    expect(failures, [last]);
   });
 }
