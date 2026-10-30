@@ -2504,7 +2504,8 @@ class MediaItem extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   void clearCodec() => $_clearField(8);
 
-  /// 0xRRGGBBAA for MEDIA_KIND_COLOR; a color item must have no uri.
+  /// 0xRRGGBBAA for MEDIA_KIND_COLOR (drawn opaque: alpha is ignored); a color item must have
+  /// no uri.
   @$pb.TagNumber(9)
   $core.int get color => $_getIZ(8);
   @$pb.TagNumber(9)

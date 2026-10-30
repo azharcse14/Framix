@@ -84,7 +84,8 @@ pub struct Media {
 }
 
 impl Media {
-    /// A solid color (0xRRGGBBAA): no file, 1x1 pixel, no duration. Every value is valid.
+    /// A solid color (0xRRGGBBAA): no file, 1x1 pixel, no duration. Every value is valid; the
+    /// alpha byte is kept but clips are drawn opaque.
     pub fn solid(rgba: u32) -> Self {
         Self {
             uri: String::new(),

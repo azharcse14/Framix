@@ -254,7 +254,8 @@ message MediaItem {
   // Informational codec tag, at most 16 ASCII characters: the fourCC on iOS ("avc1", "hvc1"),
   // the MIME subtype on Android ("avc", "hevc", "x-vnd.on2.vp9"); empty when unknown.
   string codec = 8;
-  // 0xRRGGBBAA for MEDIA_KIND_COLOR; a color item must have no uri.
+  // 0xRRGGBBAA for MEDIA_KIND_COLOR (drawn opaque: alpha is ignored); a color item must have
+  // no uri.
   fixed32 color = 9;
 }
 

@@ -353,8 +353,8 @@ class _ClipActions extends StatelessWidget {
   }
 }
 
-/// The engine's 0xRRGGBBAA as a Flutter color (0xAARRGGBB).
-Color _rgba(int rgba) => Color(((rgba & 0xff) << 24) | (rgba >> 8));
+/// The engine's 0xRRGGBBAA as an opaque Flutter color, as the renderer draws it.
+Color _rgba(int rgba) => Color(0xff000000 | (rgba >> 8));
 
 /// Ticks covered by [px] pixels at [pps] pixels per second.
 int _ticksAt(double px, double pps, int ticksPerSecond) =>
