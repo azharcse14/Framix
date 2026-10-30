@@ -29,4 +29,17 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     expect(cubit.state, const ExportRunning(5, 10));
   });
+
+  test(
+    'start clears the last result, so the same failure is reported again',
+    () async {
+      cubit.seed(const ExportNoSpace(100, 10));
+      final states = <ExportState>[];
+      final sub = cubit.stream.listen(states.add);
+      cubit.start('/tmp/again.mp4');
+      await Future<void>.delayed(Duration.zero);
+      expect(states.first, const ExportIdle());
+      await sub.cancel();
+    },
+  );
 }
