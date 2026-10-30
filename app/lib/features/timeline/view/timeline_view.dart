@@ -534,7 +534,8 @@ class _Lane extends StatelessWidget {
   }
 }
 
-/// A 48 dp drag target just outside a clip edge, so it never covers the clip. It follows the
+/// A 48 dp drag target just outside a clip edge (inside it only for a clip at 0, where the
+/// lane ends), so it rarely covers the clip; while shown it wins over what lies under it. It follows the
 /// finger and reports the drag distance in pixels once on release; the clip moves when the
 /// engine answers.
 // ponytail: the handle springs back on release and the clip follows on the engine's reply (a
