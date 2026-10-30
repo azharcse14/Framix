@@ -185,7 +185,8 @@ pub struct Gpu {
     nv12: Nv12Pass,
     blit: wgpu::RenderPipeline,
     /// One RGBA8 pixel holding a color clip's color while it is drawn. The lock keeps the
-    /// preview and the export worker from writing it under each other's draw.
+    /// preview and the export worker from writing it under each other's draw. Lock order on
+    /// Android: `color`, then `window_surface`; never take `color` while holding the other.
     color: std::sync::Mutex<wgpu::Texture>,
     /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
@@ -533,8 +534,8 @@ impl Gpu {
     }
 
     /// Draws one frame into an Android window and presents it: `source` (an imported decoder
-    /// frame or a color pixel, placed) or, without one, the test pattern. The window's buffers are what Flutter's
-    /// SurfaceProducer samples, so nothing is copied.
+    /// frame or a color pixel, placed) or, without one, the test pattern. The window's buffers
+    /// are what Flutter's SurfaceProducer samples, so nothing is copied.
     ///
     /// # Safety
     /// `window` must be a live `ANativeWindow*` that outlives this call.
