@@ -34,6 +34,8 @@ run python3 scripts/task.py check
 if [ -f engine/Cargo.toml ] && touched engine/; then
   run cargo fmt --manifest-path engine/Cargo.toml --all -- --check
   run cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets -- -D warnings
+  # Android-only code paths (cfg target_os = "android") are not built for the host.
+  run cargo clippy --manifest-path engine/Cargo.toml -p framix_ffi --target aarch64-linux-android -- -D warnings
   run cargo test --manifest-path engine/Cargo.toml --workspace
 fi
 
