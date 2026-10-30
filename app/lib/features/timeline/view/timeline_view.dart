@@ -60,6 +60,28 @@ class _TimelineViewState extends State<TimelineView> {
     _scroll.addListener(_moveWindow);
   }
 
+  /// Sends where a long-press drag left [clip]: the drag's lanes up or down (kept inside the
+  /// timeline) and its distance along the time axis. The engine checks the spot.
+  void _move(
+    Clip clip,
+    Track from,
+    Offset by,
+    double laneHeight,
+    int Function(double px) ticks,
+  ) {
+    final tracks = widget.timeline.tracks;
+    final index = tracks.indexWhere((t) => t.id == from.id);
+    final to = (index + (by.dy / laneHeight).round()).clamp(
+      0,
+      tracks.length - 1,
+    );
+    context.read<TimelineCubit>().moveClip(
+      clip,
+      tracks[to].id,
+      clip.start.toInt() + ticks(by.dx),
+    );
+  }
+
   void _moveWindow() =>
       _window.value = (_scroll.offset / (_viewport / 2)).floor();
 
@@ -159,6 +181,13 @@ class _TimelineViewState extends State<TimelineView> {
                                                   height: laneHeight,
                                                   px: px,
                                                   ticks: ticks,
+                                                  onMove: (clip, by) => _move(
+                                                    clip,
+                                                    track,
+                                                    by,
+                                                    laneHeight,
+                                                    ticks,
+                                                  ),
                                                   tiles: _Tiles(
                                                     pps: pps,
                                                     ticksPerSecond:
@@ -448,6 +477,7 @@ class _Lane extends StatelessWidget {
     required this.height,
     required this.px,
     required this.ticks,
+    required this.onMove,
     required this.tiles,
   });
 
@@ -455,6 +485,9 @@ class _Lane extends StatelessWidget {
   final double height;
   final double Function(int ticks) px;
   final int Function(double px) ticks;
+
+  /// A clip was long-pressed and dragged by an offset in pixels.
+  final void Function(Clip clip, Offset by) onMove;
 
   /// Smallest touch target (docs/design-system.md).
   static const _minTarget = 48.0;
@@ -468,6 +501,8 @@ class _Lane extends StatelessWidget {
     return SizedBox(
       height: height,
       child: Stack(
+        // A dragged clip is drawn over the other lanes.
+        clipBehavior: ui.Clip.none,
         children: [
           for (final clip in track.clips)
             Positioned(
@@ -478,8 +513,9 @@ class _Lane extends StatelessWidget {
                 button: true,
                 selected: selection.state == clip.id.toInt(),
                 label: l10n.clip,
-                child: GestureDetector(
+                child: _MovableClip(
                   onTap: () => selection.toggle(clip.id.toInt()),
+                  onMove: (by) => onMove(clip, by),
                   child: ClipBox(
                     width: px(clip.duration.toInt()),
                     audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
@@ -595,6 +631,46 @@ class _TrimHandleState extends State<_TrimHandle> {
     final dx = _dx;
     setState(() => _dx = 0);
     if (dx != 0) widget.onTrim(dx);
+  }
+}
+
+/// A clip that is tapped to select it, or long-pressed and dragged to move it: it follows the
+/// finger and reports the offset once on release.
+// ponytail: like the trim handles it springs back on release and the clip lands on the
+// engine's reply; a refused move just springs back (see the CommandFailed message task).
+class _MovableClip extends StatefulWidget {
+  const _MovableClip({
+    required this.onTap,
+    required this.onMove,
+    required this.child,
+  });
+
+  final VoidCallback onTap;
+  final void Function(Offset by) onMove;
+  final Widget child;
+
+  @override
+  State<_MovableClip> createState() => _MovableClipState();
+}
+
+class _MovableClipState extends State<_MovableClip> {
+  Offset _by = Offset.zero;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onLongPressMoveUpdate: (d) => setState(() => _by = d.offsetFromOrigin),
+      onLongPressEnd: (_) => _release(),
+      onLongPressCancel: () => setState(() => _by = Offset.zero),
+      child: Transform.translate(offset: _by, child: widget.child),
+    );
+  }
+
+  void _release() {
+    final by = _by;
+    setState(() => _by = Offset.zero);
+    if (by != Offset.zero) widget.onMove(by);
   }
 }
 

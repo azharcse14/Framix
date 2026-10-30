@@ -137,6 +137,18 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     );
   }
 
+  /// Moves [clip] to [start] ticks on track [trackId]; the engine refuses a taken spot, a
+  /// locked track or another kind of track.
+  void moveClip(Clip clip, Int64 trackId, int start) => _engine.send(
+    Command(
+      moveClip: MoveClip(
+        clipId: clip.id,
+        trackId: trackId,
+        start: Int64(start),
+      ),
+    ),
+  );
+
   void removeClip(Clip clip) =>
       _engine.send(Command(removeClip: RemoveClip(clipId: clip.id)));
 
