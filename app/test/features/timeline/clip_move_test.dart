@@ -112,4 +112,24 @@ void main() {
     await gesture.up();
     await tester.pump();
   });
+
+  testWidgets('a clip narrower than 48 dp can be moved too (P1-047 review)', (
+    tester,
+  ) async {
+    await oneClip(tester);
+    for (var i = 0; i < 5; i++) {
+      await tester.tap(find.byTooltip(l10n.zoomOut));
+      await tester.pump();
+    }
+    final before = clip(tester);
+    expect(before.width, lessThan(48));
+    await longPressDrag(tester, const Offset(20, 0));
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) =>
+            w is ClipBox && (clip(tester).left - (before.left + 20)).abs() < 1,
+      ),
+    );
+  });
 }
