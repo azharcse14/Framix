@@ -131,8 +131,10 @@ class ExportCubit extends Cubit<ExportState> {
     );
   }
 
-  /// Stops the running export; the engine refuses it when none runs.
-  void cancel() => _engine.send(Command(cancelExport: CancelExport()));
+  /// Stops the running export. The engine refuses it when none runs (a double tap, or a tap
+  /// as the export finishes); that is expected, so it shows no message.
+  void cancel() =>
+      _engine.send(Command(cancelExport: CancelExport()), reportsFailure: true);
 
   @override
   Future<void> close() async {

@@ -642,7 +642,7 @@ class _TrimHandleState extends State<_TrimHandle> {
 /// A clip that is tapped to select it, or long-pressed and dragged to move it: it follows the
 /// finger and reports the offset once on release.
 // ponytail: like the trim handles it springs back on release and the clip lands on the
-// engine's reply; a refused move just springs back (see the CommandFailed message task).
+// engine's reply; a refused move springs back and shows the generic failure message.
 class _MovableClip extends StatefulWidget {
   const _MovableClip({
     required this.onTap,

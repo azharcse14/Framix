@@ -77,13 +77,14 @@ class FramixEngine {
     if (_disposed) throw StateError('FramixEngine used after dispose');
     final id = ++_lastId;
     command.id = Int64(id);
-    if (reportsFailure) _reported.add(id);
     final bytes = command.writeToBuffer();
     final native = malloc<Uint8>(bytes.length);
     try {
       native.asTypedList(bytes.length).setAll(0, bytes);
       final code = engine_send(_engine, native, bytes.length);
       if (code != ENGINE_OK) throw StateError('engine_send failed: $code');
+      // Only once sent: a send that throws gets no reply to clear the id.
+      if (reportsFailure) _reported.add(id);
     } finally {
       malloc.free(native);
     }

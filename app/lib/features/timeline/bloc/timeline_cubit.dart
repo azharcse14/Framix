@@ -9,8 +9,8 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 /// Mirrors the engine's timeline. Holds the latest [TimelineChanged]; sends commands only.
 class TimelineCubit extends Cubit<TimelineChanged> {
   TimelineCubit(this._engine) : super(TimelineChanged()..freeze()) {
-    // CommandFailed has no UI yet (import can fail: too many items, bad metadata); a
-    // generic failure message is filed as its own task.
+    // A refused command (import: too many items, bad metadata) shows the generic message
+    // from CommandFailureMessages.
     _events = _engine.events
         // A playhead event only matters when it changes the active clip.
         .where(
