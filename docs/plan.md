@@ -422,7 +422,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
 - [x] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
 - [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
-- [ ] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
+- [x] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
 - [ ] `P1-048` Color/blank clip (from P1-011 title) \[Rust\] \[Dart\]
 - [ ] `P1-049` Show a generic message when an engine command fails (import refused, etc.); CommandFailed has no UI yet \[Dart\]
 - [ ] `P1-050` Device check: iOS/Android pickers, iCloud download delay, Drive URIs, permission after restart, HEIC/HEVC metadata, portrait rotation, document picker cancel \[Native\]
@@ -451,6 +451,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-073` render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target \[Rust\]
 - [ ] `P1-074` Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump) \[Dart\]
 - [ ] `P1-075` Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse \[Rust\] \[Dart\]
+- [ ] `P1-076` Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 

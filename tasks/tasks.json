@@ -5270,6 +5270,10 @@
     {
      "date": "2026-10-23",
      "text": "P1-030: canvas gestures have no screen-reader actions (Semantics label only); add nudge/scale actions or buttons."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "timeline clip move (P1-047) and trim (P1-045) are gesture-only: add Semantics actions or buttons (move left/right, to track above/below; trim by a frame)"
     }
    ],
    "source": "plan"
@@ -12662,15 +12666,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "e5a990c",
    "branch": "p1-047-drag-move",
    "notes": [
     {
      "date": "2026-10-21",
      "text": "Reuse Timeline::snap (P1-022) for clip drag."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "snap, start clamp and auto-scroll deferred to P1-076 (engine-side); screen-reader alternative noted on UX-008."
     }
    ],
    "source": "added"
@@ -13581,6 +13589,26 @@
    "section": "P1",
    "group": null,
    "title": "Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-076",
+   "section": "P1",
+   "group": null,
+   "title": "Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes",
    "tags": [
     "Rust",
     "Dart"
