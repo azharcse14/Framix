@@ -44,7 +44,10 @@ class _CanvasGesturesState extends State<CanvasGestures> {
     if (id == 0) return null;
     for (final track in t.tracks) {
       for (final clip in track.clips) {
-        if (clip.id == id) return clip;
+        // A color fills the canvas; the engine refuses to move or scale it.
+        if (clip.id == id) {
+          return clip.mediaKind == MediaKind.MEDIA_KIND_COLOR ? null : clip;
+        }
       }
     }
     return null;
