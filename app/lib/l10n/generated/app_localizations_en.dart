@@ -118,4 +118,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareFailed => 'Couldn\'t open sharing. Try again.';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong. Try again.';
 }

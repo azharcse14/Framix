@@ -283,6 +283,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open sharing. Try again.'**
   String get shareFailed;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get somethingWentWrong;
 }
 
 class _AppLocalizationsDelegate

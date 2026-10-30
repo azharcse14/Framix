@@ -34,5 +34,6 @@
   "saveDenied": "Saving to the gallery needs permission. Or use Share to save to Files.",
   "saveFailed": "Couldn't save the video. Try again.",
   "share": "Share",
-  "shareFailed": "Couldn't open sharing. Try again."
+  "shareFailed": "Couldn't open sharing. Try again.",
+  "somethingWentWrong": "Something went wrong. Try again."
 }

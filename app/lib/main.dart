@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'core/engine/framix_engine.dart';
 import 'core/media/channel_media_importer.dart';
 import 'core/media/media_importer.dart';
+import 'core/ui/error_boundary.dart';
 import 'core/ui/framix_theme.dart';
 import 'features/export/bloc/export_cubit.dart';
 import 'features/preview/bloc/preview_cubit.dart';
@@ -16,6 +17,7 @@ import 'features/timeline/view/timeline_page.dart';
 import 'l10n/generated/app_localizations.dart';
 
 void main() {
+  installErrorBoundary();
   GetIt.I.registerSingleton<FramixEngine>(
     FramixEngine.create(),
     dispose: (engine) => engine.dispose(),

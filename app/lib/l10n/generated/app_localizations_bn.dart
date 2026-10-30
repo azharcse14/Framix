@@ -117,4 +117,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get shareFailed => 'শেয়ার খোলা যায়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get somethingWentWrong => 'কিছু ভুল হয়েছে। আবার চেষ্টা করুন।';
 }
