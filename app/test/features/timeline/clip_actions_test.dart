@@ -195,4 +195,110 @@ void main() {
     expect(find.bySemanticsLabel(l10n.trimStart), findsNothing);
     expect(find.bySemanticsLabel(l10n.trimEnd), findsNothing);
   });
+
+  // P1-045 review.
+
+  Rect clipRect(WidgetTester tester, int index) =>
+      tester.getRect(find.byType(ClipBox).at(index));
+
+  testWidgets('split at 0.5 s leaves a 0.5 s and a 1.5 s clip', (tester) async {
+    await oneClip(tester);
+    await seekTo(tester, 0.5);
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    await tester.tap(find.byTooltip(l10n.splitClip));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    expect(clipRect(tester, 0).width, closeTo(50, 1));
+    expect(clipRect(tester, 1).width, closeTo(150, 1));
+  });
+
+  testWidgets('trimming the start moves the left edge, not the right', (
+    tester,
+  ) async {
+    await oneClip(tester);
+    final before = clipRect(tester, 0);
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    await tester.drag(
+      find.bySemanticsLabel(l10n.trimStart),
+      const Offset(50, 0),
+    );
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is ClipBox && (w.width - (before.width - 50)).abs() < 1,
+      ),
+    );
+    expect(clipRect(tester, 0).left, closeTo(before.left + 50, 1));
+    expect(clipRect(tester, 0).right, closeTo(before.right, 1));
+  });
+
+  testWidgets('selecting does not move the clips', (tester) async {
+    await oneClip(tester);
+    final before = clipRect(tester, 0);
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    expect(clipRect(tester, 0), before);
+  });
+
+  testWidgets('a short clip still has a 48 dp tap target', (tester) async {
+    await oneClip(tester);
+    await seekTo(tester, 0.2);
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    await tester.tap(find.byTooltip(l10n.splitClip));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    // Clear the selection, then tap 40 dp right of the 20 dp clip's left edge.
+    await tester.tap(find.byTooltip(l10n.deleteClip));
+    await pumpUntil(tester, find.text(l10n.clipCount(1)));
+    await tester.tap(find.byTooltip(l10n.undo));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    final short = clipRect(tester, 0);
+    expect(short.width, closeTo(20, 1));
+    await tester.tapAt(short.centerLeft + const Offset(40, 0));
+    await tester.pump();
+    expect(selected(tester, 0), isTrue);
+  });
+
+  testWidgets('the handles sit outside the clip, inside the timeline', (
+    tester,
+  ) async {
+    await oneClip(tester);
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    final clip = clipRect(tester, 0);
+    final start = tester.getRect(find.bySemanticsLabel(l10n.trimStart));
+    final end = tester.getRect(find.bySemanticsLabel(l10n.trimEnd));
+    expect(start.width, 48);
+    expect(end.width, 48);
+    expect(end.left, closeTo(clip.right, 1));
+    // The first clip starts at 0: its start handle is clamped into the lane.
+    expect(start.left, greaterThanOrEqualTo(clip.left));
+    // Tapping the clip away from the handles clears the selection.
+    await tester.tapAt(clip.center + const Offset(40, 0));
+    await tester.pump();
+    expect(selected(tester, 0), isFalse);
+  });
+
+  testWidgets('replace puts a newly picked video under the clip', (
+    tester,
+  ) async {
+    await oneClip(tester);
+    final before = page(tester).read<TimelineCubit>().state.tracks[0].clips[0];
+    await tester.tap(find.byType(ClipBox));
+    await tester.pump();
+    await tester.tap(find.byTooltip(l10n.replaceClip));
+    for (var i = 0; i < 100; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+      final now = page(tester).read<TimelineCubit>().state.tracks[0].clips[0];
+      if (now.mediaId != before.mediaId) {
+        expect(now.id, before.id, reason: 'same clip');
+        return;
+      }
+    }
+    throw TestFailure('the clip never got the new media');
+  });
 }
