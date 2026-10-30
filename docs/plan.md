@@ -420,7 +420,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-042` engine_free_buffer ke unsafe extern "C" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai \[Rust\]
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]
 - [x] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
-- [ ] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
+- [x] `P1-045` Timeline clip UI: select clip, split at playhead, trim handles, delete, duplicate, merge (Dart); needs P1-011 import and P1-020 zoom/scrub \[Dart\]
 - [ ] `P1-046` Preview, export and audio mix honor track mute and hide (flags from P1-026) \[Rust\]
 - [ ] `P1-047` Drag clip to move/reorder on the timeline (Dart, sends MoveClip); needs P1-011 import and P1-045 clip UI \[Dart\]
 - [ ] `P1-048` Color/blank clip (from P1-011 title) \[Rust\] \[Dart\]
