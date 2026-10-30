@@ -13505,6 +13505,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "P1-073",
+   "section": "P1",
+   "group": null,
+   "title": "render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

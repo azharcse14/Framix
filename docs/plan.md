@@ -448,6 +448,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-070` Android Decoder port: MediaCodec frames for preview and export (decoder_open/frame/close, AHB import or GLES convert per P1-056) \[Rust\] \[Native\]
 - [ ] `P1-071` Composite several visible video tracks (PIP) in preview and export; today only the top layer is drawn \[Rust\]
 - [ ] `P1-072` Check the P1-060 iOS 17-25 decode path (LegacySource, copyNextSampleBuffer) on an iOS 17/18 simulator: scrub, flip, export; needs the runtime installed \[Native\]
+- [ ] `P1-073` render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target \[Rust\]
 
 ## Phase 2: Audio
 

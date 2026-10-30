@@ -108,8 +108,9 @@ impl Proxies {
         self.ready.get(&media).copied()
     }
 
-    /// Starts the next queued request if none runs. A platform that refuses one (no proxy
-    /// support) gets no more: the preview keeps the originals.
+    /// Starts the next queued request if none runs. If the platform refuses one, the rest of
+    /// the queue is dropped too (the preview keeps the originals); media added later are asked
+    /// for again.
     fn start(&mut self) {
         if self.in_flight.is_some() {
             return;

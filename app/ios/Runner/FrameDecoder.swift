@@ -27,11 +27,11 @@ final class FrameDecoder {
     reference: String, image: Bool, timeUs: Int64, proxySide: UInt32,
     into out: inout EngineFrame
   ) -> Bool {
-    let proxy = !image && proxySide > 0
-    guard
-      let url = try? proxy
-        ? Proxies.url(for: reference, maxSide: Int(proxySide)) : MediaFiles.url(for: reference)
-    else { return false }
+    // A missing proxy (cache cleared) falls back to the original rather than black.
+    let proxyURL = image || proxySide == 0
+      ? nil : try? Proxies.url(for: reference, maxSide: Int(proxySide))
+    let proxy = proxyURL.map { FileManager.default.fileExists(atPath: $0.path) } ?? false
+    guard let url = proxy ? proxyURL : try? MediaFiles.url(for: reference) else { return false }
     if image {
       guard let texture = photoTexture(reference, url) else { return false }
       out = EngineFrame(
@@ -168,15 +168,20 @@ enum Proxies {
     try CacheFiles.url("proxies", reference, "-\(maxSide).mov")
   }
 
+  /// Every proxy is made here, one at a time, even across engine project switches (which
+  /// forget a running request but cannot stop it).
+  static let queue = DispatchQueue(label: "framix.proxies", qos: .utility)
+
   /// True once the proxy file is complete (made now or earlier). Blocks the calling thread,
   /// which must not be the main one or a Swift concurrency one.
   static func make(_ reference: String, maxSide: Int) -> Bool {
     guard let file = try? url(for: reference, maxSide: maxSide) else { return false }
     let manager = FileManager.default
     if manager.fileExists(atPath: file.path) { return true }
-    // Written beside the file and renamed when complete, so an existing file is a whole one.
-    let partial = file.deletingPathExtension().appendingPathExtension("part.mov")
-    try? manager.removeItem(at: partial)
+    // Written beside the file under its own name and renamed when complete, so an existing
+    // file is a whole one.
+    let partial = file.deletingLastPathComponent().appendingPathComponent(
+      "\(UUID().uuidString).part.mov")
     guard let source = try? MediaFiles.url(for: reference),
       let reader = VideoReader(reference: reference, url: source, from: .zero),
       let written = write(reader, to: partial, maxSide: maxSide), written
@@ -225,11 +230,15 @@ enum Proxies {
         guard writer.status == .writing else { return false }
         usleep(1000)
       }
-      guard adaptor.append(frame.pixels, withPresentationTime: frame.start) else {
+      // Frees each frame's autoreleased buffers now, not after the whole file.
+      let appended = autoreleasepool {
+        adaptor.append(frame.pixels, withPresentationTime: frame.start)
+      }
+      guard appended else {
         writer.cancelWriting()
         return false
       }
-      sample = reader.next()
+      sample = autoreleasepool { reader.next() }
     }
     guard reader.completed else {
       writer.cancelWriting()
@@ -455,7 +464,7 @@ let decoderFrame:
     return ok ? ENGINE_OK : ENGINE_ERR_GPU
   }
 
-/// Proxy requests arrive on the engine thread; the encode runs on a utility queue (it blocks)
+/// Proxy requests arrive on the engine thread; the encode runs on `Proxies.queue` (it blocks)
 /// and answers `done` exactly once from there.
 let requestProxy:
   @convention(c) (
@@ -468,7 +477,7 @@ let requestProxy:
         bytes: UnsafeBufferPointer(start: uri, count: uriLength), encoding: .utf8)
     else { return done(doneCtx, ENGINE_ERR_NULL) }
     let ctx = UInt(bitPattern: doneCtx)
-    DispatchQueue.global(qos: .utility).async {
+    Proxies.queue.async {
       let made = Proxies.make(reference, maxSide: Int(maxSide))
       done(UnsafeMutableRawPointer(bitPattern: ctx), made ? ENGINE_OK : ENGINE_ERR_GPU)
     }

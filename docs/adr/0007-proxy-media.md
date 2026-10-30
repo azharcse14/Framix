@@ -26,8 +26,10 @@ still read the original, full quality.
   and source times are unchanged.
 - iOS: `Proxies.make` reads the original with the decoder's `VideoReader` and writes H.264
   `.mov` through `AVAssetWriter` into Caches/proxies, named by the SHA-256 of the reference and
-  the side; it writes `.part.mov` and renames, so an existing file is a complete one and is
-  reused. Android answers every request with a failure until its decoder (P1-070).
+  the side. Every proxy is made on one serial queue (a project switch forgets a running
+  request but cannot stop it), into a uniquely named `.part.mov` that is renamed when complete,
+  so an existing file is a whole one and is reused. A missing proxy file falls back to the
+  original. Android answers every request with a failure until its decoder (P1-070).
 
 ## Consequences
 - Until a proxy is ready the preview decodes the original; then it switches with one redraw.
@@ -35,3 +37,7 @@ still read the original, full quality.
   yet excluded from backups (PLAT-013; Caches is not backed up on iOS).
 - No progress or status reaches Dart; a toggle or a "make proxy?" offer is OVL-022.
 - Audio still plays from the original; the proxy has no audio track.
+- A failed proxy (e.g. the encoder stopped in the background) is not retried until the
+  project is reopened; persisted, resumable jobs are OVL-002.
+- Proxies are written as 8-bit BT.709; HDR (HLG/BT.2020) sources may look different in the
+  preview than in the export until HDR handling (ENG-011) covers proxies.
