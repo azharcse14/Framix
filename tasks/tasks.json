@@ -12639,7 +12639,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "hide already honored: Timeline::layer_at skips hidden tracks for preview and export (P1-060; core/tests/layer.rs). Mute waits for an audio mix (P2-001/P2-003); export has no audio yet."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13535,10 +13540,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "7160e03",
    "branch": "p1-073-android-clippy",
    "notes": [],
    "source": "added"
