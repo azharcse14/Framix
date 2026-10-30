@@ -1724,15 +1724,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-24",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "7dd9950",
    "branch": "p1-039-proxy",
    "notes": [
     {
      "date": "2026-10-24",
      "text": "blocked: preview still draws the test pattern (render/src/lib.rs GpuRenderer::draw ignores time); there is no Decoder port yet, so a proxy has no consumer. Needs P1-060 (decoded frame at the playhead, which brings the Decoder port) first."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "test fix 8abb7ec: dropped an incidental MediaId(1) assertion (ids share a counter with tracks); user told in the report. Verified Proxies.make + FrameDecoder on macOS with a 4K HEVC clip: 1920x1080, 45/45 frames, same times, reuse, proxy/original decode. Not run in the iOS simulator UI (no 4K corpus clip)."
     }
    ],
    "source": "plan"
@@ -8163,7 +8167,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "also sweep orphan Caches/proxies/*.part.mov left by a kill mid-encode (P1-039, ADR 0007)"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13465,7 +13474,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "also request_proxy (MediaCodec transcode into the cache) per ADR 0007; Android stub fails every request today"
+    }
+   ],
    "source": "added"
   },
   {
