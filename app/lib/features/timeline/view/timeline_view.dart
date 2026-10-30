@@ -79,120 +79,127 @@ class _TimelineViewState extends State<TimelineView> {
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
 
-    return Column(
-      children: [
-        _Toolbar(ticksPerSecond: ticksPerSecond),
-        _ClipActions(timeline: timeline),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: TimelineView._headerWidth,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: rulerHeight),
-                      for (final track in timeline.tracks)
-                        SizedBox(
-                          height: laneHeight,
-                          child: _TrackHeader(track: track),
-                        ),
-                    ],
+    // The selection is this view's own state: it ends when the view does.
+    return BlocProvider(
+      create: (_) => ClipSelectionCubit(),
+      child: Column(
+        children: [
+          _Toolbar(ticksPerSecond: ticksPerSecond),
+          _ClipActions(timeline: timeline),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: TimelineView._headerWidth,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: rulerHeight),
+                        for (final track in timeline.tracks)
+                          SizedBox(
+                            height: laneHeight,
+                            child: _TrackHeader(track: track),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, box) {
-                      final end = px(timeline.duration.toInt());
-                      // Room to scroll past the end, so the last clip can reach the middle.
-                      final width = math.max(
-                        box.maxWidth,
-                        end + box.maxWidth / 2,
-                      );
-                      final viewport = box.maxWidth;
-                      _viewport = math.max(viewport, 1);
-                      return SingleChildScrollView(
-                        controller: _scroll,
-                        scrollDirection: Axis.horizontal,
-                        child: SizedBox(
-                          width: width,
-                          height:
-                              rulerHeight + laneHeight * timeline.tracks.length,
-                          child: Stack(
-                            children: [
-                              // Scrubbing repaints only the playhead line, not marks and clips.
-                              RepaintBoundary(
-                                child: Column(
-                                  children: [
-                                    _Ruler(
-                                      pps: pps,
-                                      ticksPerSecond: ticksPerSecond,
-                                      height: rulerHeight,
-                                    ),
-                                    // Thumbnails only for one screen either side of the view.
-                                    ValueListenableBuilder(
-                                      valueListenable: _window,
-                                      builder: (context, window, _) {
-                                        // The scroll may be clamped (zoom out)
-                                        // without a notification; read it here.
-                                        final at = _scroll.hasClients
-                                            ? (_scroll.offset / (viewport / 2))
-                                                      .floor() *
-                                                  viewport /
-                                                  2
-                                            : window * viewport / 2;
-                                        return Column(
-                                          children: [
-                                            for (final track in timeline.tracks)
-                                              _Lane(
-                                                track: track,
-                                                height: laneHeight,
-                                                px: px,
-                                                tiles: _Tiles(
-                                                  pps: pps,
-                                                  ticksPerSecond:
-                                                      ticksPerSecond,
-                                                  step: step,
-                                                  from: at - viewport,
-                                                  to: at + 2 * viewport,
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, box) {
+                        final end = px(timeline.duration.toInt());
+                        // Room to scroll past the end, so the last clip can reach the middle.
+                        final width = math.max(
+                          box.maxWidth,
+                          end + box.maxWidth / 2,
+                        );
+                        final viewport = box.maxWidth;
+                        _viewport = math.max(viewport, 1);
+                        return SingleChildScrollView(
+                          controller: _scroll,
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: width,
+                            height:
+                                rulerHeight +
+                                laneHeight * timeline.tracks.length,
+                            child: Stack(
+                              children: [
+                                // Scrubbing repaints only the playhead line, not marks and clips.
+                                RepaintBoundary(
+                                  child: Column(
+                                    children: [
+                                      _Ruler(
+                                        pps: pps,
+                                        ticksPerSecond: ticksPerSecond,
+                                        height: rulerHeight,
+                                      ),
+                                      // Thumbnails only for one screen either side of the view.
+                                      ValueListenableBuilder(
+                                        valueListenable: _window,
+                                        builder: (context, window, _) {
+                                          // The scroll may be clamped (zoom out)
+                                          // without a notification; read it here.
+                                          final at = _scroll.hasClients
+                                              ? (_scroll.offset /
+                                                            (viewport / 2))
+                                                        .floor() *
+                                                    viewport /
+                                                    2
+                                              : window * viewport / 2;
+                                          return Column(
+                                            children: [
+                                              for (final track
+                                                  in timeline.tracks)
+                                                _Lane(
+                                                  track: track,
+                                                  height: laneHeight,
+                                                  px: px,
+                                                  tiles: _Tiles(
+                                                    pps: pps,
+                                                    ticksPerSecond:
+                                                        ticksPerSecond,
+                                                    step: step,
+                                                    from: at - viewport,
+                                                    to: at + 2 * viewport,
+                                                  ),
                                                 ),
-                                              ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  ],
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              // The playhead changes often; only this line rebuilds.
-                              BlocBuilder<PlayheadCubit, int>(
-                                builder: (context, playhead) => Positioned(
-                                  key: TimelineView.playheadKey,
-                                  left: px(playhead) - 1,
-                                  top: 0,
-                                  bottom: 0,
-                                  width: 2,
-                                  child: IgnorePointer(
-                                    child: ColoredBox(
-                                      color: FramixColors.of(context)
-                                          .accentText,
+                                // The playhead changes often; only this line rebuilds.
+                                BlocBuilder<PlayheadCubit, int>(
+                                  builder: (context, playhead) => Positioned(
+                                    key: TimelineView.playheadKey,
+                                    left: px(playhead) - 1,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: 2,
+                                    child: IgnorePointer(
+                                      child: ColoredBox(
+                                        color: FramixColors.of(context)
+                                            .accentText,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
