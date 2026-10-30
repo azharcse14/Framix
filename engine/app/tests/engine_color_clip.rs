@@ -64,7 +64,7 @@ fn other_clips_report_no_color() {
 fn the_color_survives_save_and_open() {
     let mut timeline = framix_core::timeline::Timeline::default();
     timeline
-        .import(vec![framix_core::media::Media::color(0x1234_56ff)])
+        .import(vec![framix_core::media::Media::solid(0x1234_56ff)])
         .unwrap();
     let back = decode(&encode(&timeline)).unwrap();
     let media: Vec<_> = back
