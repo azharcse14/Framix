@@ -1762,6 +1762,10 @@
     {
      "date": "2026-10-23",
      "text": "P1-038 autosaves within 1 s of each change and at shutdown on the engine thread; the 4 MiB write + fsyncs there may hitch scrubbing on slow flash: measure on a device, move to a worker if needed."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "scope: error boundary (OVL-024) + export storage pre-flight (part of OVL-020) done here; per-command autosave already by P1-038 (1 s debounce). Left for their own tasks: engine watchdog/restart (OVL-017, risky while decode blocks the engine thread until P1-053), battery/thermal/codec pre-flight (rest of OVL-020), immediate save on background (OVL-001)."
     }
    ],
    "source": "plan"

@@ -118,6 +118,8 @@ class ExportCubit extends Cubit<ExportState> {
   /// Exports the project to [path] (an .mp4 file). Ignored while an export runs.
   void start(String path) {
     if (state is ExportRunning) return;
+    // A retry that fails the same way is a new state again, so it is reported again.
+    emit(const ExportIdle());
     _engine.send(Command(exportProject: ExportProject(path: path)));
     // Only once it was sent: a send that throws must not leave a start waiting for a reply.
     _starting = true;
