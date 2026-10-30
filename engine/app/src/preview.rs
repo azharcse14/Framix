@@ -95,7 +95,13 @@ pub enum Frame {
 /// Decodes media into GPU frames (docs/adr/0006-decoder-port.md). Calls block until the frame
 /// is ready; one decoder per thread.
 pub trait Decoder: Send {
-    /// The frame of `media` at `source_time` (photos ignore it). Its handles stay valid until
-    /// the next call or until the decoder is dropped.
-    fn frame(&mut self, media: &Media, source_time: Time) -> Result<Frame, String>;
+    /// The frame of `media` at `source_time` (photos ignore it), from its proxy of longest side
+    /// `proxy_side` if given (docs/adr/0007-proxy-media.md). Its handles stay valid until the
+    /// next call or until the decoder is dropped.
+    fn frame(
+        &mut self,
+        media: &Media,
+        source_time: Time,
+        proxy_side: Option<u32>,
+    ) -> Result<Frame, String>;
 }

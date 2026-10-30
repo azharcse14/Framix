@@ -97,7 +97,7 @@ const int ENGINE_MEDIA_VIDEO = 1;
 
 const int ENGINE_OK = 0;
 
-const int ENGINE_PLATFORM_VERSION = 4;
+const int ENGINE_PLATFORM_VERSION = 5;
 
 const int ENGINE_PROTOCOL_VERSION = 22;
 
@@ -277,7 +277,8 @@ final class EnginePlatform extends ffi.Struct {
   decoder_open;
 
   /// Blocks until the frame of the media `uri` (`uri_len` UTF-8 bytes, valid for the call) of
-  /// `kind` at `time_us` microseconds is decoded, fills `out`, and returns
+  /// `kind` at `time_us` microseconds is decoded (from its proxy of longest side `proxy_side`
+  /// that `request_proxy` made, or the original for 0), fills `out`, and returns
   /// [`crate::ENGINE_OK`]; any other value is a failure (`out` untouched). The frame's
   /// textures stay valid until the next `decoder_frame` or `decoder_close` on `decoder`.
   external ffi.Pointer<
@@ -289,6 +290,7 @@ final class EnginePlatform extends ffi.Struct {
         ffi.Size uri_len,
         ffi.Uint32 kind,
         ffi.Int64 time_us,
+        ffi.Uint32 proxy_side,
         ffi.Pointer<EngineFrame> out,
       )
     >
@@ -305,6 +307,24 @@ final class EnginePlatform extends ffi.Struct {
     >
   >
   decoder_close;
+
+  /// Makes the preview proxy of the video `uri` (`uri_len` UTF-8 bytes, valid for the call):
+  /// a copy whose longest side is `max_side`, with the same frames and times, that
+  /// `decoder_frame` reads for that `proxy_side`. Returns at once, reuses a complete proxy
+  /// made earlier, then calls `done` (docs/adr/0007-proxy-media.md).
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Void Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Pointer<ffi.Uint8> uri,
+        ffi.Size uri_len,
+        ffi.Uint32 max_side,
+        EngineProxyDone done,
+        ffi.Pointer<ffi.Void> done_ctx,
+      )
+    >
+  >
+  request_proxy;
 
   static ffi.Pointer<EnginePlatform> $allocate(
     ffi.Allocator $allocator, {
@@ -392,6 +412,7 @@ final class EnginePlatform extends ffi.Struct {
           ffi.Size uri_len,
           ffi.Uint32 kind,
           ffi.Int64 time_us,
+          ffi.Uint32 proxy_side,
           ffi.Pointer<EngineFrame> out,
         )
       >
@@ -406,6 +427,19 @@ final class EnginePlatform extends ffi.Struct {
       >
     >
     decoder_close,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Void Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Pointer<ffi.Uint8> uri,
+          ffi.Size uri_len,
+          ffi.Uint32 max_side,
+          EngineProxyDone done,
+          ffi.Pointer<ffi.Void> done_ctx,
+        )
+      >
+    >
+    request_proxy,
   }) => $allocator<EnginePlatform>()
     ..ref.version = version
     ..ref.ctx = ctx
@@ -417,7 +451,8 @@ final class EnginePlatform extends ffi.Struct {
     ..ref.encoder_finish = encoder_finish
     ..ref.decoder_open = decoder_open
     ..ref.decoder_frame = decoder_frame
-    ..ref.decoder_close = decoder_close;
+    ..ref.decoder_close = decoder_close
+    ..ref.request_proxy = request_proxy;
 }
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
@@ -438,6 +473,20 @@ typedef DartEnginePreviewTextureDoneFunction = void Function(
   int status,
   int texture_id,
   ffi.Pointer<ffi.Void> texture,
+);
+
+/// The platform's answer to `request_proxy`. Call it exactly once, from any thread, with the
+/// `done_ctx` that came with the request; `status` is [`crate::ENGINE_OK`] once the proxy file
+/// is complete, any other value for failure.
+typedef EngineProxyDone =
+    ffi.Pointer<ffi.NativeFunction<EngineProxyDoneFunction>>;
+typedef EngineProxyDoneFunction = ffi.Void Function(
+  ffi.Pointer<ffi.Void> done_ctx,
+  ffi.Int32 status,
+);
+typedef DartEngineProxyDoneFunction = void Function(
+  ffi.Pointer<ffi.Void> done_ctx,
+  int status,
 );
 
 /// The platform's answer to `request_thumbnail`. Call it exactly once, from any thread, with the

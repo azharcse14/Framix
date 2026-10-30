@@ -5,6 +5,7 @@ pub mod export;
 pub mod history;
 pub mod preview;
 pub mod project;
+pub mod proxy;
 pub mod store;
 pub mod thumbnail;
 

@@ -8,6 +8,7 @@ use framix_app::export::{Encoder, EncoderConfig, EncoderHost};
 use framix_app::preview::{
     Decoder, Frame, PlatformTexture, PreviewHost, YcbcrMatrix, YcbcrRange, YcbcrSpace,
 };
+use framix_app::proxy::{ProxyHost, ProxyKey, ProxyRequest};
 use framix_app::thumbnail::{ThumbnailHost, ThumbnailKey, ThumbnailRequest};
 use framix_core::media::{Media, MediaKind};
 use framix_core::time::Time;
@@ -17,7 +18,7 @@ use crate::{
 };
 
 /// Version of [`EnginePlatform`]; bump when its layout or meaning changes.
-pub const ENGINE_PLATFORM_VERSION: u32 = 4;
+pub const ENGINE_PLATFORM_VERSION: u32 = 5;
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
@@ -32,6 +33,11 @@ pub type EnginePreviewTextureDone =
 /// `path_len` UTF-8 bytes naming the image file, valid for the call only.
 pub type EngineThumbnailDone =
     unsafe extern "C" fn(done_ctx: *mut c_void, status: i32, path: *const u8, path_len: usize);
+
+/// The platform's answer to `request_proxy`. Call it exactly once, from any thread, with the
+/// `done_ctx` that came with the request; `status` is [`crate::ENGINE_OK`] once the proxy file
+/// is complete, any other value for failure.
+pub type EngineProxyDone = unsafe extern "C" fn(done_ctx: *mut c_void, status: i32);
 
 /// [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
 pub const ENGINE_MEDIA_VIDEO: u32 = 1;
@@ -167,7 +173,8 @@ pub struct EnginePlatform {
     /// null if it could not open.
     pub decoder_open: Option<unsafe extern "C" fn(ctx: *mut c_void) -> *mut c_void>,
     /// Blocks until the frame of the media `uri` (`uri_len` UTF-8 bytes, valid for the call) of
-    /// `kind` at `time_us` microseconds is decoded, fills `out`, and returns
+    /// `kind` at `time_us` microseconds is decoded (from its proxy of longest side `proxy_side`
+    /// that `request_proxy` made, or the original for 0), fills `out`, and returns
     /// [`crate::ENGINE_OK`]; any other value is a failure (`out` untouched). The frame's
     /// textures stay valid until the next `decoder_frame` or `decoder_close` on `decoder`.
     pub decoder_frame: Option<
@@ -178,11 +185,26 @@ pub struct EnginePlatform {
             uri_len: usize,
             kind: u32,
             time_us: i64,
+            proxy_side: u32,
             out: *mut EngineFrame,
         ) -> i32,
     >,
     /// Frees `decoder` and its last frame. Called exactly once per opened decoder.
     pub decoder_close: Option<unsafe extern "C" fn(ctx: *mut c_void, decoder: *mut c_void)>,
+    /// Makes the preview proxy of the video `uri` (`uri_len` UTF-8 bytes, valid for the call):
+    /// a copy whose longest side is `max_side`, with the same frames and times, that
+    /// `decoder_frame` reads for that `proxy_side`. Returns at once, reuses a complete proxy
+    /// made earlier, then calls `done` (docs/adr/0007-proxy-media.md).
+    pub request_proxy: Option<
+        unsafe extern "C" fn(
+            ctx: *mut c_void,
+            uri: *const u8,
+            uri_len: usize,
+            max_side: u32,
+            done: EngineProxyDone,
+            done_ctx: *mut c_void,
+        ),
+    >,
 }
 
 /// Registers the platform callbacks for the whole process. Only the first valid call counts.
@@ -213,6 +235,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             Some(decoder_open),
             Some(decoder_frame),
             Some(decoder_close),
+            Some(request_proxy),
         ) = (
             platform.create_preview_texture,
             platform.frame_available,
@@ -223,6 +246,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             platform.decoder_open,
             platform.decoder_frame,
             platform.decoder_close,
+            platform.request_proxy,
         )
         else {
             return ENGINE_ERR_NULL;
@@ -238,6 +262,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             decoder_open,
             decoder_frame,
             decoder_close,
+            request_proxy,
         };
         match PLATFORM.set(registered) {
             Ok(()) => ENGINE_OK,
@@ -274,9 +299,12 @@ struct Registered {
         usize,
         u32,
         i64,
+        u32,
         *mut EngineFrame,
     ) -> i32,
     decoder_close: unsafe extern "C" fn(*mut c_void, *mut c_void),
+    request_proxy:
+        unsafe extern "C" fn(*mut c_void, *const u8, usize, u32, EngineProxyDone, *mut c_void),
 }
 
 // SAFETY: engine_platform_register's contract makes the callbacks callable from any engine
@@ -371,6 +399,52 @@ pub(crate) unsafe extern "C" fn thumbnail_done(
         };
         // A stopped engine no longer wants the answer.
         let _ = engine.send(EngineMessage::Thumbnail(key, path));
+        ENGINE_OK
+    });
+}
+
+impl ProxyHost for PlatformHost {
+    fn request(&self, request: ProxyRequest) -> Result<(), String> {
+        let platform = PLATFORM.get().ok_or("no platform registered")?;
+        // Owned by the platform until it calls `proxy_done` with it.
+        let done_ctx = Box::into_raw(Box::new((self.engine.clone(), request.key))).cast::<c_void>();
+        // SAFETY: registered callbacks stay valid for the process (register's contract); the
+        // uri bytes outlive the call.
+        unsafe {
+            (platform.request_proxy)(
+                platform.ctx,
+                request.uri.as_ptr(),
+                request.uri.len(),
+                request.key.max_side,
+                proxy_done,
+                done_ctx,
+            )
+        };
+        Ok(())
+    }
+}
+
+/// [`EngineProxyDone`]: hands the platform's answer to the engine thread.
+///
+/// # Safety
+/// `done_ctx` must come from [`PlatformHost`]'s [`ProxyHost::request`] and be passed exactly
+/// once.
+pub(crate) unsafe extern "C" fn proxy_done(done_ctx: *mut c_void, status: i32) {
+    ffi_guard(|| {
+        if done_ctx.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        // SAFETY: per the contract, done_ctx is the Box::into_raw from request, given back
+        // once, so ownership returns here.
+        let ctx = unsafe { Box::from_raw(done_ctx.cast::<(Sender<EngineMessage>, ProxyKey)>()) };
+        let (engine, key) = *ctx;
+        let made = if status == ENGINE_OK {
+            Ok(())
+        } else {
+            Err(format!("platform could not make the proxy ({status})"))
+        };
+        // A stopped engine no longer wants the answer.
+        let _ = engine.send(EngineMessage::Proxy(key, made));
         ENGINE_OK
     });
 }
@@ -502,7 +576,12 @@ pub(crate) struct PlatformDecoder {
 unsafe impl Send for PlatformDecoder {}
 
 impl Decoder for PlatformDecoder {
-    fn frame(&mut self, media: &Media, source_time: Time) -> Result<Frame, String> {
+    fn frame(
+        &mut self,
+        media: &Media,
+        source_time: Time,
+        proxy_side: Option<u32>,
+    ) -> Result<Frame, String> {
         let (platform, decoder) = match self.opened {
             Some(opened) => opened,
             None => {
@@ -532,6 +611,7 @@ impl Decoder for PlatformDecoder {
                 uri.len(),
                 media_kind(media.kind()),
                 source_time.micros(),
+                proxy_side.unwrap_or(0),
                 &mut out,
             )
         };

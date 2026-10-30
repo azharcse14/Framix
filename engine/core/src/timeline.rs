@@ -141,6 +141,9 @@ pub struct Layer<'a> {
     pub transform: ClipTransform,
     /// The canvas it is placed on.
     pub canvas: AspectRatio,
+    /// Decode from the media's proxy of this longest side instead of the original; only the
+    /// preview sets it (docs/adr/0007-proxy-media.md).
+    pub proxy_side: Option<u32>,
 }
 
 impl Layer<'_> {
@@ -151,6 +154,7 @@ impl Layer<'_> {
             source_time: self.source_time,
             transform: self.transform,
             canvas: self.canvas,
+            proxy_side: self.proxy_side,
         }
     }
 }
@@ -166,6 +170,8 @@ pub struct LayerKey {
     pub transform: ClipTransform,
     /// The canvas shape.
     pub canvas: AspectRatio,
+    /// The proxy decoded from, if any.
+    pub proxy_side: Option<u32>,
 }
 
 /// Per-track switches. All off by default.
@@ -706,6 +712,7 @@ impl Timeline {
             source_time,
             transform: clip.transform,
             canvas: self.aspect,
+            proxy_side: None,
         })
     }
 

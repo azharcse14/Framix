@@ -23,7 +23,7 @@ pub use platform::{
     ENGINE_FRAME_NV12, ENGINE_FRAME_RGBA, ENGINE_MEDIA_IMAGE, ENGINE_MEDIA_VIDEO,
     ENGINE_PLATFORM_VERSION, ENGINE_RANGE_FULL, ENGINE_RANGE_UNKNOWN, ENGINE_RANGE_VIDEO,
     ENGINE_YCBCR_601, ENGINE_YCBCR_709, ENGINE_YCBCR_UNKNOWN, EngineFrame, EnginePlatform,
-    EnginePreviewTextureDone, EngineThumbnailDone, engine_platform_register,
+    EnginePreviewTextureDone, EngineProxyDone, EngineThumbnailDone, engine_platform_register,
 };
 #[cfg(target_os = "android")]
 pub use spike_preview::Java_com_travela_framix_EnginePlatform_nativeRenderFrame;
@@ -66,6 +66,8 @@ enum EngineMessage {
     PreviewTexture(Result<PlatformTexture, String>),
     /// The platform's answer to a thumbnail request: the image file's path, or why not.
     Thumbnail(framix_app::thumbnail::ThumbnailKey, Result<String, String>),
+    /// The platform's answer to a proxy request: made, or why not.
+    Proxy(framix_app::proxy::ProxyKey, Result<(), String>),
     /// The export worker's progress: frames done, frames in all.
     ExportProgress(u32, u32),
     /// The export worker's result for the running export.
@@ -200,6 +202,7 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 EngineMessage::Command(_) => deliver(callback, &command_failed("engine stopped")),
                 EngineMessage::PreviewTexture(_)
                 | EngineMessage::Thumbnail(..)
+                | EngineMessage::Proxy(..)
                 | EngineMessage::ExportProgress(..)
                 | EngineMessage::Export(_) => {}
             }
@@ -225,10 +228,14 @@ fn serve(
     let thumbnails = platform::PlatformHost {
         engine: host.engine.clone(),
     };
+    let proxies = platform::PlatformHost {
+        engine: host.engine.clone(),
+    };
     let exports = host.engine.clone();
     let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
         .with_export()
         .with_thumbnails(Box::new(thumbnails))
+        .with_proxies(Box::new(proxies))
         .with_preview(
             Box::new(host),
             Box::new(
@@ -310,6 +317,15 @@ fn serve(
                 })) {
                     Ok(Some(event)) => event,
                     Ok(None) => continue,
+                    Err(_) => command_failed("internal error"),
+                }
+            }
+            EngineMessage::Proxy(key, made) => {
+                // A proxy has no event; a panic still reports one.
+                match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    engine.proxy_ready(key, made)
+                })) {
+                    Ok(()) => continue,
                     Err(_) => command_failed("internal error"),
                 }
             }

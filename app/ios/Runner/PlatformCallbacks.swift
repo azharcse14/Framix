@@ -2,7 +2,6 @@
 // (docs/adr/0003-platform-callbacks.md). Thin adapter: the engine decides what to draw and when.
 import AVFoundation
 import CoreVideo
-import CryptoKit
 import Flutter
 import IOSurface
 import ImageIO
@@ -72,7 +71,7 @@ enum PlatformCallbacks {
       create_preview_texture: createPreviewTexture, frame_available: frameAvailable,
       request_thumbnail: requestThumbnail, encoder_open: encoderOpen,
       encoder_frame: encoderFrame, encoder_finish: encoderFinish, decoder_open: decoderOpen,
-      decoder_frame: decoderFrame, decoder_close: decoderClose)
+      decoder_frame: decoderFrame, decoder_close: decoderClose, request_proxy: requestProxy)
     let code = unsafeBitCast(symbol, to: Register.self)(&platform)
     assert(code == ENGINE_OK, "engine_platform_register failed: \(code)")
   }
@@ -148,27 +147,21 @@ private let requestThumbnail:
     }
   }
 
-/// Thumbnail files in Caches/thumbs, named by the media reference, time and size, so a
-/// thumbnail is made once and reused.
+/// Thumbnail files in Caches/thumbs, named by the media reference, time and size.
 enum Thumbnails {
   static func file(for reference: String, image: Bool, timeUs: Int64, maxSide: Int) async throws
     -> String
   {
     let manager = FileManager.default
-    let dir = try manager.url(
-      for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
-    ).appendingPathComponent("thumbs", isDirectory: true)
-    try manager.createDirectory(at: dir, withIntermediateDirectories: true)
-    let name = SHA256.hash(data: Data(reference.utf8)).map { String(format: "%02x", $0) }
-      .joined()
-    let file = dir.appendingPathComponent("\(name)-\(timeUs)-\(maxSide).jpg")
+    let file = try CacheFiles.url("thumbs", reference, "-\(timeUs)-\(maxSide).jpg")
     if manager.fileExists(atPath: file.path) { return file.path }
 
     let source = try MediaFiles.url(for: reference)
     let picture = image
       ? try photo(source, maxSide: maxSide)
       : try await frame(source, timeUs: timeUs, maxSide: maxSide)
-    let partial = dir.appendingPathComponent("\(file.lastPathComponent).part")
+    let partial = file.deletingLastPathComponent().appendingPathComponent(
+      "\(file.lastPathComponent).part")
     guard
       let out = CGImageDestinationCreateWithURL(
         partial as CFURL, UTType.jpeg.identifier as CFString, 1, nil)

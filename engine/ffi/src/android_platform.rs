@@ -72,6 +72,7 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             decoder_open: Some(no_decoder_open),
             decoder_frame: Some(no_decoder_frame),
             decoder_close: Some(no_decoder_close),
+            request_proxy: Some(no_proxy),
         };
         // SAFETY: `platform` is a valid EnginePlatform; the callbacks are 'static fns.
         unsafe { engine_platform_register(&platform) }
@@ -373,9 +374,23 @@ unsafe extern "C" fn no_decoder_frame(
     _: usize,
     _: u32,
     _: i64,
+    _: u32,
     _: *mut crate::platform::EngineFrame,
 ) -> i32 {
     crate::ENGINE_ERR_GPU
 }
 
 unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
+
+/// Android proxies come with its Decoder port (P1-070); until then every request fails at once.
+unsafe extern "C" fn no_proxy(
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    done: crate::platform::EngineProxyDone,
+    done_ctx: *mut c_void,
+) {
+    // SAFETY: `done_ctx` came with this request and is answered exactly once, here.
+    unsafe { done(done_ctx, crate::ENGINE_ERR_GPU) };
+}

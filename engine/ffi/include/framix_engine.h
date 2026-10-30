@@ -52,7 +52,7 @@
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 4
+#define ENGINE_PLATFORM_VERSION 5
 
 /**
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
@@ -177,6 +177,13 @@ typedef struct EngineFrame {
 } EngineFrame;
 
 /**
+ * The platform's answer to `request_proxy`. Call it exactly once, from any thread, with the
+ * `done_ctx` that came with the request; `status` is [`crate::ENGINE_OK`] once the proxy file
+ * is complete, any other value for failure.
+ */
+typedef void (*EngineProxyDone)(void *done_ctx, int32_t status);
+
+/**
  * Callbacks the platform layer gives the engine once at startup. `ctx` is passed back unchanged
  * and must live for the process. The preview and thumbnail calls come from the engine thread
  * and must return at once; the `encoder_*` calls come only from the export worker thread and
@@ -247,7 +254,8 @@ typedef struct EnginePlatform {
   void *(*decoder_open)(void *ctx);
   /**
    * Blocks until the frame of the media `uri` (`uri_len` UTF-8 bytes, valid for the call) of
-   * `kind` at `time_us` microseconds is decoded, fills `out`, and returns
+   * `kind` at `time_us` microseconds is decoded (from its proxy of longest side `proxy_side`
+   * that `request_proxy` made, or the original for 0), fills `out`, and returns
    * [`crate::ENGINE_OK`]; any other value is a failure (`out` untouched). The frame's
    * textures stay valid until the next `decoder_frame` or `decoder_close` on `decoder`.
    */
@@ -257,11 +265,24 @@ typedef struct EnginePlatform {
                            size_t uri_len,
                            uint32_t kind,
                            int64_t time_us,
+                           uint32_t proxy_side,
                            struct EngineFrame *out);
   /**
    * Frees `decoder` and its last frame. Called exactly once per opened decoder.
    */
   void (*decoder_close)(void *ctx, void *decoder);
+  /**
+   * Makes the preview proxy of the video `uri` (`uri_len` UTF-8 bytes, valid for the call):
+   * a copy whose longest side is `max_side`, with the same frames and times, that
+   * `decoder_frame` reads for that `proxy_side`. Returns at once, reuses a complete proxy
+   * made earlier, then calls `done` (docs/adr/0007-proxy-media.md).
+   */
+  void (*request_proxy)(void *ctx,
+                        const uint8_t *uri,
+                        size_t uri_len,
+                        uint32_t max_side,
+                        EngineProxyDone done,
+                        void *done_ctx);
 } EnginePlatform;
 
 /**

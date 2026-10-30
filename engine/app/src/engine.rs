@@ -5,7 +5,8 @@ use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{self, Media, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
-    self, ClipId, ClipPlacement, LayerKey, MediaId, Timeline, TimelineError, TrackFlags, TrackId,
+    self, ClipId, ClipPlacement, Layer, LayerKey, MediaId, Timeline, TimelineError, TrackFlags,
+    TrackId,
 };
 
 use std::path::{Path, PathBuf};
@@ -26,6 +27,7 @@ pub struct Engine {
     store: Option<Box<dyn ProjectStore>>,
     preview: Option<Preview>,
     thumbnails: Option<crate::thumbnail::Thumbnails>,
+    proxies: Option<crate::proxy::Proxies>,
     /// Where the preview shows; always inside [0, duration]. Not part of the timeline, so undo
     /// never moves it and saves don't store it.
     playhead: Time,
@@ -260,7 +262,10 @@ impl Engine {
             .ok_or("no preview was requested")?;
         preview.pending -= 1;
         let texture = texture?;
-        let layer = self.history.timeline().layer_at(self.playhead);
+        let layer = proxied(
+            self.history.timeline().layer_at(self.playhead),
+            self.proxies.as_ref(),
+        );
         match preview
             .renderer
             .draw(texture, self.playhead, layer.as_ref())
@@ -286,7 +291,10 @@ impl Engine {
         let Some(texture) = preview.shown else {
             return;
         };
-        let layer = self.history.timeline().layer_at(self.playhead);
+        let layer = proxied(
+            self.history.timeline().layer_at(self.playhead),
+            self.proxies.as_ref(),
+        );
         match preview
             .renderer
             .draw(texture, self.playhead, layer.as_ref())
@@ -304,11 +312,11 @@ impl Engine {
         let Some(preview) = self.preview.as_ref() else {
             return;
         };
-        let now = self
-            .history
-            .timeline()
-            .layer_at(self.playhead)
-            .map(|l| l.key());
+        let now = proxied(
+            self.history.timeline().layer_at(self.playhead),
+            self.proxies.as_ref(),
+        )
+        .map(|l| l.key());
         if preview.shown.is_some() && now != preview.drawn {
             self.redraw();
         }
@@ -329,6 +337,26 @@ impl Engine {
         Self {
             thumbnails: Some(crate::thumbnail::Thumbnails::new(host)),
             ..self
+        }
+    }
+
+    /// Lets this engine make preview proxies through `host`; without it the preview always
+    /// decodes the originals.
+    pub fn with_proxies(self, host: Box<dyn crate::proxy::ProxyHost>) -> Self {
+        Self {
+            proxies: Some(crate::proxy::Proxies::new(host)),
+            ..self
+        }
+    }
+
+    /// The platform's answer to one proxy request: a made proxy redraws the preview from it.
+    /// Starts the next queued request either way.
+    pub fn proxy_ready(&mut self, key: crate::proxy::ProxyKey, made: Result<(), String>) {
+        let Some(proxies) = self.proxies.as_mut() else {
+            return;
+        };
+        if proxies.finish(key, made.is_ok()) {
+            self.redraw_if_changed();
         }
     }
 
@@ -363,6 +391,9 @@ impl Engine {
         match self.apply(kind) {
             // An edit may have shortened the timeline under the playhead.
             Ok(Reply::Timeline) => {
+                if let Some(proxies) = self.proxies.as_mut() {
+                    proxies.ask(self.history.timeline());
+                }
                 // An edit may have shortened the timeline under the playhead, or changed what
                 // shows there.
                 self.move_playhead(self.playhead);
@@ -564,6 +595,9 @@ impl Engine {
         if let Some(thumbnails) = self.thumbnails.as_mut() {
             thumbnails.reset();
         }
+        if let Some(proxies) = self.proxies.as_mut() {
+            proxies.reset();
+        }
     }
 
     fn request_thumbnails(&mut self, op: proto::RequestThumbnails) -> Result<(), String> {
@@ -714,6 +748,17 @@ impl Engine {
             })),
         }
     }
+}
+
+/// `layer` as the preview draws it: from the media's proxy once that is ready.
+fn proxied<'a>(
+    layer: Option<Layer<'a>>,
+    proxies: Option<&crate::proxy::Proxies>,
+) -> Option<Layer<'a>> {
+    layer.map(|l| Layer {
+        proxy_side: proxies.and_then(|p| p.side(l.media_id)),
+        ..l
+    })
 }
 
 /// What a successful command reports.

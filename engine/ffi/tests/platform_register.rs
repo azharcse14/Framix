@@ -62,6 +62,7 @@ fn platform(version: u32) -> EnginePlatform {
         decoder_open: Some(no_decoder_open),
         decoder_frame: Some(no_decoder_frame),
         decoder_close: Some(no_decoder_close),
+        request_proxy: Some(no_proxy),
     }
 }
 
@@ -104,9 +105,20 @@ unsafe extern "C" fn no_decoder_frame(
     _: usize,
     _: u32,
     _: i64,
+    _: u32,
     _: *mut framix_ffi::EngineFrame,
 ) -> i32 {
     -1
 }
 
 unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
+
+unsafe extern "C" fn no_proxy(
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: framix_ffi::EngineProxyDone,
+    _: *mut c_void,
+) {
+}

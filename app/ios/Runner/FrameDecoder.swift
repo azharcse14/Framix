@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreVideo
+import CryptoKit
 import ImageIO
 import Metal
 
@@ -20,10 +21,17 @@ final class FrameDecoder {
     self.device = device
   }
 
-  /// Fills `out` with the frame of `reference` at `timeUs` (photos: their one frame).
-  func frame(reference: String, image: Bool, timeUs: Int64, into out: inout EngineFrame) -> Bool
-  {
-    guard let url = try? MediaFiles.url(for: reference) else { return false }
+  /// Fills `out` with the frame of `reference` at `timeUs` (photos: their one frame), read from
+  /// its proxy of longest side `proxySide` when that is not 0.
+  func frame(
+    reference: String, image: Bool, timeUs: Int64, proxySide: UInt32,
+    into out: inout EngineFrame
+  ) -> Bool {
+    let proxy = !image && proxySide > 0
+    guard
+      let url = try? proxy
+        ? Proxies.url(for: reference, maxSide: Int(proxySide)) : MediaFiles.url(for: reference)
+    else { return false }
     if image {
       guard let texture = photoTexture(reference, url) else { return false }
       out = EngineFrame(
@@ -32,7 +40,9 @@ final class FrameDecoder {
       return true
     }
     let time = CMTime(value: timeUs, timescale: 1_000_000)
-    guard let frame = videoFrame(reference, url, at: time) else { return false }
+    // The proxy is another file: its reader and frames must not pass for the original's.
+    let source = proxy ? "\(reference)@\(proxySide)" : reference
+    guard let frame = videoFrame(source, url, at: time) else { return false }
     out = EngineFrame(
       format: UInt32(ENGINE_FRAME_NV12), planes: (opaque(frame.luma), opaque(frame.chroma)),
       matrix: frame.matrix, range: UInt32(ENGINE_RANGE_VIDEO))
@@ -132,6 +142,111 @@ enum MediaFiles {
     try FileManager.default.url(
       for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false
     ).appendingPathComponent(reference)
+  }
+}
+
+/// Cache files (thumbnails, proxies) in Caches/<dir>, named by the SHA-256 of the media
+/// reference plus `suffix`, so each is made once and reused.
+enum CacheFiles {
+  static func url(_ dir: String, _ reference: String, _ suffix: String) throws -> URL {
+    let manager = FileManager.default
+    let folder = try manager.url(
+      for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+    ).appendingPathComponent(dir, isDirectory: true)
+    try manager.createDirectory(at: folder, withIntermediateDirectories: true)
+    let name = SHA256.hash(data: Data(reference.utf8)).map { String(format: "%02x", $0) }
+      .joined()
+    return folder.appendingPathComponent(name + suffix)
+  }
+}
+
+/// Preview proxies (docs/adr/0007-proxy-media.md): the video's frames, same times, stored size
+/// scaled so the longest side is `maxSide`, H.264 without audio. The engine applies rotation,
+/// so the file has no transform.
+enum Proxies {
+  static func url(for reference: String, maxSide: Int) throws -> URL {
+    try CacheFiles.url("proxies", reference, "-\(maxSide).mov")
+  }
+
+  /// True once the proxy file is complete (made now or earlier). Blocks the calling thread,
+  /// which must not be the main one or a Swift concurrency one.
+  static func make(_ reference: String, maxSide: Int) -> Bool {
+    guard let file = try? url(for: reference, maxSide: maxSide) else { return false }
+    let manager = FileManager.default
+    if manager.fileExists(atPath: file.path) { return true }
+    // Written beside the file and renamed when complete, so an existing file is a whole one.
+    let partial = file.deletingPathExtension().appendingPathExtension("part.mov")
+    try? manager.removeItem(at: partial)
+    guard let source = try? MediaFiles.url(for: reference),
+      let reader = VideoReader(reference: reference, url: source, from: .zero),
+      let written = write(reader, to: partial, maxSide: maxSide), written
+    else {
+      try? manager.removeItem(at: partial)
+      return false
+    }
+    try? manager.removeItem(at: file)
+    return (try? manager.moveItem(at: partial, to: file)) != nil
+  }
+
+  /// Encodes every frame `reader` gives into `url`; nil if nothing could be written.
+  private static func write(_ reader: VideoReader, to url: URL, maxSide: Int) -> Bool? {
+    guard let first = reader.next(),
+      let writer = try? AVAssetWriter(outputURL: url, fileType: .mov)
+    else { return nil }
+    let (width, height) = scaled(
+      CVPixelBufferGetWidth(first.pixels), CVPixelBufferGetHeight(first.pixels), to: maxSide)
+    let input = AVAssetWriterInput(
+      mediaType: .video,
+      outputSettings: [
+        AVVideoCodecKey: AVVideoCodecType.h264,
+        AVVideoWidthKey: width,
+        AVVideoHeightKey: height,
+        AVVideoScalingModeKey: AVVideoScalingModeResize,
+        // ponytail: 3 kbit/s per pixel of the long side (5.8 Mbit/s at 1920); tune on devices.
+        AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: maxSide * 3000],
+        AVVideoColorPropertiesKey: [
+          AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
+          AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
+          AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
+        ],
+      ])
+    input.expectsMediaDataInRealTime = false
+    let adaptor = AVAssetWriterInputPixelBufferAdaptor(
+      assetWriterInput: input, sourcePixelBufferAttributes: nil)
+    guard writer.canAdd(input) else { return nil }
+    writer.add(input)
+    guard writer.startWriting() else { return nil }
+    // Same times as the original, so the engine's source times find the same frames.
+    writer.startSession(atSourceTime: .zero)
+    var sample: Sample? = first
+    while let frame = sample {
+      // ponytail: 1 ms polls like ExportEncoder; the encoder drains at its own pace.
+      while !input.isReadyForMoreMediaData {
+        guard writer.status == .writing else { return false }
+        usleep(1000)
+      }
+      guard adaptor.append(frame.pixels, withPresentationTime: frame.start) else {
+        writer.cancelWriting()
+        return false
+      }
+      sample = reader.next()
+    }
+    guard reader.completed else {
+      writer.cancelWriting()
+      return false
+    }
+    input.markAsFinished()
+    let done = DispatchSemaphore(value: 0)
+    writer.finishWriting { done.signal() }
+    done.wait()
+    return writer.status == .completed
+  }
+
+  /// `width` x `height` scaled so the longest side is `maxSide`, rounded to even sides.
+  private static func scaled(_ width: Int, _ height: Int, to maxSide: Int) -> (Int, Int) {
+    let long = max(width, height, 1)
+    func side(_ value: Int) -> Int { max(2, (value * maxSide / long) & ~1) }
+    return (side(width), side(height))
   }
 }
 
@@ -326,16 +441,37 @@ let decoderOpen: @convention(c) (UnsafeMutableRawPointer?) -> UnsafeMutableRawPo
 let decoderFrame:
   @convention(c) (
     UnsafeMutableRawPointer?, UnsafeMutableRawPointer?, UnsafePointer<UInt8>?, Int, UInt32, Int64,
-    UnsafeMutablePointer<EngineFrame>?
-  ) -> Int32 = { _, decoder, uri, uriLength, kind, timeUs, out in
+    UInt32, UnsafeMutablePointer<EngineFrame>?
+  ) -> Int32 = { _, decoder, uri, uriLength, kind, timeUs, proxySide, out in
     guard let decoder, let uri, let out,
       let reference = String(
         bytes: UnsafeBufferPointer(start: uri, count: uriLength), encoding: .utf8)
     else { return ENGINE_ERR_NULL }
     let image = kind == UInt32(ENGINE_MEDIA_IMAGE)
     let ok = Unmanaged<FrameDecoder>.fromOpaque(decoder).takeUnretainedValue()
-      .frame(reference: reference, image: image, timeUs: timeUs, into: &out.pointee)
+      .frame(
+        reference: reference, image: image, timeUs: timeUs, proxySide: proxySide,
+        into: &out.pointee)
     return ok ? ENGINE_OK : ENGINE_ERR_GPU
+  }
+
+/// Proxy requests arrive on the engine thread; the encode runs on a utility queue (it blocks)
+/// and answers `done` exactly once from there.
+let requestProxy:
+  @convention(c) (
+    UnsafeMutableRawPointer?, UnsafePointer<UInt8>?, Int, UInt32, EngineProxyDone?,
+    UnsafeMutableRawPointer?
+  ) -> Void = { _, uri, uriLength, maxSide, done, doneCtx in
+    guard let done else { return }
+    guard let uri,
+      let reference = String(
+        bytes: UnsafeBufferPointer(start: uri, count: uriLength), encoding: .utf8)
+    else { return done(doneCtx, ENGINE_ERR_NULL) }
+    let ctx = UInt(bitPattern: doneCtx)
+    DispatchQueue.global(qos: .utility).async {
+      let made = Proxies.make(reference, maxSide: Int(maxSide))
+      done(UnsafeMutableRawPointer(bitPattern: ctx), made ? ENGINE_OK : ENGINE_ERR_GPU)
+    }
   }
 
 let decoderClose: @convention(c) (UnsafeMutableRawPointer?, UnsafeMutableRawPointer?) -> Void = {

@@ -139,6 +139,19 @@ impl Media {
     pub fn codec(&self) -> &str {
         &self.codec
     }
+
+    /// Longest side of the preview proxy this media gets, if any (docs/adr/0007-proxy-media.md):
+    /// videos over 2560 px get 1920, over 1920 px get 1280; photos and smaller videos none.
+    pub fn proxy_side(&self) -> Option<u32> {
+        if self.kind != MediaKind::Video {
+            return None;
+        }
+        match self.width.max(self.height) {
+            2561.. => Some(1920),
+            1921.. => Some(1280),
+            _ => None,
+        }
+    }
 }
 
 /// `content://` plus printable ASCII, or exactly `media/<name>.<ext>` with name `[A-Za-z0-9-]+`

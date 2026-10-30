@@ -830,7 +830,7 @@ fn draw_into(
     let (Some(decoder), Some(layer)) = (decoder.as_mut(), layer) else {
         return gpu.draw_black(&texture).map_err(gpu_err);
     };
-    let frame = match decoder.frame(layer.media, layer.source_time) {
+    let frame = match decoder.frame(layer.media, layer.source_time, layer.proxy_side) {
         Ok(frame) => frame,
         Err(reason) => {
             gpu.draw_black(&texture).map_err(gpu_err)?;
