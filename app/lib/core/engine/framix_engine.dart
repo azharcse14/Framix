@@ -1,10 +1,9 @@
-import 'package:fixnum/fixnum.dart';
-
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:fixnum/fixnum.dart';
 
 import 'engine_bindings.g.dart';
 import 'proto/framix/v1/engine.pb.dart';

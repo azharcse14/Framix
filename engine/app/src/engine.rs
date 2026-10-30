@@ -405,13 +405,7 @@ impl Engine {
     /// Applies `command` and returns the single event describing the outcome: the new
     /// timeline, or [`CommandFailed`] with the timeline unchanged.
     pub fn handle(&mut self, command: Command) -> Event {
-        let mut event = self.reply(command.kind);
-        match &mut event.kind {
-            Some(proto::event::Kind::CommandFailed(f)) => f.command_id = command.id,
-            Some(proto::event::Kind::CommandAccepted(a)) => a.command_id = command.id,
-            _ => {}
-        }
-        event
+        answering(command.id, self.reply(command.kind))
     }
 
     fn reply(&mut self, kind: Option<command::Kind>) -> Event {
@@ -815,6 +809,16 @@ enum Reply {
         /// Bytes free.
         free: u64,
     },
+}
+
+/// `event` as the reply to command `id`: CommandAccepted and CommandFailed carry the id.
+pub fn answering(id: u64, mut event: Event) -> Event {
+    match &mut event.kind {
+        Some(proto::event::Kind::CommandFailed(f)) => f.command_id = id,
+        Some(proto::event::Kind::CommandAccepted(a)) => a.command_id = id,
+        _ => {}
+    }
+    event
 }
 
 /// The event for a rejected command. `reason` is for logs, not for display.

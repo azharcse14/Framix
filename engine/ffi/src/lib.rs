@@ -199,7 +199,12 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
             match message {
                 EngineMessage::SetCallback(new) => callback = new,
                 EngineMessage::Shutdown => break,
-                EngineMessage::Command(_) => deliver(callback, &command_failed("engine stopped")),
+                EngineMessage::Command(bytes) => {
+                    // Still answers that command, so a waiting UI stops waiting.
+                    let id = Command::decode(bytes.as_slice()).map_or(0, |c| c.id);
+                    let failed = command_failed("engine stopped");
+                    deliver(callback, &framix_app::engine::answering(id, failed));
+                }
                 EngineMessage::PreviewTexture(_)
                 | EngineMessage::Thumbnail(..)
                 | EngineMessage::Proxy(..)
@@ -299,7 +304,11 @@ fn serve(
             }
             EngineMessage::Command(bytes) => {
                 let reply = match Command::decode(bytes.as_slice()) {
-                    Ok(command) => guarded(|| engine.handle(command)),
+                    // A panic's CommandFailed still answers the command.
+                    Ok(command) => {
+                        let id = command.id;
+                        framix_app::engine::answering(id, guarded(|| engine.handle(command)))
+                    }
                     Err(_) => command_failed("undecodable command"),
                 };
                 if let Some(job) = engine.take_export_job() {
