@@ -1,0 +1,200 @@
+//! Proxies through the platform vtable (P1-039): the engine asks for one proxy at a time and
+//! asks for the next once the platform answers from another thread. Own test binary: the
+//! platform registration is process-wide.
+
+use std::ffi::c_void;
+use std::sync::Mutex;
+use std::sync::mpsc::{Sender, channel};
+use std::time::Duration;
+
+use framix_app::proto::{Command, Event, ImportMedia, MediaItem, MediaKind, command, event};
+use framix_ffi::{
+    ENGINE_ERR_NULL, ENGINE_OK, ENGINE_PLATFORM_VERSION, ENGINE_PROTOCOL_VERSION, EngineBuffer,
+    EnginePlatform, EnginePreviewTextureDone, EngineProxyDone, EngineThumbnailDone, engine_create,
+    engine_destroy, engine_free_buffer, engine_platform_register, engine_send,
+    engine_set_event_callback,
+};
+use prost::Message;
+
+unsafe extern "C" fn create(
+    _: *mut c_void,
+    _: u32,
+    _: u32,
+    _: EnginePreviewTextureDone,
+    _: *mut c_void,
+) {
+}
+unsafe extern "C" fn frame(_: *mut c_void, _: i64) {}
+
+unsafe extern "C" fn no_encoder(
+    _: *mut c_void,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: u32,
+    _: *const u8,
+    _: usize,
+) -> *mut c_void {
+    std::ptr::null_mut()
+}
+unsafe extern "C" fn no_frame(_: *mut c_void, _: *mut c_void, _: i64) -> *mut c_void {
+    std::ptr::null_mut()
+}
+unsafe extern "C" fn no_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
+    -1
+}
+
+unsafe extern "C" fn thumbnail(
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: u32,
+    _: EngineThumbnailDone,
+    _: *mut c_void,
+) {
+}
+
+/// What the fake was asked for: uri and max side, in order.
+static SEEN: Mutex<Vec<(String, u32)>> = Mutex::new(Vec::new());
+static ASKED: Mutex<Option<Sender<()>>> = Mutex::new(None);
+
+unsafe extern "C" fn proxy(
+    _: *mut c_void,
+    uri: *const u8,
+    uri_len: usize,
+    max_side: u32,
+    done: EngineProxyDone,
+    done_ctx: *mut c_void,
+) {
+    // SAFETY: the engine passes `uri_len` valid bytes for this call.
+    let uri =
+        String::from_utf8(unsafe { std::slice::from_raw_parts(uri, uri_len) }.to_vec()).unwrap();
+    SEEN.lock().unwrap().push((uri, max_side));
+    if let Some(tx) = ASKED.lock().unwrap().as_ref() {
+        let _ = tx.send(());
+    }
+    let ctx = done_ctx as usize;
+    std::thread::spawn(move || {
+        // SAFETY: called once with the ctx that came with the request.
+        unsafe { done(ctx as *mut c_void, ENGINE_OK) };
+    });
+}
+
+static SINK: Mutex<Option<Sender<Vec<u8>>>> = Mutex::new(None);
+
+unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
+    // SAFETY: the engine passes a live buffer of `len` bytes that this callback now owns.
+    let bytes = unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec();
+    // SAFETY: ownership came with the call; freed exactly once here.
+    unsafe { engine_free_buffer(EngineBuffer { ptr, len }) };
+    if let Some(tx) = SINK.lock().unwrap().as_ref() {
+        let _ = tx.send(bytes);
+    }
+}
+
+fn uhd(uri: &str) -> MediaItem {
+    MediaItem {
+        uri: uri.into(),
+        kind: MediaKind::Video as i32,
+        duration_value: 4000,
+        duration_timescale: 1000,
+        width: 3840,
+        height: 2160,
+        rotation: 0,
+        codec: "hvc1".into(),
+    }
+}
+
+#[test]
+fn proxies_are_asked_for_one_after_another() {
+    let mut platform = EnginePlatform {
+        version: ENGINE_PLATFORM_VERSION,
+        ctx: std::ptr::null_mut(),
+        create_preview_texture: Some(create),
+        frame_available: Some(frame),
+        request_thumbnail: Some(thumbnail),
+        encoder_open: Some(no_encoder),
+        encoder_frame: Some(no_frame),
+        encoder_finish: Some(no_finish),
+        decoder_open: Some(no_decoder_open),
+        decoder_frame: Some(no_decoder_frame),
+        decoder_close: Some(no_decoder_close),
+        request_proxy: None,
+    };
+    // SAFETY: valid platform with static callbacks and a null ctx.
+    unsafe {
+        assert_eq!(
+            engine_platform_register(&platform),
+            ENGINE_ERR_NULL,
+            "proxies are required"
+        );
+        platform.request_proxy = Some(proxy);
+        assert_eq!(engine_platform_register(&platform), ENGINE_OK);
+    }
+
+    let (tx, events) = channel();
+    *SINK.lock().unwrap() = Some(tx);
+    let (asked_tx, asked) = channel();
+    *ASKED.lock().unwrap() = Some(asked_tx);
+    let mut engine = std::ptr::null_mut();
+    // SAFETY: valid out pointer, then a fresh engine and a static callback.
+    unsafe {
+        assert_eq!(
+            engine_create(ENGINE_PROTOCOL_VERSION, &mut engine),
+            ENGINE_OK
+        );
+        assert_eq!(engine_set_event_callback(engine, Some(on_event)), ENGINE_OK);
+    }
+    let bytes = Command {
+        kind: Some(command::Kind::ImportMedia(ImportMedia {
+            items: vec![uhd("media/a.mov"), uhd("media/b.mov")],
+        })),
+    }
+    .encode_to_vec();
+    // SAFETY: live engine; valid slice.
+    assert_eq!(
+        unsafe { engine_send(engine, bytes.as_ptr(), bytes.len()) },
+        ENGINE_OK
+    );
+    let reply = events
+        .recv_timeout(Duration::from_secs(5))
+        .expect("no event");
+    let reply = Event::decode(reply.as_slice()).unwrap().kind;
+    assert!(matches!(reply, Some(event::Kind::TimelineChanged(_))));
+    for _ in 0..2 {
+        asked
+            .recv_timeout(Duration::from_secs(5))
+            .expect("the next proxy is asked for once the last one is done");
+    }
+    assert_eq!(
+        *SEEN.lock().unwrap(),
+        vec![
+            ("media/a.mov".to_owned(), 1920),
+            ("media/b.mov".to_owned(), 1920)
+        ]
+    );
+    // SAFETY: not used after this.
+    assert_eq!(unsafe { engine_destroy(engine) }, ENGINE_OK);
+}
+
+/// The decoder is not exercised here (platform_frame.rs and the simulator check it).
+unsafe extern "C" fn no_decoder_open(_: *mut c_void) -> *mut c_void {
+    std::ptr::null_mut()
+}
+
+unsafe extern "C" fn no_decoder_frame(
+    _: *mut c_void,
+    _: *mut c_void,
+    _: *const u8,
+    _: usize,
+    _: u32,
+    _: i64,
+    _: u32,
+    _: *mut framix_ffi::EngineFrame,
+) -> i32 {
+    -1
+}
+
+unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
