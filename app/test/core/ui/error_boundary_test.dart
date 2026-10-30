@@ -32,17 +32,18 @@ Widget _app(Locale locale, Widget child) => MaterialApp(
   ),
 );
 
-/// Installs the boundary for one test and restores Flutter's handlers after it.
-void _withBoundary() {
+/// Installs the boundary; call the result at the end of the test body, since testWidgets
+/// checks that the handlers are restored before tearDown runs.
+void Function() _withBoundary() {
   final builder = ErrorWidget.builder;
   final onError = FlutterError.onError;
   final platformOnError = PlatformDispatcher.instance.onError;
   installErrorBoundary();
-  addTearDown(() {
+  return () {
     ErrorWidget.builder = builder;
     FlutterError.onError = onError;
     PlatformDispatcher.instance.onError = platformOnError;
-  });
+  };
 }
 
 void main() {
@@ -50,17 +51,18 @@ void main() {
     testWidgets('a widget that fails to build shows a message ($locale)', (
       tester,
     ) async {
-      _withBoundary();
+      final restore = _withBoundary();
       final l10n = lookupAppLocalizations(locale);
       await tester.pumpWidget(_app(locale, const _Broken()));
       expect(tester.takeException(), isStateError, reason: 'still reported');
       expect(find.text(l10n.somethingWentWrong), findsOneWidget);
       expect(find.text('still here'), findsOneWidget, reason: 'the rest works');
+      restore();
     });
   }
 
   testWidgets('outside localizations the message has no text', (tester) async {
-    _withBoundary();
+    final restore = _withBoundary();
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -70,10 +72,11 @@ void main() {
     expect(tester.takeException(), isStateError);
     expect(find.byType(ErrorPanel), findsOneWidget);
     expect(find.byType(Text), findsNothing);
+    restore();
   });
 
   test('an uncaught async error is reported and does not crash the app', () {
-    _withBoundary();
+    final restore = _withBoundary();
     final reported = <FlutterErrorDetails>[];
     FlutterError.onError = reported.add;
     final handled = PlatformDispatcher.instance.onError!(
@@ -82,5 +85,6 @@ void main() {
     );
     expect(handled, isTrue);
     expect(reported.single.exception, isStateError);
+    restore();
   });
 }
