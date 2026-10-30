@@ -2,9 +2,9 @@
 //! shows, with no copies: on iOS an IOSurface-backed Metal texture, on Android the window of a
 //! Flutter SurfaceProducer (its buffers are the HardwareBuffers Flutter samples).
 
-use framix_app::preview::{Decoder, DrawError, Frame, PlatformTexture, PreviewRenderer};
+use framix_app::preview::{Decoder, DrawError, PlatformTexture, PreviewRenderer};
 pub use framix_app::preview::{YcbcrMatrix, YcbcrRange, YcbcrSpace};
-use framix_core::placement::{Affine, canvas_to_source, target_to_canvas};
+use framix_core::placement::Affine;
 use framix_core::timeline::Layer;
 
 #[cfg(target_os = "android")]
@@ -822,6 +822,8 @@ fn draw_into(
     decoder: &mut Option<Box<dyn Decoder>>,
     layer: Option<&Layer>,
 ) -> Result<(), DrawError> {
+    use framix_app::preview::Frame;
+    use framix_core::placement::{canvas_to_source, target_to_canvas};
     let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     // SAFETY: GpuRenderer::new's contract: the handle is a live id<MTLTexture> the platform
     // reported as made.
