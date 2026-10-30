@@ -114,4 +114,15 @@ void main() {
     expect(cubit.placed, isEmpty);
     expect(find.byKey(CanvasGestures.outlineKey), findsNothing);
   });
+  // P1-078: a color clip fills the canvas; the engine refuses to move or scale it.
+  testWidgets('a color clip gets no outline and no placements', (tester) async {
+    final t = timeline();
+    t.tracks[0].clips[0].mediaKind = MediaKind.MEDIA_KIND_COLOR;
+    cubit.seed(t);
+    await pump(tester);
+    expect(find.byKey(CanvasGestures.outlineKey), findsNothing);
+    await tester.drag(find.byType(CanvasGestures), const Offset(100, 0));
+    await tester.pump();
+    expect(cubit.placed, isEmpty);
+  });
 }
