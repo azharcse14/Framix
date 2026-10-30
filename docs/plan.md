@@ -453,8 +453,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-075` Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse \[Rust\] \[Dart\]
 - [ ] `P1-076` Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes \[Rust\] \[Dart\]
 - [x] `P1-077` Color clips on Android: the Android draw_into fills them (today only Apple does); until then Add blank clip shows the test pattern there \[Rust\]
-- [ ] `P1-078` Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip \[Rust\]
+- [x] `P1-078` Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip \[Rust\]
 - [ ] `P1-079` Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export) \[Rust\]
+- [ ] `P1-080` Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 

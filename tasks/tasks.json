@@ -13689,12 +13689,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "12e04bf",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "Decision: refuse (not honor) transforms on color clips; they fill the canvas. Decode drops a saved color clip transform (format 5 files from P1-048..P1-078 could hold one) rather than refusing the file. CanvasGestures mirrors the rule as a UI affordance; P1-080 moves it to an engine flag. Worked on branch p1-078-color-transform (start ran on main)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13704,6 +13709,26 @@
    "title": "Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-080",
+   "section": "P1",
+   "group": null,
+   "title": "Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker)",
+   "tags": [
+    "Rust",
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
