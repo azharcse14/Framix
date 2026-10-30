@@ -415,7 +415,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 
 - [x] `P1-038` Auto save ar crash recovery \[Rust\]
 - [x] `P1-039` Proxy media (4K preview er jonno kom resolution copy) \[Rust\]
-- [ ] `P1-040` Overload handling er mul ongsho: protita command er por autosave, engine watchdog, Flutter error boundary, export pre-flight check (detail: Overload handling section) \[Rust\]\[Dart\]
+- [x] `P1-040` Overload handling er mul ongsho: protita command er por autosave, engine watchdog, Flutter error boundary, export pre-flight check (detail: Overload handling section) \[Rust\]\[Dart\]
 - [ ] `P1-041` Sentry setup ar render on demand (detail: Sentry setup, Resource optimization) \[Dart\]\[Rust\]
 - [x] `P1-042` engine_free_buffer ke unsafe extern "C" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai \[Rust\]
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]

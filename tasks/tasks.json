@@ -1753,10 +1753,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "082dd7c",
    "branch": "p1-040-overload",
    "notes": [
     {
