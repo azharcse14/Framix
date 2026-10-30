@@ -52,3 +52,42 @@ fn the_platform_cannot_report_a_color() {
     };
     assert!(Media::validate(raw).is_err());
 }
+
+// P1-078: a color fills the canvas; it has no picture to crop, turn, scale or move.
+
+#[test]
+fn a_color_clip_refuses_a_transform() {
+    use framix_core::timeline::{ClipTransform, TimelineError};
+    let mut timeline = Timeline::default();
+    timeline.import(vec![Media::solid(0x00ff_00ff)]).unwrap();
+    let clip = timeline.tracks()[0].clips()[0].id;
+    for transform in [
+        ClipTransform {
+            scale: ClipTransform::default().scale * 2,
+            ..Default::default()
+        },
+        ClipTransform {
+            x: 100,
+            ..Default::default()
+        },
+        ClipTransform {
+            turns: 1,
+            ..Default::default()
+        },
+        ClipTransform {
+            flip_h: true,
+            ..Default::default()
+        },
+    ] {
+        assert_eq!(
+            timeline.set_clip_transform(clip, transform),
+            Err(TimelineError::BadTransform),
+            "{transform:?}"
+        );
+    }
+    assert_eq!(
+        timeline.set_clip_transform(clip, ClipTransform::default()),
+        Ok(()),
+        "the default is fine"
+    );
+}
