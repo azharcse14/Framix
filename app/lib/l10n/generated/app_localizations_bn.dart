@@ -132,4 +132,19 @@ class AppLocalizationsBn extends AppLocalizations {
 
     return 'জায়গা কম: এক্সপোর্টে প্রায় $neededMbString MB লাগবে, খালি আছে $freeMbString MB।';
   }
+
+  @override
+  String get clip => 'ক্লিপ';
+
+  @override
+  String get splitClip => 'প্লেহেডে ভাগ করুন';
+
+  @override
+  String get deleteClip => 'ক্লিপ মুছুন';
+
+  @override
+  String get duplicateClip => 'ক্লিপের কপি করুন';
+
+  @override
+  String get mergeClip => 'পরের ক্লিপের সাথে জোড়া দিন';
 }

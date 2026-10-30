@@ -133,4 +133,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return 'Not enough storage: the export needs about $neededMbString MB and $freeMbString MB is free.';
   }
+
+  @override
+  String get clip => 'Clip';
+
+  @override
+  String get splitClip => 'Split at playhead';
+
+  @override
+  String get deleteClip => 'Delete clip';
+
+  @override
+  String get duplicateClip => 'Duplicate clip';
+
+  @override
+  String get mergeClip => 'Merge with next clip';
 }

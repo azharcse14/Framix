@@ -109,6 +109,27 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     }
   }
 
+  /// Splits [clip] at timeline time [at]; the engine refuses a time outside it.
+  void splitClip(Clip clip, int at) => _engine.send(
+    Command(
+      splitClip: SplitClip(clipId: clip.id, at: Int64(at)),
+    ),
+  );
+
+  void removeClip(Clip clip) =>
+      _engine.send(Command(removeClip: RemoveClip(clipId: clip.id)));
+
+  /// Copies [clip] to right after itself; the engine refuses it if that space is taken.
+  void duplicateClip(Clip clip) =>
+      _engine.send(Command(duplicateClip: DuplicateClip(clipId: clip.id)));
+
+  /// Joins [right] into [left]; the engine checks they can be joined.
+  void mergeClips(Clip left, Clip right) => _engine.send(
+    Command(
+      mergeClips: MergeClips(leftId: left.id, rightId: right.id),
+    ),
+  );
+
   void undo() => _engine.send(Command(undo: Undo()));
 
   void redo() => _engine.send(Command(redo: Redo()));

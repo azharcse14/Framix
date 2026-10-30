@@ -295,6 +295,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not enough storage: the export needs about {neededMb} MB and {freeMb} MB is free.'**
   String exportNoSpace(int neededMb, int freeMb);
+
+  /// No description provided for @clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip'**
+  String get clip;
+
+  /// No description provided for @splitClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Split at playhead'**
+  String get splitClip;
+
+  /// No description provided for @deleteClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete clip'**
+  String get deleteClip;
+
+  /// No description provided for @duplicateClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate clip'**
+  String get duplicateClip;
+
+  /// No description provided for @mergeClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge with next clip'**
+  String get mergeClip;
 }
 
 class _AppLocalizationsDelegate

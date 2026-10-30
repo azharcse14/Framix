@@ -32,5 +32,10 @@
   "share": "শেয়ার",
   "shareFailed": "শেয়ার খোলা যায়নি। আবার চেষ্টা করুন।",
   "somethingWentWrong": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
-  "exportNoSpace": "জায়গা কম: এক্সপোর্টে প্রায় {neededMb} MB লাগবে, খালি আছে {freeMb} MB।"
+  "exportNoSpace": "জায়গা কম: এক্সপোর্টে প্রায় {neededMb} MB লাগবে, খালি আছে {freeMb} MB।",
+  "clip": "ক্লিপ",
+  "splitClip": "প্লেহেডে ভাগ করুন",
+  "deleteClip": "ক্লিপ মুছুন",
+  "duplicateClip": "ক্লিপের কপি করুন",
+  "mergeClip": "পরের ক্লিপের সাথে জোড়া দিন"
 }

@@ -37,5 +37,10 @@
   "shareFailed": "Couldn't open sharing. Try again.",
   "somethingWentWrong": "Something went wrong. Try again.",
   "exportNoSpace": "Not enough storage: the export needs about {neededMb} MB and {freeMb} MB is free.",
-  "@exportNoSpace": {"placeholders": {"neededMb": {"type": "int", "format": "decimalPattern"}, "freeMb": {"type": "int", "format": "decimalPattern"}}}
+  "@exportNoSpace": {"placeholders": {"neededMb": {"type": "int", "format": "decimalPattern"}, "freeMb": {"type": "int", "format": "decimalPattern"}}},
+  "clip": "Clip",
+  "splitClip": "Split at playhead",
+  "deleteClip": "Delete clip",
+  "duplicateClip": "Duplicate clip",
+  "mergeClip": "Merge with next clip"
 }

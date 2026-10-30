@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../bloc/clip_selection_cubit.dart';
 import '../bloc/playhead_cubit.dart';
 import '../bloc/thumbnail_cubit.dart';
 import '../bloc/timeline_cubit.dart';
@@ -81,6 +82,7 @@ class _TimelineViewState extends State<TimelineView> {
     return Column(
       children: [
         _Toolbar(ticksPerSecond: ticksPerSecond),
+        _ClipActions(timeline: timeline),
         Expanded(
           child: SingleChildScrollView(
             child: Row(
@@ -234,6 +236,69 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
+/// What can be done to the selected clip; nothing while no clip is selected. The engine checks
+/// every edit (e.g. a split needs the playhead inside the clip).
+class _ClipActions extends StatelessWidget {
+  const _ClipActions({required this.timeline});
+
+  final TimelineChanged timeline;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cubit = context.read<TimelineCubit>();
+    final selection = context.watch<ClipSelectionCubit>();
+    final found = _find(selection.state);
+    if (found == null) return const SizedBox.shrink();
+    final (track, clip) = found;
+    final end = clip.start + clip.duration;
+    // The neighbour that starts where this clip ends, if any.
+    final next = track.clips.where((c) => c.start == end).firstOrNull;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
+      child: Wrap(
+        children: [
+          IconButton(
+            tooltip: l10n.splitClip,
+            icon: const Icon(Icons.content_cut),
+            onPressed: () =>
+                cubit.splitClip(clip, context.read<PlayheadCubit>().state),
+          ),
+          IconButton(
+            tooltip: l10n.duplicateClip,
+            icon: const Icon(Icons.control_point_duplicate),
+            onPressed: () => cubit.duplicateClip(clip),
+          ),
+          IconButton(
+            tooltip: l10n.mergeClip,
+            icon: const Icon(Icons.call_merge),
+            onPressed: next == null ? null : () => cubit.mergeClips(clip, next),
+          ),
+          IconButton(
+            tooltip: l10n.deleteClip,
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              cubit.removeClip(clip);
+              selection.clear();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The selected clip and its track; null if none is selected or it is gone.
+  (Track, Clip)? _find(int id) {
+    if (id == 0) return null;
+    for (final track in timeline.tracks) {
+      for (final clip in track.clips) {
+        if (clip.id.toInt() == id) return (track, clip);
+      }
+    }
+    return null;
+  }
+}
+
 /// mm:ss.cc, for display only.
 String _timecode(int ticks, int ticksPerSecond) {
   if (ticksPerSecond == 0) return '00:00.00';
@@ -365,6 +430,8 @@ class _Lane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final selection = context.watch<ClipSelectionCubit>();
     return SizedBox(
       height: height,
       child: Stack(
@@ -374,12 +441,21 @@ class _Lane extends StatelessWidget {
               left: px(clip.start.toInt()),
               top: FramixSpace.s,
               bottom: FramixSpace.s,
-              child: ClipBox(
-                width: px(clip.duration.toInt()),
-                audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
-                tiles: track.kind == TrackKind.TRACK_KIND_AUDIO
-                    ? const []
-                    : tiles.of(clip, left: px(clip.start.toInt())),
+              child: Semantics(
+                button: true,
+                selected: selection.state == clip.id.toInt(),
+                label: l10n.clip,
+                child: GestureDetector(
+                  onTap: () => selection.toggle(clip.id.toInt()),
+                  child: ClipBox(
+                    width: px(clip.duration.toInt()),
+                    audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
+                    selected: selection.state == clip.id.toInt(),
+                    tiles: track.kind == TrackKind.TRACK_KIND_AUDIO
+                        ? const []
+                        : tiles.of(clip, left: px(clip.start.toInt())),
+                  ),
+                ),
               ),
             ),
         ],
@@ -394,11 +470,15 @@ class ClipBox extends StatelessWidget {
     super.key,
     required this.width,
     required this.audio,
+    this.selected = false,
     this.tiles = const [],
   });
 
   final double width;
   final bool audio;
+
+  /// The user selected it; drawn with the accent border.
+  final bool selected;
 
   /// Thumbnail slots, each placed at its own offset inside the clip.
   final List<Widget> tiles;
@@ -410,7 +490,9 @@ class ClipBox extends StatelessWidget {
       width: width,
       decoration: BoxDecoration(
         color: colors.elevated,
-        border: Border.all(color: colors.outline),
+        border: selected
+            ? Border.all(color: colors.accentText, width: 2)
+            : Border.all(color: colors.outline),
         borderRadius: BorderRadius.circular(4),
       ),
       clipBehavior: ui.Clip.hardEdge,
