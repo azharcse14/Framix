@@ -13661,12 +13661,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-10-30",
-   "done": null,
-   "commit": null,
+   "done": "2026-10-30",
+   "commit": "6591b19",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-10-30",
+     "text": "No failing test first: the change is cfg(target_os = android) only and host tests cannot run it; the color pixel and placement are the ones draw_color uses (covered by render/tests/color_fill.rs). Verified by clippy on aarch64 + x86_64 android; not run on a device."
+    },
+    {
+     "date": "2026-10-30",
+     "text": "Device check not done: the arm64 debug APK built and installed on the Pixel_8 emulator, but another app's ANR dialog held the screen and was left alone. Review Warning open: run Add blank clip once on Android (Vulkan + GLES fallback). Lock order color -> window_surface documented. Follow-up P1-079 (size read twice, sRGB surface)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13674,6 +13683,25 @@
    "section": "P1",
    "group": null,
    "title": "Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-079",
+   "section": "P1",
+   "group": null,
+   "title": "Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export)",
    "tags": [
     "Rust"
    ],
