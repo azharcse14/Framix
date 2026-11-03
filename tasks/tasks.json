@@ -13791,12 +13791,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "3b92c3b",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "updated the P1-078 color-clip widget test's seed (placementLocked = true, as the engine sends it); its assertions are unchanged"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "shipped as Clip.placement_locked (inverted from the title's 'placeable'): proto3's false default must mean placeable, so hand-seeded Clip protos and older senders keep working"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "review nit open: the locked-track half of the flag repeats Timeline::locate's rule; one core per-clip predicate when text/sticker clips arrive"
+    }
+   ],
    "source": "added"
   },
   {
