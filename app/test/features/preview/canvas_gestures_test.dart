@@ -117,7 +117,10 @@ void main() {
   // P1-078: a color clip fills the canvas; the engine refuses to move or scale it.
   testWidgets('a color clip gets no outline and no placements', (tester) async {
     final t = timeline();
-    t.tracks[0].clips[0].mediaKind = MediaKind.MEDIA_KIND_COLOR;
+    t.tracks[0].clips[0]
+      ..mediaKind = MediaKind.MEDIA_KIND_COLOR
+      // What the engine sends with a color clip since P1-080.
+      ..placementLocked = true;
     cubit.seed(t);
     await pump(tester);
     expect(find.byKey(CanvasGestures.outlineKey), findsNothing);
