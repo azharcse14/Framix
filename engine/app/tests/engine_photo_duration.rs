@@ -37,7 +37,7 @@ fn item(uri: &str, kind: MediaKind) -> MediaItem {
 }
 
 fn spans(t: &TimelineChanged) -> Vec<(i64, i64)> {
-    let tps = t.ticks_per_second as i64;
+    let tps = t.ticks_per_second;
     t.tracks[0]
         .clips
         .iter()
@@ -62,7 +62,7 @@ fn photos_get_one_duration_as_one_undo_step() {
         command::Kind::ImportMedia(ImportMedia { items }),
     ));
     assert_eq!(spans(&t), [(0, 3), (3, 2), (5, 3)]);
-    let tps = t.ticks_per_second as i64;
+    let tps = t.ticks_per_second;
 
     let t = changed(run(&mut engine, set(tps)));
     assert_eq!(spans(&t), [(0, 1), (1, 2), (3, 1)]);
