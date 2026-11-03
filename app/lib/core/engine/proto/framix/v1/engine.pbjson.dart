@@ -386,6 +386,15 @@ const Command$json = {
       '9': 0,
       '10': 'applyExportPreset'
     },
+    {
+      '1': 'change_export_settings',
+      '3': 32,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ChangeExportSettings',
+      '9': 0,
+      '10': 'changeExportSettings'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -428,8 +437,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'c3RlcF9mcmFtZRgdIAEoCzIULmZyYW1peC52MS5TdGVwRnJhbWVIAFIJc3RlcEZyYW1lEkUKEH'
     'RyaW1fdG9fcGxheWhlYWQYHiABKAsyGS5mcmFtaXgudjEuVHJpbVRvUGxheWhlYWRIAFIOdHJp'
     'bVRvUGxheWhlYWQSTgoTYXBwbHlfZXhwb3J0X3ByZXNldBgfIAEoCzIcLmZyYW1peC52MS5BcH'
-    'BseUV4cG9ydFByZXNldEgAUhFhcHBseUV4cG9ydFByZXNldBIOCgJpZBgbIAEoBFICaWRCBgoE'
-    'a2luZA==');
+    'BseUV4cG9ydFByZXNldEgAUhFhcHBseUV4cG9ydFByZXNldBJXChZjaGFuZ2VfZXhwb3J0X3Nl'
+    'dHRpbmdzGCAgASgLMh8uZnJhbWl4LnYxLkNoYW5nZUV4cG9ydFNldHRpbmdzSABSFGNoYW5nZU'
+    'V4cG9ydFNldHRpbmdzEg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -513,6 +523,46 @@ const ApplyExportPreset$json = {
 final $typed_data.Uint8List applyExportPresetDescriptor = $convert.base64Decode(
     'ChFBcHBseUV4cG9ydFByZXNldBIvCgZwcmVzZXQYASABKA4yFy5mcmFtaXgudjEuRXhwb3J0UH'
     'Jlc2V0UgZwcmVzZXQ=');
+
+@$core.Deprecated('Use changeExportSettingsDescriptor instead')
+const ChangeExportSettings$json = {
+  '1': 'ChangeExportSettings',
+  '2': [
+    {
+      '1': 'resolution',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportResolution',
+      '9': 0,
+      '10': 'resolution',
+      '17': true
+    },
+    {
+      '1': 'fps',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportFps',
+      '9': 1,
+      '10': 'fps',
+      '17': true
+    },
+    {'1': 'kbps', '3': 3, '4': 1, '5': 13, '9': 2, '10': 'kbps', '17': true},
+  ],
+  '8': [
+    {'1': '_resolution'},
+    {'1': '_fps'},
+    {'1': '_kbps'},
+  ],
+};
+
+/// Descriptor for `ChangeExportSettings`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List changeExportSettingsDescriptor = $convert.base64Decode(
+    'ChRDaGFuZ2VFeHBvcnRTZXR0aW5ncxJACgpyZXNvbHV0aW9uGAEgASgOMhsuZnJhbWl4LnYxLk'
+    'V4cG9ydFJlc29sdXRpb25IAFIKcmVzb2x1dGlvbogBARIrCgNmcHMYAiABKA4yFC5mcmFtaXgu'
+    'djEuRXhwb3J0RnBzSAFSA2Zwc4gBARIXCgRrYnBzGAMgASgNSAJSBGticHOIAQFCDQoLX3Jlc2'
+    '9sdXRpb25CBgoEX2Zwc0IHCgVfa2Jwcw==');
 
 @$core.Deprecated('Use exportInfoDescriptor instead')
 const ExportInfo$json = {

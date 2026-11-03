@@ -538,6 +538,18 @@ impl Engine {
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
             command::Kind::CancelExport(_) => self.cancel_export().map(|()| Reply::Accepted),
             command::Kind::ExportProject(op) => self.start_export(op.path),
+            command::Kind::ChangeExportSettings(op) => {
+                let current = export_proto(self.history.timeline().export());
+                let settings = export_settings(proto::SetExportSettings {
+                    resolution: op.resolution.unwrap_or(current.resolution),
+                    fps: op.fps.unwrap_or(current.fps),
+                    kbps: op.kbps.unwrap_or(current.kbps),
+                })?;
+                timeline(self.edit(|tl| {
+                    tl.set_export(settings);
+                    Ok::<_, TimelineError>(())
+                }))
+            }
             command::Kind::SetExportSettings(op) => {
                 let settings = export_settings(op)?;
                 timeline(self.edit(|tl| {
@@ -902,10 +914,9 @@ fn export_settings(op: proto::SetExportSettings) -> Result<ExportSettings, Strin
     })
 }
 
-fn export_info(timeline: &Timeline) -> proto::ExportInfo {
-    let settings = timeline.export();
-    let (width, height) = settings.frame_size(timeline.aspect());
-    proto::ExportInfo {
+/// `settings` on the wire: the inverse of [`export_settings`].
+fn export_proto(settings: ExportSettings) -> proto::SetExportSettings {
+    proto::SetExportSettings {
         resolution: match settings.resolution {
             Resolution::P720 => proto::ExportResolution::ExportResolution720p,
             Resolution::P1080 => proto::ExportResolution::ExportResolution1080p,
@@ -921,6 +932,17 @@ fn export_info(timeline: &Timeline) -> proto::ExportInfo {
             Bitrate::Auto => 0,
             Bitrate::Kbps(kbps) => kbps,
         },
+    }
+}
+
+fn export_info(timeline: &Timeline) -> proto::ExportInfo {
+    let settings = timeline.export();
+    let (width, height) = settings.frame_size(timeline.aspect());
+    let wire = export_proto(settings);
+    proto::ExportInfo {
+        resolution: wire.resolution,
+        fps: wire.fps,
+        kbps: wire.kbps,
         width,
         height,
         effective_kbps: settings.effective_kbps(timeline.aspect()),

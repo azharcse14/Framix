@@ -38,6 +38,7 @@ message Command {
     StepFrame step_frame = 29;
     TrimToPlayhead trim_to_playhead = 30;
     ApplyExportPreset apply_export_preset = 31;
+    ChangeExportSettings change_export_settings = 32;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -101,6 +102,15 @@ enum ExportPreset {
 // Sets the canvas aspect ratio and the export settings of `preset` as one undo step.
 message ApplyExportPreset {
   ExportPreset preset = 1;
+}
+
+// Changes only the given export settings; unset ones keep their value, so quick edits of
+// different settings never undo each other. kbps 0 is automatic. Checked like
+// SetExportSettings; one undo step (none if nothing changes).
+message ChangeExportSettings {
+  optional ExportResolution resolution = 1;
+  optional ExportFps fps = 2;
+  optional uint32 kbps = 3;
 }
 
 // The project's export settings and what they mean for the current canvas.

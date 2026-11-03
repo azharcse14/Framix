@@ -38,11 +38,12 @@ class _ExportSettingsSheet extends StatelessWidget {
     return BlocSelector<TimelineCubit, TimelineChanged, ExportInfo>(
       selector: (s) => s.export,
       builder: (context, e) {
+        // Only the touched setting is sent; the engine keeps the others.
         void set({ExportResolution? resolution, ExportFps? fps, int? kbps}) =>
-            cubit.setExportSettings(
-              resolution ?? e.resolution,
-              fps ?? e.fps,
-              kbps ?? e.kbps,
+            cubit.changeExportSettings(
+              resolution: resolution,
+              fps: fps,
+              kbps: kbps,
             );
         final auto = e.kbps == 0;
         return SafeArea(
