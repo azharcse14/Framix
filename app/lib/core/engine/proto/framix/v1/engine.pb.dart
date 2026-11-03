@@ -4471,8 +4471,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   void clearProject() => $_clearField(12);
 
-  /// This answers a SnapTrim or SnapMove that landed on a snap point (the UI ticks, as for a
-  /// snapping Seek); false for every other change.
+  /// This answers a SnapTrim or SnapMove that the engine moved onto a snap point (the UI ticks,
+  /// as for a snapping Seek); false for every other change, and for a drop already on one.
   @$pb.TagNumber(13)
   $core.bool get snapped => $_getBF(12);
   @$pb.TagNumber(13)

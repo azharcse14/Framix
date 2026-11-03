@@ -916,7 +916,7 @@ impl Engine {
                 active_clip: self.active_clip(),
                 export: Some(export_info(timeline)),
                 project: self.project,
-                // `handle` sets it for the reply of a snapping edit.
+                // `reply` sets it for the answer to a snapping edit.
                 snapped: false,
             })),
         }

@@ -22,7 +22,7 @@ class TimelineCubit extends Cubit<TimelineChanged> {
         )
         .map(
           (e) => e.hasTimelineChanged()
-              ? (e.timelineChanged..freeze())
+              ? _ticked(e.timelineChanged)
               // The playhead moved: only the active clip changes.
               : (state.rebuild(
                   (t) => t.activeClip = e.playheadChanged.activeClip,
@@ -30,17 +30,21 @@ class TimelineCubit extends Cubit<TimelineChanged> {
         )
         // Cubit always lets the first emit through, even if equal; skip no-op replies.
         .where((t) => t != state)
-        .listen((t) {
-          // A trim or move landed on a snap point: the same tick as a snapping scrub.
-          if (t.snapped) HapticFeedback.selectionClick();
-          emit(t);
-        });
+        .listen(emit);
     // The engine may already hold edits; ask for them instead of trusting the empty start.
     _engine.send(Command(getTimeline: GetTimeline()));
   }
 
   final FramixEngine _engine;
   late final StreamSubscription<TimelineChanged> _events;
+
+  /// [t] frozen, with its one-reply snapped flag turned into a haptic tick (the same as a
+  /// snapping scrub) and cleared, so a state rebuilt from it never ticks again.
+  static TimelineChanged _ticked(TimelineChanged t) {
+    if (!t.snapped) return t..freeze();
+    HapticFeedback.selectionClick();
+    return (t.deepCopy()..snapped = false)..freeze();
+  }
 
   void addTrack(TrackKind kind) =>
       _engine.send(Command(addTrack: AddTrack(kind: kind)));

@@ -463,8 +463,8 @@ message TimelineChanged {
   // Changes when the engine starts another project (new, opened, restored); cached thumbnails
   // and media ids of the old one no longer apply.
   uint64 project = 12;
-  // This answers a SnapTrim or SnapMove that landed on a snap point (the UI ticks, as for a
-  // snapping Seek); false for every other change.
+  // This answers a SnapTrim or SnapMove that the engine moved onto a snap point (the UI ticks,
+  // as for a snapping Seek); false for every other change, and for a drop already on one.
   bool snapped = 13;
 }
 
