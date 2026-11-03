@@ -4865,8 +4865,8 @@ class Clip extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   void clearMergeableWithNext() => $_clearField(18);
 
-  /// SetClipTransform refuses to move or scale this clip (a color fills the canvas; a locked
-  /// track), so the canvas offers no gestures for it.
+  /// SetClipTransform refuses any change to this clip's transform (a color fills the canvas; a
+  /// locked track), so the canvas offers no gestures for it.
   @$pb.TagNumber(19)
   $core.bool get placementLocked => $_getBF(18);
   @$pb.TagNumber(19)
