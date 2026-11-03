@@ -148,7 +148,15 @@ class _BitrateSlider extends StatefulWidget {
 }
 
 class _BitrateSliderState extends State<_BitrateSlider> {
+  /// The finger's value; kept after release until the engine's answer arrives, so the thumb
+  /// doesn't jump back for a frame.
   double? _dragging;
+
+  @override
+  void didUpdateWidget(_BitrateSlider old) {
+    super.didUpdateWidget(old);
+    if (widget.kbps != old.kbps) _dragging = null;
+  }
 
   @override
   Widget build(BuildContext context) => Slider(
@@ -157,10 +165,9 @@ class _BitrateSliderState extends State<_BitrateSlider> {
     value: _dragging ?? widget.kbps.clamp(widget.min, widget.max).toDouble(),
     label: AppLocalizations.of(context)
         .bitrateKbps((_dragging ?? widget.kbps).round()),
+    // A continuous slider shows its label only when asked to.
+    showValueIndicator: ShowValueIndicator.onDrag,
     onChanged: (v) => setState(() => _dragging = v),
-    onChangeEnd: (v) {
-      setState(() => _dragging = null);
-      widget.onDone(v.round());
-    },
+    onChangeEnd: (v) => widget.onDone(v.round()),
   );
 }
