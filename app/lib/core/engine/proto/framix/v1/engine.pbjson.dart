@@ -404,6 +404,15 @@ const Command$json = {
       '9': 0,
       '10': 'fixBitrate'
     },
+    {
+      '1': 'snap_trim',
+      '3': 34,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SnapTrim',
+      '9': 0,
+      '10': 'snapTrim'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -449,7 +458,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'BseUV4cG9ydFByZXNldEgAUhFhcHBseUV4cG9ydFByZXNldBJXChZjaGFuZ2VfZXhwb3J0X3Nl'
     'dHRpbmdzGCAgASgLMh8uZnJhbWl4LnYxLkNoYW5nZUV4cG9ydFNldHRpbmdzSABSFGNoYW5nZU'
     'V4cG9ydFNldHRpbmdzEjgKC2ZpeF9iaXRyYXRlGCEgASgLMhUuZnJhbWl4LnYxLkZpeEJpdHJh'
-    'dGVIAFIKZml4Qml0cmF0ZRIOCgJpZBgbIAEoBFICaWRCBgoEa2luZA==');
+    'dGVIAFIKZml4Qml0cmF0ZRIyCglzbmFwX3RyaW0YIiABKAsyEy5mcmFtaXgudjEuU25hcFRyaW'
+    '1IAFIIc25hcFRyaW0SDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -845,6 +855,22 @@ const SetPhotoDuration$json = {
 /// Descriptor for `SetPhotoDuration`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List setPhotoDurationDescriptor = $convert.base64Decode(
     'ChBTZXRQaG90b0R1cmF0aW9uEhoKCGR1cmF0aW9uGAEgASgDUghkdXJhdGlvbg==');
+
+@$core.Deprecated('Use snapTrimDescriptor instead')
+const SnapTrim$json = {
+  '1': 'SnapTrim',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {'1': 'start', '3': 2, '4': 1, '5': 3, '10': 'start'},
+    {'1': 'end', '3': 3, '4': 1, '5': 3, '10': 'end'},
+    {'1': 'snap_within', '3': 4, '4': 1, '5': 3, '10': 'snapWithin'},
+  ],
+};
+
+/// Descriptor for `SnapTrim`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List snapTrimDescriptor = $convert.base64Decode(
+    'CghTbmFwVHJpbRIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSFAoFc3RhcnQYAiABKANSBXN0YX'
+    'J0EhAKA2VuZBgDIAEoA1IDZW5kEh8KC3NuYXBfd2l0aGluGAQgASgDUgpzbmFwV2l0aGlu');
 
 @$core.Deprecated('Use trimToPlayheadDescriptor instead')
 const TrimToPlayhead$json = {

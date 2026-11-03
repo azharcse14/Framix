@@ -54,6 +54,7 @@ enum Command_Kind {
   applyExportPreset,
   changeExportSettings,
   fixBitrate,
+  snapTrim,
   notSet
 }
 
@@ -93,6 +94,7 @@ class Command extends $pb.GeneratedMessage {
     ApplyExportPreset? applyExportPreset,
     ChangeExportSettings? changeExportSettings,
     FixBitrate? fixBitrate,
+    SnapTrim? snapTrim,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -129,6 +131,7 @@ class Command extends $pb.GeneratedMessage {
     if (changeExportSettings != null)
       result.changeExportSettings = changeExportSettings;
     if (fixBitrate != null) result.fixBitrate = fixBitrate;
+    if (snapTrim != null) result.snapTrim = snapTrim;
     return result;
   }
 
@@ -174,6 +177,7 @@ class Command extends $pb.GeneratedMessage {
     31: Command_Kind.applyExportPreset,
     32: Command_Kind.changeExportSettings,
     33: Command_Kind.fixBitrate,
+    34: Command_Kind.snapTrim,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -212,7 +216,8 @@ class Command extends $pb.GeneratedMessage {
       30,
       31,
       32,
-      33
+      33,
+      34
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -281,6 +286,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: ChangeExportSettings.$_createMessage)
     ..aOM<FixBitrate>(33, _omitFieldNames ? '' : 'fixBitrate',
         subBuilder: FixBitrate.$_createMessage)
+    ..aOM<SnapTrim>(34, _omitFieldNames ? '' : 'snapTrim',
+        subBuilder: SnapTrim.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -335,6 +342,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(31)
   @$pb.TagNumber(32)
   @$pb.TagNumber(33)
+  @$pb.TagNumber(34)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -368,6 +376,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(31)
   @$pb.TagNumber(32)
   @$pb.TagNumber(33)
+  @$pb.TagNumber(34)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -731,6 +740,17 @@ class Command extends $pb.GeneratedMessage {
   void clearFixBitrate() => $_clearField(33);
   @$pb.TagNumber(33)
   FixBitrate ensureFixBitrate() => $_ensure(32);
+
+  @$pb.TagNumber(34)
+  SnapTrim get snapTrim => $_getN(33);
+  @$pb.TagNumber(34)
+  set snapTrim(SnapTrim value) => $_setField(34, value);
+  @$pb.TagNumber(34)
+  $core.bool hasSnapTrim() => $_has(33);
+  @$pb.TagNumber(34)
+  void clearSnapTrim() => $_clearField(34);
+  @$pb.TagNumber(34)
+  SnapTrim ensureSnapTrim() => $_ensure(33);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2456,6 +2476,101 @@ class SetPhotoDuration extends $pb.GeneratedMessage {
 
 /// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
 /// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
+/// TrimClip whose edges snap to the nearest edge (0, a clip start or end, the timeline end)
+/// within snap_within ticks, as Seek does; a start never snaps onto its own end. 0 = no
+/// snapping, more than 10 s is capped, negative is refused.
+class SnapTrim extends $pb.GeneratedMessage {
+  factory SnapTrim({
+    $fixnum.Int64? clipId,
+    $fixnum.Int64? start,
+    $fixnum.Int64? end,
+    $fixnum.Int64? snapWithin,
+  }) {
+    final result = SnapTrim._();
+    if (clipId != null) result.clipId = clipId;
+    if (start != null) result.start = start;
+    if (end != null) result.end = end;
+    if (snapWithin != null) result.snapWithin = snapWithin;
+    return result;
+  }
+
+  SnapTrim._();
+
+  factory SnapTrim.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SnapTrim()..mergeFromBuffer(data, registry);
+  factory SnapTrim.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SnapTrim()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SnapTrim',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SnapTrim.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(2, _omitFieldNames ? '' : 'start')
+    ..aInt64(3, _omitFieldNames ? '' : 'end')
+    ..aInt64(4, _omitFieldNames ? '' : 'snapWithin')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnapTrim clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnapTrim copyWith(void Function(SnapTrim) updates) =>
+      super.copyWith((message) => updates(message as SnapTrim)) as SnapTrim;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SnapTrim() / SnapTrim.new instead')
+  static SnapTrim create() => SnapTrim._();
+  static $pb.GeneratedMessage $_createMessage() => SnapTrim._();
+  @$core.override
+  SnapTrim createEmptyInstance() => SnapTrim._();
+  @$core.pragma('dart2js:noInline')
+  static SnapTrim getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SnapTrim>(SnapTrim.$_createMessage);
+  static SnapTrim? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get start => $_getI64(1);
+  @$pb.TagNumber(2)
+  set start($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasStart() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearStart() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get end => $_getI64(2);
+  @$pb.TagNumber(3)
+  set end($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasEnd() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEnd() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get snapWithin => $_getI64(3);
+  @$pb.TagNumber(4)
+  set snapWithin($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSnapWithin() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSnapWithin() => $_clearField(4);
+}
+
 class TrimToPlayhead extends $pb.GeneratedMessage {
   factory TrimToPlayhead({
     $fixnum.Int64? clipId,

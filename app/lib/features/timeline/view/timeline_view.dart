@@ -598,7 +598,12 @@ class _Lane extends StatelessWidget {
                 label: l10n.trimStart,
                 onTrim: (dx) {
                   final end = (clip.start + clip.duration).toInt();
-                  cubit.trimClip(clip, clip.start.toInt() + ticks(dx), end);
+                  cubit.trimClip(
+                    clip,
+                    clip.start.toInt() + ticks(dx),
+                    end,
+                    snapWithin: ticks(_TrimHandle.snapRadius),
+                  );
                 },
               ),
               _TrimHandle(
@@ -606,7 +611,12 @@ class _Lane extends StatelessWidget {
                 label: l10n.trimEnd,
                 onTrim: (dx) {
                   final end = (clip.start + clip.duration).toInt() + ticks(dx);
-                  cubit.trimClip(clip, clip.start.toInt(), end);
+                  cubit.trimClip(
+                    clip,
+                    clip.start.toInt(),
+                    end,
+                    snapWithin: ticks(_TrimHandle.snapRadius),
+                  );
                 },
               ),
             ],
@@ -623,6 +633,10 @@ class _Lane extends StatelessWidget {
 // ponytail: the handle springs back on release and the clip follows on the engine's reply (a
 // frame later); a refused trim just springs back. Hold the offset until the reply if it shows.
 class _TrimHandle extends StatefulWidget {
+  /// How close (dp) a dropped edge must be to another edge to snap to it, as the playhead
+  /// scrub; the engine decides what it snaps to.
+  static const snapRadius = 12.0;
+
   const _TrimHandle({
     required this.left,
     required this.label,

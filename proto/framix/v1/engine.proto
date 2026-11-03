@@ -40,6 +40,7 @@ message Command {
     ApplyExportPreset apply_export_preset = 31;
     ChangeExportSettings change_export_settings = 32;
     FixBitrate fix_bitrate = 33;
+    SnapTrim snap_trim = 34;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -253,6 +254,16 @@ enum ClipEdge {
 
 // Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
 // checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
+// TrimClip whose edges snap to the nearest edge (0, a clip start or end, the timeline end)
+// within snap_within ticks, as Seek does; a start never snaps onto its own end. 0 = no
+// snapping, more than 10 s is capped, negative is refused.
+message SnapTrim {
+  uint64 clip_id = 1;
+  int64 start = 2;
+  int64 end = 3;
+  int64 snap_within = 4;
+}
+
 message TrimToPlayhead {
   uint64 clip_id = 1;
   ClipEdge edge = 2;

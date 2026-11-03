@@ -149,12 +149,19 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
-  /// Moves [clip]'s edges to [start, end) in timeline ticks; the engine checks the result.
-  void trimClip(Clip clip, int start, int end) => _engine.send(
-    Command(
-      trimClip: TrimClip(clipId: clip.id, start: Int64(start), end: Int64(end)),
-    ),
-  );
+  /// Moves [clip]'s edges to [start, end) in timeline ticks; the engine snaps each edge to
+  /// the nearest edge within [snapWithin] ticks and checks the result.
+  void trimClip(Clip clip, int start, int end, {int snapWithin = 0}) =>
+      _engine.send(
+        Command(
+          snapTrim: SnapTrim(
+            clipId: clip.id,
+            start: Int64(start),
+            end: Int64(end),
+            snapWithin: Int64(snapWithin),
+          ),
+        ),
+      );
 
   /// Trims [clip]'s [edge] to the engine's playhead; the engine keeps its own other edge.
   void trimToPlayhead(Clip clip, ClipEdge edge) => _engine.send(

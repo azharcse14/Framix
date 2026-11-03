@@ -611,15 +611,19 @@ impl Engine {
                 timeline(applied.map_err(|e| e.to_string()))
             }
             command::Kind::Seek(seek) => {
-                if seek.snap_within < 0 {
-                    return Err("negative snap tolerance".into());
-                }
-                let within = Time(seek.snap_within.min(MAX_SNAP.0));
-                let snapped = (within.0 > 0)
-                    .then(|| self.history.timeline().snap(Time(seek.time), within))
-                    .flatten();
+                let snapped = self.snapped(Time(seek.time), seek.snap_within)?;
                 self.move_playhead(snapped.unwrap_or(Time(seek.time)));
                 Ok(Reply::Playhead(snapped.is_some()))
+            }
+            command::Kind::SnapTrim(op) => {
+                let (start, end) = (Time(op.start), Time(op.end));
+                let snap = |t| self.snapped(t, op.snap_within).map(|s| s.unwrap_or(t));
+                let (mut s, mut e) = (snap(start)?, snap(end)?);
+                // An edge snapped onto the other one would leave nothing: keep it where dropped.
+                if e <= s {
+                    (s, e) = if s != start { (start, e) } else { (s, end) };
+                }
+                timeline(self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), s, e)))
             }
             command::Kind::ApplyExportPreset(op) => {
                 let preset = match proto::ExportPreset::try_from(op.preset) {
@@ -685,6 +689,18 @@ impl Engine {
 
     /// After the timeline was replaced by another project: it starts at its beginning, with
     /// its own media ids, so cached thumbnails and the drawn picture's key mean nothing now.
+    /// The nearest edge to `time` within `within` ticks (capped at [`MAX_SNAP`]); `None` when
+    /// nothing is that close or `within` is 0.
+    fn snapped(&self, time: Time, within: i64) -> Result<Option<Time>, String> {
+        if within < 0 {
+            return Err("negative snap tolerance".into());
+        }
+        let within = Time(within.min(MAX_SNAP.0));
+        Ok((within.0 > 0)
+            .then(|| self.history.timeline().snap(time, within))
+            .flatten())
+    }
+
     fn start_project(&mut self) {
         self.project = self.project.wrapping_add(1);
         self.forget_thumbnails();
