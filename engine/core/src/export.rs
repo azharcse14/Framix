@@ -155,13 +155,11 @@ pub enum Preset {
 impl Preset {
     /// The canvas shape.
     pub fn aspect(self) -> AspectRatio {
-        let (w, h) = match self {
-            Self::ShortVideo => (9, 16),
-            Self::YouTube => (16, 9),
-            Self::InstagramFeed => (4, 5),
-        };
-        // All three lie within AspectRatio's limits (1..=100 sides, 1:3 to 3:1).
-        AspectRatio::new(w, h).unwrap_or_default()
+        match self {
+            Self::ShortVideo => AspectRatio::PORTRAIT_9_16,
+            Self::YouTube => AspectRatio::LANDSCAPE_16_9,
+            Self::InstagramFeed => AspectRatio::PORTRAIT_4_5,
+        }
     }
 
     /// How it exports.

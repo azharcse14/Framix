@@ -14,6 +14,18 @@ impl AspectRatio {
         height: 16,
     };
 
+    /// Landscape video (YouTube).
+    pub const LANDSCAPE_16_9: Self = Self {
+        width: 16,
+        height: 9,
+    };
+
+    /// Tall feed post (Instagram).
+    pub const PORTRAIT_4_5: Self = Self {
+        width: 4,
+        height: 5,
+    };
+
     /// `width:height` reduced, or `None` unless both sides are 1..=100 and the ratio lies
     /// between 1:3 and 3:1.
     pub fn new(width: u32, height: u32) -> Option<Self> {

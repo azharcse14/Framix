@@ -942,8 +942,7 @@ class SetExportSettings extends $pb.GeneratedMessage {
   void clearKbps() => $_clearField(3);
 }
 
-/// Sets the canvas aspect ratio and the export settings of `preset` (1080p, 30 fps, auto
-/// bitrate) as one undo step.
+/// Sets the canvas aspect ratio and the export settings of `preset` as one undo step.
 class ApplyExportPreset extends $pb.GeneratedMessage {
   factory ApplyExportPreset({
     ExportPreset? preset,
