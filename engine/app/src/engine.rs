@@ -597,16 +597,18 @@ impl Engine {
             }
             command::Kind::TrimToPlayhead(op) => {
                 let id = ClipId(op.clip_id);
-                let edge = proto::ClipEdge::try_from(op.edge)
-                    .ok()
-                    .filter(|e| *e != proto::ClipEdge::Unspecified)
-                    .ok_or_else(|| format!("unknown clip edge {}", op.edge))?;
+                let start_edge = match proto::ClipEdge::try_from(op.edge) {
+                    Ok(proto::ClipEdge::Start) => true,
+                    Ok(proto::ClipEdge::End) => false,
+                    _ => return Err(format!("unknown clip edge {}", op.edge)),
+                };
                 let at = self.playhead;
                 timeline(self.edit(|tl| {
                     let clip = tl.clip(id).ok_or(TimelineError::UnknownClip(id))?;
-                    let (start, end) = match edge {
-                        proto::ClipEdge::Start => (at, clip.end()),
-                        _ => (clip.start, at),
+                    let (start, end) = if start_edge {
+                        (at, clip.end())
+                    } else {
+                        (clip.start, at)
                     };
                     tl.trim_clip(id, start, end)
                 }))
