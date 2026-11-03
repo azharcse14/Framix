@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'Duplicate clip'**
   String get duplicateClip;
 
+  /// No description provided for @applyDurationToAllPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this length for all photos'**
+  String get applyDurationToAllPhotos;
+
   /// No description provided for @mergeClip.
   ///
   /// In en, this message translates to:

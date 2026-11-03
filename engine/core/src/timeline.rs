@@ -470,6 +470,43 @@ impl Timeline {
         Ok(clips)
     }
 
+    /// Gives every photo clip on an unlocked track `duration` (P1-028). Later clips on the same
+    /// track move by the change so gaps and order stay; other tracks don't move. All or nothing.
+    pub fn set_photo_durations(&mut self, duration: Time) -> Result<(), TimelineError> {
+        if duration.0 <= 0 {
+            return Err(TimelineError::NonPositiveDuration);
+        }
+        let mut next = self.tracks.clone();
+        for track in next.iter_mut().filter(|t| !t.flags.locked) {
+            // How far the clips seen so far have pushed (or pulled) what follows.
+            let mut shift: i64 = 0;
+            for clip in &mut track.clips {
+                let start = clip
+                    .start
+                    .0
+                    .checked_add(shift)
+                    .ok_or(TimelineError::TimeOverflow)?;
+                let photo = self
+                    .media
+                    .get(&clip.media)
+                    .is_some_and(|m| m.kind() == MediaKind::Image);
+                let length = if photo { duration } else { clip.duration };
+                // Every clip's end must fit, so Clip::end stays overflow-free.
+                start
+                    .checked_add(length.0)
+                    .ok_or(TimelineError::TimeOverflow)?;
+                // Durations are positive, so the difference cannot overflow.
+                shift = shift
+                    .checked_add(length.0 - clip.duration.0)
+                    .ok_or(TimelineError::TimeOverflow)?;
+                clip.start = Time(start);
+                clip.duration = length;
+            }
+        }
+        self.tracks = next;
+        Ok(())
+    }
+
     /// Registers `media` under a known `id` (project load), keeping new ids above it.
     pub fn restore_media(&mut self, id: MediaId, media: Media) {
         self.reserve_ids_through(id.0);

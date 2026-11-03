@@ -323,6 +323,12 @@ class _ClipActions extends StatelessWidget {
             icon: const Icon(Icons.control_point_duplicate),
             onPressed: () => cubit.duplicateClip(clip),
           ),
+          if (clip.mediaKind == MediaKind.MEDIA_KIND_IMAGE)
+            IconButton(
+              tooltip: l10n.applyDurationToAllPhotos,
+              icon: const Icon(Icons.timer_outlined),
+              onPressed: () => cubit.applyDurationToAllPhotos(clip),
+            ),
           IconButton(
             tooltip: l10n.mergeClip,
             icon: const Icon(Icons.call_merge),

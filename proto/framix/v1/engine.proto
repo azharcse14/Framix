@@ -34,6 +34,7 @@ message Command {
     EnableAutosave enable_autosave = 24;
     ExportProject export_project = 25;
     CancelExport cancel_export = 26;
+    SetPhotoDuration set_photo_duration = 28;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -198,6 +199,12 @@ message TrimClip {
   uint64 clip_id = 1;
   int64 start = 2;
   int64 end = 3;
+}
+
+// Gives every photo clip on an unlocked track `duration` ticks (> 0) as one undo step. Later
+// clips on the same track move by the change, keeping gaps; other tracks don't move.
+message SetPhotoDuration {
+  int64 duration = 1;
 }
 
 // Copies a clip to right after itself; refused if that space is taken.

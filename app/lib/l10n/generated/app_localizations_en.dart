@@ -147,6 +147,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateClip => 'Duplicate clip';
 
   @override
+  String get applyDurationToAllPhotos => 'Use this length for all photos';
+
+  @override
   String get mergeClip => 'Merge with next clip';
 
   @override

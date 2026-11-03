@@ -494,6 +494,9 @@ impl Engine {
             command::Kind::TrimClip(op) => timeline(
                 self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), Time(op.start), Time(op.end))),
             ),
+            command::Kind::SetPhotoDuration(op) => {
+                timeline(self.edit(|tl| tl.set_photo_durations(Time(op.duration))))
+            }
             command::Kind::DuplicateClip(op) => {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
             }

@@ -42,6 +42,7 @@
   "splitClip": "Split at playhead",
   "deleteClip": "Delete clip",
   "duplicateClip": "Duplicate clip",
+  "applyDurationToAllPhotos": "Use this length for all photos",
   "mergeClip": "Merge with next clip",
   "trimStart": "Trim start",
   "trimEnd": "Trim end",

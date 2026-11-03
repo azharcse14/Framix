@@ -146,6 +146,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get duplicateClip => 'ক্লিপের কপি করুন';
 
   @override
+  String get applyDurationToAllPhotos => 'সব ছবিতে এই সময়কাল দিন';
+
+  @override
   String get mergeClip => 'পরের ক্লিপের সাথে জোড়া দিন';
 
   @override

@@ -318,6 +318,15 @@ const Command$json = {
       '9': 0,
       '10': 'cancelExport'
     },
+    {
+      '1': 'set_photo_duration',
+      '3': 28,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SetPhotoDuration',
+      '9': 0,
+      '10': 'setPhotoDuration'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -355,7 +364,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'VuYWJsZV9hdXRvc2F2ZRgYIAEoCzIZLmZyYW1peC52MS5FbmFibGVBdXRvc2F2ZUgAUg5lbmFi'
     'bGVBdXRvc2F2ZRJBCg5leHBvcnRfcHJvamVjdBgZIAEoCzIYLmZyYW1peC52MS5FeHBvcnRQcm'
     '9qZWN0SABSDWV4cG9ydFByb2plY3QSPgoNY2FuY2VsX2V4cG9ydBgaIAEoCzIXLmZyYW1peC52'
-    'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0Eg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
+    'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0EksKEnNldF9waG90b19kdXJhdGlvbhgcIA'
+    'EoCzIbLmZyYW1peC52MS5TZXRQaG90b0R1cmF0aW9uSABSEHNldFBob3RvRHVyYXRpb24SDgoC'
+    'aWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -667,6 +678,18 @@ const TrimClip$json = {
 final $typed_data.Uint8List trimClipDescriptor = $convert.base64Decode(
     'CghUcmltQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSFAoFc3RhcnQYAiABKANSBXN0YX'
     'J0EhAKA2VuZBgDIAEoA1IDZW5k');
+
+@$core.Deprecated('Use setPhotoDurationDescriptor instead')
+const SetPhotoDuration$json = {
+  '1': 'SetPhotoDuration',
+  '2': [
+    {'1': 'duration', '3': 1, '4': 1, '5': 3, '10': 'duration'},
+  ],
+};
+
+/// Descriptor for `SetPhotoDuration`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setPhotoDurationDescriptor = $convert.base64Decode(
+    'ChBTZXRQaG90b0R1cmF0aW9uEhoKCGR1cmF0aW9uGAEgASgDUghkdXJhdGlvbg==');
 
 @$core.Deprecated('Use duplicateClipDescriptor instead')
 const DuplicateClip$json = {

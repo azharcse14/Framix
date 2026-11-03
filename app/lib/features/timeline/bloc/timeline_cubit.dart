@@ -165,6 +165,11 @@ class TimelineCubit extends Cubit<TimelineChanged> {
   void duplicateClip(Clip clip) =>
       _engine.send(Command(duplicateClip: DuplicateClip(clipId: clip.id)));
 
+  /// Gives every photo [clip]'s length; the engine moves the clips after them.
+  void applyDurationToAllPhotos(Clip clip) => _engine.send(
+    Command(setPhotoDuration: SetPhotoDuration(duration: clip.duration)),
+  );
+
   /// Joins [right] into [left]; the engine checks they can be joined.
   void mergeClips(Clip left, Clip right) => _engine.send(
     Command(

@@ -48,6 +48,7 @@ enum Command_Kind {
   enableAutosave,
   exportProject,
   cancelExport,
+  setPhotoDuration,
   notSet
 }
 
@@ -81,6 +82,7 @@ class Command extends $pb.GeneratedMessage {
     ExportProject? exportProject,
     CancelExport? cancelExport,
     $fixnum.Int64? id,
+    SetPhotoDuration? setPhotoDuration,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -110,6 +112,7 @@ class Command extends $pb.GeneratedMessage {
     if (exportProject != null) result.exportProject = exportProject;
     if (cancelExport != null) result.cancelExport = cancelExport;
     if (id != null) result.id = id;
+    if (setPhotoDuration != null) result.setPhotoDuration = setPhotoDuration;
     return result;
   }
 
@@ -149,6 +152,7 @@ class Command extends $pb.GeneratedMessage {
     24: Command_Kind.enableAutosave,
     25: Command_Kind.exportProject,
     26: Command_Kind.cancelExport,
+    28: Command_Kind.setPhotoDuration,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -181,7 +185,8 @@ class Command extends $pb.GeneratedMessage {
       23,
       24,
       25,
-      26
+      26,
+      28
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -237,6 +242,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: CancelExport.$_createMessage)
     ..a<$fixnum.Int64>(27, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<SetPhotoDuration>(28, _omitFieldNames ? '' : 'setPhotoDuration',
+        subBuilder: SetPhotoDuration.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -285,6 +292,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(24)
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
+  @$pb.TagNumber(28)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -312,6 +320,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(24)
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
+  @$pb.TagNumber(28)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -609,6 +618,17 @@ class Command extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(26);
   @$pb.TagNumber(27)
   void clearId() => $_clearField(27);
+
+  @$pb.TagNumber(28)
+  SetPhotoDuration get setPhotoDuration => $_getN(27);
+  @$pb.TagNumber(28)
+  set setPhotoDuration(SetPhotoDuration value) => $_setField(28, value);
+  @$pb.TagNumber(28)
+  $core.bool hasSetPhotoDuration() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearSetPhotoDuration() => $_clearField(28);
+  @$pb.TagNumber(28)
+  SetPhotoDuration ensureSetPhotoDuration() => $_ensure(27);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2059,6 +2079,65 @@ class TrimClip extends $pb.GeneratedMessage {
   $core.bool hasEnd() => $_has(2);
   @$pb.TagNumber(3)
   void clearEnd() => $_clearField(3);
+}
+
+/// Gives every photo clip on an unlocked track `duration` ticks (> 0) as one undo step. Later
+/// clips on the same track move by the change, keeping gaps; other tracks don't move.
+class SetPhotoDuration extends $pb.GeneratedMessage {
+  factory SetPhotoDuration({
+    $fixnum.Int64? duration,
+  }) {
+    final result = SetPhotoDuration._();
+    if (duration != null) result.duration = duration;
+    return result;
+  }
+
+  SetPhotoDuration._();
+
+  factory SetPhotoDuration.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetPhotoDuration()..mergeFromBuffer(data, registry);
+  factory SetPhotoDuration.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetPhotoDuration()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetPhotoDuration',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SetPhotoDuration.$_createMessage)
+    ..aInt64(1, _omitFieldNames ? '' : 'duration')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetPhotoDuration clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetPhotoDuration copyWith(void Function(SetPhotoDuration) updates) =>
+      super.copyWith((message) => updates(message as SetPhotoDuration))
+          as SetPhotoDuration;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SetPhotoDuration() / SetPhotoDuration.new instead')
+  static SetPhotoDuration create() => SetPhotoDuration._();
+  static $pb.GeneratedMessage $_createMessage() => SetPhotoDuration._();
+  @$core.override
+  SetPhotoDuration createEmptyInstance() => SetPhotoDuration._();
+  @$core.pragma('dart2js:noInline')
+  static SetPhotoDuration getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetPhotoDuration>(
+          SetPhotoDuration.$_createMessage);
+  static SetPhotoDuration? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get duration => $_getI64(0);
+  @$pb.TagNumber(1)
+  set duration($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDuration() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDuration() => $_clearField(1);
 }
 
 /// Copies a clip to right after itself; refused if that space is taken.
