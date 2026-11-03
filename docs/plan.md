@@ -394,7 +394,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
 - [x] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
 - [ ] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
-- [ ] `P1-028` **1b:** Photo clip er default duration ar shob photo te ekshathe duration set \[Rust\]
+- [x] `P1-028` **1b:** Photo clip er default duration ar shob photo te ekshathe duration set \[Rust\]
 
 **Clip transform**
 

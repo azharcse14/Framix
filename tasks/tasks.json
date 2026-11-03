@@ -1452,15 +1452,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "9423ef1",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-10-15",
      "text": "Default photo duration (3 s, core::media::PHOTO_DEFAULT_DURATION) done in P1-011; bulk 'set duration on all photos' still open."
+    },
+    {
+     "date": "2026-11-03",
+     "text": "test 2ae0b8f: Dart expectation corrected to the gaps-kept design after the test commit (the trim before applying leaves a gap). Autosave timer ffi tests fail only in the agent sandbox (exists() false after a successful save); green in a clean worktree."
     }
    ],
    "source": "plan"
