@@ -879,8 +879,8 @@ class EnableAutosave extends $pb.GeneratedMessage {
   void clearPath() => $_clearField(1);
 }
 
-/// Sets how the project exports. kbps 0 picks the bitrate from the frame size and rate;
-/// otherwise 1000..=150000. One undo step.
+/// Replaces all export settings at once (the app edits them with ChangeExportSettings). kbps 0
+/// picks the bitrate from the frame size and rate; otherwise 1000..=150000. One undo step.
 class SetExportSettings extends $pb.GeneratedMessage {
   factory SetExportSettings({
     ExportResolution? resolution,

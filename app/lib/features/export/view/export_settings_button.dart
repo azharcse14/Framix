@@ -38,13 +38,6 @@ class _ExportSettingsSheet extends StatelessWidget {
     return BlocSelector<TimelineCubit, TimelineChanged, ExportInfo>(
       selector: (s) => s.export,
       builder: (context, e) {
-        // Only the touched setting is sent; the engine keeps the others.
-        void set({ExportResolution? resolution, ExportFps? fps, int? kbps}) =>
-            cubit.changeExportSettings(
-              resolution: resolution,
-              fps: fps,
-              kbps: kbps,
-            );
         final auto = e.kbps == 0;
         return SafeArea(
           child: Padding(
@@ -78,7 +71,8 @@ class _ExportSettingsSheet extends StatelessWidget {
                       ButtonSegment(value: r, label: Text(label)),
                   ],
                   selected: {e.resolution},
-                  onSelectionChanged: (s) => set(resolution: s.first),
+                  onSelectionChanged: (s) =>
+                      cubit.changeExportSettings(resolution: s.first),
                 ),
                 const SizedBox(height: FramixSpace.m),
                 Text(l10n.exportFrameRate),
@@ -96,7 +90,8 @@ class _ExportSettingsSheet extends StatelessWidget {
                       ),
                   ],
                   selected: {e.fps},
-                  onSelectionChanged: (s) => set(fps: s.first),
+                  onSelectionChanged: (s) =>
+                      cubit.changeExportSettings(fps: s.first),
                 ),
                 const SizedBox(height: FramixSpace.m),
                 // Turning auto off keeps the bitrate the engine was using.
@@ -104,14 +99,16 @@ class _ExportSettingsSheet extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.autoBitrate),
                   value: auto,
-                  onChanged: (on) => set(kbps: on ? 0 : e.effectiveKbps),
+                  onChanged: (on) => cubit.changeExportSettings(
+                    kbps: on ? 0 : e.effectiveKbps,
+                  ),
                 ),
                 if (!auto && e.maxKbps > e.minKbps)
                   _BitrateSlider(
                     kbps: e.kbps,
                     min: e.minKbps,
                     max: e.maxKbps,
-                    onDone: (kbps) => set(kbps: kbps),
+                    onDone: (kbps) => cubit.changeExportSettings(kbps: kbps),
                   ),
                 Text(l10n.bitrateKbps(e.effectiveKbps)),
                 Text(l10n.exportFrameSize(e.width, e.height)),
@@ -129,7 +126,7 @@ class _ExportSettingsSheet extends StatelessWidget {
   }
 }
 
-/// Follows the finger locally and sends one SetExportSettings on release, so a drag is one
+/// Follows the finger locally and sends one ChangeExportSettings (kbps only) on release, so a drag is one
 /// undo step.
 class _BitrateSlider extends StatefulWidget {
   const _BitrateSlider({
