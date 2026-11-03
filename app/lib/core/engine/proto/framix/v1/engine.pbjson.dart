@@ -1373,6 +1373,13 @@ const Clip$json = {
     {'1': 'y', '3': 15, '4': 1, '5': 5, '10': 'y'},
     {'1': 'scale', '3': 16, '4': 1, '5': 13, '10': 'scale'},
     {'1': 'color', '3': 17, '4': 1, '5': 7, '10': 'color'},
+    {
+      '1': 'mergeable_with_next',
+      '3': 18,
+      '4': 1,
+      '5': 8,
+      '10': 'mergeableWithNext'
+    },
   ],
 };
 
@@ -1386,7 +1393,8 @@ final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     'EoDVIIY3JvcExlZnQSGQoIY3JvcF90b3AYCyABKA1SB2Nyb3BUb3ASHQoKY3JvcF9yaWdodBgM'
     'IAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGA0gASgNUgpjcm9wQm90dG9tEgwKAXgYDi'
     'ABKAVSAXgSDAoBeRgPIAEoBVIBeRIUCgVzY2FsZRgQIAEoDVIFc2NhbGUSFAoFY29sb3IYESAB'
-    'KAdSBWNvbG9y');
+    'KAdSBWNvbG9yEi4KE21lcmdlYWJsZV93aXRoX25leHQYEiABKAhSEW1lcmdlYWJsZVdpdGhOZX'
+    'h0');
 
 @$core.Deprecated('Use projectSavedDescriptor instead')
 const ProjectSaved$json = {

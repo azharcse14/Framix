@@ -820,7 +820,8 @@ impl Engine {
                     clips: t
                         .clips()
                         .iter()
-                        .map(|c| proto::Clip {
+                        .enumerate()
+                        .map(|(i, c)| proto::Clip {
                             id: c.id.0,
                             media_id: c.media.0,
                             source_start: c.source_start.0,
@@ -843,6 +844,7 @@ impl Engine {
                             x: c.transform.x,
                             y: c.transform.y,
                             scale: c.transform.scale,
+                            mergeable_with_next: t.mergeable_with_next(i),
                         })
                         .collect(),
                     number: *count,

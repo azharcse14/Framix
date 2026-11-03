@@ -359,7 +359,9 @@ class _ClipActions extends StatelessWidget {
           IconButton(
             tooltip: l10n.mergeClip,
             icon: const Icon(Icons.call_merge),
-            onPressed: next == null ? null : () => cubit.mergeClips(clip, next),
+            onPressed: next == null || !clip.mergeableWithNext
+                ? null
+                : () => cubit.mergeClips(clip, next),
           ),
           IconButton(
             tooltip: l10n.deleteClip,

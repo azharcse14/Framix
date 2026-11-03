@@ -215,6 +215,14 @@ impl Track {
         &self.clips
     }
 
+    /// Whether [`Timeline::merge_clips`] would join the clip at `index` with the next one.
+    pub fn mergeable_with_next(&self, index: usize) -> bool {
+        let (Some(l), Some(r)) = (self.clips.get(index), self.clips.get(index + 1)) else {
+            return false;
+        };
+        !self.flags.locked && continues(l, r) && l.transform == r.transform
+    }
+
     /// The clip covering `time`, if any.
     pub fn clip_at(&self, time: Time) -> Option<&Clip> {
         let after = self.clips.partition_point(|c| c.start <= time);
@@ -569,13 +577,7 @@ impl Timeline {
         let (rt, j) = self.locate(right)?;
         let clips = &mut self.tracks[t].clips;
         let (l, r) = (clips[i], clips.get(j).copied().filter(|_| rt == t));
-        let continuous = |r: &Clip| {
-            j == i + 1
-                && l.end() == r.start
-                && l.media == r.media
-                && l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0)
-        };
-        let Some(r) = r.filter(continuous) else {
+        let Some(r) = r.filter(|r| j == i + 1 && continues(&l, r)) else {
             return Err(TimelineError::NotMergeable);
         };
         if l.transform != r.transform {
@@ -867,6 +869,13 @@ impl Timeline {
         self.next_id += 1;
         self.next_id
     }
+}
+
+/// `r` picks up where `l` ends: right after it, the same media, the next source frame.
+fn continues(l: &Clip, r: &Clip) -> bool {
+    l.end() == r.start
+        && l.media == r.media
+        && l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0)
 }
 
 /// Index where a clip spanning `[start, end)` goes in the sorted, non-overlapping `clips`, or

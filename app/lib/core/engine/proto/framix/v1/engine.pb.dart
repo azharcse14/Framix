@@ -4499,6 +4499,7 @@ class Clip extends $pb.GeneratedMessage {
     $core.int? y,
     $core.int? scale,
     $core.int? color,
+    $core.bool? mergeableWithNext,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -4518,6 +4519,7 @@ class Clip extends $pb.GeneratedMessage {
     if (y != null) result.y = y;
     if (scale != null) result.scale = scale;
     if (color != null) result.color = color;
+    if (mergeableWithNext != null) result.mergeableWithNext = mergeableWithNext;
     return result;
   }
 
@@ -4555,6 +4557,7 @@ class Clip extends $pb.GeneratedMessage {
     ..aI(15, _omitFieldNames ? '' : 'y')
     ..aI(16, _omitFieldNames ? '' : 'scale', fieldType: $pb.PbFieldType.OU3)
     ..aI(17, _omitFieldNames ? '' : 'color', fieldType: $pb.PbFieldType.OF3)
+    ..aOB(18, _omitFieldNames ? '' : 'mergeableWithNext')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4732,6 +4735,16 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasColor() => $_has(16);
   @$pb.TagNumber(17)
   void clearColor() => $_clearField(17);
+
+  /// MergeClips would join this clip with the next one on its track.
+  @$pb.TagNumber(18)
+  $core.bool get mergeableWithNext => $_getBF(17);
+  @$pb.TagNumber(18)
+  set mergeableWithNext($core.bool value) => $_setBool(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasMergeableWithNext() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearMergeableWithNext() => $_clearField(18);
 }
 
 /// SaveProject finished.

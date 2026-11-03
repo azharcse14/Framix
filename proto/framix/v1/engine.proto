@@ -488,6 +488,8 @@ message Clip {
   uint32 scale = 16;
   // 0xRRGGBBAA of a MEDIA_KIND_COLOR clip, 0 for others.
   fixed32 color = 17;
+  // MergeClips would join this clip with the next one on its track.
+  bool mergeable_with_next = 18;
 }
 
 // SaveProject finished.
