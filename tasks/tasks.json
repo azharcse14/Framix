@@ -13864,12 +13864,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "9a1bfe3",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "New FixBitrate command instead of a field on ChangeExportSettings: frozen tests build that struct literally. SetExportSettings stays as the documented full-replace form (no app caller)."
+    }
+   ],
    "source": "added"
   }
  ]
