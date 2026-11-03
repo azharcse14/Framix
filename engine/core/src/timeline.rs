@@ -220,7 +220,7 @@ impl Track {
         let (Some(l), Some(r)) = (self.clips.get(index), self.clips.get(index + 1)) else {
             return false;
         };
-        !self.flags.locked && continues(l, r) && l.transform == r.transform
+        !self.flags.locked && merge_refusal(l, r).is_none()
     }
 
     /// The clip covering `time`, if any.
@@ -577,11 +577,11 @@ impl Timeline {
         let (rt, j) = self.locate(right)?;
         let clips = &mut self.tracks[t].clips;
         let (l, r) = (clips[i], clips.get(j).copied().filter(|_| rt == t));
-        let Some(r) = r.filter(|r| j == i + 1 && continues(&l, r)) else {
+        let Some(r) = r.filter(|_| j == i + 1) else {
             return Err(TimelineError::NotMergeable);
         };
-        if l.transform != r.transform {
-            return Err(TimelineError::TransformsDiffer);
+        if let Some(refused) = merge_refusal(&l, &r) {
+            return Err(refused);
         }
         // Fits: it is r.end() - l.start, and r.end() fits.
         clips[i].duration = Time(l.duration.0 + r.duration.0);
@@ -871,11 +871,21 @@ impl Timeline {
     }
 }
 
-/// `r` picks up where `l` ends: right after it, the same media, the next source frame.
-fn continues(l: &Clip, r: &Clip) -> bool {
-    l.end() == r.start
+/// Why `r`, the clip right after `l` on an unlocked track, cannot be merged into it; `None` if
+/// it can. The one home of the merge rule ([`Timeline::merge_clips`],
+/// [`Track::mergeable_with_next`]).
+fn merge_refusal(l: &Clip, r: &Clip) -> Option<TimelineError> {
+    // `r` picks up where `l` ends: right after it, the same media, the next source frame.
+    let continues = l.end() == r.start
         && l.media == r.media
-        && l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0)
+        && l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0);
+    if !continues {
+        Some(TimelineError::NotMergeable)
+    } else if l.transform != r.transform {
+        Some(TimelineError::TransformsDiffer)
+    } else {
+        None
+    }
 }
 
 /// Index where a clip spanning `[start, end)` goes in the sorted, non-overlapping `clips`, or
