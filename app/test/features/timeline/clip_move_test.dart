@@ -145,6 +145,8 @@ void main() {
             w is ClipBox && (clip(tester).left - (before.left + 100)).abs() < 1,
       ),
     );
+    // Let the last gesture's timers run out, or this press is not a long press.
+    await tester.pump(const Duration(seconds: 1));
     await longPressDrag(tester, const Offset(-150, 0));
     await pumpUntil(
       tester,
@@ -193,7 +195,9 @@ void main() {
         (w) => w is ClipBox && (at(1).left - (origin + 400)).abs() < 1,
       ),
     );
-    // The first clip dropped at 1.95 s ends 0.05 s before 4 s, so it lands at 2 s.
+    // The first clip dropped at 1.95 s ends 0.05 s before 4 s, so it lands at 2 s. Let the
+    // last gesture's timers run out first, or this press is not a long press.
+    await tester.pump(const Duration(seconds: 1));
     await drag(0, const Offset(195, 0));
     await pumpUntil(
       tester,
