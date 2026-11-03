@@ -1389,12 +1389,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-03",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-03",
+   "commit": "9b7fcda",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "precise trim = frame-step + trim edge to playhead (no frame-snapped drag handles)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12741,7 +12746,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "P1-025: 'Trim start/end to playhead' can lengthen a clip when the playhead is in a gap; the media-length check must cover them too."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13730,6 +13740,26 @@
    "section": "P1",
    "group": null,
    "title": "Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker)",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-081",
+   "section": "P1",
+   "group": null,
+   "title": "Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review)",
    "tags": [
     "Rust",
     "Dart"

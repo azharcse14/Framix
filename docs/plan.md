@@ -391,7 +391,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-022` Snapping ar haptic feedback \[Dart\]
 - [x] `P1-023` Undo/redo (command pattern) \[Rust\]
 - [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
-- [ ] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
+- [x] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
 - [x] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
 - [ ] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
 - [x] `P1-028` **1b:** Photo clip er default duration ar shob photo te ekshathe duration set \[Rust\]
@@ -456,6 +456,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-078` Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip \[Rust\]
 - [ ] `P1-079` Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export) \[Rust\]
 - [ ] `P1-080` Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker) \[Rust\] \[Dart\]
+- [ ] `P1-081` Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 
