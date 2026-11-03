@@ -439,7 +439,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-061` Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md) \[Rust\] \[Dart\]
 - [ ] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
 - [ ] `P1-063` Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale) \[Rust\] \[Dart\]
-- [ ] `P1-064` Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen \[Dart\]
+- [x] `P1-064` Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen \[Dart\]
 - [ ] `P1-065` Platform answers arriving after engine Shutdown drop their PlatformTexture without releasing it (small leak; send error path in ffi platform host) \[Rust\] \[Native\]
 - [ ] `P1-066` Autosave wiring: platform gives the app-support dir (create it), app sends EnableAutosave at startup before edits, shows 'Shesh kaj porjonto save ache' after a recovery, and decides clean exit vs crash (the file stays after a normal shutdown; add Discard/Disable if needed) \[Dart\] \[Native\]
 - [ ] `P1-067` Autosave file that won't load: set it aside (or restore .bak1) and enable again, so one bad file doesn't end crash protection; note FileStore rotates backups on every autosave, so .bak1/.bak2 are seconds apart \[Rust\]
@@ -457,6 +457,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-079` Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export) \[Rust\]
 - [ ] `P1-080` Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker) \[Rust\] \[Dart\]
 - [x] `P1-081` Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review) \[Rust\] \[Dart\]
+- [ ] `P1-082` Export settings edits merge in the engine (optional fields on SetExportSettings, like SetTrackFlags), so quick taps (4K then 60 fps) can't resend a stale value; test two taps without waiting, a slider drag sending once, and auto back on -> kbps 0 (P1-064 review) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 
@@ -934,6 +935,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-030` Beta te in-app feedback (screenshot shoho) \[Dart\]
 - [ ] `UX-031` Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas \[Dart\]
 - [ ] `UX-032` Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons \[Dart\]
+- [ ] `UX-033` App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review) \[Dart\]
 
 ## Design system
 
@@ -1164,7 +1166,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 - [ ] `ENG-055` Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review) \[Rust\]
 - [x] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
-- [ ] `ENG-057` ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep \[Rust\]
+- [x] `ENG-057` ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep \[Rust\]
 
 **Security**
 

@@ -1719,7 +1719,12 @@
    "done": "2026-10-23",
    "commit": "0b3019c",
    "branch": "p1-038-autosave",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "ENG-057 changed engine_autosave_timer.rs: the 2 s window starts at the edit's reply and checks the save has begun (.tmp or file); the finished file is then awaited (10 s) before shutdown, and a CommandFailed while draining fails the test."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13326,11 +13331,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "f2aa8da",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-10-23",
@@ -13343,6 +13348,10 @@
     {
      "date": "2026-10-24",
      "text": "P1-035: use ExportCubit (start(path), cancel(), states idle/running(frame, frames)/done/cancelled/failed(reason))."
+    },
+    {
+     "date": "2026-11-03",
+     "text": "Review nits left: bytes->MB round-up is written twice (export_buttons, export_settings_button) - share it next time; MB/GB not done (long 4K exports show e.g. 12000 MB); bn sheet mixes digit systems (fps/size plain ints vs decimalPattern kbps/MB)."
     }
    ],
    "source": "added"
@@ -13786,17 +13795,56 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "5500464",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-03",
      "text": "Root cause (2026-11-03): the timer fires on time (autosave starts 1.0 s after the edit) but FileStore::save takes >1 s now and then: sync_all is F_FULLFSYNC on macOS (plus sync_parent), so the fixed 2 s sleep sometimes checks mid-save. ~1 in 4 runs alone. Fix the test to wait for the saved file with a deadline (or an observable 'saved' signal), keeping the 'starts within AUTOSAVE_DELAY' requirement; don't just lengthen the sleep."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-082",
+   "section": "P1",
+   "group": null,
+   "title": "Export settings edits merge in the engine (optional fields on SetExportSettings, like SetTrackFlags), so quick taps (4K then 60 fps) can't resend a stale value; test two taps without waiting, a slider drag sending once, and auto back on -> kbps 0 (P1-064 review)",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-033",
+   "section": "UX",
+   "group": null,
+   "title": "App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
