@@ -1695,11 +1695,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "b40354e",
+   "branch": "main",
    "notes": [],
    "source": "plan"
   },
@@ -13773,6 +13773,30 @@
    "commit": "c7c5469",
    "branch": "main",
    "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-057",
+   "section": "ENG",
+   "group": null,
+   "title": "ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "Root cause (2026-11-03): the timer fires on time (autosave starts 1.0 s after the edit) but FileStore::save takes >1 s now and then: sync_all is F_FULLFSYNC on macOS (plus sync_parent), so the fixed 2 s sleep sometimes checks mid-save. ~1 in 4 runs alone. Fix the test to wait for the saved file with a deadline (or an observable 'saved' signal), keeping the 'starts within AUTOSAVE_DELAY' requirement; don't just lengthen the sleep."
+    }
+   ],
    "source": "added"
   }
  ]
