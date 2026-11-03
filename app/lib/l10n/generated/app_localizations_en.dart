@@ -83,6 +83,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zoomOut => 'Zoom out';
 
   @override
+  String get exportPresets => 'Platform presets';
+
+  @override
+  String get presetShortVideo => 'TikTok · Reels · Shorts';
+
+  @override
+  String get presetYouTube => 'YouTube';
+
+  @override
+  String get presetInstagramFeed => 'Instagram feed';
+
+  @override
   String get previousFrame => 'Previous frame';
 
   @override

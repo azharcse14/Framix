@@ -51,6 +51,7 @@ enum Command_Kind {
   setPhotoDuration,
   stepFrame,
   trimToPlayhead,
+  applyExportPreset,
   notSet
 }
 
@@ -87,6 +88,7 @@ class Command extends $pb.GeneratedMessage {
     SetPhotoDuration? setPhotoDuration,
     StepFrame? stepFrame,
     TrimToPlayhead? trimToPlayhead,
+    ApplyExportPreset? applyExportPreset,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -119,6 +121,7 @@ class Command extends $pb.GeneratedMessage {
     if (setPhotoDuration != null) result.setPhotoDuration = setPhotoDuration;
     if (stepFrame != null) result.stepFrame = stepFrame;
     if (trimToPlayhead != null) result.trimToPlayhead = trimToPlayhead;
+    if (applyExportPreset != null) result.applyExportPreset = applyExportPreset;
     return result;
   }
 
@@ -161,6 +164,7 @@ class Command extends $pb.GeneratedMessage {
     28: Command_Kind.setPhotoDuration,
     29: Command_Kind.stepFrame,
     30: Command_Kind.trimToPlayhead,
+    31: Command_Kind.applyExportPreset,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -196,7 +200,8 @@ class Command extends $pb.GeneratedMessage {
       26,
       28,
       29,
-      30
+      30,
+      31
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -258,6 +263,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: StepFrame.$_createMessage)
     ..aOM<TrimToPlayhead>(30, _omitFieldNames ? '' : 'trimToPlayhead',
         subBuilder: TrimToPlayhead.$_createMessage)
+    ..aOM<ApplyExportPreset>(31, _omitFieldNames ? '' : 'applyExportPreset',
+        subBuilder: ApplyExportPreset.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -309,6 +316,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   @$pb.TagNumber(29)
   @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -339,6 +347,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   @$pb.TagNumber(29)
   @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -669,6 +678,17 @@ class Command extends $pb.GeneratedMessage {
   void clearTrimToPlayhead() => $_clearField(30);
   @$pb.TagNumber(30)
   TrimToPlayhead ensureTrimToPlayhead() => $_ensure(29);
+
+  @$pb.TagNumber(31)
+  ApplyExportPreset get applyExportPreset => $_getN(30);
+  @$pb.TagNumber(31)
+  set applyExportPreset(ApplyExportPreset value) => $_setField(31, value);
+  @$pb.TagNumber(31)
+  $core.bool hasApplyExportPreset() => $_has(30);
+  @$pb.TagNumber(31)
+  void clearApplyExportPreset() => $_clearField(31);
+  @$pb.TagNumber(31)
+  ApplyExportPreset ensureApplyExportPreset() => $_ensure(30);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -920,6 +940,66 @@ class SetExportSettings extends $pb.GeneratedMessage {
   $core.bool hasKbps() => $_has(2);
   @$pb.TagNumber(3)
   void clearKbps() => $_clearField(3);
+}
+
+/// Sets the canvas aspect ratio and the export settings of `preset` (1080p, 30 fps, auto
+/// bitrate) as one undo step.
+class ApplyExportPreset extends $pb.GeneratedMessage {
+  factory ApplyExportPreset({
+    ExportPreset? preset,
+  }) {
+    final result = ApplyExportPreset._();
+    if (preset != null) result.preset = preset;
+    return result;
+  }
+
+  ApplyExportPreset._();
+
+  factory ApplyExportPreset.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ApplyExportPreset()..mergeFromBuffer(data, registry);
+  factory ApplyExportPreset.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ApplyExportPreset()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ApplyExportPreset',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ApplyExportPreset.$_createMessage)
+    ..aE<ExportPreset>(1, _omitFieldNames ? '' : 'preset',
+        enumValues: ExportPreset.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ApplyExportPreset clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ApplyExportPreset copyWith(void Function(ApplyExportPreset) updates) =>
+      super.copyWith((message) => updates(message as ApplyExportPreset))
+          as ApplyExportPreset;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ApplyExportPreset() / ApplyExportPreset.new instead')
+  static ApplyExportPreset create() => ApplyExportPreset._();
+  static $pb.GeneratedMessage $_createMessage() => ApplyExportPreset._();
+  @$core.override
+  ApplyExportPreset createEmptyInstance() => ApplyExportPreset._();
+  @$core.pragma('dart2js:noInline')
+  static ApplyExportPreset getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ApplyExportPreset>(
+          ApplyExportPreset.$_createMessage);
+  static ApplyExportPreset? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ExportPreset get preset => $_getN(0);
+  @$pb.TagNumber(1)
+  set preset(ExportPreset value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPreset() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPreset() => $_clearField(1);
 }
 
 /// The project's export settings and what they mean for the current canvas.

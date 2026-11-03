@@ -212,6 +212,30 @@ abstract class AppLocalizations {
   /// **'Zoom out'**
   String get zoomOut;
 
+  /// No description provided for @exportPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform presets'**
+  String get exportPresets;
+
+  /// No description provided for @presetShortVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok · Reels · Shorts'**
+  String get presetShortVideo;
+
+  /// No description provided for @presetYouTube.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube'**
+  String get presetYouTube;
+
+  /// No description provided for @presetInstagramFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram feed'**
+  String get presetInstagramFeed;
+
   /// No description provided for @previousFrame.
   ///
   /// In en, this message translates to:

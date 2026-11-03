@@ -82,6 +82,18 @@ class AppLocalizationsBn extends AppLocalizations {
   String get zoomOut => 'জুম আউট';
 
   @override
+  String get exportPresets => 'প্ল্যাটফর্ম প্রিসেট';
+
+  @override
+  String get presetShortVideo => 'TikTok · Reels · Shorts';
+
+  @override
+  String get presetYouTube => 'YouTube';
+
+  @override
+  String get presetInstagramFeed => 'Instagram ফিড';
+
+  @override
   String get previousFrame => 'আগের ফ্রেম';
 
   @override

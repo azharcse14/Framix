@@ -37,6 +37,7 @@ message Command {
     SetPhotoDuration set_photo_duration = 28;
     StepFrame step_frame = 29;
     TrimToPlayhead trim_to_playhead = 30;
+    ApplyExportPreset apply_export_preset = 31;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -84,6 +85,23 @@ message SetExportSettings {
   ExportResolution resolution = 1;
   ExportFps fps = 2;
   uint32 kbps = 3;
+}
+
+// A platform's canvas and export settings.
+enum ExportPreset {
+  EXPORT_PRESET_UNSPECIFIED = 0;
+  // TikTok, Reels, Shorts: 9:16.
+  EXPORT_PRESET_SHORT_VIDEO = 1;
+  // 16:9.
+  EXPORT_PRESET_YOUTUBE = 2;
+  // 4:5.
+  EXPORT_PRESET_INSTAGRAM_FEED = 3;
+}
+
+// Sets the canvas aspect ratio and the export settings of `preset` (1080p, 30 fps, auto
+// bitrate) as one undo step.
+message ApplyExportPreset {
+  ExportPreset preset = 1;
 }
 
 // The project's export settings and what they mean for the current canvas.

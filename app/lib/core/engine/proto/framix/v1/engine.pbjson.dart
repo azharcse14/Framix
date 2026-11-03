@@ -49,6 +49,23 @@ final $typed_data.Uint8List exportFpsDescriptor = $convert.base64Decode(
     'CglFeHBvcnRGcHMSGgoWRVhQT1JUX0ZQU19VTlNQRUNJRklFRBAAEhEKDUVYUE9SVF9GUFNfMj'
     'QQARIRCg1FWFBPUlRfRlBTXzMwEAISEQoNRVhQT1JUX0ZQU182MBAD');
 
+@$core.Deprecated('Use exportPresetDescriptor instead')
+const ExportPreset$json = {
+  '1': 'ExportPreset',
+  '2': [
+    {'1': 'EXPORT_PRESET_UNSPECIFIED', '2': 0},
+    {'1': 'EXPORT_PRESET_SHORT_VIDEO', '2': 1},
+    {'1': 'EXPORT_PRESET_YOUTUBE', '2': 2},
+    {'1': 'EXPORT_PRESET_INSTAGRAM_FEED', '2': 3},
+  ],
+};
+
+/// Descriptor for `ExportPreset`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List exportPresetDescriptor = $convert.base64Decode(
+    'CgxFeHBvcnRQcmVzZXQSHQoZRVhQT1JUX1BSRVNFVF9VTlNQRUNJRklFRBAAEh0KGUVYUE9SVF'
+    '9QUkVTRVRfU0hPUlRfVklERU8QARIZChVFWFBPUlRfUFJFU0VUX1lPVVRVQkUQAhIgChxFWFBP'
+    'UlRfUFJFU0VUX0lOU1RBR1JBTV9GRUVEEAM=');
+
 @$core.Deprecated('Use trackKindDescriptor instead')
 const TrackKind$json = {
   '1': 'TrackKind',
@@ -360,6 +377,15 @@ const Command$json = {
       '9': 0,
       '10': 'trimToPlayhead'
     },
+    {
+      '1': 'apply_export_preset',
+      '3': 31,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ApplyExportPreset',
+      '9': 0,
+      '10': 'applyExportPreset'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -401,7 +427,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'EoCzIbLmZyYW1peC52MS5TZXRQaG90b0R1cmF0aW9uSABSEHNldFBob3RvRHVyYXRpb24SNQoK'
     'c3RlcF9mcmFtZRgdIAEoCzIULmZyYW1peC52MS5TdGVwRnJhbWVIAFIJc3RlcEZyYW1lEkUKEH'
     'RyaW1fdG9fcGxheWhlYWQYHiABKAsyGS5mcmFtaXgudjEuVHJpbVRvUGxheWhlYWRIAFIOdHJp'
-    'bVRvUGxheWhlYWQSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
+    'bVRvUGxheWhlYWQSTgoTYXBwbHlfZXhwb3J0X3ByZXNldBgfIAEoCzIcLmZyYW1peC52MS5BcH'
+    'BseUV4cG9ydFByZXNldEgAUhFhcHBseUV4cG9ydFByZXNldBIOCgJpZBgbIAEoBFICaWRCBgoE'
+    'a2luZA==');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -465,6 +493,26 @@ final $typed_data.Uint8List setExportSettingsDescriptor = $convert.base64Decode(
     'ChFTZXRFeHBvcnRTZXR0aW5ncxI7CgpyZXNvbHV0aW9uGAEgASgOMhsuZnJhbWl4LnYxLkV4cG'
     '9ydFJlc29sdXRpb25SCnJlc29sdXRpb24SJgoDZnBzGAIgASgOMhQuZnJhbWl4LnYxLkV4cG9y'
     'dEZwc1IDZnBzEhIKBGticHMYAyABKA1SBGticHM=');
+
+@$core.Deprecated('Use applyExportPresetDescriptor instead')
+const ApplyExportPreset$json = {
+  '1': 'ApplyExportPreset',
+  '2': [
+    {
+      '1': 'preset',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ExportPreset',
+      '10': 'preset'
+    },
+  ],
+};
+
+/// Descriptor for `ApplyExportPreset`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List applyExportPresetDescriptor = $convert.base64Decode(
+    'ChFBcHBseUV4cG9ydFByZXNldBIvCgZwcmVzZXQYASABKA4yFy5mcmFtaXgudjEuRXhwb3J0UH'
+    'Jlc2V0UgZwcmVzZXQ=');
 
 @$core.Deprecated('Use exportInfoDescriptor instead')
 const ExportInfo$json = {

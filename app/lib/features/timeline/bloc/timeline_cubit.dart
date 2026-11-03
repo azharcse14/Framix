@@ -46,6 +46,11 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Sets the canvas and export settings of a platform [preset] in one undo step.
+  void applyExportPreset(ExportPreset preset) => _engine.send(
+    Command(applyExportPreset: ApplyExportPreset(preset: preset)),
+  );
+
   /// Changes only the given switches; the engine keeps the rest and validates the result
   /// (e.g. audio can't hide), so quick taps on different switches don't undo each other.
   void setTrackFlags(Track track, {bool? muted, bool? hidden, bool? locked}) =>

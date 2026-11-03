@@ -138,3 +138,38 @@ impl ExportSettings {
         }
     }
 }
+
+/// A platform's canvas and export settings in one choice (P1-037).
+// ponytail: every preset is 1080p 30 fps with an auto bitrate today; give one its own rate
+// when a platform needs it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Preset {
+    /// TikTok, Reels, Shorts: 9:16.
+    ShortVideo,
+    /// YouTube: 16:9.
+    YouTube,
+    /// Instagram feed: 4:5.
+    InstagramFeed,
+}
+
+impl Preset {
+    /// The canvas shape.
+    pub fn aspect(self) -> AspectRatio {
+        let (w, h) = match self {
+            Self::ShortVideo => (9, 16),
+            Self::YouTube => (16, 9),
+            Self::InstagramFeed => (4, 5),
+        };
+        // All three lie within AspectRatio's limits (1..=100 sides, 1:3 to 3:1).
+        AspectRatio::new(w, h).unwrap_or_default()
+    }
+
+    /// How it exports.
+    pub fn settings(self) -> ExportSettings {
+        ExportSettings {
+            resolution: Resolution::P1080,
+            fps: FrameRate::F30,
+            bitrate: Bitrate::Auto,
+        }
+    }
+}

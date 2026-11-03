@@ -68,6 +68,38 @@ class ExportFps extends $pb.ProtobufEnum {
   const ExportFps._(super.value, super.name);
 }
 
+/// A platform's canvas and export settings.
+class ExportPreset extends $pb.ProtobufEnum {
+  static const ExportPreset EXPORT_PRESET_UNSPECIFIED =
+      ExportPreset._(0, _omitEnumNames ? '' : 'EXPORT_PRESET_UNSPECIFIED');
+
+  /// TikTok, Reels, Shorts: 9:16.
+  static const ExportPreset EXPORT_PRESET_SHORT_VIDEO =
+      ExportPreset._(1, _omitEnumNames ? '' : 'EXPORT_PRESET_SHORT_VIDEO');
+
+  /// 16:9.
+  static const ExportPreset EXPORT_PRESET_YOUTUBE =
+      ExportPreset._(2, _omitEnumNames ? '' : 'EXPORT_PRESET_YOUTUBE');
+
+  /// 4:5.
+  static const ExportPreset EXPORT_PRESET_INSTAGRAM_FEED =
+      ExportPreset._(3, _omitEnumNames ? '' : 'EXPORT_PRESET_INSTAGRAM_FEED');
+
+  static const $core.List<ExportPreset> values = <ExportPreset>[
+    EXPORT_PRESET_UNSPECIFIED,
+    EXPORT_PRESET_SHORT_VIDEO,
+    EXPORT_PRESET_YOUTUBE,
+    EXPORT_PRESET_INSTAGRAM_FEED,
+  ];
+
+  static final $core.List<ExportPreset?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static ExportPreset? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ExportPreset._(super.value, super.name);
+}
+
 /// What a track carries.
 class TrackKind extends $pb.ProtobufEnum {
   static const TrackKind TRACK_KIND_UNSPECIFIED =

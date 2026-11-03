@@ -1,7 +1,7 @@
 //! Turns UI commands into timeline edits and reports the result as an event.
 
 use framix_core::aspect::AspectRatio;
-use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
+use framix_core::export::{Bitrate, ExportSettings, FrameRate, Preset, Resolution};
 use framix_core::media::{self, Media, RawMedia};
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{
@@ -594,6 +594,19 @@ impl Engine {
                     .flatten();
                 self.move_playhead(snapped.unwrap_or(Time(seek.time)));
                 Ok(Reply::Playhead(snapped.is_some()))
+            }
+            command::Kind::ApplyExportPreset(op) => {
+                let preset = match proto::ExportPreset::try_from(op.preset) {
+                    Ok(proto::ExportPreset::ShortVideo) => Preset::ShortVideo,
+                    Ok(proto::ExportPreset::Youtube) => Preset::YouTube,
+                    Ok(proto::ExportPreset::InstagramFeed) => Preset::InstagramFeed,
+                    _ => return Err(format!("unknown export preset {}", op.preset)),
+                };
+                timeline(self.edit(|tl| {
+                    tl.set_aspect(preset.aspect());
+                    tl.set_export(preset.settings());
+                    Ok::<_, TimelineError>(())
+                }))
             }
             command::Kind::TrimToPlayhead(op) => {
                 let id = ClipId(op.clip_id);

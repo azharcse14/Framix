@@ -9,10 +9,11 @@ import '../bloc/timeline_cubit.dart';
 /// Ratios offered to the user; the engine validates and stores them reduced.
 const _presets = [(9, 16), (16, 9), (1, 1), (4, 5), (3, 4), (21, 9)];
 
-/// Height of the canvas outline until the real preview Texture replaces it.
-const _canvasHeight = 160.0;
+/// Height of the canvas outline until the real preview Texture replaces it: 160 dp less the
+/// platform preset row (one 48 dp chip row), so the bar keeps its height.
+const _canvasHeight = 112.0;
 
-/// Canvas outline in the engine's aspect ratio, and the preset chips to change it.
+/// Canvas outline in the engine's aspect ratio, platform preset chips, and the ratio chips.
 class AspectRatioBar extends StatelessWidget {
   const AspectRatioBar({super.key});
 
@@ -44,6 +45,40 @@ class AspectRatioBar extends StatelessWidget {
                       ),
                     )
                   : null,
+            ),
+            Semantics(
+              label: l10n.exportPresets,
+              container: true,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
+                child: Row(
+                  children: [
+                    for (final (preset, label) in [
+                      (
+                        ExportPreset.EXPORT_PRESET_SHORT_VIDEO,
+                        l10n.presetShortVideo,
+                      ),
+                      (ExportPreset.EXPORT_PRESET_YOUTUBE, l10n.presetYouTube),
+                      (
+                        ExportPreset.EXPORT_PRESET_INSTAGRAM_FEED,
+                        l10n.presetInstagramFeed,
+                      ),
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: FramixSpace.s / 2,
+                        ),
+                        child: ActionChip(
+                          label: Text(label),
+                          onPressed: () => context
+                              .read<TimelineCubit>()
+                              .applyExportPreset(preset),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
             Semantics(
               label: l10n.aspectRatio,
