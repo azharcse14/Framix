@@ -100,3 +100,29 @@ fn a_negative_tolerance_is_refused() {
         Some(event::Kind::CommandFailed(_))
     ));
 }
+
+// P1-074 review: the trimmed clip's own edges are no snap targets, and an edge that did not
+// move stays put.
+
+#[test]
+fn an_edge_moved_less_than_the_tolerance_still_moves() {
+    let mut engine = Engine::default();
+    let (_, b) = two_clips(&mut engine);
+    // The old end (4 s) is also the timeline end; neither pulls it back.
+    let t = changed(run(&mut engine, trim(b, 2 * S, 405 * S / 100, S / 10)));
+    assert_eq!(span(&t, 1), (2 * S, 405 * S / 100));
+}
+
+#[test]
+fn an_end_snapped_before_its_start_stays_where_dropped() {
+    let mut engine = Engine::default();
+    let (_, b) = two_clips(&mut engine);
+    changed(run(&mut engine, trim(b, 205 * S / 100, 4 * S, 0)));
+    // 2.1 s is 0.1 s from the first clip's end (2 s), which lies before this start (2.05 s);
+    // the start did not move, so it does not snap to 2 s either.
+    let t = changed(run(
+        &mut engine,
+        trim(b, 205 * S / 100, 21 * S / 10, S / 10),
+    ));
+    assert_eq!(span(&t, 1), (205 * S / 100, 21 * S / 10));
+}
