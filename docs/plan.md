@@ -437,7 +437,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-059` FFmpeg (rsmpeg) fallback: minimal FFmpeg build for iOS/Android, probe and demux for formats the platform cannot read; also the Rust reader P1-012's fd path feeds (after LEG-003 license and SYS-024 size checks) \[Rust\] \[C++\]
 - [x] `P1-060` Preview shows the decoded frame at the playhead (needs the Decoder port); redraw after edits that change what is under the playhead even when it did not move (P1-020 redraws only on playhead moves) \[Rust\]
 - [ ] `P1-061` Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md) \[Rust\] \[Dart\]
-- [ ] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
+- [x] `P1-062` ThumbnailCubit forgets its asked set and files when the project changes (engine resets thumbnails on NewProject/OpenProject since P1-021 review; media ids restart) \[Dart\]
 - [ ] `P1-063` Engine reports the active clip's frame rectangle on the canvas (fit by media aspect, crop and turns, then x/y/scale) so the Dart outline matches the picture (P1-030 outline is canvas-box x scale) \[Rust\] \[Dart\]
 - [x] `P1-064` Export settings UI: resolution, fps and bitrate pickers showing TimelineChanged.export (size, effective kbps); needs the export screen \[Dart\]
 - [ ] `P1-065` Platform answers arriving after engine Shutdown drop their PlatformTexture without releasing it (small leak; send error path in ffi platform host) \[Rust\] \[Native\]
