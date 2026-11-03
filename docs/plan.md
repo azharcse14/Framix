@@ -450,7 +450,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-072` Check the P1-060 iOS 17-25 decode path (LegacySource, copyNextSampleBuffer) on an iOS 17/18 simulator: scrub, flip, export; needs the runtime installed \[Native\]
 - [x] `P1-073` render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target \[Rust\]
 - [x] `P1-074` Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump) \[Dart\]
-- [ ] `P1-075` Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse \[Rust\] \[Dart\]
+- [x] `P1-075` Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse \[Rust\] \[Dart\]
 - [ ] `P1-076` Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes \[Rust\] \[Dart\]
 - [x] `P1-077` Color clips on Android: the Android draw_into fills them (today only Apple does); until then Add blank clip shows the test pattern there \[Rust\]
 - [x] `P1-078` Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip \[Rust\]
