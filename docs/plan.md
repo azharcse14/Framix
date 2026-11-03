@@ -456,7 +456,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-078` Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip \[Rust\]
 - [ ] `P1-079` Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export) \[Rust\]
 - [ ] `P1-080` Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker) \[Rust\] \[Dart\]
-- [ ] `P1-081` Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review) \[Rust\] \[Dart\]
+- [x] `P1-081` Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 
