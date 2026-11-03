@@ -56,6 +56,12 @@ impl Rate {
         i64::try_from(frame).ok()
     }
 
+    /// Start of the frame `frames` away from the one showing at `time` (P1-025): from inside a
+    /// frame, +1 is the next frame and -1 the one before. `None` if it does not fit.
+    pub fn step(self, time: Time, frames: i64) -> Option<Time> {
+        self.frame_to_time(self.time_to_frame(time)?.checked_add(frames)?)
+    }
+
     /// Numerator of ticks per frame (`den * TICKS_PER_SECOND / num`); fits easily in i128.
     fn ticks_per_frame_num(self) -> i128 {
         i128::from(self.den) * i128::from(TICKS_PER_SECOND)

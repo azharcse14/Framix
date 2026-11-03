@@ -49,6 +49,7 @@ enum Command_Kind {
   exportProject,
   cancelExport,
   setPhotoDuration,
+  stepFrame,
   notSet
 }
 
@@ -83,6 +84,7 @@ class Command extends $pb.GeneratedMessage {
     CancelExport? cancelExport,
     $fixnum.Int64? id,
     SetPhotoDuration? setPhotoDuration,
+    StepFrame? stepFrame,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -113,6 +115,7 @@ class Command extends $pb.GeneratedMessage {
     if (cancelExport != null) result.cancelExport = cancelExport;
     if (id != null) result.id = id;
     if (setPhotoDuration != null) result.setPhotoDuration = setPhotoDuration;
+    if (stepFrame != null) result.stepFrame = stepFrame;
     return result;
   }
 
@@ -153,6 +156,7 @@ class Command extends $pb.GeneratedMessage {
     25: Command_Kind.exportProject,
     26: Command_Kind.cancelExport,
     28: Command_Kind.setPhotoDuration,
+    29: Command_Kind.stepFrame,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -186,7 +190,8 @@ class Command extends $pb.GeneratedMessage {
       24,
       25,
       26,
-      28
+      28,
+      29
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -244,6 +249,8 @@ class Command extends $pb.GeneratedMessage {
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOM<SetPhotoDuration>(28, _omitFieldNames ? '' : 'setPhotoDuration',
         subBuilder: SetPhotoDuration.$_createMessage)
+    ..aOM<StepFrame>(29, _omitFieldNames ? '' : 'stepFrame',
+        subBuilder: StepFrame.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -293,6 +300,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -321,6 +329,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -629,6 +638,17 @@ class Command extends $pb.GeneratedMessage {
   void clearSetPhotoDuration() => $_clearField(28);
   @$pb.TagNumber(28)
   SetPhotoDuration ensureSetPhotoDuration() => $_ensure(27);
+
+  @$pb.TagNumber(29)
+  StepFrame get stepFrame => $_getN(28);
+  @$pb.TagNumber(29)
+  set stepFrame(StepFrame value) => $_setField(29, value);
+  @$pb.TagNumber(29)
+  $core.bool hasStepFrame() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearStepFrame() => $_clearField(29);
+  @$pb.TagNumber(29)
+  StepFrame ensureStepFrame() => $_ensure(28);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2745,6 +2765,63 @@ class RequestThumbnails extends $pb.GeneratedMessage {
   $core.bool hasMaxSide() => $_has(2);
   @$pb.TagNumber(3)
   void clearMaxSide() => $_clearField(3);
+}
+
+/// Moves the playhead `frames` whole frames (negative = back) at the export frame rate, to the
+/// start of that frame, clamped to the timeline. Answered like Seek, never snapped.
+class StepFrame extends $pb.GeneratedMessage {
+  factory StepFrame({
+    $core.int? frames,
+  }) {
+    final result = StepFrame._();
+    if (frames != null) result.frames = frames;
+    return result;
+  }
+
+  StepFrame._();
+
+  factory StepFrame.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      StepFrame()..mergeFromBuffer(data, registry);
+  factory StepFrame.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      StepFrame()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'StepFrame',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: StepFrame.$_createMessage)
+    ..aI(1, _omitFieldNames ? '' : 'frames')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  StepFrame clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  StepFrame copyWith(void Function(StepFrame) updates) =>
+      super.copyWith((message) => updates(message as StepFrame)) as StepFrame;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use StepFrame() / StepFrame.new instead')
+  static StepFrame create() => StepFrame._();
+  static $pb.GeneratedMessage $_createMessage() => StepFrame._();
+  @$core.override
+  StepFrame createEmptyInstance() => StepFrame._();
+  @$core.pragma('dart2js:noInline')
+  static StepFrame getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StepFrame>(StepFrame.$_createMessage);
+  static StepFrame? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get frames => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set frames($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFrames() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFrames() => $_clearField(1);
 }
 
 /// Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws

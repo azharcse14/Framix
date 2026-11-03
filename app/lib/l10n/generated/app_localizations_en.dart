@@ -83,6 +83,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zoomOut => 'Zoom out';
 
   @override
+  String get previousFrame => 'Previous frame';
+
+  @override
+  String get nextFrame => 'Next frame';
+
+  @override
   String get timelineRuler => 'Timeline';
 
   @override
@@ -157,6 +163,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trimEnd => 'Trim end';
+
+  @override
+  String get trimStartToPlayhead => 'Trim start to playhead';
+
+  @override
+  String get trimEndToPlayhead => 'Trim end to playhead';
 
   @override
   String get replaceClip => 'Replace clip';

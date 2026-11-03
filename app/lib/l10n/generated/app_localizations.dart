@@ -212,6 +212,18 @@ abstract class AppLocalizations {
   /// **'Zoom out'**
   String get zoomOut;
 
+  /// No description provided for @previousFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous frame'**
+  String get previousFrame;
+
+  /// No description provided for @nextFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Next frame'**
+  String get nextFrame;
+
   /// No description provided for @timelineRuler.
   ///
   /// In en, this message translates to:
@@ -343,6 +355,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trim end'**
   String get trimEnd;
+
+  /// No description provided for @trimStartToPlayhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim start to playhead'**
+  String get trimStartToPlayhead;
+
+  /// No description provided for @trimEndToPlayhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim end to playhead'**
+  String get trimEndToPlayhead;
 
   /// No description provided for @replaceClip.
   ///

@@ -263,6 +263,16 @@ class _Toolbar extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
+            tooltip: l10n.previousFrame,
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () => context.read<PlayheadCubit>().stepFrames(-1),
+          ),
+          IconButton(
+            tooltip: l10n.nextFrame,
+            icon: const Icon(Icons.chevron_right),
+            onPressed: () => context.read<PlayheadCubit>().stepFrames(1),
+          ),
+          IconButton(
             tooltip: l10n.zoomOut,
             icon: const Icon(Icons.zoom_out),
             onPressed: zoom.zoomOut,
@@ -309,6 +319,24 @@ class _ClipActions extends StatelessWidget {
             icon: const Icon(Icons.content_cut),
             onPressed: () =>
                 cubit.splitClip(clip, context.read<PlayheadCubit>().state),
+          ),
+          IconButton(
+            tooltip: l10n.trimStartToPlayhead,
+            icon: const Icon(Icons.first_page),
+            onPressed: () => cubit.trimClip(
+              clip,
+              context.read<PlayheadCubit>().state,
+              end.toInt(),
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.trimEndToPlayhead,
+            icon: const Icon(Icons.last_page),
+            onPressed: () => cubit.trimClip(
+              clip,
+              clip.start.toInt(),
+              context.read<PlayheadCubit>().state,
+            ),
           ),
           IconButton(
             tooltip: l10n.replaceClip,

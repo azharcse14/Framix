@@ -35,6 +35,7 @@ message Command {
     ExportProject export_project = 25;
     CancelExport cancel_export = 26;
     SetPhotoDuration set_photo_duration = 28;
+    StepFrame step_frame = 29;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -282,6 +283,12 @@ message RequestThumbnails {
   uint64 media_id = 1;
   repeated int64 times = 2;
   uint32 max_side = 3;
+}
+
+// Moves the playhead `frames` whole frames (negative = back) at the export frame rate, to the
+// start of that frame, clamped to the timeline. Answered like Seek, never snapped.
+message StepFrame {
+  int32 frames = 1;
 }
 
 // Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws

@@ -41,6 +41,11 @@ class PlayheadCubit extends Cubit<int> {
     if (!scheduled) scheduleMicrotask(_send);
   }
 
+  /// Moves the playhead [frames] whole frames (negative = back) at the project's frame rate;
+  /// the engine does the frame math.
+  void stepFrames(int frames) =>
+      _engine.send(Command(stepFrame: StepFrame(frames: frames)));
+
   void _send() {
     final ticks = _wanted;
     _wanted = null;

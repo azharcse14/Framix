@@ -82,6 +82,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get zoomOut => 'জুম আউট';
 
   @override
+  String get previousFrame => 'আগের ফ্রেম';
+
+  @override
+  String get nextFrame => 'পরের ফ্রেম';
+
+  @override
   String get timelineRuler => 'টাইমলাইন';
 
   @override
@@ -156,6 +162,12 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get trimEnd => 'শেষ ছাঁটুন';
+
+  @override
+  String get trimStartToPlayhead => 'প্লেহেড পর্যন্ত শুরু ছাঁটুন';
+
+  @override
+  String get trimEndToPlayhead => 'প্লেহেড পর্যন্ত শেষ ছাঁটুন';
 
   @override
   String get replaceClip => 'ক্লিপ বদলান';

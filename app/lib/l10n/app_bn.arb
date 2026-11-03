@@ -19,6 +19,8 @@
   "importing": "মিডিয়া আনা হচ্ছে",
   "zoomIn": "জুম ইন",
   "zoomOut": "জুম আউট",
+  "previousFrame": "আগের ফ্রেম",
+  "nextFrame": "পরের ফ্রেম",
   "timelineRuler": "টাইমলাইন",
   "canvasPlaceClip": "ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন",
   "export": "এক্সপোর্ট",
@@ -41,6 +43,8 @@
   "mergeClip": "পরের ক্লিপের সাথে জোড়া দিন",
   "trimStart": "শুরু ছাঁটুন",
   "trimEnd": "শেষ ছাঁটুন",
+  "trimStartToPlayhead": "প্লেহেড পর্যন্ত শুরু ছাঁটুন",
+  "trimEndToPlayhead": "প্লেহেড পর্যন্ত শেষ ছাঁটুন",
   "replaceClip": "ক্লিপ বদলান",
   "commandFailed": "কাজটি হয়নি। আবার চেষ্টা করুন।",
   "addColorClip": "ফাঁকা ক্লিপ যোগ করুন"

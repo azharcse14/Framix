@@ -327,6 +327,15 @@ const Command$json = {
       '9': 0,
       '10': 'setPhotoDuration'
     },
+    {
+      '1': 'step_frame',
+      '3': 29,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.StepFrame',
+      '9': 0,
+      '10': 'stepFrame'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -365,8 +374,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'bGVBdXRvc2F2ZRJBCg5leHBvcnRfcHJvamVjdBgZIAEoCzIYLmZyYW1peC52MS5FeHBvcnRQcm'
     '9qZWN0SABSDWV4cG9ydFByb2plY3QSPgoNY2FuY2VsX2V4cG9ydBgaIAEoCzIXLmZyYW1peC52'
     'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0EksKEnNldF9waG90b19kdXJhdGlvbhgcIA'
-    'EoCzIbLmZyYW1peC52MS5TZXRQaG90b0R1cmF0aW9uSABSEHNldFBob3RvRHVyYXRpb24SDgoC'
-    'aWQYGyABKARSAmlkQgYKBGtpbmQ=');
+    'EoCzIbLmZyYW1peC52MS5TZXRQaG90b0R1cmF0aW9uSABSEHNldFBob3RvRHVyYXRpb24SNQoK'
+    'c3RlcF9mcmFtZRgdIAEoCzIULmZyYW1peC52MS5TdGVwRnJhbWVIAFIJc3RlcEZyYW1lEg4KAm'
+    'lkGBsgASgEUgJpZEIGCgRraW5k');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -825,6 +835,18 @@ const RequestThumbnails$json = {
 final $typed_data.Uint8List requestThumbnailsDescriptor = $convert.base64Decode(
     'ChFSZXF1ZXN0VGh1bWJuYWlscxIZCghtZWRpYV9pZBgBIAEoBFIHbWVkaWFJZBIUCgV0aW1lcx'
     'gCIAMoA1IFdGltZXMSGQoIbWF4X3NpZGUYAyABKA1SB21heFNpZGU=');
+
+@$core.Deprecated('Use stepFrameDescriptor instead')
+const StepFrame$json = {
+  '1': 'StepFrame',
+  '2': [
+    {'1': 'frames', '3': 1, '4': 1, '5': 5, '10': 'frames'},
+  ],
+};
+
+/// Descriptor for `StepFrame`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List stepFrameDescriptor =
+    $convert.base64Decode('CglTdGVwRnJhbWUSFgoGZnJhbWVzGAEgASgFUgZmcmFtZXM=');
 
 @$core.Deprecated('Use seekDescriptor instead')
 const Seek$json = {

@@ -23,6 +23,8 @@
   "importing": "Importing media",
   "zoomIn": "Zoom in",
   "zoomOut": "Zoom out",
+  "previousFrame": "Previous frame",
+  "nextFrame": "Next frame",
   "timelineRuler": "Timeline",
   "canvasPlaceClip": "Move and resize the clip on the canvas",
   "export": "Export",
@@ -46,6 +48,8 @@
   "mergeClip": "Merge with next clip",
   "trimStart": "Trim start",
   "trimEnd": "Trim end",
+  "trimStartToPlayhead": "Trim start to playhead",
+  "trimEndToPlayhead": "Trim end to playhead",
   "replaceClip": "Replace clip",
   "commandFailed": "That didn't work. Try again.",
   "addColorClip": "Add blank clip"

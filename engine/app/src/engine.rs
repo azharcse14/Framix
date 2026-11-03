@@ -595,6 +595,15 @@ impl Engine {
                 self.move_playhead(snapped.unwrap_or(Time(seek.time)));
                 Ok(Reply::Playhead(snapped.is_some()))
             }
+            command::Kind::StepFrame(op) => {
+                let rate = self.history.timeline().export().fps.rate();
+                // Out of range only past the largest time: the clamp puts it at the end.
+                let to = rate
+                    .step(self.playhead, i64::from(op.frames))
+                    .unwrap_or(Time(i64::MAX));
+                self.move_playhead(to);
+                Ok(Reply::Playhead(false))
+            }
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
                 .map(|()| Reply::Accepted),
