@@ -13820,6 +13820,30 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "a87cb95",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "New ChangeExportSettings (cmd 32) instead of optional fields on SetExportSettings: frozen tests construct the non-optional SetExportSettings; it stays as the documented full-replace form."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "UX-033",
+   "section": "UX",
+   "group": null,
+   "title": "App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
@@ -13829,11 +13853,12 @@
    "source": "added"
   },
   {
-   "id": "UX-033",
-   "section": "UX",
+   "id": "P1-083",
+   "section": "P1",
    "group": null,
-   "title": "App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review)",
+   "title": "Turning automatic bitrate off keeps the engine's current effective bitrate (engine-side), not the sheet's last-seen value, so 4K then auto-off before the reply doesn't pin 1080p's bitrate (P1-082 review)",
    "tags": [
+    "Rust",
     "Dart"
    ],
    "owner": "claude",

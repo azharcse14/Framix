@@ -457,7 +457,8 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-079` Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export) \[Rust\]
 - [ ] `P1-080` Engine sends a placeable flag per clip (Clip.placeable) so the canvas gestures stop mirroring the color-clip rule in Dart; needed before a second unplaceable kind (text, sticker) \[Rust\] \[Dart\]
 - [x] `P1-081` Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review) \[Rust\] \[Dart\]
-- [ ] `P1-082` Export settings edits merge in the engine (optional fields on SetExportSettings, like SetTrackFlags), so quick taps (4K then 60 fps) can't resend a stale value; test two taps without waiting, a slider drag sending once, and auto back on -> kbps 0 (P1-064 review) \[Rust\] \[Dart\]
+- [x] `P1-082` Export settings edits merge in the engine (optional fields on SetExportSettings, like SetTrackFlags), so quick taps (4K then 60 fps) can't resend a stale value; test two taps without waiting, a slider drag sending once, and auto back on -> kbps 0 (P1-064 review) \[Rust\] \[Dart\]
+- [ ] `P1-083` Turning automatic bitrate off keeps the engine's current effective bitrate (engine-side), not the sheet's last-seen value, so 4K then auto-off before the reply doesn't pin 1080p's bitrate (P1-082 review) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 
