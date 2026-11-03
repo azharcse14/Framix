@@ -437,6 +437,9 @@ message TimelineChanged {
   // The clip canvas gestures act on (topmost visible video clip at the playhead); 0 = none.
   uint64 active_clip = 10;
   ExportInfo export = 11;
+  // Changes when the engine starts another project (new, opened, restored); cached thumbnails
+  // and media ids of the old one no longer apply.
+  uint64 project = 12;
 }
 
 // A track and its clips, sorted by start.

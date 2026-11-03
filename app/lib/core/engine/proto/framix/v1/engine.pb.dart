@@ -4050,6 +4050,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $fixnum.Int64? thumbnailStep,
     $fixnum.Int64? activeClip,
     ExportInfo? export,
+    $fixnum.Int64? project,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -4063,6 +4064,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (thumbnailStep != null) result.thumbnailStep = thumbnailStep;
     if (activeClip != null) result.activeClip = activeClip;
     if (export != null) result.export = export;
+    if (project != null) result.project = project;
     return result;
   }
 
@@ -4096,6 +4098,9 @@ class TimelineChanged extends $pb.GeneratedMessage {
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOM<ExportInfo>(11, _omitFieldNames ? '' : 'export',
         subBuilder: ExportInfo.$_createMessage)
+    ..a<$fixnum.Int64>(
+        12, _omitFieldNames ? '' : 'project', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4219,6 +4224,17 @@ class TimelineChanged extends $pb.GeneratedMessage {
   void clearExport() => $_clearField(11);
   @$pb.TagNumber(11)
   ExportInfo ensureExport() => $_ensure(10);
+
+  /// Changes when the engine starts another project (new, opened, restored); cached thumbnails
+  /// and media ids of the old one no longer apply.
+  @$pb.TagNumber(12)
+  $fixnum.Int64 get project => $_getI64(11);
+  @$pb.TagNumber(12)
+  set project($fixnum.Int64 value) => $_setInt64(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasProject() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearProject() => $_clearField(12);
 }
 
 /// A track and its clips, sorted by start.

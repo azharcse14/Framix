@@ -1269,6 +1269,7 @@ const TimelineChanged$json = {
       '6': '.framix.v1.ExportInfo',
       '10': 'export'
     },
+    {'1': 'project', '3': 12, '4': 1, '5': 4, '10': 'project'},
   ],
 };
 
@@ -1281,7 +1282,7 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'ZWFkGAcgASgDUghwbGF5aGVhZBIoChB0aWNrc19wZXJfc2Vjb25kGAggASgDUg50aWNrc1Blcl'
     'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcBIfCgthY3RpdmVf'
     'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcBItCgZleHBvcnQYCyABKAsyFS5mcmFtaXgudjEuRXhwb3'
-    'J0SW5mb1IGZXhwb3J0');
+    'J0SW5mb1IGZXhwb3J0EhgKB3Byb2plY3QYDCABKARSB3Byb2plY3Q=');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {

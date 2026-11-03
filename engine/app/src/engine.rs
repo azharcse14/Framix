@@ -31,6 +31,9 @@ pub struct Engine {
     /// Where the preview shows; always inside [0, duration]. Not part of the timeline, so undo
     /// never moves it and saves don't store it.
     playhead: Time,
+    /// Bumped each time a project starts (new, opened, restored), so the UI can drop what it
+    /// cached for the old one (media ids restart).
+    project: u64,
     /// Where the project is autosaved, once EnableAutosave succeeded.
     autosave: Option<PathBuf>,
     /// The timeline last autosaved or recovered; autosave writes only when it differs.
@@ -683,6 +686,7 @@ impl Engine {
     /// After the timeline was replaced by another project: it starts at its beginning, with
     /// its own media ids, so cached thumbnails and the drawn picture's key mean nothing now.
     fn start_project(&mut self) {
+        self.project = self.project.wrapping_add(1);
         self.forget_thumbnails();
         self.playhead = Time(0);
         self.redraw();
@@ -844,6 +848,7 @@ impl Engine {
                 thumbnail_step: crate::thumbnail::THUMBNAIL_STEP.0,
                 active_clip: self.active_clip(),
                 export: Some(export_info(timeline)),
+                project: self.project,
             })),
         }
     }

@@ -13,7 +13,12 @@ typedef ThumbnailKey = ({int media, int time, int maxSide});
 /// dedups and schedules; this only avoids sending the same ask twice.
 class ThumbnailCubit extends Cubit<Map<ThumbnailKey, String>> {
   ThumbnailCubit(this._engine) : super(const {}) {
-    _events = _engine.events.where((e) => e.hasThumbnailReady()).listen((e) {
+    _events = _engine.events.listen((e) {
+      if (e.hasTimelineChanged()) {
+        _startOver(e.timelineChanged.project.toInt());
+        return;
+      }
+      if (!e.hasThumbnailReady()) return;
       final r = e.thumbnailReady;
       final key = (
         media: r.mediaId.toInt(),
@@ -22,6 +27,19 @@ class ThumbnailCubit extends Cubit<Map<ThumbnailKey, String>> {
       );
       emit({...state, key: r.path});
     });
+  }
+
+  /// The engine's project number; another one means media ids restarted, so nothing asked or
+  /// received so far applies (the engine dropped its thumbnails too).
+  int? _project;
+
+  void _startOver(int project) {
+    final known = _project;
+    _project = project;
+    if (known == null || known == project) return;
+    _asked.clear();
+    _batch.clear();
+    emit(const {});
   }
 
   /// Most times in one RequestThumbnails (the engine's limit).
