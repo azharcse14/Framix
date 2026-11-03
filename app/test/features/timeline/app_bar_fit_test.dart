@@ -38,7 +38,11 @@ void main() {
         MaterialApp(
           theme: framixDarkTheme(),
           locale: locale,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          // As FramixApp: bn needs the global Material delegates too.
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: RepositoryProvider<MediaImporter>.value(
             value: FakeImporter(const []),
@@ -74,7 +78,10 @@ void main() {
       ]) {
         final button = find.byTooltip(tip);
         expect(button, findsOneWidget, reason: tip);
-        final r = tester.getRect(button);
+        // The IconButton's box is its touch target (the tooltip wraps only the 40 dp icon).
+        final r = tester.getRect(
+          find.ancestor(of: button, matching: find.byType(IconButton)),
+        );
         expect(r.left >= 0 && r.right <= 360, isTrue, reason: '$tip at $r');
         expect(r.width, greaterThanOrEqualTo(48), reason: '$tip is $r');
       }
