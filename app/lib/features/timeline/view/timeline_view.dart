@@ -191,6 +191,10 @@ class _TimelineViewState extends State<TimelineView> {
                                                     ticks,
                                                   ),
                                                   tiles: _Tiles(
+                                                    project: widget
+                                                        .timeline
+                                                        .project
+                                                        .toInt(),
                                                     pps: pps,
                                                     ticksPerSecond:
                                                         ticksPerSecond,
@@ -849,6 +853,7 @@ class _TrackHeader extends StatelessWidget {
 /// coordinates), at source times snapped to the engine's [step].
 class _Tiles {
   const _Tiles({
+    required this.project,
     required this.pps,
     required this.ticksPerSecond,
     required this.step,
@@ -858,6 +863,9 @@ class _Tiles {
 
   static const width = 64.0;
 
+  /// The engine's project number: a slot of another project is another tile, even with the
+  /// same media id (ids restart), so it asks again.
+  final int project;
   final double pps;
   final int ticksPerSecond;
   final int step;
@@ -880,7 +888,7 @@ class _Tiles {
           width: width,
           child: ThumbnailTile(
             // A slot keeps its own state only while it shows the same picture.
-            key: ValueKey((clip.mediaId.toInt(), i)),
+            key: ValueKey((project, clip.mediaId.toInt(), i)),
             media: clip.mediaId.toInt(),
             // A photo has one picture; a video's tile shows the frame at its left edge.
             time: photo

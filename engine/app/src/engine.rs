@@ -694,10 +694,10 @@ impl Engine {
 
     fn forget_thumbnails(&mut self) {
         if let Some(thumbnails) = self.thumbnails.as_mut() {
-            thumbnails.reset();
+            thumbnails.reset(self.project);
         }
         if let Some(proxies) = self.proxies.as_mut() {
-            proxies.reset();
+            proxies.reset(self.project);
         }
     }
 

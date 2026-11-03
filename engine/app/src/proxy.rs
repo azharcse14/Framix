@@ -11,7 +11,7 @@ use framix_core::timeline::{MediaId, Timeline};
 pub struct ProxyKey {
     /// Which project the request came from; media ids restart with each project, so a late
     /// answer for an earlier project must not match.
-    pub generation: u32,
+    pub generation: u64,
     /// Which media.
     pub media: MediaId,
     /// Longest side of the proxy in pixels.
@@ -45,7 +45,8 @@ pub(crate) struct Proxies {
     /// Making a proxy is a whole-file encode, so only one runs.
     in_flight: Option<ProxyKey>,
     queue: VecDeque<ProxyRequest>,
-    generation: u32,
+    /// The engine's project number (Engine::start_project), the one home of that count.
+    generation: u64,
 }
 
 impl Proxies {
@@ -60,13 +61,14 @@ impl Proxies {
         }
     }
 
-    /// A new or opened project: forget everything; answers still on their way are ignored.
-    pub(crate) fn reset(&mut self) {
+    /// A new or opened project: forget everything; answers still on their way
+    /// (keyed by the old `project`) are ignored.
+    pub(crate) fn reset(&mut self, project: u64) {
         self.known.clear();
         self.ready.clear();
         self.in_flight = None;
         self.queue.clear();
-        self.generation = self.generation.wrapping_add(1);
+        self.generation = project;
     }
 
     /// Queues a proxy for every media of `timeline` that needs one and was never asked for,

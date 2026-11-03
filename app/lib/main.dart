@@ -63,7 +63,12 @@ class FramixApp extends StatelessWidget {
             // Not lazy: it must see every playhead event from the start.
             BlocProvider(create: (_) => PlayheadCubit(engine), lazy: false),
             BlocProvider(create: (_) => TimelineZoomCubit()),
-            BlocProvider(create: (_) => ThumbnailCubit(engine)),
+            BlocProvider(
+              create: (ctx) => ThumbnailCubit(
+                engine,
+                project: ctx.read<TimelineCubit>().state.project.toInt(),
+              ),
+            ),
             BlocProvider(create: (_) => ExportCubit(engine)),
           ],
           child: CommandFailureMessages(

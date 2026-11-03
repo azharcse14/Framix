@@ -24,7 +24,7 @@ const MAX_IN_FLIGHT: usize = 2;
 pub struct ThumbnailKey {
     /// Which project the request came from; media ids restart with each project, so a late
     /// answer for an earlier project must not match.
-    pub generation: u32,
+    pub generation: u64,
     /// Which media.
     pub media: MediaId,
     /// Snapped source time.
@@ -61,7 +61,8 @@ pub(crate) struct Thumbnails {
     /// Keys the platform is working on.
     in_flight: BTreeSet<ThumbnailKey>,
     queue: VecDeque<ThumbnailRequest>,
-    generation: u32,
+    /// The engine's project number (Engine::start_project), the one home of that count.
+    generation: u64,
 }
 
 impl Thumbnails {
@@ -75,12 +76,13 @@ impl Thumbnails {
         }
     }
 
-    /// A new or opened project: forget every key; answers still on their way are ignored.
-    pub(crate) fn reset(&mut self) {
+    /// A new or opened project: forget every key; answers still on their way
+    /// (keyed by the old `project`) are ignored.
+    pub(crate) fn reset(&mut self, project: u64) {
         self.known.clear();
         self.in_flight.clear();
         self.queue.clear();
-        self.generation = self.generation.wrapping_add(1);
+        self.generation = project;
     }
 
     /// Queues the thumbnails of `media` at `times` that were never asked for, then starts as

@@ -12,7 +12,9 @@ typedef ThumbnailKey = ({int media, int time, int maxSide});
 /// Mirrors ThumbnailReady events; asks the engine for missing thumbnails. The engine snaps,
 /// dedups and schedules; this only avoids sending the same ask twice.
 class ThumbnailCubit extends Cubit<Map<ThumbnailKey, String>> {
-  ThumbnailCubit(this._engine) : super(const {}) {
+  /// [project] is the engine's project number when the cubit is made (it is made lazily,
+  /// after the TimelineChanged that carried it).
+  ThumbnailCubit(this._engine, {this._project}) : super(const {}) {
     _events = _engine.events.listen((e) {
       if (e.hasTimelineChanged()) {
         _startOver(e.timelineChanged.project.toInt());
@@ -33,6 +35,8 @@ class ThumbnailCubit extends Cubit<Map<ThumbnailKey, String>> {
   /// received so far applies (the engine dropped its thumbnails too).
   int? _project;
 
+  // Asks made this turn before the TimelineChanged arrived are cleared too: harmless, the
+  // engine dedups.
   void _startOver(int project) {
     final known = _project;
     _project = project;
