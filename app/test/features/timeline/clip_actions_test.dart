@@ -301,4 +301,42 @@ void main() {
     }
     throw TestFailure('the clip never got the new media');
   });
+
+  // P1-074: a dragged trim edge snaps to a near clip edge (12 dp, decided by the engine).
+  testWidgets('a trim edge dropped near the next clip snaps to it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      FramixApp(
+        engine: engine,
+        mediaImporter: FakeImporter([
+          video('content://media/external/video/1'),
+          video('content://media/external/video/2'),
+        ]),
+      ),
+    );
+    await tester.tap(find.byTooltip(l10n.importFromGallery));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+
+    // 100 px per second: move the second clip's start to 2.5 s.
+    await tester.tap(find.byType(ClipBox).at(1));
+    await tester.pump();
+    await tester.drag(
+      find.bySemanticsLabel(l10n.trimStart),
+      const Offset(50, 0),
+    );
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate((w) => w is ClipBox && (w.width - 150).abs() < 1),
+    );
+
+    // The first clip's end dropped at 2.45 s lands on 2.5 s.
+    await tester.tap(find.byType(ClipBox).at(0));
+    await tester.pump();
+    await tester.drag(find.bySemanticsLabel(l10n.trimEnd), const Offset(45, 0));
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate((w) => w is ClipBox && (w.width - 250).abs() < 1),
+    );
+  });
 }
