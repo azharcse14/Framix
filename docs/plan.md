@@ -940,7 +940,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-030` Beta te in-app feedback (screenshot shoho) \[Dart\]
 - [ ] `UX-031` Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas \[Dart\]
 - [ ] `UX-032` Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons \[Dart\]
-- [ ] `UX-033` App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review) \[Dart\]
+- [x] `UX-033` App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review) \[Dart\]
 
 ## Design system
 

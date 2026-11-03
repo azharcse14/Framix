@@ -7457,7 +7457,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "timeline_page.dart no longer has a 600 dp breakpoint (UX-033 dropped it); when window size classes land, use them for any width switch"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13892,12 +13897,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "96c7fb4",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "after the test commit, fixed the test harness only: global Material delegates for bn (it threw 'No MaterialLocalizations') and the 48 dp check measures the IconButton, not the 40 dp tooltip box; no assertion changed"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "shipped as: export settings + export (save/share once done) at the end of the platform preset row in AspectRatioBar, not an overflow menu (widget tests find them by tooltip) and not a second app bar row (cost 56 dp of timeline on 360x740; first review)"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "review nits open: no test pins the preset row at 48 dp; app_bar_fit_test's name still says 'app bar' though 4 of 9 actions now sit in the preset row"
+    }
+   ],
    "source": "added"
   },
   {
