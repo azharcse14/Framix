@@ -132,4 +132,74 @@ void main() {
       ),
     );
   });
+
+  // P1-076: the engine snaps a dropped clip to a near edge and clamps a start before 0.
+  testWidgets('a clip dropped before 0 lands at 0', (tester) async {
+    await oneClip(tester);
+    final before = clip(tester);
+    await longPressDrag(tester, const Offset(100, 0));
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) =>
+            w is ClipBox && (clip(tester).left - (before.left + 100)).abs() < 1,
+      ),
+    );
+    await longPressDrag(tester, const Offset(-150, 0));
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is ClipBox && (clip(tester).left - before.left).abs() < 1,
+      ),
+    );
+  });
+
+  testWidgets('a clip dropped near another clip snaps to its edge', (
+    tester,
+  ) async {
+    MediaItem video(int n) => MediaItem(
+      uri: 'content://media/external/video/$n',
+      kind: MediaKind.MEDIA_KIND_VIDEO,
+      durationValue: Int64(2000),
+      durationTimescale: 1000,
+      width: 1080,
+      height: 1920,
+      codec: 'avc1',
+    );
+    await tester.pumpWidget(
+      FramixApp(
+        engine: engine,
+        mediaImporter: FakeImporter([video(1), video(2)]),
+      ),
+    );
+    await tester.tap(find.byTooltip(l10n.importFromGallery));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    Rect at(int i) => tester.getRect(find.byType(ClipBox).at(i));
+    final origin = at(0).left;
+    Future<void> drag(int i, Offset by) async {
+      final gesture = await tester.startGesture(at(i).center);
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+      await gesture.moveBy(by);
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+    }
+
+    // 100 px per second: the second clip goes to [4 s, 6 s).
+    await drag(1, const Offset(200, 0));
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is ClipBox && (at(1).left - (origin + 400)).abs() < 1,
+      ),
+    );
+    // The first clip dropped at 1.95 s ends 0.05 s before 4 s, so it lands at 2 s.
+    await drag(0, const Offset(195, 0));
+    await pumpUntil(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is ClipBox && (at(0).left - (origin + 200)).abs() < 1,
+      ),
+    );
+  });
 }
