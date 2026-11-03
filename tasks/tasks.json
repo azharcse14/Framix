@@ -13625,15 +13625,23 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "ee157a2",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-10-30",
      "text": "tags: Rust and Dart (engine snap + handle sends snap_within)"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "SnapTrim instead of a TrimClip field: engine_clip_ops.rs builds TrimClip as a prost literal; TrimClip has no app caller now"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "review nits open: no core unit test for Timeline::snap_trim; edges are skipped by value (a touching neighbour's edge too), as documented"
     }
    ],
    "source": "added"
@@ -13880,6 +13888,45 @@
      "text": "New FixBitrate command instead of a field on ChangeExportSettings: frozen tests build that struct literally. SetExportSettings stays as the documented full-replace form (no app caller)."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-084",
+   "section": "P1",
+   "group": null,
+   "title": "Retire TrimClip (no app caller since SnapTrim, P1-074): keep it only behind the frozen engine_clip_ops.rs test or reserve it once that test moves to SnapTrim",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-085",
+   "section": "P1",
+   "group": null,
+   "title": "A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review)",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

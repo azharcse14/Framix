@@ -449,7 +449,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-071` Composite several visible video tracks (PIP) in preview and export; today only the top layer is drawn \[Rust\]
 - [ ] `P1-072` Check the P1-060 iOS 17-25 decode path (LegacySource, copyNextSampleBuffer) on an iOS 17/18 simulator: scrub, flip, export; needs the runtime installed \[Native\]
 - [x] `P1-073` render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target \[Rust\]
-- [ ] `P1-074` Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump) \[Dart\]
+- [x] `P1-074` Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump) \[Dart\]
 - [ ] `P1-075` Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse \[Rust\] \[Dart\]
 - [ ] `P1-076` Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes \[Rust\] \[Dart\]
 - [x] `P1-077` Color clips on Android: the Android draw_into fills them (today only Apple does); until then Add blank clip shows the test pattern there \[Rust\]
@@ -459,6 +459,8 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-081` Trim to playhead runs in the engine (edge + its own playhead/clip), so fast step-then-trim taps can't send a stale edge or playhead (P1-025 review) \[Rust\] \[Dart\]
 - [x] `P1-082` Export settings edits merge in the engine (optional fields on SetExportSettings, like SetTrackFlags), so quick taps (4K then 60 fps) can't resend a stale value; test two taps without waiting, a slider drag sending once, and auto back on -> kbps 0 (P1-064 review) \[Rust\] \[Dart\]
 - [x] `P1-083` Turning automatic bitrate off keeps the engine's current effective bitrate (engine-side), not the sheet's last-seen value, so 4K then auto-off before the reply doesn't pin 1080p's bitrate (P1-082 review) \[Rust\] \[Dart\]
+- [ ] `P1-084` Retire TrimClip (no app caller since SnapTrim, P1-074): keep it only behind the frozen engine_clip_ops.rs test or reserve it once that test moves to SnapTrim \[Rust\]
+- [ ] `P1-085` A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review) \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 
