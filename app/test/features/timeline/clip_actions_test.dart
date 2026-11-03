@@ -339,4 +339,30 @@ void main() {
       find.byWidgetPredicate((w) => w is ClipBox && (w.width - 250).abs() < 1),
     );
   });
+
+  // P1-075: merge follows the engine's rule, not just "a clip comes next".
+  testWidgets('merge is off when the next clip shows other media', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      FramixApp(
+        engine: engine,
+        mediaImporter: FakeImporter([
+          video('content://media/external/video/1'),
+          video('content://media/external/video/2'),
+        ]),
+      ),
+    );
+    await tester.tap(find.byTooltip(l10n.importFromGallery));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    await tester.tap(find.byType(ClipBox).at(0));
+    await tester.pump();
+    final merge = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byTooltip(l10n.mergeClip),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(merge.onPressed, isNull);
+  });
 }
