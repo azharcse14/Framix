@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
@@ -62,7 +64,7 @@ void main() {
     },
   );
 
-  testWidgets('tiles of a new project with the same layout ask again', (
+  testWidgets('tiles of a reopened project with the same layout ask again', (
     tester,
   ) async {
     final l10n = lookupAppLocalizations(const Locale('en'));
@@ -89,16 +91,23 @@ void main() {
     final first = asks;
     expect(first, greaterThan(0));
 
-    engine.send(Command(newProject: NewProject()));
+    // Reopen the same project: same media ids and slots, but the engine dropped its
+    // thumbnails, so the tiles must ask again.
+    final dir = await tester.runAsync(
+      () => Directory.systemTemp.createTemp('framix-reopen'),
+    );
+    final path = '${dir!.path}/p.framix';
+    engine.send(Command(saveProject: SaveProject(path: path)));
     await settle();
-    await tester.tap(find.byTooltip(l10n.importFromGallery));
-    await pumpUntil(tester, find.byType(ThumbnailTile));
+    engine.send(Command(openProject: OpenProject(path: path)));
     await settle();
+    await tester.runAsync(() => dir.delete(recursive: true));
     expect(
       asks,
       greaterThan(first),
       reason: 'the same slots ask the new project',
     );
-    await counting.cancel();
+    // Off the fake clock: the engine stream's cancel completes on the real event loop.
+    await tester.runAsync(counting.cancel);
   });
 }
