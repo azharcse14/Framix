@@ -39,9 +39,18 @@ void main() {
         FramixApp(
           engine: engine,
           mediaImporter: FakeImporter([
-            item('content://media/external/images/1', MediaKind.MEDIA_KIND_IMAGE),
-            item('content://media/external/video/2', MediaKind.MEDIA_KIND_VIDEO),
-            item('content://media/external/images/3', MediaKind.MEDIA_KIND_IMAGE),
+            item(
+              'content://media/external/images/1',
+              MediaKind.MEDIA_KIND_IMAGE,
+            ),
+            item(
+              'content://media/external/video/2',
+              MediaKind.MEDIA_KIND_VIDEO,
+            ),
+            item(
+              'content://media/external/images/3',
+              MediaKind.MEDIA_KIND_IMAGE,
+            ),
           ]),
           locale: locale,
         ),
@@ -78,7 +87,8 @@ void main() {
       }
       expect(
         clips().map((c) => (c.start.toInt() ~/ tps, c.duration.toInt() ~/ tps)),
-        [(0, 1), (1, 2), (3, 1)],
+        // The trim left a 2 s gap after the first photo; gaps are kept.
+        [(0, 1), (3, 2), (5, 1)],
       );
       expect(tester.takeException(), isNull);
     });
