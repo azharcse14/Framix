@@ -1,6 +1,6 @@
 //! The engine thread autosaves on its own, without a shutdown (P1-038 review).
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::mpsc::{Sender, channel};
 use std::time::{Duration, Instant};
@@ -40,8 +40,17 @@ fn send(engine: *mut Engine, kind: command::Kind) {
     );
 }
 
+/// The save has begun: FileStore writes `<file>.tmp` first and renames it over the file. The
+/// timer is what these tests check; the disk flush after it (F_FULLFSYNC on macOS) can take
+/// over a second on its own (ENG-057).
+fn save_started(path: &Path) -> bool {
+    let mut tmp = path.as_os_str().to_owned();
+    tmp.push(".tmp");
+    path.exists() || Path::new(&tmp).exists()
+}
+
 /// Starts an engine with autosave at a fresh path and one edit; runs `during` while it is
-/// alive, then destroys it and waits for EngineStopped.
+/// alive, then destroys it, waits for EngineStopped, and checks the save finished.
 fn with_engine(name: &str, during: impl FnOnce(*mut Engine, &PathBuf)) {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     let dir = std::env::temp_dir().join(format!("framix-{name}-{}", std::process::id()));
@@ -71,6 +80,12 @@ fn with_engine(name: &str, during: impl FnOnce(*mut Engine, &PathBuf)) {
             kind: TrackKind::Audio as i32,
         }),
     );
+    // The clock starts once the edit is applied, not when it was queued: a loaded machine can
+    // start the engine thread late (ENG-057).
+    for _ in 0..2 {
+        rx.recv_timeout(Duration::from_secs(10))
+            .expect("EnableAutosave and AddTrack replies");
+    }
     during(engine, &path);
     // SAFETY: not used after this.
     assert_eq!(unsafe { engine_destroy(engine) }, ENGINE_OK);
@@ -80,6 +95,7 @@ fn with_engine(name: &str, during: impl FnOnce(*mut Engine, &PathBuf)) {
             .kind,
         Some(event::Kind::EngineStopped(_))
     ) {}
+    assert!(path.exists(), "the save finished by EngineStopped");
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
@@ -87,7 +103,10 @@ fn with_engine(name: &str, during: impl FnOnce(*mut Engine, &PathBuf)) {
 fn an_idle_engine_saves_within_two_seconds() {
     with_engine("autosave-idle", |_, path| {
         std::thread::sleep(Duration::from_millis(2000));
-        assert!(path.exists(), "saved while the engine was still running");
+        assert!(
+            save_started(path),
+            "saved while the engine was still running"
+        );
     });
 }
 
@@ -99,6 +118,6 @@ fn a_busy_engine_still_saves_within_two_seconds() {
             send(engine, command::Kind::GetTimeline(GetTimeline {}));
             std::thread::sleep(Duration::from_millis(50));
         }
-        assert!(path.exists(), "saved during a stream of commands");
+        assert!(save_started(path), "saved during a stream of commands");
     });
 }
