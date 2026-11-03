@@ -451,7 +451,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-073` render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target \[Rust\]
 - [x] `P1-074` Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump) \[Dart\]
 - [x] `P1-075` Engine reports which clip actions are possible (e.g. Clip.mergeable_with_next) so the clip UI disables merge for clips the engine would refuse \[Rust\] \[Dart\]
-- [ ] `P1-076` Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes \[Rust\] \[Dart\]
+- [x] `P1-076` Clip drag polish: MoveClip snaps (snap_within + Timeline::snap) and clamps a start before 0 in the engine; auto-scroll while dragging near the edge; lift the dragged clip above other lanes \[Rust\] \[Dart\]
 - [x] `P1-077` Color clips on Android: the Android draw_into fills them (today only Apple does); until then Add blank clip shows the test pattern there \[Rust\]
 - [x] `P1-078` Color clips honor or refuse a clip transform (scale/move are accepted today but have no effect); add a project fixture with a color clip \[Rust\]
 - [ ] `P1-079` Android preview: pick the canvas placement after draw_to_android_window reads the window size (a resize between draw_into's read and its own letterboxes with the old size); warn or fix when the surface has no linear format (colors draw lighter than iOS/export) \[Rust\]
@@ -461,6 +461,8 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-083` Turning automatic bitrate off keeps the engine's current effective bitrate (engine-side), not the sheet's last-seen value, so 4K then auto-off before the reply doesn't pin 1080p's bitrate (P1-082 review) \[Rust\] \[Dart\]
 - [ ] `P1-084` Retire TrimClip (no app caller since SnapTrim, P1-074): keep it only behind the frozen engine_clip_ops.rs test or reserve it once that test moves to SnapTrim \[Rust\]
 - [ ] `P1-085` A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review) \[Rust\] \[Dart\]
+- [ ] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
+- [ ] `P1-087` Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove \[Rust\]
 
 ## Phase 2: Audio
 

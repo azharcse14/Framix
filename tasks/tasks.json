@@ -13683,12 +13683,29 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "f363122",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "engine part done (SnapMove: snap + clamp at 0; MoveClip kept for the frozen engine_move_clip.rs literal); auto-scroll and lifting the dragged clip split to P1-086"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "7a4f7d7 changed the new widget tests after their commit: a 1 s pump between two long-press drags (the second press was not a long press); no assertion changed"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "review nits open: the nearer edge wins even if that move is refused (could try the other edge); snap's take(3) window counts the dragged clip itself"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "re-review suggestions open: proptest ignores refused moves; snap_span's post-snap max(0) and start-wins tie untested; same-track drop just after 0 can be pulled to a near edge (by-value skip)"
+    }
+   ],
    "source": "added"
   },
   {
@@ -13922,6 +13939,44 @@
    "tags": [
     "Rust",
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-086",
+   "section": "P1",
+   "group": null,
+   "title": "Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-087",
+   "section": "P1",
+   "group": null,
+   "title": "Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
