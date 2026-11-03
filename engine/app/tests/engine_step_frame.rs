@@ -63,7 +63,11 @@ fn steps_whole_frames_at_the_export_rate() {
         snap_within: 0,
     };
     assert_eq!(playhead(&mut engine, command::Kind::Seek(seek)), frame + 5);
-    assert_eq!(playhead(&mut engine, step(-1)), 0, "back from inside a frame");
+    assert_eq!(
+        playhead(&mut engine, step(-1)),
+        0,
+        "back from inside a frame"
+    );
 
     let settings = SetExportSettings {
         resolution: ExportResolution::ExportResolution1080p as i32,
