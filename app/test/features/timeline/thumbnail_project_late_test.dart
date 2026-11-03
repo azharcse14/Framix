@@ -100,7 +100,10 @@ void main() {
     engine.send(Command(saveProject: SaveProject(path: path)));
     await settle();
     engine.send(Command(openProject: OpenProject(path: path)));
-    await settle();
+    // Wait for the new ask with a deadline: a loaded machine answers late.
+    for (var i = 0; i < 100 && asks <= first; i++) {
+      await settle();
+    }
     await tester.runAsync(() => dir.delete(recursive: true));
     expect(
       asks,
