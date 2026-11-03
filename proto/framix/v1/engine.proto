@@ -252,17 +252,19 @@ enum ClipEdge {
   CLIP_EDGE_END = 2;
 }
 
-// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
-// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
 // TrimClip whose edges snap to the nearest edge (0, a clip start or end, the timeline end)
-// within snap_within ticks, as Seek does; a start never snaps onto its own end. 0 = no
-// snapping, more than 10 s is capped, negative is refused.
+// within snap_within ticks, as Seek does. Only a moved edge snaps, the clip's own edges are no
+// targets, and an edge snapped onto or past the other stays where dropped. 0 = no snapping,
+// more than 10 s is capped, negative is refused.
 message SnapTrim {
   uint64 clip_id = 1;
   int64 start = 2;
   int64 end = 3;
   int64 snap_within = 4;
 }
+
+// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
+// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
 
 message TrimToPlayhead {
   uint64 clip_id = 1;

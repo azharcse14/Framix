@@ -611,14 +611,27 @@ impl Engine {
                 timeline(applied.map_err(|e| e.to_string()))
             }
             command::Kind::Seek(seek) => {
-                let snapped = self.snapped(Time(seek.time), seek.snap_within)?;
+                let within = snap_tolerance(seek.snap_within)?;
+                let snapped = (within.0 > 0)
+                    .then(|| self.history.timeline().snap(Time(seek.time), within))
+                    .flatten();
                 self.move_playhead(snapped.unwrap_or(Time(seek.time)));
                 Ok(Reply::Playhead(snapped.is_some()))
             }
             command::Kind::SnapTrim(op) => {
+                let id = ClipId(op.clip_id);
                 let (start, end) = (Time(op.start), Time(op.end));
-                let snap = |t| self.snapped(t, op.snap_within).map(|s| s.unwrap_or(t));
-                let (mut s, mut e) = (snap(start)?, snap(end)?);
+                let within = snap_tolerance(op.snap_within)?;
+                let tl = self.history.timeline();
+                let clip = tl
+                    .clip(id)
+                    .ok_or_else(|| TimelineError::UnknownClip(id).to_string())?;
+                // Only a moved edge snaps; the clip's own edges are no targets.
+                let snap = |t: Time, old: Time| match t != old && within.0 > 0 {
+                    true => tl.snap_trim(id, t, within).unwrap_or(t),
+                    false => t,
+                };
+                let (mut s, mut e) = (snap(start, clip.start), snap(end, clip.end()));
                 // An edge snapped onto the other one would leave nothing: keep it where dropped.
                 if e <= s {
                     (s, e) = if s != start { (start, e) } else { (s, end) };
@@ -689,18 +702,6 @@ impl Engine {
 
     /// After the timeline was replaced by another project: it starts at its beginning, with
     /// its own media ids, so cached thumbnails and the drawn picture's key mean nothing now.
-    /// The nearest edge to `time` within `within` ticks (capped at [`MAX_SNAP`]); `None` when
-    /// nothing is that close or `within` is 0.
-    fn snapped(&self, time: Time, within: i64) -> Result<Option<Time>, String> {
-        if within < 0 {
-            return Err("negative snap tolerance".into());
-        }
-        let within = Time(within.min(MAX_SNAP.0));
-        Ok((within.0 > 0)
-            .then(|| self.history.timeline().snap(time, within))
-            .flatten())
-    }
-
     fn start_project(&mut self) {
         self.project = self.project.wrapping_add(1);
         self.forget_thumbnails();
@@ -868,6 +869,14 @@ impl Engine {
             })),
         }
     }
+}
+
+/// A snap tolerance from a command: negative is refused, more than [`MAX_SNAP`] is capped.
+fn snap_tolerance(within: i64) -> Result<Time, String> {
+    if within < 0 {
+        return Err("negative snap tolerance".into());
+    }
+    Ok(Time(within.min(MAX_SNAP.0)))
 }
 
 /// `layer` as the preview draws it: from the media's proxy once that is ready.

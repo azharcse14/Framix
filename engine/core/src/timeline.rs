@@ -801,12 +801,24 @@ impl Timeline {
     /// The snap point nearest to `time` within `within` ticks, if any: 0, the timeline end and
     /// every clip's start and end on every track. Ties go to the earlier point.
     pub fn snap(&self, time: Time, within: Time) -> Option<Time> {
+        self.snap_skipping(time, within, &[])
+    }
+
+    /// [`Timeline::snap`] for an edge of `clip` being trimmed: that clip's current edges are no
+    /// targets (nor any point on them, such as the timeline end), so a small trim is not pulled
+    /// back to where it started.
+    pub fn snap_trim(&self, clip: ClipId, time: Time, within: Time) -> Option<Time> {
+        let c = self.clip(clip)?;
+        self.snap_skipping(time, within, &[c.start, c.end()])
+    }
+
+    fn snap_skipping(&self, time: Time, within: Time, skip: &[Time]) -> Option<Time> {
         let mut best: Option<Time> = None;
         // `time` is untrusted (a Seek): distances as u64 cannot overflow.
         let within = within.0.max(0).unsigned_abs();
         let mut consider = |p: Time| {
             let d = p.0.abs_diff(time.0);
-            if d > within {
+            if d > within || skip.contains(&p) {
                 return;
             }
             // Strictly closer wins; an equal distance keeps the earlier point.

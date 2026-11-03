@@ -418,10 +418,10 @@ class _Ruler extends StatelessWidget {
     final playhead = context.read<PlayheadCubit>();
     void seekTo(double dx) {
       if (ticksPerSecond == 0) return;
-      // A 12 dp touch radius at this zoom; the engine decides what to snap to.
+      // A touch radius at this zoom; the engine decides what to snap to.
       playhead.seek(
         _ticksAt(dx, pps, ticksPerSecond),
-        snapWithin: _ticksAt(12, pps, ticksPerSecond),
+        snapWithin: _ticksAt(_snapRadius, pps, ticksPerSecond),
       );
     }
 
@@ -602,7 +602,7 @@ class _Lane extends StatelessWidget {
                     clip,
                     clip.start.toInt() + ticks(dx),
                     end,
-                    snapWithin: ticks(_TrimHandle.snapRadius),
+                    snapWithin: ticks(_snapRadius),
                   );
                 },
               ),
@@ -615,7 +615,7 @@ class _Lane extends StatelessWidget {
                     clip,
                     clip.start.toInt(),
                     end,
-                    snapWithin: ticks(_TrimHandle.snapRadius),
+                    snapWithin: ticks(_snapRadius),
                   );
                 },
               ),
@@ -626,6 +626,10 @@ class _Lane extends StatelessWidget {
   }
 }
 
+/// How close (dp) a scrub or a dropped trim edge must come to an edge to snap to it; the engine
+/// decides what it snaps to.
+const _snapRadius = 12.0;
+
 /// A 48 dp drag target just outside a clip edge (inside it only for a clip at 0, where the
 /// lane ends), so it rarely covers the clip; while shown it wins over what lies under it. It follows the
 /// finger and reports the drag distance in pixels once on release; the clip moves when the
@@ -633,10 +637,6 @@ class _Lane extends StatelessWidget {
 // ponytail: the handle springs back on release and the clip follows on the engine's reply (a
 // frame later); a refused trim just springs back. Hold the offset until the reply if it shows.
 class _TrimHandle extends StatefulWidget {
-  /// How close (dp) a dropped edge must be to another edge to snap to it, as the playhead
-  /// scrub; the engine decides what it snaps to.
-  static const snapRadius = 12.0;
-
   const _TrimHandle({
     required this.left,
     required this.label,
