@@ -530,12 +530,22 @@ impl Engine {
                 let clip = tl
                     .clip(id)
                     .ok_or_else(|| TimelineError::UnknownClip(id).to_string())?;
-                let start = Time(op.start.max(0));
-                let start = match within.0 > 0 {
-                    true => snap_span(tl, id, start, clip.duration, within),
-                    false => start,
+                // On its own track the clip's old edges are no targets (a small move stays);
+                // on another track landing on the same time is a fair target.
+                let to = TrackId(op.track_id);
+                let same_track = tl
+                    .track(to)
+                    .is_some_and(|t| t.clips().iter().any(|c| c.id == id));
+                let snap = |t: Time| match same_track {
+                    true => tl.snap_trim(id, t, within),
+                    false => tl.snap(t, within),
                 };
-                timeline(self.edit(|tl| tl.move_clip(id, TrackId(op.track_id), start)))
+                // A start dropped before 0 lands at 0, not on an edge near it.
+                let start = match within.0 > 0 && op.start >= 0 {
+                    true => snap_span(snap, Time(op.start), clip.duration),
+                    false => Time(op.start.max(0)),
+                };
+                timeline(self.edit(|tl| tl.move_clip(id, to, start)))
             }
             command::Kind::ImportMedia(op) => {
                 // Fail fast before validating a huge list; Timeline::import holds the rule.
@@ -888,11 +898,11 @@ impl Engine {
 }
 
 /// Where a clip of `duration` dropped at `start` lands: its start or its end, whichever is
-/// nearer to an edge within `within` (the start on a tie), moves onto that edge; never before 0.
-fn snap_span(tl: &Timeline, id: ClipId, start: Time, duration: Time, within: Time) -> Time {
-    let by_start = tl.snap_trim(id, start, within).map(|s| s.0 - start.0);
+/// nearer to a `snap` point (the start on a tie), moves onto that point; never before 0.
+fn snap_span(snap: impl Fn(Time) -> Option<Time>, start: Time, duration: Time) -> Time {
+    let by_start = snap(start).map(|s| s.0 - start.0);
     let end = start.0.saturating_add(duration.0);
-    let by_end = tl.snap_trim(id, Time(end), within).map(|e| e.0 - end);
+    let by_end = snap(Time(end)).map(|e| e.0 - end);
     let shift = match (by_start, by_end) {
         (Some(a), Some(b)) => {
             if b.abs() < a.abs() {

@@ -806,9 +806,9 @@ impl Timeline {
         self.snap_skipping(time, within, &[])
     }
 
-    /// [`Timeline::snap`] for an edge of `clip` being trimmed or moved: that clip's current edges are no
-    /// targets (nor any point on them, such as the timeline end), so a small trim is not pulled
-    /// back to where it started.
+    /// [`Timeline::snap`] for an edge of `clip` being trimmed or moved on its own track: that
+    /// clip's current edges are no targets (nor any point on them, such as the timeline end),
+    /// so a small trim or move is not pulled back to where it started.
     pub fn snap_trim(&self, clip: ClipId, time: Time, within: Time) -> Option<Time> {
         let c = self.clip(clip)?;
         self.snap_skipping(time, within, &[c.start, c.end()])
