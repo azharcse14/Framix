@@ -239,7 +239,8 @@ class _TimelineViewState extends State<TimelineView> {
   }
 }
 
-/// Playhead time and the zoom buttons (the button path for pinch, docs/design-system.md).
+/// Playhead time, previous/next frame, and the zoom buttons (the button path for pinch,
+/// docs/design-system.md).
 class _Toolbar extends StatelessWidget {
   const _Toolbar({required this.ticksPerSecond});
 
