@@ -71,6 +71,9 @@ fn an_unknown_preset_is_refused() {
             &mut engine,
             command::Kind::ApplyExportPreset(ApplyExportPreset { preset }),
         );
-        assert!(matches!(e, Some(event::Kind::CommandFailed(_))), "{preset}: {e:?}");
+        assert!(
+            matches!(e, Some(event::Kind::CommandFailed(_))),
+            "{preset}: {e:?}"
+        );
     }
 }

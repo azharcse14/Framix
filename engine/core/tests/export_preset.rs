@@ -15,7 +15,11 @@ fn each_preset_has_its_platform_shape_at_1080p() {
         (Preset::YouTube, 16, 9),
         (Preset::InstagramFeed, 4, 5),
     ] {
-        assert_eq!(preset.aspect(), AspectRatio::new(w, h).unwrap(), "{preset:?}");
+        assert_eq!(
+            preset.aspect(),
+            AspectRatio::new(w, h).unwrap(),
+            "{preset:?}"
+        );
         assert_eq!(preset.settings(), full_hd, "{preset:?}");
         // 1080 px on the short side.
         let (fw, fh) = preset.settings().frame_size(preset.aspect());
