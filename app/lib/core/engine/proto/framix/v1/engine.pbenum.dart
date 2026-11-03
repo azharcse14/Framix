@@ -91,6 +91,29 @@ class TrackKind extends $pb.ProtobufEnum {
   const TrackKind._(super.value, super.name);
 }
 
+/// Which end of a clip.
+class ClipEdge extends $pb.ProtobufEnum {
+  static const ClipEdge CLIP_EDGE_UNSPECIFIED =
+      ClipEdge._(0, _omitEnumNames ? '' : 'CLIP_EDGE_UNSPECIFIED');
+  static const ClipEdge CLIP_EDGE_START =
+      ClipEdge._(1, _omitEnumNames ? '' : 'CLIP_EDGE_START');
+  static const ClipEdge CLIP_EDGE_END =
+      ClipEdge._(2, _omitEnumNames ? '' : 'CLIP_EDGE_END');
+
+  static const $core.List<ClipEdge> values = <ClipEdge>[
+    CLIP_EDGE_UNSPECIFIED,
+    CLIP_EDGE_START,
+    CLIP_EDGE_END,
+  ];
+
+  static final $core.List<ClipEdge?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static ClipEdge? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ClipEdge._(super.value, super.name);
+}
+
 /// What a picked file is.
 class MediaKind extends $pb.ProtobufEnum {
   static const MediaKind MEDIA_KIND_UNSPECIFIED =

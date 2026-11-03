@@ -64,6 +64,21 @@ final $typed_data.Uint8List trackKindDescriptor = $convert.base64Decode(
     'CglUcmFja0tpbmQSGgoWVFJBQ0tfS0lORF9VTlNQRUNJRklFRBAAEhQKEFRSQUNLX0tJTkRfVk'
     'lERU8QARIUChBUUkFDS19LSU5EX0FVRElPEAI=');
 
+@$core.Deprecated('Use clipEdgeDescriptor instead')
+const ClipEdge$json = {
+  '1': 'ClipEdge',
+  '2': [
+    {'1': 'CLIP_EDGE_UNSPECIFIED', '2': 0},
+    {'1': 'CLIP_EDGE_START', '2': 1},
+    {'1': 'CLIP_EDGE_END', '2': 2},
+  ],
+};
+
+/// Descriptor for `ClipEdge`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List clipEdgeDescriptor = $convert.base64Decode(
+    'CghDbGlwRWRnZRIZChVDTElQX0VER0VfVU5TUEVDSUZJRUQQABITCg9DTElQX0VER0VfU1RBUl'
+    'QQARIRCg1DTElQX0VER0VfRU5EEAI=');
+
 @$core.Deprecated('Use mediaKindDescriptor instead')
 const MediaKind$json = {
   '1': 'MediaKind',
@@ -336,6 +351,15 @@ const Command$json = {
       '9': 0,
       '10': 'stepFrame'
     },
+    {
+      '1': 'trim_to_playhead',
+      '3': 30,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.TrimToPlayhead',
+      '9': 0,
+      '10': 'trimToPlayhead'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -375,8 +399,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     '9qZWN0SABSDWV4cG9ydFByb2plY3QSPgoNY2FuY2VsX2V4cG9ydBgaIAEoCzIXLmZyYW1peC52'
     'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0EksKEnNldF9waG90b19kdXJhdGlvbhgcIA'
     'EoCzIbLmZyYW1peC52MS5TZXRQaG90b0R1cmF0aW9uSABSEHNldFBob3RvRHVyYXRpb24SNQoK'
-    'c3RlcF9mcmFtZRgdIAEoCzIULmZyYW1peC52MS5TdGVwRnJhbWVIAFIJc3RlcEZyYW1lEg4KAm'
-    'lkGBsgASgEUgJpZEIGCgRraW5k');
+    'c3RlcF9mcmFtZRgdIAEoCzIULmZyYW1peC52MS5TdGVwRnJhbWVIAFIJc3RlcEZyYW1lEkUKEH'
+    'RyaW1fdG9fcGxheWhlYWQYHiABKAsyGS5mcmFtaXgudjEuVHJpbVRvUGxheWhlYWRIAFIOdHJp'
+    'bVRvUGxheWhlYWQSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -700,6 +725,27 @@ const SetPhotoDuration$json = {
 /// Descriptor for `SetPhotoDuration`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List setPhotoDurationDescriptor = $convert.base64Decode(
     'ChBTZXRQaG90b0R1cmF0aW9uEhoKCGR1cmF0aW9uGAEgASgDUghkdXJhdGlvbg==');
+
+@$core.Deprecated('Use trimToPlayheadDescriptor instead')
+const TrimToPlayhead$json = {
+  '1': 'TrimToPlayhead',
+  '2': [
+    {'1': 'clip_id', '3': 1, '4': 1, '5': 4, '10': 'clipId'},
+    {
+      '1': 'edge',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ClipEdge',
+      '10': 'edge'
+    },
+  ],
+};
+
+/// Descriptor for `TrimToPlayhead`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List trimToPlayheadDescriptor = $convert.base64Decode(
+    'Cg5UcmltVG9QbGF5aGVhZBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSJwoEZWRnZRgCIAEoDj'
+    'ITLmZyYW1peC52MS5DbGlwRWRnZVIEZWRnZQ==');
 
 @$core.Deprecated('Use duplicateClipDescriptor instead')
 const DuplicateClip$json = {

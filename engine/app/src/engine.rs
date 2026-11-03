@@ -595,6 +595,22 @@ impl Engine {
                 self.move_playhead(snapped.unwrap_or(Time(seek.time)));
                 Ok(Reply::Playhead(snapped.is_some()))
             }
+            command::Kind::TrimToPlayhead(op) => {
+                let id = ClipId(op.clip_id);
+                let edge = proto::ClipEdge::try_from(op.edge)
+                    .ok()
+                    .filter(|e| *e != proto::ClipEdge::Unspecified)
+                    .ok_or_else(|| format!("unknown clip edge {}", op.edge))?;
+                let at = self.playhead;
+                timeline(self.edit(|tl| {
+                    let clip = tl.clip(id).ok_or(TimelineError::UnknownClip(id))?;
+                    let (start, end) = match edge {
+                        proto::ClipEdge::Start => (at, clip.end()),
+                        _ => (clip.start, at),
+                    };
+                    tl.trim_clip(id, start, end)
+                }))
+            }
             command::Kind::StepFrame(op) => {
                 let rate = self.history.timeline().export().fps.rate();
                 // Out of range only past the largest time: the clamp puts it at the end.

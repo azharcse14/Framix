@@ -416,6 +416,13 @@ impl Timeline {
         Ok(())
     }
 
+    /// Looks up a clip by id on any track.
+    pub fn clip(&self, id: ClipId) -> Option<&Clip> {
+        self.tracks
+            .iter()
+            .find_map(|t| t.clips.iter().find(|c| c.id == id))
+    }
+
     /// Media registered in this project, by id.
     pub fn media(&self, id: MediaId) -> Option<&Media> {
         self.media.get(&id)

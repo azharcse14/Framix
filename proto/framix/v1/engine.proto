@@ -36,6 +36,7 @@ message Command {
     CancelExport cancel_export = 26;
     SetPhotoDuration set_photo_duration = 28;
     StepFrame step_frame = 29;
+    TrimToPlayhead trim_to_playhead = 30;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -206,6 +207,20 @@ message TrimClip {
 // clips on the same track move by the change, keeping gaps; other tracks don't move.
 message SetPhotoDuration {
   int64 duration = 1;
+}
+
+// Which end of a clip.
+enum ClipEdge {
+  CLIP_EDGE_UNSPECIFIED = 0;
+  CLIP_EDGE_START = 1;
+  CLIP_EDGE_END = 2;
+}
+
+// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
+// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
+message TrimToPlayhead {
+  uint64 clip_id = 1;
+  ClipEdge edge = 2;
 }
 
 // Copies a clip to right after itself; refused if that space is taken.

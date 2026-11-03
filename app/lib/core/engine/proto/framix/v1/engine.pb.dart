@@ -50,6 +50,7 @@ enum Command_Kind {
   cancelExport,
   setPhotoDuration,
   stepFrame,
+  trimToPlayhead,
   notSet
 }
 
@@ -85,6 +86,7 @@ class Command extends $pb.GeneratedMessage {
     $fixnum.Int64? id,
     SetPhotoDuration? setPhotoDuration,
     StepFrame? stepFrame,
+    TrimToPlayhead? trimToPlayhead,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -116,6 +118,7 @@ class Command extends $pb.GeneratedMessage {
     if (id != null) result.id = id;
     if (setPhotoDuration != null) result.setPhotoDuration = setPhotoDuration;
     if (stepFrame != null) result.stepFrame = stepFrame;
+    if (trimToPlayhead != null) result.trimToPlayhead = trimToPlayhead;
     return result;
   }
 
@@ -157,6 +160,7 @@ class Command extends $pb.GeneratedMessage {
     26: Command_Kind.cancelExport,
     28: Command_Kind.setPhotoDuration,
     29: Command_Kind.stepFrame,
+    30: Command_Kind.trimToPlayhead,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -191,7 +195,8 @@ class Command extends $pb.GeneratedMessage {
       25,
       26,
       28,
-      29
+      29,
+      30
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -251,6 +256,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: SetPhotoDuration.$_createMessage)
     ..aOM<StepFrame>(29, _omitFieldNames ? '' : 'stepFrame',
         subBuilder: StepFrame.$_createMessage)
+    ..aOM<TrimToPlayhead>(30, _omitFieldNames ? '' : 'trimToPlayhead',
+        subBuilder: TrimToPlayhead.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -301,6 +308,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(26)
   @$pb.TagNumber(28)
   @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -330,6 +338,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(26)
   @$pb.TagNumber(28)
   @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -649,6 +658,17 @@ class Command extends $pb.GeneratedMessage {
   void clearStepFrame() => $_clearField(29);
   @$pb.TagNumber(29)
   StepFrame ensureStepFrame() => $_ensure(28);
+
+  @$pb.TagNumber(30)
+  TrimToPlayhead get trimToPlayhead => $_getN(29);
+  @$pb.TagNumber(30)
+  set trimToPlayhead(TrimToPlayhead value) => $_setField(30, value);
+  @$pb.TagNumber(30)
+  $core.bool hasTrimToPlayhead() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearTrimToPlayhead() => $_clearField(30);
+  @$pb.TagNumber(30)
+  TrimToPlayhead ensureTrimToPlayhead() => $_ensure(29);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2158,6 +2178,79 @@ class SetPhotoDuration extends $pb.GeneratedMessage {
   $core.bool hasDuration() => $_has(0);
   @$pb.TagNumber(1)
   void clearDuration() => $_clearField(1);
+}
+
+/// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
+/// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
+class TrimToPlayhead extends $pb.GeneratedMessage {
+  factory TrimToPlayhead({
+    $fixnum.Int64? clipId,
+    ClipEdge? edge,
+  }) {
+    final result = TrimToPlayhead._();
+    if (clipId != null) result.clipId = clipId;
+    if (edge != null) result.edge = edge;
+    return result;
+  }
+
+  TrimToPlayhead._();
+
+  factory TrimToPlayhead.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      TrimToPlayhead()..mergeFromBuffer(data, registry);
+  factory TrimToPlayhead.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      TrimToPlayhead()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrimToPlayhead',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: TrimToPlayhead.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aE<ClipEdge>(2, _omitFieldNames ? '' : 'edge',
+        enumValues: ClipEdge.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TrimToPlayhead clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TrimToPlayhead copyWith(void Function(TrimToPlayhead) updates) =>
+      super.copyWith((message) => updates(message as TrimToPlayhead))
+          as TrimToPlayhead;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use TrimToPlayhead() / TrimToPlayhead.new instead')
+  static TrimToPlayhead create() => TrimToPlayhead._();
+  static $pb.GeneratedMessage $_createMessage() => TrimToPlayhead._();
+  @$core.override
+  TrimToPlayhead createEmptyInstance() => TrimToPlayhead._();
+  @$core.pragma('dart2js:noInline')
+  static TrimToPlayhead getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrimToPlayhead>(
+          TrimToPlayhead.$_createMessage);
+  static TrimToPlayhead? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  ClipEdge get edge => $_getN(1);
+  @$pb.TagNumber(2)
+  set edge(ClipEdge value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEdge() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEdge() => $_clearField(2);
 }
 
 /// Copies a clip to right after itself; refused if that space is taken.

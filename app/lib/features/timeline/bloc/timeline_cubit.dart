@@ -132,6 +132,13 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Trims [clip]'s [edge] to the engine's playhead; the engine keeps its own other edge.
+  void trimToPlayhead(Clip clip, ClipEdge edge) => _engine.send(
+    Command(
+      trimToPlayhead: TrimToPlayhead(clipId: clip.id, edge: edge),
+    ),
+  );
+
   /// Waits for [pick] and puts its first item under [clip]; a cancelled pick sends nothing.
   Future<void> replaceClip(
     Clip clip,

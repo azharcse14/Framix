@@ -324,20 +324,13 @@ class _ClipActions extends StatelessWidget {
           IconButton(
             tooltip: l10n.trimStartToPlayhead,
             icon: const Icon(Icons.first_page),
-            onPressed: () => cubit.trimClip(
-              clip,
-              context.read<PlayheadCubit>().state,
-              end.toInt(),
-            ),
+            onPressed: () =>
+                cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_START),
           ),
           IconButton(
             tooltip: l10n.trimEndToPlayhead,
             icon: const Icon(Icons.last_page),
-            onPressed: () => cubit.trimClip(
-              clip,
-              clip.start.toInt(),
-              context.read<PlayheadCubit>().state,
-            ),
+            onPressed: () => cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_END),
           ),
           IconButton(
             tooltip: l10n.replaceClip,
