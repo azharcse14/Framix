@@ -49,8 +49,19 @@ fn save_started(path: &Path) -> bool {
     path.exists() || Path::new(&tmp).exists()
 }
 
+/// The timer's save finishes while the engine still runs; only the flush is given time, the
+/// start is checked by `save_started`.
+fn wait_saved(path: &Path) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !path.exists() && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    path.exists()
+}
+
 /// Starts an engine with autosave at a fresh path and one edit; runs `during` while it is
-/// alive, then destroys it, waits for EngineStopped, and checks the save finished.
+/// alive, checks that save finished before shutdown, then destroys the engine and waits for
+/// EngineStopped (refusing any CommandFailed, e.g. a failed autosave).
 fn with_engine(name: &str, during: impl FnOnce(*mut Engine, &PathBuf)) {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     let dir = std::env::temp_dir().join(format!("framix-{name}-{}", std::process::id()));
@@ -87,15 +98,23 @@ fn with_engine(name: &str, during: impl FnOnce(*mut Engine, &PathBuf)) {
             .expect("EnableAutosave and AddTrack replies");
     }
     during(engine, &path);
+    assert!(
+        wait_saved(&path),
+        "the timer's save finished before shutdown"
+    );
     // SAFETY: not used after this.
     assert_eq!(unsafe { engine_destroy(engine) }, ENGINE_OK);
-    while !matches!(
-        rx.recv_timeout(Duration::from_secs(10))
+    loop {
+        match rx
+            .recv_timeout(Duration::from_secs(10))
             .expect("event")
-            .kind,
-        Some(event::Kind::EngineStopped(_))
-    ) {}
-    assert!(path.exists(), "the save finished by EngineStopped");
+            .kind
+        {
+            Some(event::Kind::EngineStopped(_)) => break,
+            Some(event::Kind::CommandFailed(f)) => panic!("{}", f.reason),
+            _ => {}
+        }
+    }
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
