@@ -94,14 +94,14 @@ class _ExportSettingsSheet extends StatelessWidget {
                       cubit.changeExportSettings(fps: s.first),
                 ),
                 const SizedBox(height: FramixSpace.m),
-                // Turning auto off keeps the bitrate the engine was using.
+                // Turning auto off keeps the bitrate the engine is using now (its value, not this copy).
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.autoBitrate),
                   value: auto,
-                  onChanged: (on) => cubit.changeExportSettings(
-                    kbps: on ? 0 : e.effectiveKbps,
-                  ),
+                  onChanged: (on) => on
+                      ? cubit.changeExportSettings(kbps: 0)
+                      : cubit.fixBitrate(),
                 ),
                 if (!auto && e.maxKbps > e.minKbps)
                   _BitrateSlider(

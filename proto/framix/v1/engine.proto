@@ -39,6 +39,7 @@ message Command {
     TrimToPlayhead trim_to_playhead = 30;
     ApplyExportPreset apply_export_preset = 31;
     ChangeExportSettings change_export_settings = 32;
+    FixBitrate fix_bitrate = 33;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -103,6 +104,10 @@ enum ExportPreset {
 message ApplyExportPreset {
   ExportPreset preset = 1;
 }
+
+// Turns automatic bitrate off, keeping the bitrate the engine uses now for its current
+// settings. Already set: no change. One undo step.
+message FixBitrate {}
 
 // Changes only the given export settings; unset ones keep their value, so quick edits of
 // different settings never undo each other. kbps 0 is automatic. Checked like

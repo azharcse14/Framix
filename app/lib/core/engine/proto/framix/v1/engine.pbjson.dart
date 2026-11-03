@@ -395,6 +395,15 @@ const Command$json = {
       '9': 0,
       '10': 'changeExportSettings'
     },
+    {
+      '1': 'fix_bitrate',
+      '3': 33,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.FixBitrate',
+      '9': 0,
+      '10': 'fixBitrate'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -439,7 +448,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'bVRvUGxheWhlYWQSTgoTYXBwbHlfZXhwb3J0X3ByZXNldBgfIAEoCzIcLmZyYW1peC52MS5BcH'
     'BseUV4cG9ydFByZXNldEgAUhFhcHBseUV4cG9ydFByZXNldBJXChZjaGFuZ2VfZXhwb3J0X3Nl'
     'dHRpbmdzGCAgASgLMh8uZnJhbWl4LnYxLkNoYW5nZUV4cG9ydFNldHRpbmdzSABSFGNoYW5nZU'
-    'V4cG9ydFNldHRpbmdzEg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
+    'V4cG9ydFNldHRpbmdzEjgKC2ZpeF9iaXRyYXRlGCEgASgLMhUuZnJhbWl4LnYxLkZpeEJpdHJh'
+    'dGVIAFIKZml4Qml0cmF0ZRIOCgJpZBgbIAEoBFICaWRCBgoEa2luZA==');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -523,6 +533,15 @@ const ApplyExportPreset$json = {
 final $typed_data.Uint8List applyExportPresetDescriptor = $convert.base64Decode(
     'ChFBcHBseUV4cG9ydFByZXNldBIvCgZwcmVzZXQYASABKA4yFy5mcmFtaXgudjEuRXhwb3J0UH'
     'Jlc2V0UgZwcmVzZXQ=');
+
+@$core.Deprecated('Use fixBitrateDescriptor instead')
+const FixBitrate$json = {
+  '1': 'FixBitrate',
+};
+
+/// Descriptor for `FixBitrate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List fixBitrateDescriptor =
+    $convert.base64Decode('CgpGaXhCaXRyYXRl');
 
 @$core.Deprecated('Use changeExportSettingsDescriptor instead')
 const ChangeExportSettings$json = {

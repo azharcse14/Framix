@@ -62,6 +62,9 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Turns automatic bitrate off at the bitrate the engine uses now.
+  void fixBitrate() => _engine.send(Command(fixBitrate: FixBitrate()));
+
   /// Sets the canvas and export settings of a platform [preset] in one undo step.
   void applyExportPreset(ExportPreset preset) => _engine.send(
     Command(applyExportPreset: ApplyExportPreset(preset: preset)),

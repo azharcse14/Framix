@@ -53,6 +53,7 @@ enum Command_Kind {
   trimToPlayhead,
   applyExportPreset,
   changeExportSettings,
+  fixBitrate,
   notSet
 }
 
@@ -91,6 +92,7 @@ class Command extends $pb.GeneratedMessage {
     TrimToPlayhead? trimToPlayhead,
     ApplyExportPreset? applyExportPreset,
     ChangeExportSettings? changeExportSettings,
+    FixBitrate? fixBitrate,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -126,6 +128,7 @@ class Command extends $pb.GeneratedMessage {
     if (applyExportPreset != null) result.applyExportPreset = applyExportPreset;
     if (changeExportSettings != null)
       result.changeExportSettings = changeExportSettings;
+    if (fixBitrate != null) result.fixBitrate = fixBitrate;
     return result;
   }
 
@@ -170,6 +173,7 @@ class Command extends $pb.GeneratedMessage {
     30: Command_Kind.trimToPlayhead,
     31: Command_Kind.applyExportPreset,
     32: Command_Kind.changeExportSettings,
+    33: Command_Kind.fixBitrate,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -207,7 +211,8 @@ class Command extends $pb.GeneratedMessage {
       29,
       30,
       31,
-      32
+      32,
+      33
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -274,6 +279,8 @@ class Command extends $pb.GeneratedMessage {
     ..aOM<ChangeExportSettings>(
         32, _omitFieldNames ? '' : 'changeExportSettings',
         subBuilder: ChangeExportSettings.$_createMessage)
+    ..aOM<FixBitrate>(33, _omitFieldNames ? '' : 'fixBitrate',
+        subBuilder: FixBitrate.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -327,6 +334,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   @$pb.TagNumber(31)
   @$pb.TagNumber(32)
+  @$pb.TagNumber(33)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -359,6 +367,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   @$pb.TagNumber(31)
   @$pb.TagNumber(32)
+  @$pb.TagNumber(33)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -711,6 +720,17 @@ class Command extends $pb.GeneratedMessage {
   void clearChangeExportSettings() => $_clearField(32);
   @$pb.TagNumber(32)
   ChangeExportSettings ensureChangeExportSettings() => $_ensure(31);
+
+  @$pb.TagNumber(33)
+  FixBitrate get fixBitrate => $_getN(32);
+  @$pb.TagNumber(33)
+  set fixBitrate(FixBitrate value) => $_setField(33, value);
+  @$pb.TagNumber(33)
+  $core.bool hasFixBitrate() => $_has(32);
+  @$pb.TagNumber(33)
+  void clearFixBitrate() => $_clearField(33);
+  @$pb.TagNumber(33)
+  FixBitrate ensureFixBitrate() => $_ensure(32);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -1021,6 +1041,47 @@ class ApplyExportPreset extends $pb.GeneratedMessage {
   $core.bool hasPreset() => $_has(0);
   @$pb.TagNumber(1)
   void clearPreset() => $_clearField(1);
+}
+
+/// Turns automatic bitrate off, keeping the bitrate the engine uses now for its current
+/// settings. Already set: no change. One undo step.
+class FixBitrate extends $pb.GeneratedMessage {
+  factory FixBitrate() => FixBitrate._();
+
+  FixBitrate._();
+
+  factory FixBitrate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      FixBitrate()..mergeFromBuffer(data, registry);
+  factory FixBitrate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      FixBitrate()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'FixBitrate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: FixBitrate.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FixBitrate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FixBitrate copyWith(void Function(FixBitrate) updates) =>
+      super.copyWith((message) => updates(message as FixBitrate)) as FixBitrate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use FixBitrate() / FixBitrate.new instead')
+  static FixBitrate create() => FixBitrate._();
+  static $pb.GeneratedMessage $_createMessage() => FixBitrate._();
+  @$core.override
+  FixBitrate createEmptyInstance() => FixBitrate._();
+  @$core.pragma('dart2js:noInline')
+  static FixBitrate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<FixBitrate>(FixBitrate.$_createMessage);
+  static FixBitrate? _defaultInstance;
 }
 
 /// Changes only the given export settings; unset ones keep their value, so quick edits of

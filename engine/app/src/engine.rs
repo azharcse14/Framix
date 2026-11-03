@@ -538,6 +538,17 @@ impl Engine {
             command::Kind::EnableAutosave(op) => timeline(self.enable_autosave(&op.path)),
             command::Kind::CancelExport(_) => self.cancel_export().map(|()| Reply::Accepted),
             command::Kind::ExportProject(op) => self.start_export(op.path),
+            command::Kind::FixBitrate(_) => timeline(self.edit(|tl| {
+                let settings = tl.export();
+                let kbps = settings.effective_kbps(tl.aspect());
+                // effective_kbps stays inside KBPS_RANGE, so this is always Some.
+                let bitrate = Bitrate::kbps(kbps).unwrap_or(settings.bitrate);
+                tl.set_export(ExportSettings {
+                    bitrate,
+                    ..settings
+                });
+                Ok::<_, TimelineError>(())
+            })),
             command::Kind::ChangeExportSettings(op) => {
                 let current = export_proto(self.history.timeline().export());
                 let settings = export_settings(proto::SetExportSettings {
