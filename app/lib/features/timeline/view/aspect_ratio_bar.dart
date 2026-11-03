@@ -4,6 +4,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../export/view/export_buttons.dart';
+import '../../export/view/export_settings_button.dart';
 import '../bloc/timeline_cubit.dart';
 
 /// Ratios offered to the user; the engine validates and stores them reduced.
@@ -13,7 +15,8 @@ const _presets = [(9, 16), (16, 9), (1, 1), (4, 5), (3, 4), (21, 9)];
 /// platform preset row (one 48 dp chip row), so the bar keeps its height.
 const _canvasHeight = 112.0;
 
-/// Canvas outline in the engine's aspect ratio, platform preset chips, and the ratio chips.
+/// Canvas outline in the engine's aspect ratio, platform preset chips with the export actions,
+/// and the ratio chips.
 class AspectRatioBar extends StatelessWidget {
   const AspectRatioBar({super.key});
 
@@ -46,39 +49,53 @@ class AspectRatioBar extends StatelessWidget {
                     )
                   : null,
             ),
-            Semantics(
-              label: l10n.exportPresets,
-              container: true,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
-                child: Row(
-                  children: [
-                    for (final (preset, label) in [
-                      (
-                        ExportPreset.EXPORT_PRESET_SHORT_VIDEO,
-                        l10n.presetShortVideo,
+            Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    label: l10n.exportPresets,
+                    container: true,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: FramixSpace.s,
                       ),
-                      (ExportPreset.EXPORT_PRESET_YOUTUBE, l10n.presetYouTube),
-                      (
-                        ExportPreset.EXPORT_PRESET_INSTAGRAM_FEED,
-                        l10n.presetInstagramFeed,
+                      child: Row(
+                        children: [
+                          for (final (preset, label) in [
+                            (
+                              ExportPreset.EXPORT_PRESET_SHORT_VIDEO,
+                              l10n.presetShortVideo,
+                            ),
+                            (
+                              ExportPreset.EXPORT_PRESET_YOUTUBE,
+                              l10n.presetYouTube,
+                            ),
+                            (
+                              ExportPreset.EXPORT_PRESET_INSTAGRAM_FEED,
+                              l10n.presetInstagramFeed,
+                            ),
+                          ])
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: FramixSpace.s / 2,
+                              ),
+                              child: ActionChip(
+                                label: Text(label),
+                                onPressed: () => context
+                                    .read<TimelineCubit>()
+                                    .applyExportPreset(preset),
+                              ),
+                            ),
+                        ],
                       ),
-                    ])
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: FramixSpace.s / 2,
-                        ),
-                        child: ActionChip(
-                          label: Text(label),
-                          onPressed: () => context
-                              .read<TimelineCubit>()
-                              .applyExportPreset(preset),
-                        ),
-                      ),
-                  ],
+                    ),
+                  ),
                 ),
-              ),
+                // Export settings and export (save and share once done) go with the presets.
+                const ExportSettingsButton(),
+                const ExportButtons(),
+              ],
             ),
             Semantics(
               label: l10n.aspectRatio,

@@ -4,16 +4,11 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../../export/view/export_buttons.dart';
-import '../../export/view/export_settings_button.dart';
 import '../../preview/view/preview_view.dart';
 import '../bloc/timeline_cubit.dart';
 import 'aspect_ratio_bar.dart';
 import 'import_buttons.dart';
 import 'timeline_view.dart';
-
-/// Narrower than this (dp), the app bar has no room for every action in one row.
-const _wideAppBar = 600.0;
 
 /// The timeline: tracks on a time axis, undo/redo, and add-track actions.
 class TimelinePage extends StatelessWidget {
@@ -23,25 +18,9 @@ class TimelinePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<TimelineCubit>();
-    // Up to nine 48 dp actions don't fit a phone's app bar: there the export group gets its
-    // own row under it.
-    const exportGroup = [ExportSettingsButton(), ExportButtons()];
-    final narrow = MediaQuery.sizeOf(context).width < _wideAppBar;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
-        bottom: narrow
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(kToolbarHeight),
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: exportGroup,
-                  ),
-                ),
-              )
-            : null,
         actions: [
           const ImportButtons(),
           BlocSelector<TimelineCubit, TimelineChanged, bool>(
@@ -60,7 +39,8 @@ class TimelinePage extends StatelessWidget {
               onPressed: canRedo ? cubit.redo : null,
             ),
           ),
-          if (!narrow) ...exportGroup,
+          // The export actions sit with the platform presets (AspectRatioBar): nine 48 dp
+          // actions don't fit a phone's app bar, and a second row costs timeline height.
         ],
       ),
       body: Column(
