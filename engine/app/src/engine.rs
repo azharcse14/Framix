@@ -869,6 +869,8 @@ impl Engine {
                             y: c.transform.y,
                             scale: c.transform.scale,
                             mergeable_with_next: t.mergeable_with_next(i),
+                            // A locked track refuses every edit (SetClipTransform included).
+                            placement_locked: t.flags().locked || !timeline.placeable(c.media),
                         })
                         .collect(),
                     number: *count,

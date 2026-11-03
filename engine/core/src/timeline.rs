@@ -691,17 +691,21 @@ impl Timeline {
         Ok(())
     }
 
-    /// Turns 0..=3, and a crop that leaves at least one pixel each way of `media`. A color
-    /// fills the canvas, so its clips keep the default.
+    /// Whether clips of `media` may be moved, scaled or cropped on the canvas: a color fills the
+    /// canvas, so its clips keep the default transform.
+    pub fn placeable(&self, media: MediaId) -> bool {
+        self.media(media)
+            .is_none_or(|m| m.kind() != MediaKind::Color)
+    }
+
+    /// Turns 0..=3, and a crop that leaves at least one pixel each way of `media`; clips of a
+    /// media that is not [`Timeline::placeable`] keep the default.
     fn check_transform(
         &self,
         media: MediaId,
         transform: ClipTransform,
     ) -> Result<(), TimelineError> {
-        let color = self
-            .media(media)
-            .is_some_and(|m| m.kind() == MediaKind::Color);
-        if color && transform != ClipTransform::default() {
+        if !self.placeable(media) && transform != ClipTransform::default() {
             return Err(TimelineError::BadTransform);
         }
         let on_canvas = |v: i32| (-MAX_OFFSET..=MAX_OFFSET).contains(&v);

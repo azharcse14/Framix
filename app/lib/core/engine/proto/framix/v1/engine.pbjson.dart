@@ -1407,6 +1407,7 @@ const Clip$json = {
       '5': 8,
       '10': 'mergeableWithNext'
     },
+    {'1': 'placement_locked', '3': 19, '4': 1, '5': 8, '10': 'placementLocked'},
   ],
 };
 
@@ -1421,7 +1422,7 @@ final $typed_data.Uint8List clipDescriptor = $convert.base64Decode(
     'IAEoDVIJY3JvcFJpZ2h0Eh8KC2Nyb3BfYm90dG9tGA0gASgNUgpjcm9wQm90dG9tEgwKAXgYDi'
     'ABKAVSAXgSDAoBeRgPIAEoBVIBeRIUCgVzY2FsZRgQIAEoDVIFc2NhbGUSFAoFY29sb3IYESAB'
     'KAdSBWNvbG9yEi4KE21lcmdlYWJsZV93aXRoX25leHQYEiABKAhSEW1lcmdlYWJsZVdpdGhOZX'
-    'h0');
+    'h0EikKEHBsYWNlbWVudF9sb2NrZWQYEyABKAhSD3BsYWNlbWVudExvY2tlZA==');
 
 @$core.Deprecated('Use projectSavedDescriptor instead')
 const ProjectSaved$json = {

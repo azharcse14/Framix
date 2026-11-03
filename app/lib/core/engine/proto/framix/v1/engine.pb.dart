@@ -4616,6 +4616,7 @@ class Clip extends $pb.GeneratedMessage {
     $core.int? scale,
     $core.int? color,
     $core.bool? mergeableWithNext,
+    $core.bool? placementLocked,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -4636,6 +4637,7 @@ class Clip extends $pb.GeneratedMessage {
     if (scale != null) result.scale = scale;
     if (color != null) result.color = color;
     if (mergeableWithNext != null) result.mergeableWithNext = mergeableWithNext;
+    if (placementLocked != null) result.placementLocked = placementLocked;
     return result;
   }
 
@@ -4674,6 +4676,7 @@ class Clip extends $pb.GeneratedMessage {
     ..aI(16, _omitFieldNames ? '' : 'scale', fieldType: $pb.PbFieldType.OU3)
     ..aI(17, _omitFieldNames ? '' : 'color', fieldType: $pb.PbFieldType.OF3)
     ..aOB(18, _omitFieldNames ? '' : 'mergeableWithNext')
+    ..aOB(19, _omitFieldNames ? '' : 'placementLocked')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4861,6 +4864,17 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasMergeableWithNext() => $_has(17);
   @$pb.TagNumber(18)
   void clearMergeableWithNext() => $_clearField(18);
+
+  /// SetClipTransform refuses to move or scale this clip (a color fills the canvas; a locked
+  /// track), so the canvas offers no gestures for it.
+  @$pb.TagNumber(19)
+  $core.bool get placementLocked => $_getBF(18);
+  @$pb.TagNumber(19)
+  set placementLocked($core.bool value) => $_setBool(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasPlacementLocked() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearPlacementLocked() => $_clearField(19);
 }
 
 /// SaveProject finished.

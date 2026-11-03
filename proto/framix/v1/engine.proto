@@ -501,6 +501,9 @@ message Clip {
   fixed32 color = 17;
   // MergeClips would join this clip with the next one on its track.
   bool mergeable_with_next = 18;
+  // SetClipTransform refuses to move or scale this clip (a color fills the canvas; a locked
+  // track), so the canvas offers no gestures for it.
+  bool placement_locked = 19;
 }
 
 // SaveProject finished.
