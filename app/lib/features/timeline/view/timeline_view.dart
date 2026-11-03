@@ -323,7 +323,8 @@ class _ClipActions extends StatelessWidget {
             icon: const Icon(Icons.control_point_duplicate),
             onPressed: () => cubit.duplicateClip(clip),
           ),
-          if (clip.mediaKind == MediaKind.MEDIA_KIND_IMAGE)
+          // A locked track's photos keep their length, so tapping there would look dead.
+          if (clip.mediaKind == MediaKind.MEDIA_KIND_IMAGE && !track.locked)
             IconButton(
               tooltip: l10n.applyDurationToAllPhotos,
               icon: const Icon(Icons.timer_outlined),
