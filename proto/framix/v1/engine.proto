@@ -463,6 +463,9 @@ message TimelineChanged {
   // Changes when the engine starts another project (new, opened, restored); cached thumbnails
   // and media ids of the old one no longer apply.
   uint64 project = 12;
+  // This answers a SnapTrim or SnapMove that landed on a snap point (the UI ticks, as for a
+  // snapping Seek); false for every other change.
+  bool snapped = 13;
 }
 
 // A track and its clips, sorted by start.

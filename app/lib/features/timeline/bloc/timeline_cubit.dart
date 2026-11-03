@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/engine/framix_engine.dart';
@@ -29,7 +30,11 @@ class TimelineCubit extends Cubit<TimelineChanged> {
         )
         // Cubit always lets the first emit through, even if equal; skip no-op replies.
         .where((t) => t != state)
-        .listen(emit);
+        .listen((t) {
+          // A trim or move landed on a snap point: the same tick as a snapping scrub.
+          if (t.snapped) HapticFeedback.selectionClick();
+          emit(t);
+        });
     // The engine may already hold edits; ask for them instead of trusting the empty start.
     _engine.send(Command(getTimeline: GetTimeline()));
   }

@@ -4283,6 +4283,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $fixnum.Int64? activeClip,
     ExportInfo? export,
     $fixnum.Int64? project,
+    $core.bool? snapped,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -4297,6 +4298,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (activeClip != null) result.activeClip = activeClip;
     if (export != null) result.export = export;
     if (project != null) result.project = project;
+    if (snapped != null) result.snapped = snapped;
     return result;
   }
 
@@ -4333,6 +4335,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         12, _omitFieldNames ? '' : 'project', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOB(13, _omitFieldNames ? '' : 'snapped')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4467,6 +4470,17 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasProject() => $_has(11);
   @$pb.TagNumber(12)
   void clearProject() => $_clearField(12);
+
+  /// This answers a SnapTrim or SnapMove that landed on a snap point (the UI ticks, as for a
+  /// snapping Seek); false for every other change.
+  @$pb.TagNumber(13)
+  $core.bool get snapped => $_getBF(12);
+  @$pb.TagNumber(13)
+  set snapped($core.bool value) => $_setBool(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasSnapped() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearSnapped() => $_clearField(13);
 }
 
 /// A track and its clips, sorted by start.

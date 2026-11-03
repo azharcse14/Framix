@@ -417,7 +417,7 @@ impl Engine {
         };
         match self.apply(kind) {
             // An edit may have shortened the timeline under the playhead.
-            Ok(Reply::Timeline) => {
+            Ok(reply @ (Reply::Timeline | Reply::Snapped)) => {
                 if let Some(proxies) = self.proxies.as_mut() {
                     proxies.ask(self.history.timeline());
                 }
@@ -425,7 +425,11 @@ impl Engine {
                 // shows there.
                 self.move_playhead(self.playhead);
                 self.redraw_if_changed();
-                self.timeline_changed()
+                let mut event = self.timeline_changed();
+                if let Some(proto::event::Kind::TimelineChanged(t)) = event.kind.as_mut() {
+                    t.snapped = matches!(reply, Reply::Snapped);
+                }
+                event
             }
             Ok(Reply::Playhead(snapped)) => Event {
                 kind: Some(proto::event::Kind::PlayheadChanged(
@@ -459,6 +463,16 @@ impl Engine {
 
     fn apply(&mut self, kind: command::Kind) -> Result<Reply, String> {
         let timeline = |r: Result<(), String>| r.map(|()| Reply::Timeline);
+        // A snapping edit's reply: whether the engine moved what was dropped onto a snap point.
+        let snapped = |r: Result<(), String>, snapped: bool| {
+            r.map(|()| {
+                if snapped {
+                    Reply::Snapped
+                } else {
+                    Reply::Timeline
+                }
+            })
+        };
         match kind {
             command::Kind::AddTrack(add) => {
                 let kind = track_kind(add.kind)?;
@@ -541,11 +555,15 @@ impl Engine {
                     false => tl.snap(t, within),
                 };
                 // A start dropped before 0 lands at 0, not on an edge near it.
+                let dropped = Time(op.start.max(0));
                 let start = match within.0 > 0 && op.start >= 0 {
-                    true => snap_span(snap, Time(op.start), clip.duration),
-                    false => Time(op.start.max(0)),
+                    true => snap_span(snap, dropped, clip.duration),
+                    false => dropped,
                 };
-                timeline(self.edit(|tl| tl.move_clip(id, to, start)))
+                snapped(
+                    self.edit(|tl| tl.move_clip(id, to, start)),
+                    start != dropped,
+                )
             }
             command::Kind::ImportMedia(op) => {
                 // Fail fast before validating a huge list; Timeline::import holds the rule.
@@ -660,7 +678,11 @@ impl Engine {
                 if e <= s {
                     (s, e) = if s != start { (start, e) } else { (s, end) };
                 }
-                timeline(self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), s, e)))
+                let moved = (s, e) != (start, end);
+                snapped(
+                    self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), s, e)),
+                    moved,
+                )
             }
             command::Kind::ApplyExportPreset(op) => {
                 let preset = match proto::ExportPreset::try_from(op.preset) {
@@ -894,6 +916,8 @@ impl Engine {
                 active_clip: self.active_clip(),
                 export: Some(export_info(timeline)),
                 project: self.project,
+                // `handle` sets it for the reply of a snapping edit.
+                snapped: false,
             })),
         }
     }
@@ -942,6 +966,8 @@ fn proxied<'a>(
 enum Reply {
     /// The timeline (changed or not).
     Timeline,
+    /// The timeline after a SnapTrim or SnapMove that landed on a snap point.
+    Snapped,
     /// The project was saved.
     Saved,
     /// Work started; its result comes later as its own event.
