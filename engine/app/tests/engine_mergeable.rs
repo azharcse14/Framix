@@ -82,3 +82,34 @@ fn split_halves_merge_and_other_media_does_not() {
         "a locked track merges nothing"
     );
 }
+
+// P1-075 review: the flag follows every refusal of MergeClips, transforms included.
+#[test]
+fn halves_with_different_transforms_do_not_merge() {
+    use framix_app::proto::SetClipTransform;
+    let mut engine = Engine::default();
+    let t = run(
+        &mut engine,
+        command::Kind::ImportMedia(ImportMedia {
+            items: vec![video(1)],
+        }),
+    );
+    let first = t.tracks[0].clips[0].id;
+    let t = run(
+        &mut engine,
+        command::Kind::SplitClip(SplitClip {
+            clip_id: first,
+            at: S,
+        }),
+    );
+    let right = t.tracks[0].clips[1].id;
+    let t = run(
+        &mut engine,
+        command::Kind::SetClipTransform(SetClipTransform {
+            clip_id: right,
+            flip_h: true,
+            ..Default::default()
+        }),
+    );
+    assert_eq!(mergeable(&t), [false, false]);
+}
