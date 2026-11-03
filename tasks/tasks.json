@@ -13974,12 +13974,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-03",
+   "done": "2026-11-03",
+   "commit": "59d215d",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-03",
+     "text": "also covers SnapMove (same snap rule and reply); the tick comes from TimelineCubit on TimelineChanged.snapped"
+    },
+    {
+     "date": "2026-11-03",
+     "text": "review nit open: the rollback test drops exactly on the tolerance (0.1 s); 4.09 s would keep it clear of an inclusive/exclusive change"
+    }
+   ],
    "source": "added"
   },
   {

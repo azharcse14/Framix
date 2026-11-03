@@ -460,7 +460,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-082` Export settings edits merge in the engine (optional fields on SetExportSettings, like SetTrackFlags), so quick taps (4K then 60 fps) can't resend a stale value; test two taps without waiting, a slider drag sending once, and auto back on -> kbps 0 (P1-064 review) \[Rust\] \[Dart\]
 - [x] `P1-083` Turning automatic bitrate off keeps the engine's current effective bitrate (engine-side), not the sheet's last-seen value, so 4K then auto-off before the reply doesn't pin 1080p's bitrate (P1-082 review) \[Rust\] \[Dart\]
 - [ ] `P1-084` Retire TrimClip (no app caller since SnapTrim, P1-074): keep it only behind the frozen engine_clip_ops.rs test or reserve it once that test moves to SnapTrim \[Rust\]
-- [ ] `P1-085` A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review) \[Rust\] \[Dart\]
+- [x] `P1-085` A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review) \[Rust\] \[Dart\]
 - [ ] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
 - [ ] `P1-087` Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove \[Rust\]
 
