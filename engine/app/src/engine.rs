@@ -523,6 +523,20 @@ impl Engine {
                     tl.move_clip(ClipId(op.clip_id), TrackId(op.track_id), Time(op.start))
                 }))
             }
+            command::Kind::SnapMove(op) => {
+                let id = ClipId(op.clip_id);
+                let within = snap_tolerance(op.snap_within)?;
+                let tl = self.history.timeline();
+                let clip = tl
+                    .clip(id)
+                    .ok_or_else(|| TimelineError::UnknownClip(id).to_string())?;
+                let start = Time(op.start.max(0));
+                let start = match within.0 > 0 {
+                    true => snap_span(tl, id, start, clip.duration, within),
+                    false => start,
+                };
+                timeline(self.edit(|tl| tl.move_clip(id, TrackId(op.track_id), start)))
+            }
             command::Kind::ImportMedia(op) => {
                 // Fail fast before validating a huge list; Timeline::import holds the rule.
                 if op.items.len() > media::MAX_IMPORT {
@@ -871,6 +885,26 @@ impl Engine {
             })),
         }
     }
+}
+
+/// Where a clip of `duration` dropped at `start` lands: its start or its end, whichever is
+/// nearer to an edge within `within` (the start on a tie), moves onto that edge; never before 0.
+fn snap_span(tl: &Timeline, id: ClipId, start: Time, duration: Time, within: Time) -> Time {
+    let by_start = tl.snap_trim(id, start, within).map(|s| s.0 - start.0);
+    let end = start.0.saturating_add(duration.0);
+    let by_end = tl.snap_trim(id, Time(end), within).map(|e| e.0 - end);
+    let shift = match (by_start, by_end) {
+        (Some(a), Some(b)) => {
+            if b.abs() < a.abs() {
+                b
+            } else {
+                a
+            }
+        }
+        (a, b) => a.or(b).unwrap_or(0),
+    };
+    // `start` is untrusted; move_clip refuses a span that does not fit.
+    Time(start.0.saturating_add(shift).max(0))
 }
 
 /// A snap tolerance from a command: negative is refused, more than [`MAX_SNAP`] is capped.

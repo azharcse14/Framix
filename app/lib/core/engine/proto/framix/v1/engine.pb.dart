@@ -55,6 +55,7 @@ enum Command_Kind {
   changeExportSettings,
   fixBitrate,
   snapTrim,
+  snapMove,
   notSet
 }
 
@@ -95,6 +96,7 @@ class Command extends $pb.GeneratedMessage {
     ChangeExportSettings? changeExportSettings,
     FixBitrate? fixBitrate,
     SnapTrim? snapTrim,
+    SnapMove? snapMove,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -132,6 +134,7 @@ class Command extends $pb.GeneratedMessage {
       result.changeExportSettings = changeExportSettings;
     if (fixBitrate != null) result.fixBitrate = fixBitrate;
     if (snapTrim != null) result.snapTrim = snapTrim;
+    if (snapMove != null) result.snapMove = snapMove;
     return result;
   }
 
@@ -178,6 +181,7 @@ class Command extends $pb.GeneratedMessage {
     32: Command_Kind.changeExportSettings,
     33: Command_Kind.fixBitrate,
     34: Command_Kind.snapTrim,
+    35: Command_Kind.snapMove,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -217,7 +221,8 @@ class Command extends $pb.GeneratedMessage {
       31,
       32,
       33,
-      34
+      34,
+      35
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -288,6 +293,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: FixBitrate.$_createMessage)
     ..aOM<SnapTrim>(34, _omitFieldNames ? '' : 'snapTrim',
         subBuilder: SnapTrim.$_createMessage)
+    ..aOM<SnapMove>(35, _omitFieldNames ? '' : 'snapMove',
+        subBuilder: SnapMove.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -343,6 +350,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(32)
   @$pb.TagNumber(33)
   @$pb.TagNumber(34)
+  @$pb.TagNumber(35)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -377,6 +385,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(32)
   @$pb.TagNumber(33)
   @$pb.TagNumber(34)
+  @$pb.TagNumber(35)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -751,6 +760,17 @@ class Command extends $pb.GeneratedMessage {
   void clearSnapTrim() => $_clearField(34);
   @$pb.TagNumber(34)
   SnapTrim ensureSnapTrim() => $_ensure(33);
+
+  @$pb.TagNumber(35)
+  SnapMove get snapMove => $_getN(34);
+  @$pb.TagNumber(35)
+  set snapMove(SnapMove value) => $_setField(35, value);
+  @$pb.TagNumber(35)
+  $core.bool hasSnapMove() => $_has(34);
+  @$pb.TagNumber(35)
+  void clearSnapMove() => $_clearField(35);
+  @$pb.TagNumber(35)
+  SnapMove ensureSnapMove() => $_ensure(34);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2472,6 +2492,102 @@ class SetPhotoDuration extends $pb.GeneratedMessage {
   $core.bool hasDuration() => $_has(0);
   @$pb.TagNumber(1)
   void clearDuration() => $_clearField(1);
+}
+
+/// MoveClip that lands the clip with its start or end (whichever is nearer) on the nearest
+/// edge within snap_within ticks, as SnapTrim does (the clip's own edges are no targets); a
+/// start before 0 becomes 0. 0 = no snapping, more than 10 s is capped, negative is refused.
+class SnapMove extends $pb.GeneratedMessage {
+  factory SnapMove({
+    $fixnum.Int64? clipId,
+    $fixnum.Int64? trackId,
+    $fixnum.Int64? start,
+    $fixnum.Int64? snapWithin,
+  }) {
+    final result = SnapMove._();
+    if (clipId != null) result.clipId = clipId;
+    if (trackId != null) result.trackId = trackId;
+    if (start != null) result.start = start;
+    if (snapWithin != null) result.snapWithin = snapWithin;
+    return result;
+  }
+
+  SnapMove._();
+
+  factory SnapMove.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SnapMove()..mergeFromBuffer(data, registry);
+  factory SnapMove.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SnapMove()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SnapMove',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SnapMove.$_createMessage)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'trackId', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(3, _omitFieldNames ? '' : 'start')
+    ..aInt64(4, _omitFieldNames ? '' : 'snapWithin')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnapMove clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnapMove copyWith(void Function(SnapMove) updates) =>
+      super.copyWith((message) => updates(message as SnapMove)) as SnapMove;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SnapMove() / SnapMove.new instead')
+  static SnapMove create() => SnapMove._();
+  static $pb.GeneratedMessage $_createMessage() => SnapMove._();
+  @$core.override
+  SnapMove createEmptyInstance() => SnapMove._();
+  @$core.pragma('dart2js:noInline')
+  static SnapMove getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SnapMove>(SnapMove.$_createMessage);
+  static SnapMove? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get clipId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set clipId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClipId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClipId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get trackId => $_getI64(1);
+  @$pb.TagNumber(2)
+  set trackId($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTrackId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTrackId() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get start => $_getI64(2);
+  @$pb.TagNumber(3)
+  set start($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasStart() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStart() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get snapWithin => $_getI64(3);
+  @$pb.TagNumber(4)
+  set snapWithin($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSnapWithin() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSnapWithin() => $_clearField(4);
 }
 
 /// TrimClip whose edges snap to the nearest edge (0, a clip start or end, the timeline end)

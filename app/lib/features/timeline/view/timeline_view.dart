@@ -81,6 +81,7 @@ class _TimelineViewState extends State<TimelineView> {
       clip,
       tracks[to].id,
       clip.start.toInt() + ticks(by.dx),
+      snapWithin: ticks(_snapRadius),
     );
   }
 

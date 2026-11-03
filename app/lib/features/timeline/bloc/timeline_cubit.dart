@@ -184,17 +184,20 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     );
   }
 
-  /// Moves [clip] to [start] ticks on track [trackId]; the engine refuses a taken spot, a
-  /// locked track or another kind of track.
-  void moveClip(Clip clip, Int64 trackId, int start) => _engine.send(
-    Command(
-      moveClip: MoveClip(
-        clipId: clip.id,
-        trackId: trackId,
-        start: Int64(start),
-      ),
-    ),
-  );
+  /// Moves [clip] to [start] ticks on track [trackId]; the engine snaps it to an edge within
+  /// [snapWithin] ticks, puts a start before 0 at 0, and refuses a taken spot, a locked track
+  /// or another kind of track.
+  void moveClip(Clip clip, Int64 trackId, int start, {int snapWithin = 0}) =>
+      _engine.send(
+        Command(
+          snapMove: SnapMove(
+            clipId: clip.id,
+            trackId: trackId,
+            start: Int64(start),
+            snapWithin: Int64(snapWithin),
+          ),
+        ),
+      );
 
   void removeClip(Clip clip) =>
       _engine.send(Command(removeClip: RemoveClip(clipId: clip.id)));

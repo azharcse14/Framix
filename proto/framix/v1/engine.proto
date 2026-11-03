@@ -41,6 +41,7 @@ message Command {
     ChangeExportSettings change_export_settings = 32;
     FixBitrate fix_bitrate = 33;
     SnapTrim snap_trim = 34;
+    SnapMove snap_move = 35;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -250,6 +251,16 @@ enum ClipEdge {
   CLIP_EDGE_UNSPECIFIED = 0;
   CLIP_EDGE_START = 1;
   CLIP_EDGE_END = 2;
+}
+
+// MoveClip that lands the clip with its start or end (whichever is nearer) on the nearest
+// edge within snap_within ticks, as SnapTrim does (the clip's own edges are no targets); a
+// start before 0 becomes 0. 0 = no snapping, more than 10 s is capped, negative is refused.
+message SnapMove {
+  uint64 clip_id = 1;
+  uint64 track_id = 2;
+  int64 start = 3;
+  int64 snap_within = 4;
 }
 
 // TrimClip whose edges snap to the nearest edge (0, a clip start or end, the timeline end)
