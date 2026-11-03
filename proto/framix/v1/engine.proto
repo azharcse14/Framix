@@ -265,7 +265,6 @@ message SnapTrim {
 
 // Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
 // checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
-
 message TrimToPlayhead {
   uint64 clip_id = 1;
   ClipEdge edge = 2;

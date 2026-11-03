@@ -2570,6 +2570,8 @@ class SnapTrim extends $pb.GeneratedMessage {
   void clearSnapWithin() => $_clearField(4);
 }
 
+/// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
+/// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
 class TrimToPlayhead extends $pb.GeneratedMessage {
   factory TrimToPlayhead({
     $fixnum.Int64? clipId,
