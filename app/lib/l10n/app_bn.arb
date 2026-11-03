@@ -51,5 +51,17 @@
   "trimEndToPlayhead": "প্লেহেড পর্যন্ত শেষ ছাঁটুন",
   "replaceClip": "ক্লিপ বদলান",
   "commandFailed": "কাজটি হয়নি। আবার চেষ্টা করুন।",
-  "addColorClip": "ফাঁকা ক্লিপ যোগ করুন"
+  "addColorClip": "ফাঁকা ক্লিপ যোগ করুন",
+  "exportSettings": "এক্সপোর্ট সেটিংস",
+  "exportResolution": "রেজোলিউশন",
+  "exportResolution720p": "720p",
+  "exportResolution1080p": "1080p",
+  "exportResolution2k": "2K",
+  "exportResolution4k": "4K",
+  "exportFrameRate": "ফ্রেম রেট",
+  "framesPerSecond": "{fps} fps",
+  "autoBitrate": "স্বয়ংক্রিয় বিটরেট",
+  "bitrateKbps": "{kbps} kbps",
+  "exportFrameSize": "{width} × {height}",
+  "exportEstimate": "প্রায় {mb} MB (আনুমানিক)"
 }

@@ -409,6 +409,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add blank clip'**
   String get addColorClip;
+
+  /// No description provided for @exportSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Export settings'**
+  String get exportSettings;
+
+  /// No description provided for @exportResolution.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution'**
+  String get exportResolution;
+
+  /// No description provided for @exportResolution720p.
+  ///
+  /// In en, this message translates to:
+  /// **'720p'**
+  String get exportResolution720p;
+
+  /// No description provided for @exportResolution1080p.
+  ///
+  /// In en, this message translates to:
+  /// **'1080p'**
+  String get exportResolution1080p;
+
+  /// No description provided for @exportResolution2k.
+  ///
+  /// In en, this message translates to:
+  /// **'2K'**
+  String get exportResolution2k;
+
+  /// No description provided for @exportResolution4k.
+  ///
+  /// In en, this message translates to:
+  /// **'4K'**
+  String get exportResolution4k;
+
+  /// No description provided for @exportFrameRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame rate'**
+  String get exportFrameRate;
+
+  /// No description provided for @framesPerSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'{fps} fps'**
+  String framesPerSecond(int fps);
+
+  /// No description provided for @autoBitrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic bitrate'**
+  String get autoBitrate;
+
+  /// No description provided for @bitrateKbps.
+  ///
+  /// In en, this message translates to:
+  /// **'{kbps} kbps'**
+  String bitrateKbps(int kbps);
+
+  /// No description provided for @exportFrameSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{width} × {height}'**
+  String exportFrameSize(int width, int height);
+
+  /// No description provided for @exportEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'About {mb} MB (estimate)'**
+  String exportEstimate(int mb);
 }
 
 class _AppLocalizationsDelegate

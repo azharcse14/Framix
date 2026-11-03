@@ -1011,6 +1011,8 @@ class ExportInfo extends $pb.GeneratedMessage {
     $core.int? height,
     $core.int? effectiveKbps,
     $fixnum.Int64? estimatedBytes,
+    $core.int? minKbps,
+    $core.int? maxKbps,
   }) {
     final result = ExportInfo._();
     if (resolution != null) result.resolution = resolution;
@@ -1020,6 +1022,8 @@ class ExportInfo extends $pb.GeneratedMessage {
     if (height != null) result.height = height;
     if (effectiveKbps != null) result.effectiveKbps = effectiveKbps;
     if (estimatedBytes != null) result.estimatedBytes = estimatedBytes;
+    if (minKbps != null) result.minKbps = minKbps;
+    if (maxKbps != null) result.maxKbps = maxKbps;
     return result;
   }
 
@@ -1048,6 +1052,8 @@ class ExportInfo extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         7, _omitFieldNames ? '' : 'estimatedBytes', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aI(8, _omitFieldNames ? '' : 'minKbps', fieldType: $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'maxKbps', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1134,6 +1140,25 @@ class ExportInfo extends $pb.GeneratedMessage {
   $core.bool hasEstimatedBytes() => $_has(6);
   @$pb.TagNumber(7)
   void clearEstimatedBytes() => $_clearField(7);
+
+  /// The range SetExportSettings accepts for a set bitrate.
+  @$pb.TagNumber(8)
+  $core.int get minKbps => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set minKbps($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasMinKbps() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMinKbps() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get maxKbps => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set maxKbps($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasMaxKbps() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearMaxKbps() => $_clearField(9);
 }
 
 /// Puts newly picked media under a clip, keeping its track, start and duration (the source

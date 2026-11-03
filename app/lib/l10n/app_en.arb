@@ -56,5 +56,21 @@
   "trimEndToPlayhead": "Trim end to playhead",
   "replaceClip": "Replace clip",
   "commandFailed": "That didn't work. Try again.",
-  "addColorClip": "Add blank clip"
+  "addColorClip": "Add blank clip",
+  "exportSettings": "Export settings",
+  "exportResolution": "Resolution",
+  "exportResolution720p": "720p",
+  "exportResolution1080p": "1080p",
+  "exportResolution2k": "2K",
+  "exportResolution4k": "4K",
+  "exportFrameRate": "Frame rate",
+  "framesPerSecond": "{fps} fps",
+  "@framesPerSecond": {"placeholders": {"fps": {"type": "int"}}},
+  "autoBitrate": "Automatic bitrate",
+  "bitrateKbps": "{kbps} kbps",
+  "@bitrateKbps": {"placeholders": {"kbps": {"type": "int", "format": "decimalPattern"}}},
+  "exportFrameSize": "{width} × {height}",
+  "@exportFrameSize": {"placeholders": {"width": {"type": "int"}, "height": {"type": "int"}}},
+  "exportEstimate": "About {mb} MB (estimate)",
+  "@exportEstimate": {"placeholders": {"mb": {"type": "int", "format": "decimalPattern"}}}
 }

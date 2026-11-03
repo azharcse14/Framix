@@ -925,6 +925,8 @@ fn export_info(timeline: &Timeline) -> proto::ExportInfo {
         height,
         effective_kbps: settings.effective_kbps(timeline.aspect()),
         estimated_bytes: settings.estimated_bytes(timeline.aspect(), timeline.duration()),
+        min_kbps: *framix_core::export::KBPS_RANGE.start(),
+        max_kbps: *framix_core::export::KBPS_RANGE.end(),
     }
 }
 

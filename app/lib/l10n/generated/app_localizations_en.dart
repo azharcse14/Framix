@@ -190,4 +190,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addColorClip => 'Add blank clip';
+
+  @override
+  String get exportSettings => 'Export settings';
+
+  @override
+  String get exportResolution => 'Resolution';
+
+  @override
+  String get exportResolution720p => '720p';
+
+  @override
+  String get exportResolution1080p => '1080p';
+
+  @override
+  String get exportResolution2k => '2K';
+
+  @override
+  String get exportResolution4k => '4K';
+
+  @override
+  String get exportFrameRate => 'Frame rate';
+
+  @override
+  String framesPerSecond(int fps) {
+    return '$fps fps';
+  }
+
+  @override
+  String get autoBitrate => 'Automatic bitrate';
+
+  @override
+  String bitrateKbps(int kbps) {
+    final intl.NumberFormat kbpsNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String kbpsString = kbpsNumberFormat.format(kbps);
+
+    return '$kbpsString kbps';
+  }
+
+  @override
+  String exportFrameSize(int width, int height) {
+    return '$width × $height';
+  }
+
+  @override
+  String exportEstimate(int mb) {
+    final intl.NumberFormat mbNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String mbString = mbNumberFormat.format(mb);
+
+    return 'About $mbString MB (estimate)';
+  }
 }

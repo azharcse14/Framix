@@ -46,6 +46,22 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     ),
   );
 
+  /// Sets how the project exports; [kbps] 0 lets the engine pick the bitrate. The engine checks
+  /// the values.
+  void setExportSettings(
+    ExportResolution resolution,
+    ExportFps fps,
+    int kbps,
+  ) => _engine.send(
+    Command(
+      setExportSettings: SetExportSettings(
+        resolution: resolution,
+        fps: fps,
+        kbps: kbps,
+      ),
+    ),
+  );
+
   /// Sets the canvas and export settings of a platform [preset] in one undo step.
   void applyExportPreset(ExportPreset preset) => _engine.send(
     Command(applyExportPreset: ApplyExportPreset(preset: preset)),
