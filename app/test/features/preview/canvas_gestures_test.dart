@@ -125,4 +125,18 @@ void main() {
     await tester.pump();
     expect(cubit.placed, isEmpty);
   });
+
+  // P1-080: the engine's flag decides, not the media kind (here: a locked track's photo).
+  testWidgets('a placement-locked clip gets no outline and no placements', (
+    tester,
+  ) async {
+    final t = timeline();
+    t.tracks[0].clips[0].placementLocked = true;
+    cubit.seed(t);
+    await pump(tester);
+    expect(find.byKey(CanvasGestures.outlineKey), findsNothing);
+    await tester.drag(find.byType(CanvasGestures), const Offset(100, 0));
+    await tester.pump();
+    expect(cubit.placed, isEmpty);
+  });
 }
