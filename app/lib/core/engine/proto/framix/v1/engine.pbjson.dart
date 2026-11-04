@@ -422,6 +422,24 @@ const Command$json = {
       '9': 0,
       '10': 'snapMove'
     },
+    {
+      '1': 'open_library',
+      '3': 36,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.OpenLibrary',
+      '9': 0,
+      '10': 'openLibrary'
+    },
+    {
+      '1': 'list_projects',
+      '3': 37,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ListProjects',
+      '9': 0,
+      '10': 'listProjects'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -469,7 +487,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'V4cG9ydFNldHRpbmdzEjgKC2ZpeF9iaXRyYXRlGCEgASgLMhUuZnJhbWl4LnYxLkZpeEJpdHJh'
     'dGVIAFIKZml4Qml0cmF0ZRIyCglzbmFwX3RyaW0YIiABKAsyEy5mcmFtaXgudjEuU25hcFRyaW'
     '1IAFIIc25hcFRyaW0SMgoJc25hcF9tb3ZlGCMgASgLMhMuZnJhbWl4LnYxLlNuYXBNb3ZlSABS'
-    'CHNuYXBNb3ZlEg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
+    'CHNuYXBNb3ZlEjsKDG9wZW5fbGlicmFyeRgkIAEoCzIWLmZyYW1peC52MS5PcGVuTGlicmFyeU'
+    'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
+    'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -779,12 +799,34 @@ const OpenProject$json = {
   '1': 'OpenProject',
   '2': [
     {'1': 'path', '3': 1, '4': 1, '5': 9, '10': 'path'},
+    {'1': 'id', '3': 2, '4': 1, '5': 9, '10': 'id'},
   ],
 };
 
 /// Descriptor for `OpenProject`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List openProjectDescriptor =
-    $convert.base64Decode('CgtPcGVuUHJvamVjdBISCgRwYXRoGAEgASgJUgRwYXRo');
+final $typed_data.Uint8List openProjectDescriptor = $convert.base64Decode(
+    'CgtPcGVuUHJvamVjdBISCgRwYXRoGAEgASgJUgRwYXRoEg4KAmlkGAIgASgJUgJpZA==');
+
+@$core.Deprecated('Use openLibraryDescriptor instead')
+const OpenLibrary$json = {
+  '1': 'OpenLibrary',
+  '2': [
+    {'1': 'dir', '3': 1, '4': 1, '5': 9, '10': 'dir'},
+  ],
+};
+
+/// Descriptor for `OpenLibrary`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List openLibraryDescriptor =
+    $convert.base64Decode('CgtPcGVuTGlicmFyeRIQCgNkaXIYASABKAlSA2Rpcg==');
+
+@$core.Deprecated('Use listProjectsDescriptor instead')
+const ListProjects$json = {
+  '1': 'ListProjects',
+};
+
+/// Descriptor for `ListProjects`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List listProjectsDescriptor =
+    $convert.base64Decode('CgxMaXN0UHJvamVjdHM=');
 
 @$core.Deprecated('Use setAspectRatioDescriptor instead')
 const SetAspectRatio$json = {
@@ -1175,6 +1217,15 @@ const Event$json = {
       '9': 0,
       '10': 'exportProgress'
     },
+    {
+      '1': 'project_list',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.ProjectList',
+      '9': 0,
+      '10': 'projectList'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -1195,7 +1246,8 @@ final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     '5lX3N0b3BwZWQYCCABKAsyGC5mcmFtaXgudjEuRW5naW5lU3RvcHBlZEgAUg1lbmdpbmVTdG9w'
     'cGVkEkQKD2V4cG9ydF9maW5pc2hlZBgJIAEoCzIZLmZyYW1peC52MS5FeHBvcnRGaW5pc2hlZE'
     'gAUg5leHBvcnRGaW5pc2hlZBJECg9leHBvcnRfcHJvZ3Jlc3MYCiABKAsyGS5mcmFtaXgudjEu'
-    'RXhwb3J0UHJvZ3Jlc3NIAFIOZXhwb3J0UHJvZ3Jlc3NCBgoEa2luZA==');
+    'RXhwb3J0UHJvZ3Jlc3NIAFIOZXhwb3J0UHJvZ3Jlc3MSOwoMcHJvamVjdF9saXN0GAsgASgLMh'
+    'YuZnJhbWl4LnYxLlByb2plY3RMaXN0SABSC3Byb2plY3RMaXN0QgYKBGtpbmQ=');
 
 @$core.Deprecated('Use exportProgressDescriptor instead')
 const ExportProgress$json = {
@@ -1434,6 +1486,44 @@ const ProjectSaved$json = {
 /// Descriptor for `ProjectSaved`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List projectSavedDescriptor =
     $convert.base64Decode('CgxQcm9qZWN0U2F2ZWQ=');
+
+@$core.Deprecated('Use projectListDescriptor instead')
+const ProjectList$json = {
+  '1': 'ProjectList',
+  '2': [
+    {
+      '1': 'projects',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.framix.v1.ProjectSummary',
+      '10': 'projects'
+    },
+  ],
+};
+
+/// Descriptor for `ProjectList`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List projectListDescriptor = $convert.base64Decode(
+    'CgtQcm9qZWN0TGlzdBI1Cghwcm9qZWN0cxgBIAMoCzIZLmZyYW1peC52MS5Qcm9qZWN0U3VtbW'
+    'FyeVIIcHJvamVjdHM=');
+
+@$core.Deprecated('Use projectSummaryDescriptor instead')
+const ProjectSummary$json = {
+  '1': 'ProjectSummary',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'duration', '3': 2, '4': 1, '5': 3, '10': 'duration'},
+    {'1': 'ticks_per_second', '3': 3, '4': 1, '5': 3, '10': 'ticksPerSecond'},
+    {'1': 'modified_ms', '3': 4, '4': 1, '5': 3, '10': 'modifiedMs'},
+    {'1': 'clips', '3': 5, '4': 1, '5': 13, '10': 'clips'},
+  ],
+};
+
+/// Descriptor for `ProjectSummary`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List projectSummaryDescriptor = $convert.base64Decode(
+    'Cg5Qcm9qZWN0U3VtbWFyeRIOCgJpZBgBIAEoCVICaWQSGgoIZHVyYXRpb24YAiABKANSCGR1cm'
+    'F0aW9uEigKEHRpY2tzX3Blcl9zZWNvbmQYAyABKANSDnRpY2tzUGVyU2Vjb25kEh8KC21vZGlm'
+    'aWVkX21zGAQgASgDUgptb2RpZmllZE1zEhQKBWNsaXBzGAUgASgNUgVjbGlwcw==');
 
 @$core.Deprecated('Use commandFailedDescriptor instead')
 const CommandFailed$json = {

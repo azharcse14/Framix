@@ -3,6 +3,7 @@
 pub mod engine;
 pub mod export;
 pub mod history;
+pub mod library;
 pub mod preview;
 pub mod project;
 pub mod proxy;

@@ -31,7 +31,11 @@ fn lists_the_files_in_a_folder_with_their_write_times() {
         .collect();
     // Backups are listed too (callers filter by name); folders are not.
     assert_eq!(names, ["a.framix", "a.framix.bak1"]);
-    assert!(listed.iter().all(|(p, _)| p.parent() == Some(dir.as_path())));
+    assert!(
+        listed
+            .iter()
+            .all(|(p, _)| p.parent() == Some(dir.as_path()))
+    );
     assert!(listed.iter().all(|(_, at)| *at >= before));
 }
 

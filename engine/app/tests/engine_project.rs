@@ -55,7 +55,10 @@ fn save(path: &str) -> command::Kind {
 }
 
 fn open(path: &str) -> command::Kind {
-    command::Kind::OpenProject(OpenProject { path: path.into() })
+    command::Kind::OpenProject(OpenProject {
+        path: path.into(),
+        ..Default::default()
+    })
 }
 
 #[test]

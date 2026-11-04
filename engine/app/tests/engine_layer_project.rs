@@ -109,7 +109,10 @@ fn opening_a_project_with_the_same_layer_key_redraws() {
     engine.preview_texture_ready(Ok(PlatformTexture { id: 7, handle: 1 }));
     run(
         &mut engine,
-        command::Kind::OpenProject(OpenProject { path: "b".into() }),
+        command::Kind::OpenProject(OpenProject {
+            path: "b".into(),
+            ..Default::default()
+        }),
     );
 
     assert_eq!(

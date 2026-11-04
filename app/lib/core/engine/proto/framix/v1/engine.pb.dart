@@ -56,6 +56,8 @@ enum Command_Kind {
   fixBitrate,
   snapTrim,
   snapMove,
+  openLibrary,
+  listProjects,
   notSet
 }
 
@@ -97,6 +99,8 @@ class Command extends $pb.GeneratedMessage {
     FixBitrate? fixBitrate,
     SnapTrim? snapTrim,
     SnapMove? snapMove,
+    OpenLibrary? openLibrary,
+    ListProjects? listProjects,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -135,6 +139,8 @@ class Command extends $pb.GeneratedMessage {
     if (fixBitrate != null) result.fixBitrate = fixBitrate;
     if (snapTrim != null) result.snapTrim = snapTrim;
     if (snapMove != null) result.snapMove = snapMove;
+    if (openLibrary != null) result.openLibrary = openLibrary;
+    if (listProjects != null) result.listProjects = listProjects;
     return result;
   }
 
@@ -182,6 +188,8 @@ class Command extends $pb.GeneratedMessage {
     33: Command_Kind.fixBitrate,
     34: Command_Kind.snapTrim,
     35: Command_Kind.snapMove,
+    36: Command_Kind.openLibrary,
+    37: Command_Kind.listProjects,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -222,7 +230,9 @@ class Command extends $pb.GeneratedMessage {
       32,
       33,
       34,
-      35
+      35,
+      36,
+      37
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -295,6 +305,10 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: SnapTrim.$_createMessage)
     ..aOM<SnapMove>(35, _omitFieldNames ? '' : 'snapMove',
         subBuilder: SnapMove.$_createMessage)
+    ..aOM<OpenLibrary>(36, _omitFieldNames ? '' : 'openLibrary',
+        subBuilder: OpenLibrary.$_createMessage)
+    ..aOM<ListProjects>(37, _omitFieldNames ? '' : 'listProjects',
+        subBuilder: ListProjects.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -351,6 +365,8 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(33)
   @$pb.TagNumber(34)
   @$pb.TagNumber(35)
+  @$pb.TagNumber(36)
+  @$pb.TagNumber(37)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -386,6 +402,8 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(33)
   @$pb.TagNumber(34)
   @$pb.TagNumber(35)
+  @$pb.TagNumber(36)
+  @$pb.TagNumber(37)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -771,6 +789,28 @@ class Command extends $pb.GeneratedMessage {
   void clearSnapMove() => $_clearField(35);
   @$pb.TagNumber(35)
   SnapMove ensureSnapMove() => $_ensure(34);
+
+  @$pb.TagNumber(36)
+  OpenLibrary get openLibrary => $_getN(35);
+  @$pb.TagNumber(36)
+  set openLibrary(OpenLibrary value) => $_setField(36, value);
+  @$pb.TagNumber(36)
+  $core.bool hasOpenLibrary() => $_has(35);
+  @$pb.TagNumber(36)
+  void clearOpenLibrary() => $_clearField(36);
+  @$pb.TagNumber(36)
+  OpenLibrary ensureOpenLibrary() => $_ensure(35);
+
+  @$pb.TagNumber(37)
+  ListProjects get listProjects => $_getN(36);
+  @$pb.TagNumber(37)
+  set listProjects(ListProjects value) => $_setField(37, value);
+  @$pb.TagNumber(37)
+  $core.bool hasListProjects() => $_has(36);
+  @$pb.TagNumber(37)
+  void clearListProjects() => $_clearField(37);
+  @$pb.TagNumber(37)
+  ListProjects ensureListProjects() => $_ensure(36);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -1930,7 +1970,9 @@ class GetTimeline extends $pb.GeneratedMessage {
   static GetTimeline? _defaultInstance;
 }
 
-/// Starts an empty project; the old one is dropped (save it first) and undo is cleared.
+/// Starts an empty project; undo is cleared. Without a library the old one is dropped (save it
+/// first). With one (OpenLibrary) the current project is saved first, and the new one gets its
+/// own file in the library once it differs from empty (an untouched project leaves no file).
 class NewProject extends $pb.GeneratedMessage {
   factory NewProject() => NewProject._();
 
@@ -2028,14 +2070,19 @@ class SaveProject extends $pb.GeneratedMessage {
   void clearPath() => $_clearField(1);
 }
 
-/// Replaces the project with the one at `path`; undo is cleared. A file that is unreadable,
-/// from a newer app, or invalid is refused and the current project stays.
+/// Replaces the project with the one at `path`, or with library project `id` (set instead of
+/// path; ProjectSummary.id); undo is cleared. A file that is unreadable, from a newer app, or
+/// invalid, and an id that is malformed or not in the library, are refused and the current
+/// project stays. With a library the current project is saved first, and the opened one is
+/// autosaved to its own file.
 class OpenProject extends $pb.GeneratedMessage {
   factory OpenProject({
     $core.String? path,
+    $core.String? id,
   }) {
     final result = OpenProject._();
     if (path != null) result.path = path;
+    if (id != null) result.id = id;
     return result;
   }
 
@@ -2053,6 +2100,7 @@ class OpenProject extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: OpenProject.$_createMessage)
     ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..aOS(2, _omitFieldNames ? '' : 'id')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2085,6 +2133,118 @@ class OpenProject extends $pb.GeneratedMessage {
   $core.bool hasPath() => $_has(0);
   @$pb.TagNumber(1)
   void clearPath() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get id => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set id($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearId() => $_clearField(2);
+}
+
+/// Sets the folder of the user's projects (Home), once at startup: answered CommandAccepted.
+/// Again with the same folder changes nothing; another folder, or any after EnableAutosave, is
+/// refused. Projects are files `<dir>/<id>.framix`, each autosaved like EnableAutosave's.
+class OpenLibrary extends $pb.GeneratedMessage {
+  factory OpenLibrary({
+    $core.String? dir,
+  }) {
+    final result = OpenLibrary._();
+    if (dir != null) result.dir = dir;
+    return result;
+  }
+
+  OpenLibrary._();
+
+  factory OpenLibrary.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      OpenLibrary()..mergeFromBuffer(data, registry);
+  factory OpenLibrary.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      OpenLibrary()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'OpenLibrary',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: OpenLibrary.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'dir')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  OpenLibrary clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  OpenLibrary copyWith(void Function(OpenLibrary) updates) =>
+      super.copyWith((message) => updates(message as OpenLibrary))
+          as OpenLibrary;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use OpenLibrary() / OpenLibrary.new instead')
+  static OpenLibrary create() => OpenLibrary._();
+  static $pb.GeneratedMessage $_createMessage() => OpenLibrary._();
+  @$core.override
+  OpenLibrary createEmptyInstance() => OpenLibrary._();
+  @$core.pragma('dart2js:noInline')
+  static OpenLibrary getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OpenLibrary>(
+          OpenLibrary.$_createMessage);
+  static OpenLibrary? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get dir => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set dir($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDir() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDir() => $_clearField(1);
+}
+
+/// Saves the current project if it changed, then answers ProjectList. Refused without a
+/// library.
+class ListProjects extends $pb.GeneratedMessage {
+  factory ListProjects() => ListProjects._();
+
+  ListProjects._();
+
+  factory ListProjects.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ListProjects()..mergeFromBuffer(data, registry);
+  factory ListProjects.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ListProjects()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListProjects',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ListProjects.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ListProjects clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ListProjects copyWith(void Function(ListProjects) updates) =>
+      super.copyWith((message) => updates(message as ListProjects))
+          as ListProjects;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ListProjects() / ListProjects.new instead')
+  static ListProjects create() => ListProjects._();
+  static $pb.GeneratedMessage $_createMessage() => ListProjects._();
+  @$core.override
+  ListProjects createEmptyInstance() => ListProjects._();
+  @$core.pragma('dart2js:noInline')
+  static ListProjects getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListProjects>(
+          ListProjects.$_createMessage);
+  static ListProjects? _defaultInstance;
 }
 
 /// Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
@@ -3505,6 +3665,7 @@ enum Event_Kind {
   engineStopped,
   exportFinished,
   exportProgress,
+  projectList,
   notSet
 }
 
@@ -3523,6 +3684,7 @@ class Event extends $pb.GeneratedMessage {
     EngineStopped? engineStopped,
     ExportFinished? exportFinished,
     ExportProgress? exportProgress,
+    ProjectList? projectList,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
@@ -3535,6 +3697,7 @@ class Event extends $pb.GeneratedMessage {
     if (engineStopped != null) result.engineStopped = engineStopped;
     if (exportFinished != null) result.exportFinished = exportFinished;
     if (exportProgress != null) result.exportProgress = exportProgress;
+    if (projectList != null) result.projectList = projectList;
     return result;
   }
 
@@ -3558,13 +3721,14 @@ class Event extends $pb.GeneratedMessage {
     8: Event_Kind.engineStopped,
     9: Event_Kind.exportFinished,
     10: Event_Kind.exportProgress,
+    11: Event_Kind.projectList,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
@@ -3585,6 +3749,8 @@ class Event extends $pb.GeneratedMessage {
         subBuilder: ExportFinished.$_createMessage)
     ..aOM<ExportProgress>(10, _omitFieldNames ? '' : 'exportProgress',
         subBuilder: ExportProgress.$_createMessage)
+    ..aOM<ProjectList>(11, _omitFieldNames ? '' : 'projectList',
+        subBuilder: ProjectList.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3617,6 +3783,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -3628,6 +3795,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3739,6 +3907,17 @@ class Event extends $pb.GeneratedMessage {
   void clearExportProgress() => $_clearField(10);
   @$pb.TagNumber(10)
   ExportProgress ensureExportProgress() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  ProjectList get projectList => $_getN(10);
+  @$pb.TagNumber(11)
+  set projectList(ProjectList value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasProjectList() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearProjectList() => $_clearField(11);
+  @$pb.TagNumber(11)
+  ProjectList ensureProjectList() => $_ensure(10);
 }
 
 /// How far the running export is: `frame` of `frames` rendered. At most one per whole
@@ -4931,6 +5110,169 @@ class ProjectSaved extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ProjectSaved>(
           ProjectSaved.$_createMessage);
   static ProjectSaved? _defaultInstance;
+}
+
+/// Answers ListProjects: the library's readable projects, most recently saved first.
+class ProjectList extends $pb.GeneratedMessage {
+  factory ProjectList({
+    $core.Iterable<ProjectSummary>? projects,
+  }) {
+    final result = ProjectList._();
+    if (projects != null) result.projects.addAll(projects);
+    return result;
+  }
+
+  ProjectList._();
+
+  factory ProjectList.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ProjectList()..mergeFromBuffer(data, registry);
+  factory ProjectList.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ProjectList()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ProjectList',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ProjectList.$_createMessage)
+    ..pPM<ProjectSummary>(1, _omitFieldNames ? '' : 'projects',
+        subBuilder: ProjectSummary.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ProjectList clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ProjectList copyWith(void Function(ProjectList) updates) =>
+      super.copyWith((message) => updates(message as ProjectList))
+          as ProjectList;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ProjectList() / ProjectList.new instead')
+  static ProjectList create() => ProjectList._();
+  static $pb.GeneratedMessage $_createMessage() => ProjectList._();
+  @$core.override
+  ProjectList createEmptyInstance() => ProjectList._();
+  @$core.pragma('dart2js:noInline')
+  static ProjectList getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ProjectList>(
+          ProjectList.$_createMessage);
+  static ProjectList? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ProjectSummary> get projects => $_getList(0);
+}
+
+/// One library project as Home lists it.
+class ProjectSummary extends $pb.GeneratedMessage {
+  factory ProjectSummary({
+    $core.String? id,
+    $fixnum.Int64? duration,
+    $fixnum.Int64? ticksPerSecond,
+    $fixnum.Int64? modifiedMs,
+    $core.int? clips,
+  }) {
+    final result = ProjectSummary._();
+    if (id != null) result.id = id;
+    if (duration != null) result.duration = duration;
+    if (ticksPerSecond != null) result.ticksPerSecond = ticksPerSecond;
+    if (modifiedMs != null) result.modifiedMs = modifiedMs;
+    if (clips != null) result.clips = clips;
+    return result;
+  }
+
+  ProjectSummary._();
+
+  factory ProjectSummary.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ProjectSummary()..mergeFromBuffer(data, registry);
+  factory ProjectSummary.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      ProjectSummary()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ProjectSummary',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: ProjectSummary.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aInt64(2, _omitFieldNames ? '' : 'duration')
+    ..aInt64(3, _omitFieldNames ? '' : 'ticksPerSecond')
+    ..aInt64(4, _omitFieldNames ? '' : 'modifiedMs')
+    ..aI(5, _omitFieldNames ? '' : 'clips', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ProjectSummary clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ProjectSummary copyWith(void Function(ProjectSummary) updates) =>
+      super.copyWith((message) => updates(message as ProjectSummary))
+          as ProjectSummary;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use ProjectSummary() / ProjectSummary.new instead')
+  static ProjectSummary create() => ProjectSummary._();
+  static $pb.GeneratedMessage $_createMessage() => ProjectSummary._();
+  @$core.override
+  ProjectSummary createEmptyInstance() => ProjectSummary._();
+  @$core.pragma('dart2js:noInline')
+  static ProjectSummary getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ProjectSummary>(
+          ProjectSummary.$_createMessage);
+  static ProjectSummary? _defaultInstance;
+
+  /// Pass to OpenProject.id.
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+
+  /// Length of the timeline, in ticks of `ticks_per_second`.
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get duration => $_getI64(1);
+  @$pb.TagNumber(2)
+  set duration($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasDuration() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDuration() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get ticksPerSecond => $_getI64(2);
+  @$pb.TagNumber(3)
+  set ticksPerSecond($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasTicksPerSecond() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTicksPerSecond() => $_clearField(3);
+
+  /// When the project was last saved, in milliseconds since the Unix epoch.
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get modifiedMs => $_getI64(3);
+  @$pb.TagNumber(4)
+  set modifiedMs($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasModifiedMs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearModifiedMs() => $_clearField(4);
+
+  /// Clips on every track.
+  @$pb.TagNumber(5)
+  $core.int get clips => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set clips($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasClips() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearClips() => $_clearField(5);
 }
 
 /// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

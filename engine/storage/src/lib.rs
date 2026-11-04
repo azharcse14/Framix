@@ -4,6 +4,7 @@ use std::ffi::OsString;
 use std::fs::{self, File};
 use std::io::{self, Read as _, Write as _};
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use framix_app::store::ProjectStore;
 
@@ -46,6 +47,19 @@ impl ProjectStore for FileStore {
             ));
         }
         Ok(bytes)
+    }
+
+    /// Regular files directly in `dir` (no folders, no recursion); an entry that vanishes or
+    /// can't be read while listing is skipped.
+    fn list(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
+        Ok(fs::read_dir(dir)?
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let meta = entry.metadata().ok()?;
+                meta.is_file()
+                    .then(|| Some((entry.path(), meta.modified().ok()?)))?
+            })
+            .collect())
     }
 }
 

@@ -34,8 +34,11 @@ pub struct Engine {
     /// Bumped each time a project starts (new, opened, restored), so the UI can drop what it
     /// cached for the old one (media ids restart).
     project: u64,
-    /// Where the project is autosaved, once EnableAutosave succeeded.
+    /// Where the project is autosaved: EnableAutosave's file, or the library file of the
+    /// project NewProject or OpenProject started.
     autosave: Option<PathBuf>,
+    /// The folder of the user's projects, once OpenLibrary succeeded.
+    library: Option<PathBuf>,
     /// The timeline last autosaved or recovered; autosave writes only when it differs.
     autosaved: Timeline,
     /// The last autosave failed and was reported; later failures stay quiet until a success.
@@ -452,6 +455,11 @@ impl Engine {
                     free_bytes: free,
                 })),
             },
+            Ok(Reply::Projects(projects)) => Event {
+                kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
+                    projects,
+                })),
+            },
             Ok(Reply::Accepted) => Event {
                 kind: Some(proto::event::Kind::CommandAccepted(
                     proto::CommandAccepted::default(),
@@ -491,13 +499,34 @@ impl Engine {
             command::Kind::Redo(_) => timeline(step(self.history.redo(), "nothing to redo")),
             command::Kind::GetTimeline(_) => Ok(Reply::Timeline),
             command::Kind::NewProject(_) => {
+                let file = match self.library.clone() {
+                    Some(dir) => {
+                        self.save_current()?;
+                        let id = crate::library::new_id(self.store()?, &dir)?;
+                        crate::library::path(&dir, &id)
+                    }
+                    None => None,
+                };
                 self.history = History::default();
+                if file.is_some() {
+                    self.autosave_to(file, Timeline::default());
+                }
                 self.start_project();
                 Ok(Reply::Timeline)
+            }
+            command::Kind::OpenProject(open) if self.library.is_some() => {
+                timeline(self.open_from_library(&open.id))
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path).map(|()| {
                 self.start_project();
             })),
+            command::Kind::OpenLibrary(op) => self.open_library(op.dir).map(|()| Reply::Accepted),
+            command::Kind::ListProjects(_) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                // A failed save was reported by autosave; the list still shows the last save.
+                let _ = self.autosave();
+                crate::library::list(self.store()?, &dir).map(Reply::Projects)
+            }
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
                 timeline(self.edit(|tl| tl.remove_clip(ClipId(op.clip_id))))
@@ -798,9 +827,59 @@ impl Engine {
             .map_err(|e| e.to_string())
     }
 
+    /// Sets the library folder once; refused next to EnableAutosave's single file.
+    fn open_library(&mut self, dir: String) -> Result<(), String> {
+        let dir = PathBuf::from(dir);
+        match &self.library {
+            Some(on) if *on == dir => Ok(()),
+            Some(_) => Err("the library is already open on another folder".into()),
+            None if self.autosave.is_some() => Err("autosave is on for a single file".into()),
+            None => {
+                self.library = Some(dir);
+                Ok(())
+            }
+        }
+    }
+
+    /// Saves the current project before another one replaces it; refused if that fails, so
+    /// switching never loses edits.
+    fn save_current(&mut self) -> Result<(), String> {
+        let _ = self.autosave();
+        match self.autosave_pending() {
+            true => Err("the current project could not be saved".into()),
+            false => Ok(()),
+        }
+    }
+
+    /// Autosaves to `file` from now on; `saved` is what the file holds (nothing new to save).
+    fn autosave_to(&mut self, file: Option<PathBuf>, saved: Timeline) {
+        self.autosave = file;
+        self.autosaved = saved;
+        self.autosave_failed = false;
+    }
+
+    /// Opens library project `id` and autosaves there; the current project is saved first.
+    fn open_from_library(&mut self, id: &str) -> Result<(), String> {
+        let dir = self.library.as_deref().ok_or("no library")?;
+        let file = crate::library::path(dir, id).ok_or("malformed project id")?;
+        let bytes = self
+            .store()?
+            .load(&file)
+            .map_err(|e| e.kind().to_string())?;
+        let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
+        self.save_current()?;
+        self.history = History::new(timeline.clone());
+        self.autosave_to(Some(file), timeline);
+        self.start_project();
+        Ok(())
+    }
+
     /// Recovers the project at `path` if there is one, then autosaves there. A file that
     /// exists but doesn't load or decode is refused and autosave stays off, so it is kept.
     fn enable_autosave(&mut self, path: &str) -> Result<(), String> {
+        if self.library.is_some() {
+            return Err("autosave is per project in the library".into());
+        }
         let path = PathBuf::from(path);
         // Already on (a retry or a lifecycle repeat): reloading would drop unsaved edits.
         if let Some(on) = &self.autosave {
@@ -972,6 +1051,8 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
+    /// The library's projects (ListProjects).
+    Projects(Vec<proto::ProjectSummary>),
     /// Where the playhead is now, and whether the seek snapped.
     Playhead(bool),
     /// An export was refused before it started: it needs about `needed` bytes, `free` are free.

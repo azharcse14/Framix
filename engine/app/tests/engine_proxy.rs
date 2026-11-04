@@ -219,7 +219,10 @@ fn opening_a_project_asks_for_its_proxies_again() {
     );
     run(
         &mut engine,
-        command::Kind::OpenProject(OpenProject { path: "p".into() }),
+        command::Kind::OpenProject(OpenProject {
+            path: "p".into(),
+            ..Default::default()
+        }),
     );
     assert_eq!(
         asked(&requests),

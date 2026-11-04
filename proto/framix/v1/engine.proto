@@ -42,6 +42,8 @@ message Command {
     FixBitrate fix_bitrate = 33;
     SnapTrim snap_trim = 34;
     SnapMove snap_move = 35;
+    OpenLibrary open_library = 36;
+    ListProjects list_projects = 37;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -195,7 +197,9 @@ message Redo {}
 // Asks for the current timeline; answered with TimelineChanged, nothing is edited.
 message GetTimeline {}
 
-// Starts an empty project; the old one is dropped (save it first) and undo is cleared.
+// Starts an empty project; undo is cleared. Without a library the old one is dropped (save it
+// first). With one (OpenLibrary) the current project is saved first, and the new one gets its
+// own file in the library once it differs from empty (an untouched project leaves no file).
 message NewProject {}
 
 // Saves the project to `path` atomically, keeping the previous saves as backups.
@@ -203,11 +207,26 @@ message SaveProject {
   string path = 1;
 }
 
-// Replaces the project with the one at `path`; undo is cleared. A file that is unreadable,
-// from a newer app, or invalid is refused and the current project stays.
+// Replaces the project with the one at `path`, or with library project `id` (set instead of
+// path; ProjectSummary.id); undo is cleared. A file that is unreadable, from a newer app, or
+// invalid, and an id that is malformed or not in the library, are refused and the current
+// project stays. With a library the current project is saved first, and the opened one is
+// autosaved to its own file.
 message OpenProject {
   string path = 1;
+  string id = 2;
 }
+
+// Sets the folder of the user's projects (Home), once at startup: answered CommandAccepted.
+// Again with the same folder changes nothing; another folder, or any after EnableAutosave, is
+// refused. Projects are files `<dir>/<id>.framix`, each autosaved like EnableAutosave's.
+message OpenLibrary {
+  string dir = 1;
+}
+
+// Saves the current project if it changed, then answers ProjectList. Refused without a
+// library.
+message ListProjects {}
 
 // Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
 // ratio lies between 1:3 and 3:1. Stored reduced (18:32 becomes 9:16).
@@ -388,6 +407,7 @@ message Event {
     EngineStopped engine_stopped = 8;
     ExportFinished export_finished = 9;
     ExportProgress export_progress = 10;
+    ProjectList project_list = 11;
   }
 }
 
@@ -511,6 +531,24 @@ message Clip {
 
 // SaveProject finished.
 message ProjectSaved {}
+
+// Answers ListProjects: the library's readable projects, most recently saved first.
+message ProjectList {
+  repeated ProjectSummary projects = 1;
+}
+
+// One library project as Home lists it.
+message ProjectSummary {
+  // Pass to OpenProject.id.
+  string id = 1;
+  // Length of the timeline, in ticks of `ticks_per_second`.
+  int64 duration = 2;
+  int64 ticks_per_second = 3;
+  // When the project was last saved, in milliseconds since the Unix epoch.
+  int64 modified_ms = 4;
+  // Clips on every track.
+  uint32 clips = 5;
+}
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
 // never shown to users; add a code enum when the UI needs to explain failures.

@@ -9,17 +9,20 @@ use std::time::{Duration, SystemTime};
 
 use framix_app::engine::Engine;
 use framix_app::proto::{
-    AddTrack, Command, EnableAutosave, ImportMedia, ListProjects, MediaItem, MediaKind,
-    NewProject, OpenLibrary, OpenProject, ProjectSummary, TrackKind, command, event,
+    AddTrack, Command, EnableAutosave, ImportMedia, ListProjects, MediaItem, MediaKind, NewProject,
+    OpenLibrary, OpenProject, ProjectSummary, TrackKind, command, event,
 };
 use framix_app::store::ProjectStore;
 
 const DIR: &str = "/data/projects";
 
+/// File bytes and write time by path.
+type Files = HashMap<PathBuf, (Vec<u8>, SystemTime)>;
+
 /// In-memory files; each write stamps the file one second later than the one before.
 #[derive(Clone, Default)]
 struct MemStore {
-    files: Arc<Mutex<HashMap<PathBuf, (Vec<u8>, SystemTime)>>>,
+    files: Arc<Mutex<Files>>,
     clock: Arc<Mutex<u64>>,
 }
 
@@ -154,12 +157,11 @@ fn an_edited_project_is_saved_in_the_library_and_listed() {
     let projects = list(&mut engine);
     assert_eq!(projects.len(), 1);
     let p = &projects[0];
+    assert!(!p.id.is_empty() && p.id.len() <= 32, "id {:?}", p.id);
     assert!(
-        !p.id.is_empty() && p.id.len() <= 32,
-        "id {:?}",
-        p.id
+        p.id.bytes()
+            .all(|b| b.is_ascii_digit() || b.is_ascii_lowercase())
     );
-    assert!(p.id.bytes().all(|b| b.is_ascii_digit() || b.is_ascii_lowercase()));
     assert_eq!((p.duration, p.clips), (0, 0));
     assert!(p.ticks_per_second > 0);
     assert_eq!(p.modified_ms, 1000);
@@ -243,7 +245,15 @@ fn bad_or_unknown_ids_are_refused_and_the_project_stays() {
     let mut engine = library(&store);
     new_project(&mut engine);
     add_track(&mut engine);
-    for id in ["", "../x", "a/b", "A", "x.framix", &"a".repeat(33), "nothere"] {
+    for id in [
+        "",
+        "../x",
+        "a/b",
+        "A",
+        "x.framix",
+        &"a".repeat(33),
+        "nothere",
+    ] {
         assert!(refused(open(&mut engine, id)), "{id:?}");
     }
     assert_eq!(add_track(&mut engine), 2, "the current project stayed");
