@@ -217,8 +217,12 @@ Future<void> expectNoCutText(WidgetTester tester) async {
   expect(paragraphs, isNotEmpty);
   for (final p in paragraphs) {
     final text = p.text.toPlainText();
-    if (p.didExceedMaxLines || p.size.height < p.textSize.height) {
-      cut.add('"$text": ${p.textSize.height} tall in ${p.size.height}');
+    // A paragraph wider than its box clips itself to its line box (overflow clip or
+    // ellipsis), which the walk up from its parent never sees.
+    if (p.didExceedMaxLines ||
+        p.size.height < p.textSize.height ||
+        p.size.width < p.textSize.width) {
+      cut.add('"$text": ${p.textSize} in ${p.size}');
       continue;
     }
     final toGlobal = p.getTransformTo(null);
