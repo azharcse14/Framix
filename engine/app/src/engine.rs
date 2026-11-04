@@ -63,6 +63,10 @@ struct Preview {
     shown: Option<PlatformTexture>,
     /// The picture last drawn into it (None: an empty canvas).
     drawn: Option<LayerKey>,
+    /// The shown texture needs a redraw at the playhead ([`Engine::flush_preview`]).
+    stale: bool,
+    /// The texture a redraw lost on the GPU, until [`Engine::flush_preview`] reports it.
+    lost: Option<i64>,
 }
 
 /// Longest time a change waits before the engine autosaves it.
@@ -98,6 +102,8 @@ impl Engine {
                 pending: 0,
                 shown: None,
                 drawn: None,
+                stale: false,
+                lost: None,
             }),
             ..self
         }
@@ -304,16 +310,26 @@ impl Engine {
         // Only a preview that drew once is redrawn later.
         preview.shown = Some(texture);
         preview.drawn = layer.map(|l| l.key());
+        preview.stale = false;
         Ok(texture.id)
     }
 
-    /// Best effort: draws the shown texture at the playhead. A failed draw stops later redraws
-    /// (the preview is gone) but never fails the command that moved the playhead; the
-    /// playhead and the timeline are the state, the picture follows them.
+    /// Marks the shown texture for a redraw at the playhead; [`Engine::flush_preview`] (or the
+    /// end of [`Engine::handle`]) draws it once, however often it was marked.
     fn redraw(&mut self) {
-        let Some(preview) = self.preview.as_mut() else {
+        if let Some(preview) = self.preview.as_mut() {
+            preview.stale |= preview.shown.is_some();
+        }
+    }
+
+    /// Best effort: draws a stale preview at the playhead. A failed draw stops later redraws
+    /// (the preview is gone, reported by flush_preview) but never fails the command that moved
+    /// the playhead; the playhead and the timeline are the state, the picture follows them.
+    fn draw_stale(&mut self) {
+        let Some(preview) = self.preview.as_mut().filter(|p| p.stale) else {
             return;
         };
+        preview.stale = false;
         let Some(texture) = preview.shown else {
             return;
         };
@@ -329,8 +345,23 @@ impl Engine {
                 preview.host.frame_available(texture.id);
                 preview.drawn = layer.map(|l| l.key());
             }
-            Err(DrawError::Gpu(_)) => preview.shown = None,
+            Err(DrawError::Gpu(_)) => {
+                preview.shown = None;
+                preview.lost = Some(texture.id);
+            }
         }
+    }
+
+    /// Draws the preview once if a command since the last draw moved the playhead or changed
+    /// the picture, and returns PreviewLost once if a draw lost the shown texture.
+    pub fn flush_preview(&mut self) -> Option<Event> {
+        self.draw_stale();
+        let texture_id = self.preview.as_mut()?.lost.take()?;
+        Some(Event {
+            kind: Some(proto::event::Kind::PreviewLost(proto::PreviewLost {
+                texture_id,
+            })),
+        })
     }
 
     /// Redraws if an edit changed the picture under a playhead that did not move.
@@ -383,6 +414,7 @@ impl Engine {
         };
         if proxies.finish(key, made.is_ok()) {
             self.redraw_if_changed();
+            self.draw_stale();
         }
     }
 
@@ -409,8 +441,17 @@ impl Engine {
     }
 
     /// Applies `command` and returns the single event describing the outcome: the new
-    /// timeline, or [`CommandFailed`] with the timeline unchanged.
+    /// timeline, or [`CommandFailed`] with the timeline unchanged. Draws the preview before it
+    /// returns; a lost preview is reported by [`Engine::flush_preview`].
     pub fn handle(&mut self, command: Command) -> Event {
+        let event = self.handle_deferred(command);
+        self.draw_stale();
+        event
+    }
+
+    /// [`Engine::handle`] without the draw: the preview is only marked stale, so a burst of
+    /// commands (a scrub's Seeks) draws once, at the next [`Engine::flush_preview`].
+    pub fn handle_deferred(&mut self, command: Command) -> Event {
         answering(command.id, self.reply(command.kind))
     }
 

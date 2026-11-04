@@ -1226,6 +1226,15 @@ const Event$json = {
       '9': 0,
       '10': 'projectList'
     },
+    {
+      '1': 'preview_lost',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.PreviewLost',
+      '9': 0,
+      '10': 'previewLost'
+    },
   ],
   '8': [
     {'1': 'kind'},
@@ -1247,7 +1256,8 @@ final $typed_data.Uint8List eventDescriptor = $convert.base64Decode(
     'cGVkEkQKD2V4cG9ydF9maW5pc2hlZBgJIAEoCzIZLmZyYW1peC52MS5FeHBvcnRGaW5pc2hlZE'
     'gAUg5leHBvcnRGaW5pc2hlZBJECg9leHBvcnRfcHJvZ3Jlc3MYCiABKAsyGS5mcmFtaXgudjEu'
     'RXhwb3J0UHJvZ3Jlc3NIAFIOZXhwb3J0UHJvZ3Jlc3MSOwoMcHJvamVjdF9saXN0GAsgASgLMh'
-    'YuZnJhbWl4LnYxLlByb2plY3RMaXN0SABSC3Byb2plY3RMaXN0QgYKBGtpbmQ=');
+    'YuZnJhbWl4LnYxLlByb2plY3RMaXN0SABSC3Byb2plY3RMaXN0EjsKDHByZXZpZXdfbG9zdBgM'
+    'IAEoCzIWLmZyYW1peC52MS5QcmV2aWV3TG9zdEgAUgtwcmV2aWV3TG9zdEIGCgRraW5k');
 
 @$core.Deprecated('Use exportProgressDescriptor instead')
 const ExportProgress$json = {
@@ -1344,6 +1354,18 @@ const PreviewReady$json = {
 /// Descriptor for `PreviewReady`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List previewReadyDescriptor = $convert.base64Decode(
     'CgxQcmV2aWV3UmVhZHkSHQoKdGV4dHVyZV9pZBgBIAEoA1IJdGV4dHVyZUlk');
+
+@$core.Deprecated('Use previewLostDescriptor instead')
+const PreviewLost$json = {
+  '1': 'PreviewLost',
+  '2': [
+    {'1': 'texture_id', '3': 1, '4': 1, '5': 3, '10': 'textureId'},
+  ],
+};
+
+/// Descriptor for `PreviewLost`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List previewLostDescriptor = $convert.base64Decode(
+    'CgtQcmV2aWV3TG9zdBIdCgp0ZXh0dXJlX2lkGAEgASgDUgl0ZXh0dXJlSWQ=');
 
 @$core.Deprecated('Use timelineChangedDescriptor instead')
 const TimelineChanged$json = {

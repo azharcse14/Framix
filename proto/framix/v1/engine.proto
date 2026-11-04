@@ -408,6 +408,7 @@ message Event {
     ExportFinished export_finished = 9;
     ExportProgress export_progress = 10;
     ProjectList project_list = 11;
+    PreviewLost preview_lost = 12;
   }
 }
 
@@ -459,6 +460,12 @@ message CommandAccepted {
 
 // The preview texture exists and holds a frame; show it with Flutter's Texture widget.
 message PreviewReady {
+  int64 texture_id = 1;
+}
+
+// Unsolicited: the shown preview texture can no longer be drawn (GPU or surface lost); it
+// keeps its last frame. Send CreatePreview for a new one.
+message PreviewLost {
   int64 texture_id = 1;
 }
 

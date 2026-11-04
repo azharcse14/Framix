@@ -3666,6 +3666,7 @@ enum Event_Kind {
   exportFinished,
   exportProgress,
   projectList,
+  previewLost,
   notSet
 }
 
@@ -3685,6 +3686,7 @@ class Event extends $pb.GeneratedMessage {
     ExportFinished? exportFinished,
     ExportProgress? exportProgress,
     ProjectList? projectList,
+    PreviewLost? previewLost,
   }) {
     final result = Event._();
     if (timelineChanged != null) result.timelineChanged = timelineChanged;
@@ -3698,6 +3700,7 @@ class Event extends $pb.GeneratedMessage {
     if (exportFinished != null) result.exportFinished = exportFinished;
     if (exportProgress != null) result.exportProgress = exportProgress;
     if (projectList != null) result.projectList = projectList;
+    if (previewLost != null) result.previewLost = previewLost;
     return result;
   }
 
@@ -3722,13 +3725,14 @@ class Event extends $pb.GeneratedMessage {
     9: Event_Kind.exportFinished,
     10: Event_Kind.exportProgress,
     11: Event_Kind.projectList,
+    12: Event_Kind.previewLost,
     0: Event_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Event',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: Event.$_createMessage)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
     ..aOM<TimelineChanged>(1, _omitFieldNames ? '' : 'timelineChanged',
         subBuilder: TimelineChanged.$_createMessage)
     ..aOM<CommandFailed>(2, _omitFieldNames ? '' : 'commandFailed',
@@ -3751,6 +3755,8 @@ class Event extends $pb.GeneratedMessage {
         subBuilder: ExportProgress.$_createMessage)
     ..aOM<ProjectList>(11, _omitFieldNames ? '' : 'projectList',
         subBuilder: ProjectList.$_createMessage)
+    ..aOM<PreviewLost>(12, _omitFieldNames ? '' : 'previewLost',
+        subBuilder: PreviewLost.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3784,6 +3790,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   Event_Kind whichKind() => _Event_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -3796,6 +3803,7 @@ class Event extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
   @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3918,6 +3926,17 @@ class Event extends $pb.GeneratedMessage {
   void clearProjectList() => $_clearField(11);
   @$pb.TagNumber(11)
   ProjectList ensureProjectList() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  PreviewLost get previewLost => $_getN(11);
+  @$pb.TagNumber(12)
+  set previewLost(PreviewLost value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasPreviewLost() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearPreviewLost() => $_clearField(12);
+  @$pb.TagNumber(12)
+  PreviewLost ensurePreviewLost() => $_ensure(11);
 }
 
 /// How far the running export is: `frame` of `frames` rendered. At most one per whole
@@ -4436,6 +4455,65 @@ class PreviewReady extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PreviewReady>(
           PreviewReady.$_createMessage);
   static PreviewReady? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get textureId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set textureId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTextureId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTextureId() => $_clearField(1);
+}
+
+/// Unsolicited: the shown preview texture can no longer be drawn (GPU or surface lost); it
+/// keeps its last frame. Send CreatePreview for a new one.
+class PreviewLost extends $pb.GeneratedMessage {
+  factory PreviewLost({
+    $fixnum.Int64? textureId,
+  }) {
+    final result = PreviewLost._();
+    if (textureId != null) result.textureId = textureId;
+    return result;
+  }
+
+  PreviewLost._();
+
+  factory PreviewLost.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      PreviewLost()..mergeFromBuffer(data, registry);
+  factory PreviewLost.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      PreviewLost()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'PreviewLost',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: PreviewLost.$_createMessage)
+    ..aInt64(1, _omitFieldNames ? '' : 'textureId')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PreviewLost clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PreviewLost copyWith(void Function(PreviewLost) updates) =>
+      super.copyWith((message) => updates(message as PreviewLost))
+          as PreviewLost;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use PreviewLost() / PreviewLost.new instead')
+  static PreviewLost create() => PreviewLost._();
+  static $pb.GeneratedMessage $_createMessage() => PreviewLost._();
+  @$core.override
+  PreviewLost createEmptyInstance() => PreviewLost._();
+  @$core.pragma('dart2js:noInline')
+  static PreviewLost getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PreviewLost>(
+          PreviewLost.$_createMessage);
+  static PreviewLost? _defaultInstance;
 
   @$pb.TagNumber(1)
   $fixnum.Int64 get textureId => $_getI64(0);

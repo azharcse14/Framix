@@ -1,6 +1,6 @@
 //! C ABI boundary of the Framix engine: decode command -> `framix_app` -> encode event.
 
-use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
+use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel};
 use std::time::Instant;
 
 use framix_app::engine::{AUTOSAVE_DELAY, command_failed};
@@ -47,7 +47,7 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 39;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 40;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread. After [`engine_destroy`] the
@@ -271,9 +271,25 @@ fn serve(
         if due.is_none() && !stalled && engine.autosave_pending() {
             due = Some(Instant::now() + AUTOSAVE_DELAY);
         }
-        let message = match due {
-            None => inbox.recv().map_err(|_| RecvTimeoutError::Disconnected),
-            Some(due) => inbox.recv_timeout(due.saturating_duration_since(Instant::now())),
+        // Commands are applied as they come but the preview is drawn only once the queue is
+        // empty, so a scrub's queued Seeks draw once, at the latest position (P1-053).
+        let message = match inbox.try_recv() {
+            Ok(message) => Ok(message),
+            Err(TryRecvError::Disconnected) => Err(RecvTimeoutError::Disconnected),
+            Err(TryRecvError::Empty) => {
+                // A panicking draw is not retried: the preview was unmarked before drawing.
+                match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    engine.flush_preview()
+                })) {
+                    Ok(None) => {}
+                    Ok(Some(lost)) => deliver(*callback, &lost),
+                    Err(_) => deliver(*callback, &command_failed("internal error")),
+                }
+                match due {
+                    None => inbox.recv().map_err(|_| RecvTimeoutError::Disconnected),
+                    Some(due) => inbox.recv_timeout(due.saturating_duration_since(Instant::now())),
+                }
+            }
         };
         let message = match message {
             Ok(message) => Some(message),
@@ -307,7 +323,10 @@ fn serve(
                     // A panic's CommandFailed still answers the command.
                     Ok(command) => {
                         let id = command.id;
-                        framix_app::engine::answering(id, guarded(|| engine.handle(command)))
+                        framix_app::engine::answering(
+                            id,
+                            guarded(|| engine.handle_deferred(command)),
+                        )
                     }
                     Err(_) => command_failed("undecodable command"),
                 };
