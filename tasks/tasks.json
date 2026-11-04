@@ -14294,6 +14294,44 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "SC-011",
+   "section": "SC",
+   "group": null,
+   "title": "Editor layout for short and narrow windows (split screen ~412x400): neither stacked nor side layout fits",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SC-012",
+   "section": "SC",
+   "group": null,
+   "title": "Landscape on short phones (640x360 bn): only part of a lane shows; thinner lanes or add-track in the timeline toolbar",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

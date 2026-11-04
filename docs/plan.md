@@ -827,6 +827,8 @@ Shobcheye beshi use hoy emon 6-8 ta tool shamne, baki gula sheshe "More" e.
 - [ ] `SC-008` iPhone Duo/Android ardhek bhaj: upore preview, niche timeline ar toolbar \[Dart\]
 - [ ] `SC-009` Choto split-screen window: compact layout, khub choto hole message \[Dart\]
 - [ ] `SC-010` Protita screen er Figma wireframe ei table theke, tarpor 5 jon user diye test \[—\]
+- [ ] `SC-011` Editor layout for short and narrow windows (split screen ~412x400): neither stacked nor side layout fits \[Dart\]
+- [ ] `SC-012` Landscape on short phones (640x360 bn): only part of a lane shows; thinner lanes or add-track in the timeline toolbar \[Dart\]
 
 ## Photo ar video: kivabe kaj korbe
 
