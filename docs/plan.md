@@ -822,7 +822,7 @@ Shobcheye beshi use hoy emon 6-8 ta tool shamne, baki gula sheshe "More" e.
 **Layout variant**
 
 - [ ] `SC-005` Phone portrait (default) \[Dart\]
-- [ ] `SC-006` Phone landscape: Editor e preview boro, timeline ar toolbar pashe ba niche compact \[Dart\]
+- [x] `SC-006` Phone landscape: Editor e preview boro, timeline ar toolbar pashe ba niche compact \[Dart\]
 - [ ] `SC-007` Tablet ba unfolded foldable: tool panel bottom sheet er bodole pashe side panel, boro timeline \[Dart\]
 - [ ] `SC-008` iPhone Duo/Android ardhek bhaj: upore preview, niche timeline ar toolbar \[Dart\]
 - [ ] `SC-009` Choto split-screen window: compact layout, khub choto hole message \[Dart\]
