@@ -120,18 +120,19 @@ class HomeCubit extends Cubit<HomeState> {
   Future<bool> open(String id) =>
       _switchTo(Command(openProject: OpenProject(id: id)));
 
-  Future<bool> _switchTo(Command command) {
-    if (_busy) return Future.value(false);
+  Future<bool> _switchTo(Command command) async {
+    if (_busy) return false;
+    // Send first: if it throws, nothing is left waiting and the next tap still works.
+    _switching = _engine.send(command);
     _busy = true;
     _switched = Completer<bool>();
-    _switching = _engine.send(command);
     return _switched!.future;
   }
 
   @override
   Future<void> close() {
     _events.cancel();
-    _switched?.complete(false);
+    if (_switched != null) _answer(false);
     return super.close();
   }
 }
