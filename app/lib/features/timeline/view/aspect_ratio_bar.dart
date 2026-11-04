@@ -18,36 +18,25 @@ const _canvasHeight = 112.0;
 /// Canvas outline in the engine's aspect ratio, platform preset chips with the export actions,
 /// and the ratio chips.
 class AspectRatioBar extends StatelessWidget {
-  const AspectRatioBar({super.key});
+  const AspectRatioBar({super.key, this.canvas = true});
+
+  /// Whether the bar shows the [CanvasOutline] itself; false when the page gives the outline
+  /// its own space (phone landscape).
+  final bool canvas;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final scheme = Theme.of(context).colorScheme;
     return BlocSelector<TimelineCubit, TimelineChanged, (int, int)>(
       selector: (s) => (s.aspectWidth, s.aspectHeight),
       builder: (context, aspect) {
-        final (width, height) = aspect;
-        // 0:0 until the engine's first TimelineChanged arrives.
-        final known = width > 0 && height > 0;
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Same slot either way, so the rows below keep their state on rotation.
             SizedBox(
-              height: _canvasHeight,
-              child: known
-                  ? Center(
-                      child: AspectRatio(
-                        aspectRatio: width / height,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: scheme.surface,
-                            border: Border.all(color: scheme.outline),
-                          ),
-                        ),
-                      ),
-                    )
-                  : null,
+              height: canvas ? _canvasHeight : 0,
+              child: canvas ? const CanvasOutline() : null,
             ),
             Row(
               children: [
@@ -123,6 +112,36 @@ class AspectRatioBar extends StatelessWidget {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+/// The canvas outline in the engine's aspect ratio, as large as fits; empty until the engine's
+/// first TimelineChanged arrives.
+class CanvasOutline extends StatelessWidget {
+  const CanvasOutline({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return BlocSelector<TimelineCubit, TimelineChanged, (int, int)>(
+      selector: (s) => (s.aspectWidth, s.aspectHeight),
+      builder: (context, aspect) {
+        final (width, height) = aspect;
+        // 0:0 until the engine's first TimelineChanged arrives.
+        if (width <= 0 || height <= 0) return const SizedBox.shrink();
+        return Center(
+          child: AspectRatio(
+            aspectRatio: width / height,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                border: Border.all(color: scheme.outline),
+              ),
+            ),
+          ),
         );
       },
     );
