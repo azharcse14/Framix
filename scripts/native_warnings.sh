@@ -50,12 +50,15 @@ Properties should be assigned using the .propName = value. syntax
 # sentry_flutter 10.1.0 SentryFlutterPlugin.kt reads the deprecated Display API (still in
 # 10.2.0); printed when that module compiles from scratch.
 sentry_flutter-[0-9.]+/android/.*defaultDisplay.* is deprecated
-.val defaultDisplay: Display!. is deprecated\. Deprecated in Java
-# Gradle repeats each Kotlin w: line as this generic problem; the w: line itself is checked.
+# Gradle repeats that warning without a path; anchored so a w: line (any file) never matches.
+^(\[[^]]*\] *)? +.val defaultDisplay: Display!. is deprecated\. Deprecated in Java\.?$
+# Gradle repeats each Kotlin w: line as this generic problem; the w: line (with its path) is
+# still checked, so our own Kotlin warnings fail through it.
 Problem found: Kotlin compiler warning
 # sentry_flutter 10.1.0 manifest removes SentryInitProvider (tools:node=remove) that nothing
 # declares, so the merger warns; and its ObjC replay header (SPM, cold build) lacks
-# nullability on one pointer (Xcode prints the path line and an include-tree line).
+# nullability on one pointer. Xcode prints the path line and an include-tree repeat; the
+# repeat is unscoped, but our own headers still fail through their path line.
 sentry_flutter-[0-9.]+/android/src/main/AndroidManifest\.xml:[0-9:-]+ Warning:
 sentry_flutter-[0-9.]+/Sources/sentry_flutter_objc/.*warning: pointer is missing a nullability
 ^ *\|( +\|)*- warning: pointer is missing a nullability type specifier
