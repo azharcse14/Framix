@@ -32,6 +32,14 @@ const double _cardRadius = 16;
 class _HomeView extends StatelessWidget {
   const _HomeView();
 
+  /// Shows the editor once [switched] says the engine opened the project.
+  static Future<void> _editAfter(
+    BuildContext context,
+    Future<bool> switched,
+  ) async {
+    if (await switched && context.mounted) await _edit(context);
+  }
+
   /// Shows the editor, then lists again so the edited project moves to the top.
   static Future<void> _edit(BuildContext context) async {
     final cubit = context.read<HomeCubit>();
@@ -80,10 +88,8 @@ class _HomeView extends StatelessWidget {
                   ),
                   HomeProjects(:final projects) => _ProjectGrid(
                     projects: projects,
-                    onOpen: (id) {
-                      context.read<HomeCubit>().open(id);
-                      _edit(context);
-                    },
+                    onOpen: (id) =>
+                        _editAfter(context, context.read<HomeCubit>().open(id)),
                   ),
                 },
               ),
@@ -100,10 +106,10 @@ class _HomeView extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.add),
                     label: Text(l10n.newProject),
-                    onPressed: () {
-                      context.read<HomeCubit>().newProject();
-                      _edit(context);
-                    },
+                    onPressed: () => _editAfter(
+                      context,
+                      context.read<HomeCubit>().newProject(),
+                    ),
                   ),
                 ),
             ],
