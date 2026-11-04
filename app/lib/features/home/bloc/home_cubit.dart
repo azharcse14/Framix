@@ -23,9 +23,15 @@ final class HomeUnavailable extends HomeState {
 
 /// The library's projects, most recently saved first (the engine's order).
 final class HomeProjects extends HomeState {
-  const HomeProjects(this.projects);
+  const HomeProjects(this.projects, {this.opening});
 
   final List<ProjectSummary> projects;
+
+  /// What the engine is saving and loading for the editor: [newProjectKey] or a project id.
+  final String? opening;
+
+  /// [opening] while a new project is being started (no project id is empty).
+  static const newProjectKey = '';
 }
 
 /// Mirrors the engine's project library (P1-089); sends commands only.
@@ -67,7 +73,7 @@ class HomeCubit extends Cubit<HomeState> {
     }
     if (e.hasProjectList()) {
       if (_lists.isNotEmpty) _lists.removeAt(0);
-      emit(HomeProjects(e.projectList.projects));
+      emit(HomeProjects(e.projectList.projects, opening: _opening));
     }
     if (e.hasCommandAccepted() &&
         e.commandAccepted.commandId.toInt() == _library) {
@@ -89,6 +95,7 @@ class HomeCubit extends Cubit<HomeState> {
     _switched?.complete(ok);
     _switching = null;
     _switched = null;
+    _showOpening(null);
     if (!ok) _busy = false;
   }
 
@@ -121,19 +128,30 @@ class HomeCubit extends Cubit<HomeState> {
 
   /// Starts an empty project; true once the engine switched to it, false if it refused
   /// (the generic failure message shows why) or another tap is still being handled.
-  Future<bool> newProject() => _switchTo(Command(newProject: NewProject()));
+  Future<bool> newProject() =>
+      _switchTo(Command(newProject: NewProject()), HomeProjects.newProjectKey);
 
   /// Opens project [id], like [newProject].
   Future<bool> open(String id) =>
-      _switchTo(Command(openProject: OpenProject(id: id)));
+      _switchTo(Command(openProject: OpenProject(id: id)), id);
 
-  Future<bool> _switchTo(Command command) async {
+  Future<bool> _switchTo(Command command, String opening) async {
     if (_busy) return false;
     // Send first: if it throws, nothing is left waiting and the next tap still works.
     _switching = _engine.send(command);
     _busy = true;
     _switched = Completer<bool>();
+    _showOpening(opening);
     return _switched!.future;
+  }
+
+  String? _opening;
+
+  void _showOpening(String? opening) {
+    _opening = opening;
+    if (state case HomeProjects(:final projects) when !isClosed) {
+      emit(HomeProjects(projects, opening: opening));
+    }
   }
 
   @override

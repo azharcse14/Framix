@@ -91,8 +91,9 @@ class _HomeView extends StatelessWidget {
                     title: l10n.projectsEmptyTitle,
                     body: l10n.projectsEmpty,
                   ),
-                  HomeProjects(:final projects) => _ProjectGrid(
+                  HomeProjects(:final projects, :final opening) => _ProjectGrid(
                     projects: projects,
+                    opening: opening,
                     onOpen: (id) =>
                         _editAfter(context, context.read<HomeCubit>().open(id)),
                   ),
@@ -109,7 +110,9 @@ class _HomeView extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    icon: const Icon(Icons.add),
+                    icon: state.opening == HomeProjects.newProjectKey
+                        ? const _Progress()
+                        : const Icon(Icons.add),
                     label: Text(l10n.newProject),
                     onPressed: () => _editAfter(
                       context,
@@ -193,7 +196,14 @@ class _Message extends StatelessWidget {
 
 /// The projects, newest first, two cards per row on a phone (more on wider screens).
 class _ProjectGrid extends StatelessWidget {
-  const _ProjectGrid({required this.projects, required this.onOpen});
+  const _ProjectGrid({
+    required this.projects,
+    required this.onOpen,
+    this.opening,
+  });
+
+  /// The project the engine is loading for the editor, if any.
+  final String? opening;
 
   final List<ProjectSummary> projects;
   final void Function(String id) onOpen;
@@ -243,6 +253,7 @@ class _ProjectGrid extends StatelessWidget {
                       width: width,
                       child: _ProjectCard(
                         project: p,
+                        opening: p.id == opening,
                         onTap: () => onOpen(p.id),
                       ),
                     ),
@@ -258,7 +269,14 @@ class _ProjectGrid extends StatelessWidget {
 
 /// One project: a thumbnail panel with its length, then when it was edited and its clips.
 class _ProjectCard extends StatelessWidget {
-  const _ProjectCard({required this.project, required this.onTap});
+  const _ProjectCard({
+    required this.project,
+    required this.onTap,
+    this.opening = false,
+  });
+
+  /// The engine is loading this project for the editor.
+  final bool opening;
 
   final ProjectSummary project;
   final VoidCallback onTap;
@@ -309,11 +327,13 @@ class _ProjectCard extends StatelessWidget {
                       child: Stack(
                         children: [
                           Center(
-                            child: Icon(
-                              Icons.movie_outlined,
-                              size: 36,
-                              color: colors.textMuted,
-                            ),
+                            child: opening
+                                ? const _Progress()
+                                : Icon(
+                                    Icons.movie_outlined,
+                                    size: 36,
+                                    color: colors.textMuted,
+                                  ),
                           ),
                           Positioned(
                             right: FramixSpace.s,
@@ -371,4 +391,15 @@ class _ProjectCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A small spinner where an icon was, while the engine saves and loads a project.
+class _Progress extends StatelessWidget {
+  const _Progress();
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: IconTheme.of(context).size ?? FramixSpace.m,
+    child: const CircularProgressIndicator(strokeWidth: 2),
+  );
 }
