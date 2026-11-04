@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'core/crash_reporting.dart';
 import 'core/engine/framix_engine.dart';
 import 'core/media/channel_media_importer.dart';
 import 'core/media/media_importer.dart';
@@ -17,14 +19,20 @@ import 'features/timeline/bloc/timeline_zoom_cubit.dart';
 import 'features/timeline/view/timeline_page.dart';
 import 'l10n/generated/app_localizations.dart';
 
-void main() {
-  installErrorBoundary();
-  GetIt.I.registerSingleton<FramixEngine>(
-    FramixEngine.create(),
-    dispose: (engine) => engine.dispose(),
-  );
-  runApp(FramixApp(engine: GetIt.I<FramixEngine>()));
-}
+Future<void> main() => SentryFlutter.init(
+  configureCrashReporting,
+  appRunner: () {
+    // Must run after Sentry's init: it replaces Sentry's PlatformDispatcher.onError and
+    // reports through FlutterError.onError, which Sentry wraps. Run earlier, Sentry would
+    // chain this handler and report every async error twice.
+    installErrorBoundary();
+    GetIt.I.registerSingleton<FramixEngine>(
+      FramixEngine.create(),
+      dispose: (engine) => engine.dispose(),
+    );
+    runApp(FramixApp(engine: GetIt.I<FramixEngine>()));
+  },
+);
 
 /// Root widget.
 class FramixApp extends StatelessWidget {

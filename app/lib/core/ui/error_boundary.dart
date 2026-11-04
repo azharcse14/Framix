@@ -7,7 +7,7 @@ import 'framix_theme.dart';
 
 /// Keeps a bug from taking a screen or the app down (OVL-024): a widget that fails to build
 /// shows [ErrorPanel] in its place, and an uncaught async error is reported through
-/// [FlutterError.reportError] (where Sentry hooks in, P1-041) instead of escaping. Build
+/// [FlutterError.reportError] (which Sentry wraps, P1-041) instead of escaping. Build
 /// errors are still reported by Flutter as before.
 void installErrorBoundary() {
   ErrorWidget.builder = (details) => const ErrorPanel();
