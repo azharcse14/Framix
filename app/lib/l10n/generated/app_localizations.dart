@@ -481,6 +481,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About {mb} MB (estimate)'**
   String exportEstimate(int mb);
+
+  /// No description provided for @projectsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get projectsTitle;
+
+  /// No description provided for @newProject.
+  ///
+  /// In en, this message translates to:
+  /// **'New project'**
+  String get newProject;
+
+  /// No description provided for @projectsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects yet. Start a new one.'**
+  String get projectsEmpty;
+
+  /// No description provided for @projectsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Your projects can\'t be opened right now.'**
+  String get projectsUnavailable;
+
+  /// No description provided for @projectEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited {when}'**
+  String projectEdited(String when);
 }
 
 class _AppLocalizationsDelegate

@@ -11,6 +11,7 @@ import 'core/ui/command_failure_messages.dart';
 import 'core/ui/error_boundary.dart';
 import 'core/ui/framix_theme.dart';
 import 'features/export/bloc/export_cubit.dart';
+import 'features/home/view/home_page.dart';
 import 'features/preview/bloc/preview_cubit.dart';
 import 'features/timeline/bloc/playhead_cubit.dart';
 import 'features/timeline/bloc/thumbnail_cubit.dart';
@@ -30,7 +31,7 @@ Future<void> main() => SentryFlutter.init(
       FramixEngine.create(),
       dispose: (engine) => engine.dispose(),
     );
-    runApp(FramixApp(engine: GetIt.I<FramixEngine>()));
+    runApp(FramixApp(engine: GetIt.I<FramixEngine>(), home: const HomePage()));
   },
 );
 
@@ -41,9 +42,13 @@ class FramixApp extends StatelessWidget {
     required this.engine,
     this.mediaImporter = const ChannelMediaImporter(),
     this.locale,
+    this.home = const TimelinePage(),
   });
 
   final FramixEngine engine;
+
+  /// The first screen: Home in the app; the editor by default, which most tests drive.
+  final Widget home;
 
   /// Platform media picker (a fake in tests).
   final MediaImporter mediaImporter;
@@ -62,8 +67,13 @@ class FramixApp extends StatelessWidget {
         ...GlobalMaterialLocalizations.delegates,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: RepositoryProvider.value(
-        value: mediaImporter,
+      home: home,
+      // Above the Navigator, so every route (the editor pushed from Home, dialogs) sees them.
+      builder: (context, navigator) => MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider.value(value: engine),
+          RepositoryProvider.value(value: mediaImporter),
+        ],
         child: MultiBlocProvider(
           providers: [
             BlocProvider(create: (_) => TimelineCubit(engine)),
@@ -79,10 +89,7 @@ class FramixApp extends StatelessWidget {
             ),
             BlocProvider(create: (_) => ExportCubit(engine)),
           ],
-          child: CommandFailureMessages(
-            engine: engine,
-            child: const TimelinePage(),
-          ),
+          child: CommandFailureMessages(engine: engine, child: navigator!),
         ),
       ),
     );

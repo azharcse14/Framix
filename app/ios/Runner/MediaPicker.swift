@@ -31,6 +31,18 @@ final class MediaPicker: NSObject {
     if call.method == "exportDir" {
       return result(FileManager.default.temporaryDirectory.path)
     }
+    if call.method == "projectsDir" {
+      // The user's projects (P1-089), backed up like other documents.
+      let dir = try? FileManager.default.url(
+        for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+      ).appendingPathComponent("projects", isDirectory: true)
+      guard let dir, (try? FileManager.default.createDirectory(
+        at: dir, withIntermediateDirectories: true)) != nil
+      else {
+        return result(FlutterError(code: "no-dir", message: nil, details: nil))
+      }
+      return result(dir.path)
+    }
     if call.method == "saveToGallery" || call.method == "share" {
       // Only files in tmp (the export), never other app-private files into the public gallery.
       let tmp = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().path + "/"

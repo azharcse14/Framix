@@ -243,4 +243,22 @@ class AppLocalizationsBn extends AppLocalizations {
 
     return 'প্রায় $mbString MB (আনুমানিক)';
   }
+
+  @override
+  String get projectsTitle => 'প্রজেক্ট';
+
+  @override
+  String get newProject => 'নতুন প্রজেক্ট';
+
+  @override
+  String get projectsEmpty => 'এখনো কোনো প্রজেক্ট নেই। নতুন একটি শুরু করুন।';
+
+  @override
+  String get projectsUnavailable =>
+      'এই মুহূর্তে আপনার প্রজেক্ট খোলা যাচ্ছে না।';
+
+  @override
+  String projectEdited(String when) {
+    return 'সম্পাদনা $when';
+  }
 }

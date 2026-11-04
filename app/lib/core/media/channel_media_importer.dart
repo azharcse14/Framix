@@ -5,8 +5,20 @@ import 'package:flutter/services.dart';
 import '../engine/proto/framix/v1/engine.pb.dart';
 import 'media_importer.dart';
 
-/// The `framix/media` method channel: picking media, and saving or sharing an export.
+/// The `framix/media` method channel: picking media, saving or sharing an export, and where
+/// projects live.
 const mediaChannel = MethodChannel('framix/media');
+
+/// The folder of the user's projects (created by the platform); null when there is none.
+Future<String?> projectsDir() async {
+  try {
+    return await mediaChannel.invokeMethod<String>('projectsDir');
+  } on Exception catch (e) {
+    // PlatformException, or MissingPluginException where no platform side runs.
+    debugPrint('projects folder unavailable: ${e.runtimeType}');
+    return null;
+  }
+}
 
 /// [MediaImporter] over the `framix/media` method channel (app/ios/Runner/MediaPicker.swift,
 /// app/android/.../MediaPicker.kt). Missing fields stay at their defaults, so the engine

@@ -63,5 +63,10 @@
   "autoBitrate": "স্বয়ংক্রিয় বিটরেট",
   "bitrateKbps": "{kbps} kbps",
   "exportFrameSize": "{width} × {height}",
-  "exportEstimate": "প্রায় {mb} MB (আনুমানিক)"
+  "exportEstimate": "প্রায় {mb} MB (আনুমানিক)",
+  "projectsTitle": "প্রজেক্ট",
+  "newProject": "নতুন প্রজেক্ট",
+  "projectsEmpty": "এখনো কোনো প্রজেক্ট নেই। নতুন একটি শুরু করুন।",
+  "projectsUnavailable": "এই মুহূর্তে আপনার প্রজেক্ট খোলা যাচ্ছে না।",
+  "projectEdited": "সম্পাদনা {when}"
 }

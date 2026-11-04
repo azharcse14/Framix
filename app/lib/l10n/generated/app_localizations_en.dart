@@ -244,4 +244,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return 'About $mbString MB (estimate)';
   }
+
+  @override
+  String get projectsTitle => 'Projects';
+
+  @override
+  String get newProject => 'New project';
+
+  @override
+  String get projectsEmpty => 'No projects yet. Start a new one.';
+
+  @override
+  String get projectsUnavailable => 'Your projects can\'t be opened right now.';
+
+  @override
+  String projectEdited(String when) {
+    return 'Edited $when';
+  }
 }

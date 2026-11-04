@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/media/media_importer.dart';
 import '../../../core/ui/framix_theme.dart';
+import '../../../core/ui/timecode.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/clip_selection_cubit.dart';
 import '../bloc/playhead_cubit.dart';
@@ -261,7 +262,7 @@ class _Toolbar extends StatelessWidget {
         children: [
           BlocBuilder<PlayheadCubit, int>(
             builder: (_, playhead) => Text(
-              _timecode(playhead, ticksPerSecond),
+              timecode(playhead, ticksPerSecond),
               style: const TextStyle(
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
@@ -396,14 +397,6 @@ Color _rgba(int rgba) => Color(0xff000000 | (rgba >> 8));
 int _ticksAt(double px, double pps, int ticksPerSecond) =>
     (px / pps * ticksPerSecond).round();
 
-/// mm:ss.cc, for display only.
-String _timecode(int ticks, int ticksPerSecond) {
-  if (ticksPerSecond == 0) return '00:00.00';
-  final centis = ticks * 100 ~/ ticksPerSecond;
-  String two(int v) => v.toString().padLeft(2, '0');
-  return '${two(centis ~/ 6000)}:${two(centis ~/ 100 % 60)}.${two(centis % 100)}';
-}
-
 /// Second marks with labels; tap or drag to seek.
 class _Ruler extends StatelessWidget {
   const _Ruler({
@@ -447,9 +440,9 @@ class _Ruler extends StatelessWidget {
     return BlocBuilder<PlayheadCubit, int>(
       builder: (context, at) => Semantics(
         label: AppLocalizations.of(context).timelineRuler,
-        value: _timecode(at, ticksPerSecond),
-        increasedValue: _timecode(at + ticksPerSecond, ticksPerSecond),
-        decreasedValue: _timecode(
+        value: timecode(at, ticksPerSecond),
+        increasedValue: timecode(at + ticksPerSecond, ticksPerSecond),
+        decreasedValue: timecode(
           math.max(0, at - ticksPerSecond),
           ticksPerSecond,
         ),
