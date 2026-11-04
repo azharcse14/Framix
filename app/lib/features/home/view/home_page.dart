@@ -328,7 +328,13 @@ class _ProjectCard extends StatelessWidget {
                         children: [
                           Center(
                             child: opening
-                                ? const _Progress()
+                                ? IconTheme(
+                                    data: IconThemeData(
+                                      size: 36,
+                                      color: colors.textMuted,
+                                    ),
+                                    child: const _Progress(),
+                                  )
                                 : Icon(
                                     Icons.movie_outlined,
                                     size: 36,
@@ -393,13 +399,21 @@ class _ProjectCard extends StatelessWidget {
   }
 }
 
-/// A small spinner where an icon was, while the engine saves and loads a project.
+/// A small spinner where an icon was, while the engine saves and loads a project. It takes
+/// the icon's color: the theme's primary would vanish on the accent New project button.
 class _Progress extends StatelessWidget {
   const _Progress();
 
   @override
-  Widget build(BuildContext context) => SizedBox.square(
-    dimension: IconTheme.of(context).size ?? FramixSpace.m,
-    child: const CircularProgressIndicator(strokeWidth: 2),
-  );
+  Widget build(BuildContext context) {
+    final icon = IconTheme.of(context);
+    return SizedBox.square(
+      dimension: icon.size ?? FramixSpace.m,
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        color: icon.color,
+        semanticsLabel: AppLocalizations.of(context).openingProject,
+      ),
+    );
+  }
 }
