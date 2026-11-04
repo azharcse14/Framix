@@ -308,7 +308,9 @@ private struct VideoFrame {
 }
 
 /// A decoded sample's pixels and the span it shows.
-private struct Sample {
+private struct Sample: @unchecked Sendable {
+  // @unchecked: CVPixelBuffer is not Sendable; a decoded buffer is never written again, and
+  // a Sample crosses threads only from `blocking`'s task to the thread waiting on it.
   let pixels: CVPixelBuffer
   let start: CMTime
   let end: CMTime

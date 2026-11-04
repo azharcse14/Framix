@@ -4,7 +4,8 @@
 // changes between installs). The engine validates every field; nothing here decides what is
 // allowed.
 import AVFoundation
-import Flutter
+// @preconcurrency: Flutter's ObjC globals (FlutterMethodNotImplemented) import as mutable vars.
+@preconcurrency import Flutter
 import ImageIO
 import PhotosUI
 import UIKit
