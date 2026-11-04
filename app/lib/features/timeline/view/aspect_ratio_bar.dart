@@ -33,8 +33,11 @@ class AspectRatioBar extends StatelessWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (canvas)
-              const SizedBox(height: _canvasHeight, child: CanvasOutline()),
+            // Same slot either way, so the rows below keep their state on rotation.
+            SizedBox(
+              height: canvas ? _canvasHeight : 0,
+              child: canvas ? const CanvasOutline() : null,
+            ),
             Row(
               children: [
                 Expanded(

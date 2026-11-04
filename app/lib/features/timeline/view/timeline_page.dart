@@ -12,19 +12,36 @@ import 'import_buttons.dart';
 import 'timeline_view.dart';
 
 /// The timeline: tracks on a time axis, undo/redo, and add-track actions.
-class TimelinePage extends StatelessWidget {
+class TimelinePage extends StatefulWidget {
   const TimelinePage({super.key});
+
+  /// Width of the timeline pane beside the canvas in phone landscape: the timeline toolbar
+  /// (timecode and four 48 dp buttons) and a video clip's seven 48 dp actions in one row.
+  static const sidePaneWidth = 360.0;
+
+  @override
+  State<TimelinePage> createState() => _TimelinePageState();
+}
+
+class _TimelinePageState extends State<TimelinePage> {
+  // Rotating moves these between the two layouts; the keys keep their state (export guard,
+  // timeline scroll) instead of building them anew.
+  final _bar = GlobalKey();
+  final _timeline = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<TimelineCubit>();
-    // A phone on its side: wider than tall, and a compact height (Material window size
-    // class, < 480 dp). Tablets in landscape keep the stacked layout.
+    // A phone on its side: compact height (< 480 dp) and at least medium width (600 dp,
+    // Material window size classes), so the canvas keeps room beside the timeline pane.
+    // Tablets keep the stacked layout.
     final size = MediaQuery.sizeOf(context);
-    final landscape = size.width > size.height && size.height < 480;
+    final landscape = size.height < 480 && size.width >= 600;
     return Scaffold(
       appBar: AppBar(
+        // Material's landscape app bar height: the timeline needs every row.
+        toolbarHeight: landscape ? kMinInteractiveDimension : null,
         title: Text(l10n.appTitle),
         actions: [
           const ImportButtons(),
@@ -53,34 +70,33 @@ class TimelinePage extends StatelessWidget {
           // actions sit beside it.
           ? SafeArea(
               top: false,
-              child: const Row(
+              child: Row(
                 children: [
                   Expanded(
-                    flex: 3,
                     child: Column(
                       children: [
-                        Expanded(child: _Stage()),
-                        AspectRatioBar(canvas: false),
+                        const Expanded(child: _Stage()),
+                        AspectRatioBar(key: _bar, canvas: false),
                       ],
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
+                  SizedBox(
+                    width: TimelinePage.sidePaneWidth,
                     child: Column(
                       children: [
-                        Expanded(child: _Timeline()),
-                        _AddTrackButtons(),
+                        Expanded(child: _Timeline(key: _timeline)),
+                        const _AddTrackButtons(padding: FramixSpace.s),
                       ],
                     ),
                   ),
                 ],
               ),
             )
-          : const Column(
+          : Column(
               children: [
-                PreviewView(),
-                AspectRatioBar(),
-                Expanded(child: _Timeline()),
+                const PreviewView(),
+                AspectRatioBar(key: _bar),
+                Expanded(child: _Timeline(key: _timeline)),
               ],
             ),
       // Primary actions in the lower half (docs/design-system.md, touch).
@@ -104,7 +120,7 @@ class _Stage extends StatelessWidget {
 
 /// The tracks, or a hint while there are none.
 class _Timeline extends StatelessWidget {
-  const _Timeline();
+  const _Timeline({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -126,14 +142,17 @@ class _Timeline extends StatelessWidget {
 
 /// Add a video or an audio track.
 class _AddTrackButtons extends StatelessWidget {
-  const _AddTrackButtons();
+  const _AddTrackButtons({this.padding = FramixSpace.m});
+
+  /// Around the row; tighter beside the canvas, where height is short.
+  final double padding;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<TimelineCubit>();
     return Padding(
-      padding: const EdgeInsets.all(FramixSpace.m),
+      padding: EdgeInsets.all(padding),
       child: Row(
         children: [
           Expanded(
