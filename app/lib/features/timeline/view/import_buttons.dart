@@ -5,6 +5,7 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 import '../../../core/media/media_importer.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/timeline_cubit.dart';
+import '../../../core/ui/small_spinner.dart';
 
 /// Gallery and Files import buttons, and a blank clip; disabled while a pick (copy and metadata) is running.
 class ImportButtons extends StatefulWidget {
@@ -33,13 +34,7 @@ class _ImportButtonsState extends State<ImportButtons> {
     if (_busy) {
       return Padding(
         padding: const EdgeInsets.all(12),
-        child: SizedBox.square(
-          dimension: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            semanticsLabel: l10n.importing,
-          ),
-        ),
+        child: SmallSpinner(label: l10n.importing),
       );
     }
     return Row(

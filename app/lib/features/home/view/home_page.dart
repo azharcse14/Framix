@@ -6,6 +6,7 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart'
     show ProjectSummary;
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/framix_theme.dart';
+import '../../../core/ui/small_spinner.dart';
 import '../../../core/ui/timecode.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../timeline/view/timeline_page.dart';
@@ -111,7 +112,7 @@ class _HomeView extends StatelessWidget {
                       ),
                     ),
                     icon: state.opening == HomeProjects.newProjectKey
-                        ? const _Progress()
+                        ? _progress(context)
                         : const Icon(Icons.add),
                     label: Text(l10n.newProject),
                     onPressed: () => _editAfter(
@@ -333,7 +334,7 @@ class _ProjectCard extends StatelessWidget {
                                       size: 36,
                                       color: colors.textMuted,
                                     ),
-                                    child: const _Progress(),
+                                    child: _progress(context),
                                   )
                                 : Icon(
                                     Icons.movie_outlined,
@@ -399,21 +400,9 @@ class _ProjectCard extends StatelessWidget {
   }
 }
 
-/// A small spinner where an icon was, while the engine saves and loads a project. It takes
-/// the icon's color: the theme's primary would vanish on the accent New project button.
-class _Progress extends StatelessWidget {
-  const _Progress();
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = IconTheme.of(context);
-    return SizedBox.square(
-      dimension: icon.size ?? FramixSpace.m,
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        color: icon.color,
-        semanticsLabel: AppLocalizations.of(context).openingProject,
-      ),
-    );
-  }
-}
+/// The spinner in an icon's place while the engine saves and loads a project; the icon
+/// color keeps it visible on the accent New project button.
+Widget _progress(BuildContext context) => SmallSpinner(
+  label: AppLocalizations.of(context).openingProject,
+  iconColor: true,
+);

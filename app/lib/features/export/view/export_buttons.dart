@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/media/export_sharer.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/export_cubit.dart';
+import '../../../core/ui/small_spinner.dart';
 
 /// Export, its progress and cancel, then save to gallery and share for the finished file.
 class ExportButtons extends StatefulWidget {
@@ -89,13 +90,9 @@ class _ExportButtonsState extends State<ExportButtons> {
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox.square(
-                dimension: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  value: state.frames > 0 ? state.frame / state.frames : null,
-                  semanticsLabel: l10n.exporting,
-                ),
+              SmallSpinner(
+                label: l10n.exporting,
+                value: state.frames > 0 ? state.frame / state.frames : null,
               ),
               IconButton(
                 tooltip: l10n.cancelExport,
