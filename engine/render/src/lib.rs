@@ -212,9 +212,9 @@ struct WindowSurface {
 
 impl Gpu {
     /// SPIKE (P1-004): the process's one GPU, opened on first use, shared by the preview
-    /// renderer and the decode spikes so they draw through one device and one window surface.
-    /// A failure to open is kept for the process (no retry). The render thread (P1-053) owns
-    /// the GPU instead.
+    /// renderer and the Android decode spike so they draw through one device and one window
+    /// surface. A failure to open is kept for the process (no retry). The render thread
+    /// (P1-053) owns the GPU instead.
     pub fn shared() -> Result<&'static Gpu, RenderError> {
         static GPU: std::sync::OnceLock<Result<Gpu, String>> = std::sync::OnceLock::new();
         GPU.get_or_init(|| Gpu::new().map_err(|e| e.to_string()))

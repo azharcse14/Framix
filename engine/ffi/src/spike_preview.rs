@@ -1,15 +1,10 @@
 //! SPIKE (P1-056): Android draws one decoded frame, converted to an RGBA8 HardwareBuffer by the
-//! app's GLES pass and imported into wgpu, over the preview the engine made.
-//!
-//! SPIKE (P1-002): iOS only. Draws one decoded NV12 frame into the preview texture, so the
-//! simulator shows a VideoToolbox frame reaching wgpu with no copy. The Decoder port replaces it.
+//! app's GLES pass and imported into wgpu, over the preview the engine made. The Android
+//! Decoder port (P1-070) replaces it.
 
 use std::ffi::c_void;
 
 use crate::{ENGINE_ERR_GPU, ENGINE_ERR_NULL, ffi_guard};
-
-#[cfg(target_vendor = "apple")]
-use framix_render::{Placement, YcbcrMatrix, YcbcrRange, YcbcrSpace};
 
 /// The engine's one GPU (shared with the preview renderer); None if it could not be opened.
 fn gpu() -> Option<&'static framix_render::Gpu> {
@@ -24,57 +19,10 @@ fn report(drawn: Result<(), framix_render::RenderError>) -> i32 {
         Ok(()) => crate::ENGINE_OK,
         Err(e) => {
             eprintln!("framix spike: {e}");
-            #[cfg(target_os = "android")]
             framix_render::android_log(&format!("spike: {e}"));
             ENGINE_ERR_GPU
         }
     }
-}
-
-/// SPIKE (P1-002): converts one NV12 decoder frame into the preview texture. `y` and `cbcr`
-/// are Metal textures on the frame's IOSurface planes (R8Unorm, RG8Unorm); `target` is the
-/// preview's BGRA texture. `bt709` picks BT.709 over BT.601, `video_range` video over full
-/// range (both 0 or 1). Returns an engine code once the GPU is done.
-///
-/// # Safety
-/// `target`, `y` and `cbcr` must each be null or a live `id<MTLTexture>` for the call, and the
-/// decoder must have finished writing the frame.
-#[cfg(target_vendor = "apple")]
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn engine_spike_draw_nv12(
-    target: *mut c_void,
-    y: *mut c_void,
-    cbcr: *mut c_void,
-    bt709: u32,
-    video_range: u32,
-) -> i32 {
-    ffi_guard(|| {
-        if target.is_null() || y.is_null() || cbcr.is_null() {
-            return ENGINE_ERR_NULL;
-        }
-        let Some(gpu) = gpu() else {
-            return ENGINE_ERR_GPU;
-        };
-        let space = YcbcrSpace {
-            matrix: if bt709 == 0 {
-                YcbcrMatrix::Bt601
-            } else {
-                YcbcrMatrix::Bt709
-            },
-            range: if video_range == 0 {
-                YcbcrRange::Full
-            } else {
-                YcbcrRange::Video
-            },
-        };
-        // SAFETY: all three are live id<MTLTexture>s per this fn's contract.
-        let drawn = unsafe { gpu.wrap_metal_texture(target) }.and_then(|out| {
-            // SAFETY: as above; the decoder is done with the frame.
-            let (y, cbcr) = unsafe { (gpu.wrap_metal_plane(y)?, gpu.wrap_metal_plane(cbcr)?) };
-            gpu.draw_nv12(&out, &y, &cbcr, space, &Placement::FILL)
-        });
-        report(drawn)
-    })
 }
 
 /// SPIKE (P1-056): JNI entry for `EnginePlatform.nativeRenderFrame(surface, frame)`. Draws `frame`,

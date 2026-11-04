@@ -11,7 +11,7 @@ use prost::Message as _;
 #[cfg(target_os = "android")]
 mod android_platform;
 mod platform;
-#[cfg(any(target_os = "android", target_vendor = "apple"))]
+#[cfg(target_os = "android")]
 mod spike_preview;
 #[cfg(target_os = "android")]
 pub use android_platform::{
@@ -27,8 +27,6 @@ pub use platform::{
 };
 #[cfg(target_os = "android")]
 pub use spike_preview::Java_com_travela_framix_EnginePlatform_nativeRenderFrame;
-#[cfg(target_vendor = "apple")]
-pub use spike_preview::engine_spike_draw_nv12;
 
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;
