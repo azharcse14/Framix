@@ -13,8 +13,8 @@ if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flu
 ALLOWED='
 # Flutter tool scheme script reads Xcode env it does not know (Flutter 3.47).
 unknown environment variable SWIFT_DEBUG_INFORMATION_(FORMAT|VERSION)
-# Xcode 27.1 prints this for every app without AppIntents.
-Metadata extraction skipped, no AppIntents\.framework dependency found
+# Xcode prints this for every app without AppIntents (27.1: "skipped, no"; 26.2: "skipped. No").
+Metadata extraction skipped[.,] [Nn]o AppIntents\.framework dependency found
 # Flutter 3.47 Gradle plugin needs the old DSL and KGP: newDsl=false, builtInKotlin=false,
 # org.jetbrains.kotlin.android, and the old android {} accessor in app/build.gradle.kts.
 android\.(newDsl|builtInKotlin)=false. is deprecated
@@ -34,6 +34,15 @@ System::load has been called by net\.rubygrapefruit
 --enable-native-access=ALL-UNNAMED
 Restricted methods will be blocked in a future release
 A restricted method in java\.lang\.System has been called
+# Flutter 3.47 Gradle plugin on Android library plugins (first one: jni, with sentry_flutter):
+# PluginHandler.kt adds them as Project dependencies, and applying com.android.library makes
+# it read the old libraryVariants API.
+Using a Project object as a dependency notation has been deprecated
+API .libraryVariants. is obsolete
+# jni 1.0.3 android/build.gradle uses Groovy space assignment (group, version, namespace,
+# ndkVersion). Fixed in jni 1.1.0, which needs sentry_flutter 10.2.0 (14 days old on
+# 2026-11-05); remove this with that upgrade (TC-014).
+Properties should be assigned using the .propName = value. syntax
 # AGP CMake log line; ANDROID_NDK_HOME is not used (ndkVersion is pinned).
 Not considering ANDROID_NDK_HOME
 '
