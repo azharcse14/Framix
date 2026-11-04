@@ -12737,6 +12737,10 @@
     {
      "date": "2026-10-30",
      "text": "hide already honored: Timeline::layer_at skips hidden tracks for preview and export (P1-060; core/tests/layer.rs). Mute waits for an audio mix (P2-001/P2-003); export has no audio yet."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "blocked: hide is done (P1-060); mute needs an audio mix and export audio, which don't exist yet (P2-001 audio engine, P2-003 mute/volume both todo)"
     }
    ],
    "source": "added"
