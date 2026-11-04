@@ -14201,12 +14201,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-04",
+   "done": "2026-11-04",
+   "commit": "9f849d4",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "work was done alongside P1-089 on main before start: tests a4f0887, impl 9057428"
+    },
+    {
+     "date": "2026-11-04",
+     "text": "review fixes 9f849d4 (test 'yesterday' calendar day). Status-bar warning not reproduced: SystemChrome.latestStyle is light on Home in a widget test and the simulator shows light text; re-check on an iPhone in light mode. Open suggestions: wordmark Semantics(header), en_US date fallback runs in prod, 'just now' doesn't refresh while Home stays open, 360dp bn test."
+    }
+   ],
    "source": "added"
   },
   {
