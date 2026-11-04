@@ -830,6 +830,9 @@ impl Engine {
     /// Sets the library folder once; refused next to EnableAutosave's single file.
     fn open_library(&mut self, dir: String) -> Result<(), String> {
         let dir = PathBuf::from(dir);
+        if !dir.is_absolute() {
+            return Err("the library folder must be an absolute path".into());
+        }
         match &self.library {
             Some(on) if *on == dir => Ok(()),
             Some(_) => Err("the library is already open on another folder".into()),
@@ -862,12 +865,13 @@ impl Engine {
     fn open_from_library(&mut self, id: &str) -> Result<(), String> {
         let dir = self.library.as_deref().ok_or("no library")?;
         let file = crate::library::path(dir, id).ok_or("malformed project id")?;
+        // Save first: reading first would load stale bytes when `id` is the open project.
+        self.save_current()?;
         let bytes = self
             .store()?
             .load(&file)
             .map_err(|e| e.kind().to_string())?;
         let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
-        self.save_current()?;
         self.history = History::new(timeline.clone());
         self.autosave_to(Some(file), timeline);
         self.start_project();
