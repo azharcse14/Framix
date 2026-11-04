@@ -1,17 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/engine/framix_engine.dart';
-import '../../../core/engine/proto/framix/v1/engine.pb.dart';
+import '../../../core/engine/proto/framix/v1/engine.pb.dart' show ProjectSummary;
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/timecode.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../timeline/view/timeline_page.dart';
 import '../bloc/home_cubit.dart';
+import 'edited_label.dart';
 
-/// Home: New project and the user's projects (P1-089). The editor opens on top of it.
+/// Home: the user's projects and New project (P1-089, P1-090). The editor opens on top.
 class HomePage extends StatelessWidget {
   const HomePage({super.key, this.projectsDir = media.projectsDir});
 
@@ -25,11 +25,14 @@ class HomePage extends StatelessWidget {
   );
 }
 
+/// Corner radius of project cards and their thumbnails.
+const double _cardRadius = 16;
+
 class _HomeView extends StatelessWidget {
   const _HomeView();
 
   /// Shows the editor, then lists again so the edited project moves to the top.
-  Future<void> _edit(BuildContext context) async {
+  static Future<void> _edit(BuildContext context) async {
     final cubit = context.read<HomeCubit>();
     await Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (_) => const TimelinePage()));
@@ -39,70 +42,199 @@ class _HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final colors = Theme.of(context).extension<FramixColors>()!;
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.projectsTitle)),
-      body: BlocBuilder<HomeCubit, HomeState>(
-        builder: (context, state) => switch (state) {
-          HomeLoading() => const Center(child: CircularProgressIndicator()),
-          HomeUnavailable() => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(FramixSpace.m),
-              child: Text(
-                l10n.projectsUnavailable,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: colors.textMuted),
-              ),
-            ),
-          ),
-          HomeProjects(:final projects) => Column(
+      body: SafeArea(
+        child: BlocBuilder<HomeCubit, HomeState>(
+          builder: (context, state) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.all(FramixSpace.m),
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.newProject),
-                  onPressed: () {
-                    context.read<HomeCubit>().newProject();
-                    _edit(context);
-                  },
+                padding: const EdgeInsets.fromLTRB(
+                  FramixSpace.m,
+                  FramixSpace.m,
+                  FramixSpace.m,
+                  FramixSpace.s,
+                ),
+                child: Text(
+                  l10n.appTitle,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               Expanded(
-                child: projects.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(FramixSpace.m),
-                          child: Text(
-                            l10n.projectsEmpty,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: colors.textMuted),
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: projects.length,
-                        itemBuilder: (context, i) => _ProjectRow(
-                          project: projects[i],
-                          onTap: () {
-                            context.read<HomeCubit>().open(projects[i].id);
-                            _edit(context);
-                          },
-                        ),
-                      ),
+                child: switch (state) {
+                  HomeLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  HomeUnavailable() => _Message(
+                    icon: Icons.folder_off_outlined,
+                    body: l10n.projectsUnavailable,
+                  ),
+                  HomeProjects(projects: []) => _Message(
+                    icon: Icons.movie_creation_outlined,
+                    title: l10n.projectsEmptyTitle,
+                    body: l10n.projectsEmpty,
+                  ),
+                  HomeProjects(:final projects) => _ProjectGrid(
+                    projects: projects,
+                    onOpen: (id) {
+                      context.read<HomeCubit>().open(id);
+                      _edit(context);
+                    },
+                  ),
+                },
               ),
+              if (state is HomeProjects)
+                Padding(
+                  padding: const EdgeInsets.all(FramixSpace.m),
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(56),
+                      shape: const StadiumBorder(),
+                      textStyle: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.newProject),
+                    onPressed: () {
+                      context.read<HomeCubit>().newProject();
+                      _edit(context);
+                    },
+                  ),
+                ),
             ],
           ),
-        },
+        ),
       ),
     );
   }
 }
 
-/// One project: its length, clips and when it was last edited.
-class _ProjectRow extends StatelessWidget {
-  const _ProjectRow({required this.project, required this.onTap});
+/// A centred icon in a circle with a short message (empty list, no projects folder).
+class _Message extends StatelessWidget {
+  const _Message({required this.icon, required this.body, this.title});
+
+  final IconData icon;
+  final String? title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FramixColors.of(context);
+    final theme = Theme.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(FramixSpace.m * 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: colors.border),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(FramixSpace.m * 1.5),
+                child: Icon(icon, size: 44, color: colors.textMuted),
+              ),
+            ),
+            if (title case final title?) ...[
+              const SizedBox(height: FramixSpace.m),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+            const SizedBox(height: FramixSpace.s),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The projects, newest first, two cards per row on a phone (more on wider screens).
+class _ProjectGrid extends StatelessWidget {
+  const _ProjectGrid({required this.projects, required this.onOpen});
+
+  final List<ProjectSummary> projects;
+  final void Function(String id) onOpen;
+
+  /// Widest a card gets before another column fits.
+  static const double _maxCardWidth = 240;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = FramixColors.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = FramixSpace.m * 0.75;
+        final inner = constraints.maxWidth - 2 * FramixSpace.m;
+        final columns = ((inner + gap) / (_maxCardWidth + gap)).ceil().clamp(
+          2,
+          6,
+        );
+        final width = (inner - gap * (columns - 1)) / columns;
+        // A Wrap, not a fixed-height grid: Bangla and large text make cards taller.
+        // ponytail: builds every card; a lazy sliver grid once lists get long (OVL-015).
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            FramixSpace.m,
+            0,
+            FramixSpace.m,
+            FramixSpace.m,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: FramixSpace.m),
+                child: Text(
+                  l10n.recentProjects(projects.length),
+                  style: Theme.of(context).textTheme.labelLarge
+                      ?.copyWith(color: colors.textMuted),
+                ),
+              ),
+              Wrap(
+                spacing: gap,
+                runSpacing: gap,
+                children: [
+                  for (final p in projects)
+                    SizedBox(
+                      width: width,
+                      child: _ProjectCard(
+                        project: p,
+                        onTap: () => onOpen(p.id),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// One project: a thumbnail panel with its length, then when it was edited and its clips.
+class _ProjectCard extends StatelessWidget {
+  const _ProjectCard({required this.project, required this.onTap});
 
   final ProjectSummary project;
   final VoidCallback onTap;
@@ -110,19 +242,115 @@ class _ProjectRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = FramixColors.of(context);
+    final text = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context).toString();
-    final edited = DateFormat.yMMMd(locale).add_jm().format(
+    final length = timecode(
+      project.duration.toInt(),
+      project.ticksPerSecond.toInt(),
+    );
+    final edited = editedLabel(
+      l10n,
+      locale,
+      DateTime.now(),
       DateTime.fromMillisecondsSinceEpoch(project.modifiedMs.toInt()),
     );
-    return ListTile(
-      leading: const Icon(Icons.movie_outlined),
-      title: Text(
-        timecode(project.duration.toInt(), project.ticksPerSecond.toInt()),
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: Material(
+          color: colors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_cardRadius),
+            side: BorderSide(color: colors.border),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(FramixSpace.s),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ponytail: a placeholder until projects carry a cover frame.
+                  AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colors.elevated,
+                        borderRadius: BorderRadius.circular(
+                          _cardRadius - FramixSpace.s,
+                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: Icon(
+                              Icons.movie_outlined,
+                              size: 36,
+                              color: colors.textMuted,
+                            ),
+                          ),
+                          Positioned(
+                            right: FramixSpace.s,
+                            top: FramixSpace.s,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: colors.background,
+                                borderRadius: BorderRadius.circular(
+                                  FramixSpace.s,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: FramixSpace.s * 0.75,
+                                  vertical: FramixSpace.s * 0.25,
+                                ),
+                                child: Text(
+                                  length,
+                                  style: text.labelSmall?.copyWith(
+                                    color: colors.text,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: FramixSpace.s),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: FramixSpace.s * 0.5,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          edited,
+                          style: text.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          l10n.clipCount(project.clips),
+                          style: text.bodySmall?.copyWith(
+                            color: colors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      subtitle: Text(
-        '${l10n.clipCount(project.clips)} · ${l10n.projectEdited(edited)}',
-      ),
-      onTap: onTap,
     );
   }
 }

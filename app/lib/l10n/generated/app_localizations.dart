@@ -511,6 +511,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edited {when}'**
   String projectEdited(String when);
+
+  /// No description provided for @recentProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Recent · 1 project} other{Recent · {count} projects}}'**
+  String recentProjects(int count);
+
+  /// No description provided for @editedJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited just now'**
+  String get editedJustNow;
+
+  /// No description provided for @editedMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Edited 1 min ago} other{Edited {count} min ago}}'**
+  String editedMinutesAgo(int count);
+
+  /// No description provided for @editedHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Edited 1 hour ago} other{Edited {count} hours ago}}'**
+  String editedHoursAgo(int count);
+
+  /// No description provided for @editedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited yesterday'**
+  String get editedYesterday;
+
+  /// No description provided for @projectsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first video starts here'**
+  String get projectsEmptyTitle;
 }
 
 class _AppLocalizationsDelegate

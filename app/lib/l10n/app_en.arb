@@ -78,5 +78,14 @@
   "projectsEmpty": "No projects yet. Start a new one.",
   "projectsUnavailable": "Your projects can't be opened right now.",
   "projectEdited": "Edited {when}",
-  "@projectEdited": {"placeholders": {"when": {"type": "String"}}}
+  "@projectEdited": {"placeholders": {"when": {"type": "String"}}},
+  "recentProjects": "{count, plural, =1{Recent · 1 project} other{Recent · {count} projects}}",
+  "@recentProjects": {"placeholders": {"count": {"type": "int"}}},
+  "editedJustNow": "Edited just now",
+  "editedMinutesAgo": "{count, plural, =1{Edited 1 min ago} other{Edited {count} min ago}}",
+  "@editedMinutesAgo": {"placeholders": {"count": {"type": "int"}}},
+  "editedHoursAgo": "{count, plural, =1{Edited 1 hour ago} other{Edited {count} hours ago}}",
+  "@editedHoursAgo": {"placeholders": {"count": {"type": "int"}}},
+  "editedYesterday": "Edited yesterday",
+  "projectsEmptyTitle": "Your first video starts here"
 }

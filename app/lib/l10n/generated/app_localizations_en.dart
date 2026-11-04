@@ -261,4 +261,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String projectEdited(String when) {
     return 'Edited $when';
   }
+
+  @override
+  String recentProjects(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Recent · $count projects',
+      one: 'Recent · 1 project',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editedJustNow => 'Edited just now';
+
+  @override
+  String editedMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Edited $count min ago',
+      one: 'Edited 1 min ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String editedHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Edited $count hours ago',
+      one: 'Edited 1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editedYesterday => 'Edited yesterday';
+
+  @override
+  String get projectsEmptyTitle => 'Your first video starts here';
 }

@@ -261,4 +261,43 @@ class AppLocalizationsBn extends AppLocalizations {
   String projectEdited(String when) {
     return 'সম্পাদনা $when';
   }
+
+  @override
+  String recentProjects(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'সাম্প্রতিক · $countটি প্রজেক্ট',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editedJustNow => 'এইমাত্র সম্পাদিত';
+
+  @override
+  String editedMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count মিনিট আগে সম্পাদিত',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String editedHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ঘণ্টা আগে সম্পাদিত',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editedYesterday => 'গতকাল সম্পাদিত';
+
+  @override
+  String get projectsEmptyTitle => 'আপনার প্রথম ভিডিও এখান থেকে শুরু';
 }
