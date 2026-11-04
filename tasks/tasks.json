@@ -13017,6 +13017,10 @@
     {
      "date": "2026-10-24",
      "text": "P1-060: decode blocks the command thread; a scrub queues Seeks that each decode. Coalesce queued Seeks (latest wins) when drawing moves here."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "first slice merged (dac5b18): Seek coalescing + PreviewLost, protocol 40. Still open: render thread, GPU sync (MTLSharedEvent / fences), iOS double buffering, one Android wgpu surface, decode off the engine thread. Device check: scrub redraws the frame; forced GPU loss yields PreviewLost (serve-loop flush is untested on host)."
     }
    ],
    "source": "added"
