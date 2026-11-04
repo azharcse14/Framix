@@ -12728,11 +12728,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-04",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [
     {
      "date": "2026-10-30",
@@ -13101,6 +13101,10 @@
     {
      "date": "2026-10-23",
      "text": "P1-004 keeps one wgpu surface per window in Gpu (window_surface cache, shared Gpu). Releasing the ANativeWindow must drop that cache first."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "also on PreviewLost (P1-053): each loss -> CreatePreview leaks one platform texture today (see P1-093)"
     }
    ],
    "source": "added"
@@ -14244,11 +14248,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-04",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [],
    "source": "added"
   },
@@ -14288,7 +14292,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "duplicate of P1-055 (unregister preview textures); work it there"
+    }
+   ],
    "source": "added"
   },
   {
