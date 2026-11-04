@@ -2,7 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/engine/framix_engine.dart';
-import '../../../core/engine/proto/framix/v1/engine.pb.dart' show ProjectSummary;
+import '../../../core/engine/proto/framix/v1/engine.pb.dart'
+    show ProjectSummary;
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/timecode.dart';
@@ -127,7 +128,7 @@ class _Message extends StatelessWidget {
     final theme = Theme.of(context);
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(FramixSpace.m * 2),
+        padding: const EdgeInsets.all(FramixSpace.m),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -138,7 +139,7 @@ class _Message extends StatelessWidget {
                 border: Border.all(color: colors.border),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(FramixSpace.m * 1.5),
+                padding: const EdgeInsets.all(FramixSpace.m),
                 child: Icon(icon, size: 44, color: colors.textMuted),
               ),
             ),
@@ -183,7 +184,7 @@ class _ProjectGrid extends StatelessWidget {
     final colors = FramixColors.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        const gap = FramixSpace.m * 0.75;
+        const gap = FramixSpace.s;
         final inner = constraints.maxWidth - 2 * FramixSpace.m;
         final columns = ((inner + gap) / (_maxCardWidth + gap)).ceil().clamp(
           2,
@@ -303,8 +304,7 @@ class _ProjectCard extends StatelessWidget {
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: FramixSpace.s * 0.75,
-                                  vertical: FramixSpace.s * 0.25,
+                                  horizontal: FramixSpace.s,
                                 ),
                                 child: Text(
                                   length,
@@ -323,27 +323,22 @@ class _ProjectCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: FramixSpace.s),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: FramixSpace.s * 0.5,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          edited,
-                          style: text.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        edited,
+                        style: text.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
-                        Text(
-                          l10n.clipCount(project.clips),
-                          style: text.bodySmall?.copyWith(
-                            color: colors.textMuted,
-                          ),
+                      ),
+                      Text(
+                        l10n.clipCount(project.clips),
+                        style: text.bodySmall?.copyWith(
+                          color: colors.textMuted,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),

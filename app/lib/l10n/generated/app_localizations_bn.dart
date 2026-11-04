@@ -245,9 +245,6 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String get projectsTitle => 'প্রজেক্ট';
-
-  @override
   String get newProject => 'নতুন প্রজেক্ট';
 
   @override

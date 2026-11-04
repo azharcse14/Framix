@@ -246,9 +246,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectsTitle => 'Projects';
-
-  @override
   String get newProject => 'New project';
 
   @override

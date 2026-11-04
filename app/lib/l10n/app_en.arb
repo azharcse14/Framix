@@ -73,7 +73,6 @@
   "@exportFrameSize": {"placeholders": {"width": {"type": "int"}, "height": {"type": "int"}}},
   "exportEstimate": "About {mb} MB (estimate)",
   "@exportEstimate": {"placeholders": {"mb": {"type": "int", "format": "decimalPattern"}}},
-  "projectsTitle": "Projects",
   "newProject": "New project",
   "projectsEmpty": "No projects yet. Start a new one.",
   "projectsUnavailable": "Your projects can't be opened right now.",

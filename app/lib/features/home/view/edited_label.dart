@@ -14,7 +14,9 @@ String editedLabel(
   if (ago.inMinutes < 1) return l10n.editedJustNow;
   if (ago.inHours < 1) return l10n.editedMinutesAgo(ago.inMinutes);
   if (ago.inDays < 1) return l10n.editedHoursAgo(ago.inHours);
-  if (ago.inDays < 2) return l10n.editedYesterday;
+  if (_day(now).difference(_day(edited)).inDays == 1) {
+    return l10n.editedYesterday;
+  }
   return l10n.projectEdited(_date(locale).format(edited));
 }
 
@@ -27,3 +29,6 @@ DateFormat _date(String locale) {
     return DateFormat.yMMMd('en_US');
   }
 }
+
+/// The calendar day of [t] as a UTC date, so a DST change (23 or 25 hour day) can't skew it.
+DateTime _day(DateTime t) => DateTime.utc(t.year, t.month, t.day);

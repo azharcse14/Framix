@@ -482,12 +482,6 @@ abstract class AppLocalizations {
   /// **'About {mb} MB (estimate)'**
   String exportEstimate(int mb);
 
-  /// No description provided for @projectsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Projects'**
-  String get projectsTitle;
-
   /// No description provided for @newProject.
   ///
   /// In en, this message translates to:
