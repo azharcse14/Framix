@@ -471,7 +471,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-091` Home: wait for NewProject/OpenProject reply before pushing the editor; ignore double taps; drop the ListProjects command-id leak (reportsFailure ids never cleared) \[Dart\]
 - [ ] `P1-092` Home: retry or an unsaved New project when the projects folder is unavailable (HomeUnavailable is a dead end) \[Dart\]
 - [ ] `P1-093` Release or reuse the platform preview texture on PreviewLost (IOSurface / SurfaceProducer leak per loss) \[Native\] \[Rust\]
-- [ ] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
+- [x] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
 - [ ] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
 
 ## Phase 2: Audio

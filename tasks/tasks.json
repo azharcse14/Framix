@@ -14320,12 +14320,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-04",
+   "done": "2026-11-04",
+   "commit": "5c650fe",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "investigated, no code change: the failing command is PreviewCubit's CreatePreview -> PlatformHost::create_texture 'no platform registered' (engine/ffi/src/platform.rs:334); widget tests register no platform. On device the platform registers before Dart runs (Android MainActivity.configureFlutterEngine -> EnginePlatform.attach; iOS AppDelegate.didInitializeImplicitFlutterEngine -> PlatformCallbacks.register), and the iPhone 17 simulator Home showed no snack bar."
+    }
+   ],
    "source": "added"
   },
   {
