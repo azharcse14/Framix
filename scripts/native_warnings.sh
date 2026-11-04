@@ -21,9 +21,14 @@ android\.(newDsl|builtInKotlin)=false. is deprecated
 Deprecated .org\.jetbrains\.kotlin\.android. plugin usage
 build\.gradle\.kts:7:1: .fun Project\.android.* is deprecated
 suppressAgpWarnings=DEPRECATED_DSL
-# Flutter Gradle plugin source and its old variant API (flutter_tools/gradle).
+# Kotlin warnings from compiling the Flutter Gradle plugin own source (flutter_tools/gradle);
+# printed whenever it recompiles (SDK upgrade, another JDK, a fresh machine). Only SDK paths.
+^(\[[^]]*\] *)?w: file://[^ ]*/flutter_tools/gradle/src/main/kotlin/
 flutter_tools/gradle/src/main/kotlin/.* is deprecated
-API .(applicationVariants|testVariants|unitTestVariants). is obsolete
+# Old variant APIs read by KGP (kotlin-android), which the Flutter plugin applies to the app
+# and every plugin module because builtInKotlin=false (applicationVariants: the Flutter plugin).
+# Goes away with builtInKotlin=true / the newDsl migration.
+API .(applicationVariants|testVariants|unitTestVariants|libraryVariants). is obsolete
 # The Flutter Gradle plugin FlutterTask reads Task.project at execution time (com.flutter.gradle,
 # Flutter 3.47); printed with a DeprecatedFeaturesListener stack whenever that task runs.
 Invocation of Task\.project at execution time has been deprecated
@@ -34,15 +39,26 @@ System::load has been called by net\.rubygrapefruit
 --enable-native-access=ALL-UNNAMED
 Restricted methods will be blocked in a future release
 A restricted method in java\.lang\.System has been called
-# Flutter 3.47 Gradle plugin on Android library plugins (first one: jni, with sentry_flutter):
-# PluginHandler.kt adds them as Project dependencies, and applying com.android.library makes
-# it read the old libraryVariants API.
+# Flutter 3.47 PluginHandler.kt:113/116 adds every Android plugin module as a Project
+# dependency. Gradle prints the caller on another line, so this cannot be scoped; app/android
+# has no Project-object dependencies of its own.
 Using a Project object as a dependency notation has been deprecated
-API .libraryVariants. is obsolete
-# jni 1.0.3 android/build.gradle uses Groovy space assignment (group, version, namespace,
-# ndkVersion). Fixed in jni 1.1.0, which needs sentry_flutter 10.2.0 (14 days old on
-# 2026-11-05); remove this with that upgrade (TC-014).
+# Groovy space assignment in plugin build files (app/android is .kts only, where it cannot
+# occur): jni 1.0.3 (group, version, namespace, ndkVersion; fixed in jni 1.1.0) and
+# sentry_flutter 10.1.0 line 26 (namespace; still in 10.2.0). Re-check with TC-014.
 Properties should be assigned using the .propName = value. syntax
+# sentry_flutter 10.1.0 SentryFlutterPlugin.kt reads the deprecated Display API (still in
+# 10.2.0); printed when that module compiles from scratch.
+sentry_flutter-[0-9.]+/android/.*defaultDisplay.* is deprecated
+.val defaultDisplay: Display!. is deprecated\. Deprecated in Java
+# Gradle repeats each Kotlin w: line as this generic problem; the w: line itself is checked.
+Problem found: Kotlin compiler warning
+# sentry_flutter 10.1.0 manifest removes SentryInitProvider (tools:node=remove) that nothing
+# declares, so the merger warns; and its ObjC replay header (SPM, cold build) lacks
+# nullability on one pointer (Xcode prints the path line and an include-tree line).
+sentry_flutter-[0-9.]+/android/src/main/AndroidManifest\.xml:[0-9:-]+ Warning:
+sentry_flutter-[0-9.]+/Sources/sentry_flutter_objc/.*warning: pointer is missing a nullability
+^ *\|( +\|)*- warning: pointer is missing a nullability type specifier
 # AGP CMake log line; ANDROID_NDK_HOME is not used (ndkVersion is pinned).
 Not considering ANDROID_NDK_HOME
 '
