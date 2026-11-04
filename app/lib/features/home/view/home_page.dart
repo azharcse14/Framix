@@ -80,6 +80,11 @@ class _HomeView extends StatelessWidget {
                   HomeUnavailable() => _Message(
                     icon: Icons.folder_off_outlined,
                     body: l10n.projectsUnavailable,
+                    action: OutlinedButton.icon(
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l10n.retry),
+                      onPressed: context.read<HomeCubit>().retry,
+                    ),
                   ),
                   HomeProjects(projects: []) => _Message(
                     icon: Icons.movie_creation_outlined,
@@ -122,11 +127,19 @@ class _HomeView extends StatelessWidget {
 
 /// A centred icon in a circle with a short message (empty list, no projects folder).
 class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.body, this.title});
+  const _Message({
+    required this.icon,
+    required this.body,
+    this.title,
+    this.action,
+  });
 
   final IconData icon;
   final String? title;
   final String body;
+
+  /// A button under the message, if there is something to do.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +180,10 @@ class _Message extends StatelessWidget {
                 color: colors.textMuted,
               ),
             ),
+            if (action case final action?) ...[
+              const SizedBox(height: FramixSpace.m),
+              action,
+            ],
           ],
         ),
       ),

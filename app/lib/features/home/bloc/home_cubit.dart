@@ -30,13 +30,13 @@ final class HomeProjects extends HomeState {
 
 /// Mirrors the engine's project library (P1-089); sends commands only.
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._engine, Future<String?> Function() projectsDir)
-    : super(const HomeLoading()) {
+  HomeCubit(this._engine, this._projectsDir) : super(const HomeLoading()) {
     _events = _engine.events.listen(_onEvent);
-    _open(projectsDir);
+    _open();
   }
 
   final FramixEngine _engine;
+  final Future<String?> Function() _projectsDir;
   late final StreamSubscription<Event> _events;
 
   /// Id of OpenLibrary, whose refusal this cubit shows itself, until its reply.
@@ -92,8 +92,15 @@ class HomeCubit extends Cubit<HomeState> {
     if (!ok) _busy = false;
   }
 
-  Future<void> _open(Future<String?> Function() projectsDir) async {
-    final dir = await projectsDir();
+  /// Asks for the projects folder again after Home showed it unavailable.
+  void retry() {
+    if (state is! HomeUnavailable) return;
+    emit(const HomeLoading());
+    _open();
+  }
+
+  Future<void> _open() async {
+    final dir = await _projectsDir();
     if (isClosed) return;
     if (dir == null) return emit(const HomeUnavailable());
     _library = _engine.send(
