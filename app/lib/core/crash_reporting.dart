@@ -1,3 +1,5 @@
+// ignore: implementation_imports, NoOpTransport is not exported; sentry is pinned (10.1.0).
+import 'package:sentry/src/transport/noop_transport.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Sentry DSN from `--dart-define=SENTRY_DSN=...`; empty (the default) leaves Sentry off.
@@ -8,6 +10,8 @@ const sentryDsn = String.fromEnvironment('SENTRY_DSN');
 /// from the event message, exception values, platform exception data, Flutter error
 /// details and breadcrumb messages (.claude/rules: Security). The native SDKs stay off:
 /// their crash events would skip this scrub (native crashes with a native scrub: SYS-025).
+/// So events go over HTTP: SentryFlutter.init has already set a transport into the native
+/// SDK, which would drop them; SentryClient swaps the NoOpTransport for its HttpTransport.
 void configureCrashReporting(
   SentryFlutterOptions options, {
   String dsn = sentryDsn,
@@ -15,6 +19,7 @@ void configureCrashReporting(
   options
     ..dsn = dsn
     ..autoInitializeNativeSdk = false
+    ..transport = NoOpTransport()
     ..sendDefaultPii = false
     ..attachScreenshot = false
     ..attachViewHierarchy = false
