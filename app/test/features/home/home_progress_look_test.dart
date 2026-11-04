@@ -48,7 +48,10 @@ void main() {
         child: MaterialApp(
           theme: framixDarkTheme(),
           locale: locale,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: HomePage(projectsDir: () async => '/data/projects'),
         ),
