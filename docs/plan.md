@@ -468,10 +468,11 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-088` Device check: a release build with a scratch SENTRY_DSN delivers one Dart error event to Sentry on iOS and Android, with paths scrubbed (P1-041) \[—\]
 - [x] `P1-089` Home screen: Projects list (New project, open, duration and edit time) on an engine project library with autosave per project (docs/plans/P1-089-home.md) \[Dart\] \[Rust\] \[Native\]
 - [x] `P1-090` Home visual design: wordmark header, project card grid with duration badge and relative edit time, New project pill in the lower half, illustrated empty state (user asked for a less basic Home) \[Dart\]
-- [ ] `P1-091` Home: wait for NewProject/OpenProject reply before pushing the editor; ignore double taps; drop the ListProjects command-id leak (reportsFailure ids never cleared) \[Dart\]
+- [x] `P1-091` Home: wait for NewProject/OpenProject reply before pushing the editor; ignore double taps; drop the ListProjects command-id leak (reportsFailure ids never cleared) \[Dart\]
 - [ ] `P1-092` Home: retry or an unsaved New project when the projects folder is unavailable (HomeUnavailable is a dead end) \[Dart\]
 - [ ] `P1-093` Release or reuse the platform preview texture on PreviewLost (IOSurface / SurfaceProducer leak per loss) \[Native\] \[Rust\]
 - [ ] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
+- [ ] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
 
 ## Phase 2: Audio
 
@@ -1183,6 +1184,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-055` Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review) \[Rust\]
 - [x] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
 - [x] `ENG-057` ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep \[Rust\]
+- [ ] `ENG-058` ProjectList and the New/Open TimelineChanged carry their command id (extend ENG-056), so Home matches replies by id instead of order and project change \[Rust\] \[Dart\]
 
 **Security**
 

@@ -14252,12 +14252,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-04",
+   "commit": "b8357db",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "review APPROVE; warnings fixed in b8357db (send before wait; close twice). home_double_tap_test is a weak guard: untouched projects leave no file and Navigator.push blocks the second tap; the cubit test 'a second tap before the editor closes is ignored' is what fails without the guard. A refused ListProjects shows both the generic message and Home unavailable."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14364,6 +14369,45 @@
      "text": "also: at 640x360 with Android's 48 dp side nav, the left pane is 232 dp; after an export only ~40 dp of preset chips show (they scroll)"
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "ENG-058",
+   "section": "ENG",
+   "group": null,
+   "title": "ProjectList and the New/Open TimelineChanged carry their command id (extend ENG-056), so Home matches replies by id instead of order and project change",
+   "tags": [
+    "Rust",
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-095",
+   "section": "P1",
+   "group": null,
+   "title": "Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
