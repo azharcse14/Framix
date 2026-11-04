@@ -255,6 +255,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectsUnavailable => 'Your projects can\'t be opened right now.';
 
   @override
+  String get retry => 'Try again';
+
+  @override
   String projectEdited(String when) {
     return 'Edited $when';
   }

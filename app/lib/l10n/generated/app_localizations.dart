@@ -500,6 +500,12 @@ abstract class AppLocalizations {
   /// **'Your projects can\'t be opened right now.'**
   String get projectsUnavailable;
 
+  /// Button: run a step that failed again (Home when the projects folder could not be opened).
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
   /// No description provided for @projectEdited.
   ///
   /// In en, this message translates to:

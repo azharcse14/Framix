@@ -76,6 +76,10 @@
   "newProject": "New project",
   "projectsEmpty": "No projects yet. Start a new one.",
   "projectsUnavailable": "Your projects can't be opened right now.",
+  "retry": "Try again",
+  "@retry": {
+    "description": "Button: run a step that failed again (Home when the projects folder could not be opened)."
+  },
   "projectEdited": "Edited {when}",
   "@projectEdited": {"placeholders": {"when": {"type": "String"}}},
   "recentProjects": "{count, plural, =1{Recent · 1 project} other{Recent · {count} projects}}",

@@ -255,6 +255,9 @@ class AppLocalizationsBn extends AppLocalizations {
       'এই মুহূর্তে আপনার প্রজেক্ট খোলা যাচ্ছে না।';
 
   @override
+  String get retry => 'আবার চেষ্টা করুন';
+
+  @override
   String projectEdited(String when) {
     return 'সম্পাদনা $when';
   }
