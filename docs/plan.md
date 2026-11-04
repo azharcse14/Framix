@@ -472,7 +472,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-092` Home: retry or an unsaved New project when the projects folder is unavailable (HomeUnavailable is a dead end) \[Dart\]
 - [ ] `P1-093` Release or reuse the platform preview texture on PreviewLost (IOSurface / SurfaceProducer leak per loss) \[Native\] \[Rust\]
 - [x] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
-- [ ] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
+- [x] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
 
 ## Phase 2: Audio
 
@@ -993,6 +993,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [x] `DS-009` OutlinedButton uses accentFill text (3.7:1 contrast); theme it with c.text + c.border per design-system.md \[Dart\]
 - [x] `DS-010` border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule) \[Dart\]
 - [x] `DS-011` design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette \[Dart\]
+- [ ] `DS-012` Shared small spinner in app/lib/core/ui (SizedBox.square + CircularProgressIndicator strokeWidth 2 + semanticsLabel, icon color): Home, export_buttons.dart, import_buttons.dart repeat it \[Dart\]
 
 **Font**
 

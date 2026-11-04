@@ -14422,11 +14422,35 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
+   "done": "2026-11-04",
+   "commit": "96d7c70",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "review Critical (spinner primary-on-primary, invisible) + Warnings (no semantics label; success path untested) fixed in 96d7c70, tests 6d? see git log; sentinel '' relies on library::valid_id (1..=32 [0-9a-z])."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "DS-012",
+   "section": "DS",
+   "group": null,
+   "title": "Shared small spinner in app/lib/core/ui (SizedBox.square + CircularProgressIndicator strokeWidth 2 + semanticsLabel, icon color): Home, export_buttons.dart, import_buttons.dart repeat it",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "main",
+   "branch": null,
    "notes": [],
    "source": "added"
   }
