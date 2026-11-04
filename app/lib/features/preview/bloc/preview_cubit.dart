@@ -6,13 +6,14 @@ import '../../../core/engine/framix_engine.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 
 /// Mirrors the engine's preview: the Flutter texture id once the engine reports PreviewReady,
-/// null before that (or where the platform has no preview yet). A PreviewLost clears it and
+/// null before that (or where the platform has no preview yet). A PreviewLost for the shown texture clears it and
 /// asks the engine for a new preview.
 class PreviewCubit extends Cubit<int?> {
   PreviewCubit(this._engine) : super(null) {
     _events = _engine.events.listen((e) {
       if (e.hasPreviewReady()) emit(e.previewReady.textureId.toInt());
-      if (e.hasPreviewLost()) {
+      // A late loss of an older texture must not drop the one now shown.
+      if (e.hasPreviewLost() && e.previewLost.textureId.toInt() == state) {
         emit(null);
         _create();
       }
