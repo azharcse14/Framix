@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/rendering.dart';
@@ -11,7 +12,8 @@ import 'package:framix/features/home/view/home_page.dart';
 import 'package:framix/features/timeline/view/timeline_view.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
-import 'package:material_ui/material_ui.dart' show BackButton;
+import 'package:material_ui/material_ui.dart'
+    show BackButton, Scrollable, ScrollableState;
 
 import 'import_test.dart' show FakeImporter;
 // The 10 s budget: the Home case makes many engine round trips (see home_open_test).
@@ -19,11 +21,11 @@ import '../home/home_open_test.dart' show pumpUntil;
 
 /// DS-008: Bangla text in Home, buttons, chips, segmented buttons and toolbars is never cut at
 /// the top or bottom. A style's `height` sets the line box (M3 styles all set one), but glyphs
-/// keep the font's own ascent and descent, so Bangla matras and vowel signs paint outside a line
-/// box squeezed below them, and a clip around it cuts them. The 1 em FlutterTest font of widget
-/// tests hides that, so the test renders with Anek Bangla, the design system's Bangla font
-/// (test/fonts, see its README), and checks each text's ink band (the font's own ascent and
-/// descent around its baselines) against every clip around it.
+/// paint where the font draws them, so Bangla matras and vowel signs can paint outside a line box
+/// squeezed below them, and a clip around it cuts them. The 1 em FlutterTest font of widget tests
+/// draws boxes that hide that, so the test renders with Anek Bangla, the design system's Bangla
+/// font (test/fonts, see its README), paints each text to find its real ink rows, and checks
+/// them against every clip in effect around it.
 void main() {
   setUpAll(() async {
     // Typography's default family; the app sets no family of its own, so all text uses it.
@@ -42,9 +44,13 @@ void main() {
 
   final bn = lookupAppLocalizations(const Locale('bn'));
 
-  Future<void> pumpEditor(WidgetTester tester, double textScale) async {
+  Future<void> pumpEditor(
+    WidgetTester tester,
+    double textScale, {
+    Size size = const Size(360, 740),
+  }) async {
     tester.view
-      ..physicalSize = const Size(360, 740)
+      ..physicalSize = size
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     tester.platformDispatcher.textScaleFactorTestValue = textScale;
@@ -90,8 +96,8 @@ void main() {
   }
 
   test('the Bangla fixture font gives a Bangla line its real height', () async {
-    // Guards the fixture: with no style height a line takes the font's own ascent and descent
-    // (what [_inkBand] reads): exactly 14 in the 1 em test font, about 1.87 em (26) in Anek Bangla.
+    // Guards the fixture: with no style height a line takes the font's own ascent and descent,
+    // exactly 14 in the 1 em test font and about 1.87 em (26) in Anek Bangla.
     final painter = TextPainter(
       text: const TextSpan(
         text: 'ক্লিপ যোগ করুন',
@@ -138,6 +144,15 @@ void main() {
     ) async {
       await pumpEditor(tester, scale);
       expect(tester.takeException(), isNull);
+      // The ratio chips overflow their row, so the check walks through a clipping scroller.
+      final chips = find.ancestor(
+        of: find.text(bn.aspectRatioLabel(21, 9)),
+        matching: find.byType(Scrollable),
+      );
+      expect(
+        tester.state<ScrollableState>(chips.first).position.maxScrollExtent,
+        greaterThan(0),
+      );
       await expectNoCutText(tester);
     });
 
@@ -150,6 +165,25 @@ void main() {
       expect(tester.takeException(), isNull);
       await expectNoCutText(tester);
     });
+
+    for (final size in const [Size(852, 393), Size(640, 360)]) {
+      testWidgets(
+        'landscape ${size.width.toInt()}x${size.height.toInt()} editor '
+        'with a selected clip: no Bangla text cut at text scale $scale',
+        (tester) async {
+          await pumpEditor(tester, scale, size: size);
+          await tester.tap(find.byTooltip(bn.importFromGallery));
+          await pumpUntil(tester, find.byType(ClipBox));
+          await tester.ensureVisible(find.byType(ClipBox));
+          // A 4 s clip runs past a landscape screen's right edge; tap its visible start.
+          final clip = tester.getRect(find.byType(ClipBox));
+          await tester.tapAt(Offset(clip.left + 16, clip.center.dy));
+          await pumpUntil(tester, find.byTooltip(bn.splitClip));
+          expect(tester.takeException(), isNull);
+          await expectNoCutText(tester);
+        },
+      );
+    }
 
     testWidgets('export sheet: no Bangla text cut at text scale $scale', (
       tester,
@@ -168,8 +202,11 @@ void main() {
 ///   a cut-off word is a cut too);
 /// - has lines taller than its own box;
 /// - has a line box above or below any box around it (overflowing a button, chip or bar);
-/// - has ink ([_inkBand]) above or below a clip around it.
-/// The walk up stops at a vertical scroll view: text scrolled out of view is not a cut.
+/// - has ink ([_inkRows], measured from the painted glyphs) above or below a clip that is in
+///   effect around it ([RenderObject.describeApproximatePaintClip]: clip widgets, physical
+///   shapes, and a flex, stack or scroll view while it overflows).
+/// A text whose line box lies above or below a scroll view around it is scrolled out of view,
+/// not cut: the walk stops there.
 Future<void> expectNoCutText(WidgetTester tester) async {
   // Let entrance animations (a snack bar sliding in is clipped on purpose) finish.
   await tester.pump(const Duration(seconds: 1));
@@ -186,21 +223,26 @@ Future<void> expectNoCutText(WidgetTester tester) async {
     }
     final toGlobal = p.getTransformTo(null);
     final rect = MatrixUtils.transformRect(toGlobal, Offset.zero & p.size);
-    final (inkTop, inkBottom) = _inkBand(p);
+    final rows = await _inkRows(tester, p);
+    if (rows == null) continue;
     final ink = MatrixUtils.transformRect(
       toGlobal,
-      Rect.fromLTRB(0, inkTop, p.size.width, inkBottom),
+      Rect.fromLTRB(0, rows.$1, p.size.width, rows.$2),
     );
-    for (RenderObject? a = p.parent; a != null; a = a.parent) {
-      if (a is RenderViewportBase && a.axis == Axis.vertical) break;
+    RenderObject child = p;
+    for (var a = p.parent; a != null; child = a, a = a.parent) {
       if (a is! RenderBox) continue;
       final box = _globalRect(a);
+      if (a is RenderAbstractViewport && _outside(rect, box)) break;
       if (_outside(rect, box)) {
         cut.add('"$text" ($rect) outside ${a.runtimeType} ($box)');
         break;
       }
-      if (_clips(a) && _outside(ink, box)) {
-        cut.add('"$text" ink ($ink) cut by ${a.runtimeType} ($box)');
+      final clip = a.describeApproximatePaintClip(child);
+      if (clip == null) continue;
+      final clipRect = MatrixUtils.transformRect(a.getTransformTo(null), clip);
+      if (_outside(ink, clipRect)) {
+        cut.add('"$text" ink ($ink) cut by ${a.runtimeType} ($clipRect)');
         break;
       }
     }
@@ -212,60 +254,56 @@ Future<void> expectNoCutText(WidgetTester tester) async {
 bool _outside(Rect inner, Rect outer) =>
     inner.top < outer.top - 0.5 || inner.bottom > outer.bottom + 0.5;
 
-/// Where [p]'s glyphs paint, top and bottom in its own coordinates: the font's own ascent above
-/// the first baseline and its own descent below the last, whatever line height the style sets.
-/// ponytail: reads the root span's font only; a text mixing fonts or sizes needs per-span bands.
-(double, double) _inkBand(RenderParagraph p) {
-  TextPainter layout(InlineSpan text) => TextPainter(
-    text: text,
+/// The first and last pixel rows [p]'s glyphs paint, in its own coordinates (they may lie above
+/// 0 or below its height); null when it paints nothing. Lays the text out as [p] does and paints
+/// it, with a line's height of room on every side, into an image.
+Future<(double, double)?> _inkRows(
+  WidgetTester tester,
+  RenderParagraph p,
+) async {
+  final painter = TextPainter(
+    text: p.text,
     textDirection: p.textDirection,
     textAlign: p.textAlign,
     textScaler: p.textScaler,
     maxLines: p.maxLines,
-    ellipsis: p.overflow == TextOverflow.ellipsis ? '…' : null,
+    ellipsis: p.overflow == TextOverflow.ellipsis ? '\u2026' : null,
     locale: p.locale,
     strutStyle: p.strutStyle,
     textWidthBasis: p.textWidthBasis,
     textHeightBehavior: p.textHeightBehavior,
   )..layout(maxWidth: p.softWrap ? p.size.width : double.infinity);
-  final lines = layout(p.text);
-  final s = p.text.style ?? const TextStyle();
-  // The same font with no height: its line is exactly the font's ascent and descent.
-  final natural = layout(
-    TextSpan(
-      text: 'ক',
-      style: TextStyle(
-        fontFamily: s.fontFamily,
-        fontFamilyFallback: s.fontFamilyFallback,
-        fontSize: s.fontSize,
-        fontWeight: s.fontWeight,
-        locale: s.locale,
-      ),
-    ),
+  final margin = painter.preferredLineHeight.ceil();
+  final width = painter.width.ceil() + 2 * margin;
+  final height = painter.height.ceil() + 2 * margin;
+  final recorder = ui.PictureRecorder();
+  painter.paint(
+    ui.Canvas(recorder),
+    Offset(margin.toDouble(), margin.toDouble()),
   );
-  final metrics = lines.computeLineMetrics();
-  final font = natural.computeLineMetrics().first;
-  lines.dispose();
-  natural.dispose();
-  return (
-    metrics.first.baseline - font.ascent,
-    metrics.last.baseline + font.descent,
-  );
+  painter.dispose();
+  final picture = recorder.endRecording();
+  final bytes = await tester.runAsync(() async {
+    final image = await picture.toImage(width, height);
+    final data = await image.toByteData();
+    image.dispose();
+    return data!;
+  });
+  picture.dispose();
+  int? first, last;
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      // RGBA bytes; any alpha is ink.
+      if (bytes!.getUint8((y * width + x) * 4 + 3) != 0) {
+        first ??= y;
+        last = y;
+        break;
+      }
+    }
+  }
+  if (first == null) return null;
+  return ((first - margin).toDouble(), (last! + 1 - margin).toDouble());
 }
-
-/// Whether [box] cuts what its children paint outside it.
-bool _clips(RenderBox box) => switch (box) {
-  RenderClipRect(:final clipBehavior) ||
-  RenderClipRRect(:final clipBehavior) ||
-  RenderClipOval(:final clipBehavior) ||
-  RenderClipPath(:final clipBehavior) ||
-  RenderPhysicalModel(:final clipBehavior) ||
-  RenderPhysicalShape(:final clipBehavior) ||
-  RenderStack(:final clipBehavior) ||
-  RenderFlex(:final clipBehavior) ||
-  RenderViewportBase(:final clipBehavior) => clipBehavior != Clip.none,
-  _ => false,
-};
 
 Rect _globalRect(RenderBox box) =>
     MatrixUtils.transformRect(box.getTransformTo(null), Offset.zero & box.size);
