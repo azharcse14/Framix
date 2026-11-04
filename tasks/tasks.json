@@ -13027,12 +13027,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-04",
+   "done": "2026-11-04",
+   "commit": "8fc5ce0",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "Built and RunnerTests passed on Xcode 26.2 / Swift 6.2.3 (the machine's Xcode; toolchain.md pins 27.1 / 6.4, recheck there). Simulator launch to the timeline screen OK; picker/preview/export paths were not run interactively (device checks P1-050/P1-051)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14085,6 +14090,26 @@
     "—"
    ],
    "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "TC-013",
+   "section": "TC",
+   "group": null,
+   "title": "native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist",
+   "tags": [
+    "Native",
+    "Dart"
+   ],
+   "owner": "claude",
    "deferred": false,
    "subphase": null,
    "status": "todo",

@@ -230,6 +230,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [x] `TC-010` native_warnings.sh allowlist misses Xcode 27.1 wording 'Metadata extraction skipped, no AppIntents.framework dependency found' (allowlist has 'skipped. No'), so the gate fails on every build \[Native\]
 - [x] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
 - [x] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
+- [ ] `TC-013` native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist \[Native\] \[Dart\]
 
 ## AI diye code lekha (Claude Code)
 
@@ -429,7 +430,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-051` Device check: P1-001 zero-copy preview on a real iPhone and a real Android phone (branch p1-001-ios-texture-spike) \[Native\]
 - [x] `P1-052` Android platform vtable: Kotlin fills EnginePlatform through a Rust JNI shim (ADR 0003); delete the P1-001 JNI spike and SpikePreview channel \[Rust\] \[Native\]
 - [ ] `P1-053` Preview renders on a render thread with GPU sync (MTLSharedEvent / fences) and double buffering; today it draws on the engine thread (P1-005) \[Rust\] \[Native\]
-- [ ] `P1-054` iOS Runner to Swift 6 language mode (SWIFT_VERSION is still 5.0 in project.pbxproj; docs/toolchain.md wants Swift 6 strict concurrency) \[Native\]
+- [x] `P1-054` iOS Runner to Swift 6 language mode (SWIFT_VERSION is still 5.0 in project.pbxproj; docs/toolchain.md wants Swift 6 strict concurrency) \[Native\]
 - [ ] `P1-055` Unregister preview textures (iOS FlutterTextureRegistry, Android SurfaceProducer) when the preview goes away; release only after the engine stops drawing into them (P1-005 review) \[Native\] \[Rust\]
 - [x] `P1-056` Android half of P1-002: MediaCodec opaque YCbCr AHardwareBuffer to wgpu with no CPU copy; wgpu 30 Vulkan has no YCbCr sampler/external texture, so Rust imports the AHB as a VkImage (ash 0.38 direct dep, approved) and a VkSamplerYcbcrConversion pass converts to an RGBA wgpu texture (one GPU copy); verify on the Pixel_8 emulator with tests/media/color_quadrants_h264_320x240_1s.mp4 \[Native\] \[Rust\]
 - [ ] `P1-057` Remove the P1-002 decode spike (engine_spike_draw_nv12, SpikeDecode in PlatformCallbacks.swift, FRAMIX_SPIKE_CLIP) once the Decoder port delivers frames; pass raw CV matrix/range tags to the engine instead of choosing 601/709 in Swift \[Native\] \[Rust\]
