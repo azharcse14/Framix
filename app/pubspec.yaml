@@ -21,6 +21,7 @@ dependencies:
   material_ui: 1.5.0
   native_toolchain_rust: 1.0.7
   protobuf: 6.1.0
+  sentry_flutter: 10.1.0
 
 dev_dependencies:
   flutter_test:
