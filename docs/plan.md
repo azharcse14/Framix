@@ -466,7 +466,12 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
 - [ ] `P1-087` Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove \[Rust\]
 - [ ] `P1-088` Device check: a release build with a scratch SENTRY_DSN delivers one Dart error event to Sentry on iOS and Android, with paths scrubbed (P1-041) \[—\]
-- [ ] `P1-089` Home screen: Projects list (New project, open, duration and edit time) on an engine project library with autosave per project (docs/plans/P1-089-home.md) \[Dart\] \[Rust\] \[Native\]
+- [x] `P1-089` Home screen: Projects list (New project, open, duration and edit time) on an engine project library with autosave per project (docs/plans/P1-089-home.md) \[Dart\] \[Rust\] \[Native\]
+- [ ] `P1-090` Home visual design: wordmark header, project card grid with duration badge and relative edit time, New project pill in the lower half, illustrated empty state (user asked for a less basic Home) \[Dart\]
+- [ ] `P1-091` Home: wait for NewProject/OpenProject reply before pushing the editor; ignore double taps; drop the ListProjects command-id leak (reportsFailure ids never cleared) \[Dart\]
+- [ ] `P1-092` Home: retry or an unsaved New project when the projects folder is unavailable (HomeUnavailable is a dead end) \[Dart\]
+- [ ] `P1-093` Release or reuse the platform preview texture on PreviewLost (IOSurface / SurfaceProducer leak per loss) \[Native\] \[Rust\]
+- [ ] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
 
 ## Phase 2: Audio
 

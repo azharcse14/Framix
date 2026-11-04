@@ -8666,7 +8666,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "the projects folder (iOS Application Support/projects, Android filesDir/projects) is inside the OS backup; decide here"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13474,7 +13479,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "also cover library projects: Home silently drops a project whose main file won't decode though .bak1/.bak2 exist (engine/app/src/library.rs list)"
+    }
+   ],
    "source": "added"
   },
   {
@@ -14163,11 +14173,112 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
+   "done": "2026-11-04",
+   "commit": "e24caec",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "review: Critical fixed in e24caec (save before read; relative library dir refused), tests 120d31b + 0f90fac. Warning: New project pushes the editor without waiting for the reply; a refused save leaves the old project in the editor (only the generic snack bar)."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-090",
+   "section": "P1",
+   "group": null,
+   "title": "Home visual design: wordmark header, project card grid with duration badge and relative edit time, New project pill in the lower half, illustrated empty state (user asked for a less basic Home)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "main",
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-091",
+   "section": "P1",
+   "group": null,
+   "title": "Home: wait for NewProject/OpenProject reply before pushing the editor; ignore double taps; drop the ListProjects command-id leak (reportsFailure ids never cleared)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-092",
+   "section": "P1",
+   "group": null,
+   "title": "Home: retry or an unsaved New project when the projects folder is unavailable (HomeUnavailable is a dead end)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-093",
+   "section": "P1",
+   "group": null,
+   "title": "Release or reuse the platform preview texture on PreviewLost (IOSurface / SurfaceProducer leak per loss)",
+   "tags": [
+    "Native",
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-094",
+   "section": "P1",
+   "group": null,
+   "title": "Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
