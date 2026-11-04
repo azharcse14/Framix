@@ -506,6 +506,12 @@ abstract class AppLocalizations {
   /// **'Try again'**
   String get retry;
 
+  /// Screen reader label of the spinner on Home while a project is saved and loaded for the editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening project'**
+  String get openingProject;
+
   /// No description provided for @projectEdited.
   ///
   /// In en, this message translates to:

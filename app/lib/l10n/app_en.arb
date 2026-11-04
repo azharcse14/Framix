@@ -77,6 +77,10 @@
   "projectsEmpty": "No projects yet. Start a new one.",
   "projectsUnavailable": "Your projects can't be opened right now.",
   "retry": "Try again",
+  "openingProject": "Opening project",
+  "@openingProject": {
+    "description": "Screen reader label of the spinner on Home while a project is saved and loaded for the editor."
+  },
   "@retry": {
     "description": "Button: run a step that failed again (Home when the projects folder could not be opened)."
   },

@@ -258,6 +258,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get retry => 'আবার চেষ্টা করুন';
 
   @override
+  String get openingProject => 'প্রজেক্ট খোলা হচ্ছে';
+
+  @override
   String projectEdited(String when) {
     return 'সম্পাদনা $when';
   }

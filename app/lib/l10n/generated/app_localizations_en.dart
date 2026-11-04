@@ -258,6 +258,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Try again';
 
   @override
+  String get openingProject => 'Opening project';
+
+  @override
   String projectEdited(String when) {
     return 'Edited $when';
   }

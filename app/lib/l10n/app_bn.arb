@@ -68,6 +68,7 @@
   "projectsEmpty": "এখনো কোনো প্রজেক্ট নেই। নতুন একটি শুরু করুন।",
   "projectsUnavailable": "এই মুহূর্তে আপনার প্রজেক্ট খোলা যাচ্ছে না।",
   "retry": "আবার চেষ্টা করুন",
+  "openingProject": "প্রজেক্ট খোলা হচ্ছে",
   "projectEdited": "সম্পাদনা {when}",
   "recentProjects": "{count, plural, other{সাম্প্রতিক · {count}টি প্রজেক্ট}}",
   "editedJustNow": "এইমাত্র সম্পাদিত",
