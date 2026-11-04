@@ -416,7 +416,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-038` Auto save ar crash recovery \[Rust\]
 - [x] `P1-039` Proxy media (4K preview er jonno kom resolution copy) \[Rust\]
 - [x] `P1-040` Overload handling er mul ongsho: protita command er por autosave, engine watchdog, Flutter error boundary, export pre-flight check (detail: Overload handling section) \[Rust\]\[Dart\]
-- [ ] `P1-041` Sentry setup ar render on demand (detail: Sentry setup, Resource optimization) \[Dart\]\[Rust\]
+- [x] `P1-041` Sentry setup ar render on demand (detail: Sentry setup, Resource optimization) \[Dart\]\[Rust\]
 - [x] `P1-042` engine_free_buffer ke unsafe extern "C" fn koro (# Safety doc); safe Rust theke arbitrary EngineBuffer free kora UB. guard.rs test e unsafe block lagbe, tai user er approval chai \[Rust\]
 - [x] `P1-043` Clip/track id undo er por reuse hoy: snapshot next_id o ferot ane; id counter snapshot er baire rakho (shudhu bare) \[Rust\]
 - [x] `P1-044` engine_destroy non-blocking: detach + end-of-stream marker (non-null); Dart closes the listener on the marker and frees in-flight events. Needed before autosave I/O runs on the command thread \[Rust\] \[Dart\]
@@ -463,6 +463,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-085` A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review) \[Rust\] \[Dart\]
 - [ ] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
 - [ ] `P1-087` Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove \[Rust\]
+- [ ] `P1-088` Device check: a release build with a scratch SENTRY_DSN delivers one Dart error event to Sentry on iOS and Android, with paths scrubbed (P1-041) \[—\]
 
 ## Phase 2: Audio
 

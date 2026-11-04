@@ -1796,12 +1796,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1a",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-04",
+   "commit": "95eab40",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "Done in Dart (d413ac7): sentry_flutter 10.1.0, DSN from --dart-define=SENTRY_DSN (empty = off), path/URI scrub. Native SDKs kept off (autoInitializeNativeSdk=false) since native events skip the Dart scrub -> SYS-025. Rust panics -> SYS-026. Render on demand already held: the engine redraws only on commands (engine/app/tests/engine_layer.rs)."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "Review fix 95eab40: native SDKs off means SentryFlutter.init's native FileSystemTransport would drop events, so configureCrashReporting sets NoOpTransport and SentryClient swaps in HttpTransport (relies on sentry 10.1.0 sentry_client.dart:71-73; re-check on upgrade)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6632,7 +6641,16 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "From P1-041: sentry_flutter is in with Dart errors only; native SDKs are off (autoInitializeNativeSdk=false) because native crash events bypass the Dart beforeSend. Turn them on with a native beforeSend that scrubs paths (or Sentry server-side data scrubbing)."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "Turning the native SDKs on must also drop the NoOpTransport override in crash_reporting.dart, so Dart events use the native transport (offline cache, rate limiting). Until then HttpTransport has no disk cache: Dart events captured offline are lost."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6651,7 +6669,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "The Rust side must use the same path scrub rules as app/lib/core/crash_reporting.dart (one spec or a shared test corpus)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6670,7 +6693,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "From P1-041: with the native SDKs off there are no native debug images and enableDartSymbolication is forced off, so obfuscated/split-debug-info Dart stacks can't be decoded until SYS-025 turns native on."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6689,7 +6717,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "From P1-041: NativeSessionIntegration needs the native SDK, so release health (crash-free users) has no data until SYS-025."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6729,7 +6762,16 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "From P1-041: app/lib/core/crash_reporting.dart scrubs message, exception values, mechanism data, flutter_error_details and breadcrumb messages; extras, tags and breadcrumb data are not scrubbed yet. sentry-android merges INTERNET into the release manifest: update Play data-safety and the iOS privacy label."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "Unquoted absolute paths stop at the first space (Dart IO errors quote the path, so only hand-written messages are affected)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -9707,7 +9749,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "Sentry path/URI scrub for Dart events: app/lib/core/crash_reporting.dart (P1-041)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -14019,6 +14066,25 @@
     "Rust"
    ],
    "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-088",
+   "section": "P1",
+   "group": null,
+   "title": "Device check: a release build with a scratch SENTRY_DSN delivers one Dart error event to Sentry on iOS and Android, with paths scrubbed (P1-041)",
+   "tags": [
+    "—"
+   ],
+   "owner": "human",
    "deferred": false,
    "subphase": null,
    "status": "todo",
