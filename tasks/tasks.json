@@ -12975,6 +12975,10 @@
     {
      "date": "2026-10-23",
      "text": "From P1-004: on a real low-end phone check the GLES path too (no Vulkan or blocklisted): test pattern, decoded frame, colours (P1-068), and whether the Vulkan-first/GL-fallback choice picks right."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "the FRAMIX_SPIKE_CLIP hook is gone (P1-057): check the real-iPhone NV12 path by importing a clip in the app (Decoder port)"
     }
    ],
    "source": "added"
@@ -13163,10 +13167,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-04",
+   "commit": "32b3b1a",
    "branch": "main",
    "notes": [
     {
@@ -13176,6 +13180,10 @@
     {
      "date": "2026-10-24",
      "text": "P1-060: the platform now passes raw YCbCr matrix/range tags (EngineFrame); only the spike removal remains"
+    },
+    {
+     "date": "2026-11-04",
+     "text": "iOS spike removed (cb17cd1, merged 32b3b1a); review APPROVE; iOS sim build passed in the implementer's native_warnings.sh. Android half moved to P1-070. Keep PlatformCallbacks.textures: it keeps the PreviewTexture alive for the unretained MTLTexture handle."
     }
    ],
    "source": "added"
@@ -13652,6 +13660,10 @@
     {
      "date": "2026-10-30",
      "text": "also request_proxy (MediaCodec transcode into the cache) per ADR 0007; Android stub fails every request today"
+    },
+    {
+     "date": "2026-11-04",
+     "text": "remove the P1-056 spike when the Android decoder lands: SpikeDecode.kt, EnginePlatform.kt spikeDecode + nativeRenderFrame, engine/ffi/src/spike_preview.rs + its cbindgen exclude; reuse the Kotlin OES->RGBA pass; keep import_android_frame/ash (ADR 0004); drop ash if the import goes"
     }
    ],
    "source": "added"
@@ -14431,6 +14443,10 @@
     {
      "date": "2026-11-04",
      "text": "review Critical (spinner primary-on-primary, invisible) + Warnings (no semantics label; success path untested) fixed in 96d7c70, tests 6d? see git log; sentinel '' relies on library::valid_id (1..=32 [0-9a-z])."
+    },
+    {
+     "date": "2026-11-04",
+     "text": "correction: review-fix tests are in bb6e614 and bf50901; ignore '6d? see git log' above"
     }
    ],
    "source": "added"
@@ -14446,11 +14462,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-04",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [],
    "source": "added"
   }
