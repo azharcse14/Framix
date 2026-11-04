@@ -5882,12 +5882,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-04",
+   "commit": "cb27620",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "layout-geometry + measured-ink test (bangla_text_fit_test.dart), not golden screenshots: goldens wait for the approved look. Renders with test-only Anek Bangla (app/test/fonts); devices fall back to Noto Sans Bengali / Kohinoor, so a pass describes Anek Bangla. 3rd review APPROVE; merged + cb27620."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -6083,7 +6088,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "when Anek Bangla is bundled, load the app asset in bangla_text_fit_test and delete app/test/fonts/AnekBangla.ttf; the font's own line is ~1.87 em vs M3 1.43 em, decide the bn line-height token"
+    }
+   ],
    "source": "plan"
   },
   {
