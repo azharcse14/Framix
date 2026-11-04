@@ -230,7 +230,8 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [x] `TC-010` native_warnings.sh allowlist misses Xcode 27.1 wording 'Metadata extraction skipped, no AppIntents.framework dependency found' (allowlist has 'skipped. No'), so the gate fails on every build \[Native\]
 - [x] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
 - [x] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
-- [ ] `TC-013` native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist \[Native\] \[Dart\]
+- [x] `TC-013` native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist \[Native\] \[Dart\]
+- [ ] `TC-014` Upgrade sentry_flutter/sentry to 10.2.0+ (jni 1.1.0) once 14 days old (2026-11-05) and drop the jni Groovy allowlist line in scripts/native_warnings.sh \[Dart\] \[Native\]
 
 ## AI diye code lekha (Claude Code)
 
@@ -465,6 +466,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
 - [ ] `P1-087` Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove \[Rust\]
 - [ ] `P1-088` Device check: a release build with a scratch SENTRY_DSN delivers one Dart error event to Sentry on iOS and Android, with paths scrubbed (P1-041) \[—\]
+- [ ] `P1-089` Home screen: Projects list (New project, open, duration and edit time) on an engine project library with autosave per project (docs/plans/P1-089-home.md) \[Dart\] \[Rust\] \[Native\]
 
 ## Phase 2: Audio
 

@@ -14112,11 +14112,62 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "done",
+   "started": "2026-11-04",
+   "done": "2026-11-04",
+   "commit": "6b24153",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "Verified locally on flutter 3.47.9 (homebrew; fvm not installed, .fvmrc pins 3.47.7) and Xcode 26.2 (toolchain pins 27.1); the AppIntents regex keeps both wordings so the gate works on either Xcode."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "TC-014",
+   "section": "TC",
+   "group": null,
+   "title": "Upgrade sentry_flutter/sentry to 10.2.0+ (jni 1.1.0) once 14 days old (2026-11-05) and drop the jni Groovy allowlist line in scripts/native_warnings.sh",
+   "tags": [
+    "Dart",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
    "commit": null,
    "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-04",
+     "text": "From TC-013 review: the Groovy allowlist line also covers sentry_flutter 10.1.0 build.gradle line 26 (namespace), still in 10.2.0, and SentryFlutterPlugin.kt defaultDisplay deprecation (also still in 10.2.0). After the upgrade re-check both; only the jni part goes away."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-089",
+   "section": "P1",
+   "group": null,
+   "title": "Home screen: Projects list (New project, open, duration and edit time) on an engine project library with autosave per project (docs/plans/P1-089-home.md)",
+   "tags": [
+    "Dart",
+    "Rust",
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "in_progress",
+   "started": "2026-11-04",
+   "done": null,
+   "commit": null,
+   "branch": "main",
    "notes": [],
    "source": "added"
   }
