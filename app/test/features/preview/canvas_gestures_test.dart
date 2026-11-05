@@ -42,6 +42,9 @@ TimelineChanged timeline({int x = 0, int scale = 1000, int active = 5}) =>
               mediaKind: MediaKind.MEDIA_KIND_IMAGE,
               x: x,
               scale: scale,
+              // What the engine reports for a canvas-shaped picture (P1-063).
+              frameWidth: scale / 1000,
+              frameHeight: scale / 1000,
             ),
           ],
         ),

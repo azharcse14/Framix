@@ -5040,6 +5040,8 @@ class Clip extends $pb.GeneratedMessage {
     $core.int? color,
     $core.bool? mergeableWithNext,
     $core.bool? placementLocked,
+    $core.double? frameWidth,
+    $core.double? frameHeight,
   }) {
     final result = Clip._();
     if (id != null) result.id = id;
@@ -5061,6 +5063,8 @@ class Clip extends $pb.GeneratedMessage {
     if (color != null) result.color = color;
     if (mergeableWithNext != null) result.mergeableWithNext = mergeableWithNext;
     if (placementLocked != null) result.placementLocked = placementLocked;
+    if (frameWidth != null) result.frameWidth = frameWidth;
+    if (frameHeight != null) result.frameHeight = frameHeight;
     return result;
   }
 
@@ -5100,6 +5104,9 @@ class Clip extends $pb.GeneratedMessage {
     ..aI(17, _omitFieldNames ? '' : 'color', fieldType: $pb.PbFieldType.OF3)
     ..aOB(18, _omitFieldNames ? '' : 'mergeableWithNext')
     ..aOB(19, _omitFieldNames ? '' : 'placementLocked')
+    ..aD(20, _omitFieldNames ? '' : 'frameWidth', fieldType: $pb.PbFieldType.OF)
+    ..aD(21, _omitFieldNames ? '' : 'frameHeight',
+        fieldType: $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5298,6 +5305,26 @@ class Clip extends $pb.GeneratedMessage {
   $core.bool hasPlacementLocked() => $_has(18);
   @$pb.TagNumber(19)
   void clearPlacementLocked() => $_clearField(19);
+
+  /// The picture's frame on the canvas after crop, turns, fit and scale, as fractions of the
+  /// canvas width and height; it is centred at (x, y). The canvas outline draws this box.
+  @$pb.TagNumber(20)
+  $core.double get frameWidth => $_getN(19);
+  @$pb.TagNumber(20)
+  set frameWidth($core.double value) => $_setFloat(19, value);
+  @$pb.TagNumber(20)
+  $core.bool hasFrameWidth() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearFrameWidth() => $_clearField(20);
+
+  @$pb.TagNumber(21)
+  $core.double get frameHeight => $_getN(20);
+  @$pb.TagNumber(21)
+  set frameHeight($core.double value) => $_setFloat(20, value);
+  @$pb.TagNumber(21)
+  $core.bool hasFrameHeight() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearFrameHeight() => $_clearField(21);
 }
 
 /// SaveProject finished.

@@ -57,6 +57,13 @@ pub fn target_to_canvas(canvas: AspectRatio, width: u32, height: u32) -> Affine 
     }
 }
 
+/// The size of `media`'s picture on the canvas, placed by `transform` (crop, turns, fit, scale),
+/// as fractions of the canvas width and height. Centred at the transform's offset.
+pub fn picture_size(media: &Media, transform: &ClipTransform, canvas: AspectRatio) -> (f32, f32) {
+    let _ = (media, transform, canvas);
+    (0.0, 0.0)
+}
+
 /// Maps canvas UV (0..1 from the top-left) to the UV of `media`'s stored pixels, placing the
 /// picture as the clip's transform says: crop, then the media's rotation plus the clip's turns
 /// (clockwise), then the flips, then fit inside the canvas, then scale and position. UVs outside

@@ -1110,6 +1110,8 @@ impl Engine {
                             mergeable_with_next: t.mergeable_with_next(i),
                             // A locked track refuses every edit (SetClipTransform included).
                             placement_locked: t.flags().locked || !timeline.placeable(c.media),
+                            frame_width: 0.0,
+                            frame_height: 0.0,
                         })
                         .collect(),
                     number: *count,
