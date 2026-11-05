@@ -44,18 +44,17 @@ A restricted method in java\.lang\.System has been called
 # has no Project-object dependencies of its own.
 Using a Project object as a dependency notation has been deprecated
 # Groovy space assignment in plugin build files (app/android is .kts only, where it cannot
-# occur): jni 1.0.3 (group, version, namespace, ndkVersion; fixed in jni 1.1.0) and
-# sentry_flutter 10.1.0 line 26 (namespace; still in 10.2.0). Re-check with TC-014.
+# occur): sentry_flutter 10.2.0 build.gradle line 26 (namespace).
 Properties should be assigned using the .propName = value. syntax
-# sentry_flutter 10.1.0 SentryFlutterPlugin.kt reads the deprecated Display API (still in
-# 10.2.0); printed when that module compiles from scratch.
+# sentry_flutter 10.2.0 SentryFlutterPlugin.kt reads the deprecated Display API; printed when
+# that module compiles from scratch.
 sentry_flutter-[0-9.]+/android/.*defaultDisplay.* is deprecated
 # Gradle repeats that warning without a path; anchored so a w: line (any file) never matches.
 ^(\[[^]]*\] *)? +.val defaultDisplay: Display!. is deprecated\. Deprecated in Java\.?$
 # Gradle repeats each Kotlin w: line as this generic problem; the w: line (with its path) is
 # still checked, so our own Kotlin warnings fail through it.
 Problem found: Kotlin compiler warning
-# sentry_flutter 10.1.0 manifest removes SentryInitProvider (tools:node=remove) that nothing
+# sentry_flutter 10.2.0 manifest removes SentryInitProvider (tools:node=remove) that nothing
 # declares, so the merger warns; and its ObjC replay header (SPM, cold build) lacks
 # nullability on one pointer. Xcode prints the path line and an include-tree repeat; the
 # repeat is unscoped, but our own headers still fail through their path line.
