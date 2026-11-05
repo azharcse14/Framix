@@ -14568,12 +14568,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "0d26b65",
+   "branch": "p1-097-follow-playhead",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Test fix 881cc43: the fling starts from a visible point of the clip; no assertion changed. Review: follow_playhead_test's inView left bound moved with the scroll, so follow_playhead_view_test bounds it by the horizontal Scrollable; mutants (jump past the playhead, no left-edge check, no initState read) each fail it. Known nit: a >100 ms press on the ruler's right 10% while playing seeks before the drag's pause, so following may jump the view once under the finger."
+    }
+   ],
    "source": "added"
   },
   {

@@ -474,7 +474,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
 - [x] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
 - [ ] `P1-096` iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting \[Native\]
-- [ ] `P1-097` Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls) \[Dart\]
+- [x] `P1-097` Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls) \[Dart\]
 - [ ] `P1-098` iOS FrameDecoder keeps a reader and photo per media (small LRU) so PIP with two videos or two photos doesn't reopen the reader or re-decode every frame (P1-071 follow-up) \[Rust\]
 
 ## Phase 2: Audio
