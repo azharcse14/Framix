@@ -3,7 +3,7 @@
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel};
 use std::time::Instant;
 
-use framix_app::engine::{AUTOSAVE_DELAY, command_failed};
+use framix_app::engine::{AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, command_failed};
 use framix_app::preview::PlatformTexture;
 use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
@@ -243,6 +243,7 @@ fn serve(
         .with_thumbnails(Box::new(thumbnails))
         .with_proxies(Box::new(proxies))
         .with_free_space(Box::new(space))
+        .with_clock(Box::new(framix_app::clock::SystemClock::new()))
         .with_preview(
             Box::new(host),
             Box::new(
@@ -262,7 +263,14 @@ fn serve(
     // An autosave panicked: don't retry until a message arrives (a repeating panic would
     // otherwise report every second).
     let mut stalled = false;
+    // While playing: when the playhead moves next.
+    let mut tick: Option<Instant> = None;
     loop {
+        if !engine.is_playing() {
+            tick = None;
+        } else if tick.is_none() {
+            tick = Some(Instant::now() + PLAYHEAD_INTERVAL);
+        }
         // Armed only when something is unsaved, so reads (Seek, GetTimeline) never wake it.
         // ponytail: a lasting save failure (full disk) retries every AUTOSAVE_DELAY; back off
         // if that shows up in battery or flash wear.
@@ -283,9 +291,11 @@ fn serve(
                     Ok(Some(lost)) => deliver(*callback, &lost),
                     Err(_) => deliver(*callback, &command_failed("internal error")),
                 }
-                match due {
+                match [due, tick].into_iter().flatten().min() {
                     None => inbox.recv().map_err(|_| RecvTimeoutError::Disconnected),
-                    Some(due) => inbox.recv_timeout(due.saturating_duration_since(Instant::now())),
+                    Some(wake) => {
+                        inbox.recv_timeout(wake.saturating_duration_since(Instant::now()))
+                    }
                 }
             }
         };
@@ -300,6 +310,18 @@ fn serve(
             // A failed save stays pending and is re-armed at the top of the loop.
             stalled = autosave(&mut engine, *callback);
             due = None;
+        }
+        // Checked after every message too, so a stream of commands can't hold playback up.
+        if tick.is_some_and(|tick| Instant::now() >= tick) {
+            tick = None;
+            // A panicking step stopped playback (advance_playback takes it first).
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                engine.advance_playback()
+            })) {
+                Ok(None) => {}
+                Ok(Some(step)) => deliver(*callback, &step),
+                Err(_) => deliver(*callback, &command_failed("internal error")),
+            }
         }
         let Some(message) = message else { continue };
         let event = match message {

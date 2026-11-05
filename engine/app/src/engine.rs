@@ -53,6 +53,10 @@ pub struct Engine {
     export_cancel: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
     /// What playback advances by; without it Play is refused.
     clock: Option<Box<dyn crate::clock::Clock>>,
+    /// While playing: the clock and the playhead when playback last started or was moved
+    /// (Seek, StepFrame). The playhead is the anchor plus the clock's time since, so steps
+    /// never add up rounding or late ticks.
+    playing: Option<(Time, Time)>,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -404,13 +408,72 @@ impl Engine {
 
     /// Playback is running: call [`Engine::advance_playback`] every [`PLAYHEAD_INTERVAL`].
     pub fn is_playing(&self) -> bool {
-        false
+        self.playing.is_some()
     }
 
     /// While playing, moves the playhead to where the clock says and returns its
     /// PlayheadChanged (playing false once it reached the end); None when not playing.
     pub fn advance_playback(&mut self) -> Option<Event> {
-        None
+        // Taken first, so a panic below leaves playback stopped instead of failing every tick.
+        let (clock_at, playhead_at) = self.playing.take()?;
+        let now = self.clock.as_ref()?.now();
+        let end = self.history.timeline().duration();
+        let time = Time(
+            playhead_at
+                .0
+                .saturating_add(now.0.saturating_sub(clock_at.0).max(0)),
+        );
+        self.move_playhead(time);
+        if time < end {
+            self.playing = Some((clock_at, playhead_at));
+        }
+        Some(self.playhead_changed(false))
+    }
+
+    /// Starts playback at the playhead (at 0 from the end); an empty timeline stays stopped.
+    fn play(&mut self) -> Result<(), String> {
+        let now = self.clock.as_ref().ok_or("no playback clock")?.now();
+        if self.is_playing() {
+            // Already playing: report where the clock is now.
+            self.advance_playback();
+            return Ok(());
+        }
+        let end = self.history.timeline().duration();
+        if end.0 <= 0 {
+            return Ok(());
+        }
+        if self.playhead >= end {
+            self.move_playhead(Time(0));
+        }
+        self.playing = Some((now, self.playhead));
+        Ok(())
+    }
+
+    /// Stops playback where the clock is now.
+    fn pause(&mut self) {
+        self.advance_playback();
+        self.playing = None;
+    }
+
+    /// Playback goes on from the playhead a Seek or StepFrame just moved.
+    fn reanchor_playback(&mut self) {
+        if let (Some(playing), Some(clock)) = (self.playing.as_mut(), self.clock.as_ref()) {
+            *playing = (clock.now(), self.playhead);
+        }
+    }
+
+    /// PlayheadChanged at the playhead.
+    fn playhead_changed(&self, snapped: bool) -> Event {
+        Event {
+            kind: Some(proto::event::Kind::PlayheadChanged(
+                proto::PlayheadChanged {
+                    time: self.playhead.0,
+                    snapped,
+                    active_clip: self.active_clip(),
+                    playing: self.is_playing(),
+                },
+            )),
+        }
     }
 
     /// Lets this engine make thumbnails through `host`; without it RequestThumbnails fails.
@@ -499,16 +562,7 @@ impl Engine {
                 }
                 event
             }
-            Ok(Reply::Playhead(snapped)) => Event {
-                kind: Some(proto::event::Kind::PlayheadChanged(
-                    proto::PlayheadChanged {
-                        time: self.playhead.0,
-                        snapped,
-                        active_clip: self.active_clip(),
-                        playing: self.is_playing(),
-                    },
-                )),
-            },
+            Ok(Reply::Playhead(snapped)) => self.playhead_changed(snapped),
             Ok(Reply::Saved) => Event {
                 kind: Some(proto::event::Kind::ProjectSaved(ProjectSaved {})),
             },
@@ -753,6 +807,7 @@ impl Engine {
                     .then(|| self.history.timeline().snap(Time(seek.time), within))
                     .flatten();
                 self.move_playhead(snapped.unwrap_or(Time(seek.time)));
+                self.reanchor_playback();
                 Ok(Reply::Playhead(snapped.is_some()))
             }
             command::Kind::SnapTrim(op) => {
@@ -817,9 +872,14 @@ impl Engine {
                     .step(self.playhead, i64::from(op.frames))
                     .unwrap_or(Time(i64::MAX));
                 self.move_playhead(to);
+                self.reanchor_playback();
                 Ok(Reply::Playhead(false))
             }
-            command::Kind::Play(_) | command::Kind::Pause(_) => Err("not implemented".into()),
+            command::Kind::Play(_) => self.play().map(|()| Reply::Playhead(false)),
+            command::Kind::Pause(_) => {
+                self.pause();
+                Ok(Reply::Playhead(false))
+            }
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
                 .map(|()| Reply::Accepted),
@@ -847,6 +907,7 @@ impl Engine {
     fn start_project(&mut self) {
         self.project = self.project.wrapping_add(1);
         self.forget_thumbnails();
+        self.playing = None;
         self.playhead = Time(0);
         self.redraw();
     }
