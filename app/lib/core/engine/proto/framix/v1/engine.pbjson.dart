@@ -440,6 +440,24 @@ const Command$json = {
       '9': 0,
       '10': 'listProjects'
     },
+    {
+      '1': 'play',
+      '3': 38,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.Play',
+      '9': 0,
+      '10': 'play'
+    },
+    {
+      '1': 'pause',
+      '3': 39,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.Pause',
+      '9': 0,
+      '10': 'pause'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -489,7 +507,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     '1IAFIIc25hcFRyaW0SMgoJc25hcF9tb3ZlGCMgASgLMhMuZnJhbWl4LnYxLlNuYXBNb3ZlSABS'
     'CHNuYXBNb3ZlEjsKDG9wZW5fbGlicmFyeRgkIAEoCzIWLmZyYW1peC52MS5PcGVuTGlicmFyeU'
     'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
-    'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
+    'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSJQoEcGxheRgmIAEoCzIPLmZyYW1peC52MS5QbGF5SA'
+    'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USDgoCaWQY'
+    'GyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -1109,6 +1129,23 @@ const StepFrame$json = {
 final $typed_data.Uint8List stepFrameDescriptor =
     $convert.base64Decode('CglTdGVwRnJhbWUSFgoGZnJhbWVzGAEgASgFUgZmcmFtZXM=');
 
+@$core.Deprecated('Use playDescriptor instead')
+const Play$json = {
+  '1': 'Play',
+};
+
+/// Descriptor for `Play`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List playDescriptor = $convert.base64Decode('CgRQbGF5');
+
+@$core.Deprecated('Use pauseDescriptor instead')
+const Pause$json = {
+  '1': 'Pause',
+};
+
+/// Descriptor for `Pause`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List pauseDescriptor =
+    $convert.base64Decode('CgVQYXVzZQ==');
+
 @$core.Deprecated('Use seekDescriptor instead')
 const Seek$json = {
   '1': 'Seek',
@@ -1323,13 +1360,15 @@ const PlayheadChanged$json = {
     {'1': 'time', '3': 1, '4': 1, '5': 3, '10': 'time'},
     {'1': 'snapped', '3': 2, '4': 1, '5': 8, '10': 'snapped'},
     {'1': 'active_clip', '3': 3, '4': 1, '5': 4, '10': 'activeClip'},
+    {'1': 'playing', '3': 4, '4': 1, '5': 8, '10': 'playing'},
   ],
 };
 
 /// Descriptor for `PlayheadChanged`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List playheadChangedDescriptor = $convert.base64Decode(
     'Cg9QbGF5aGVhZENoYW5nZWQSEgoEdGltZRgBIAEoA1IEdGltZRIYCgdzbmFwcGVkGAIgASgIUg'
-    'dzbmFwcGVkEh8KC2FjdGl2ZV9jbGlwGAMgASgEUgphY3RpdmVDbGlw');
+    'dzbmFwcGVkEh8KC2FjdGl2ZV9jbGlwGAMgASgEUgphY3RpdmVDbGlwEhgKB3BsYXlpbmcYBCAB'
+    'KAhSB3BsYXlpbmc=');
 
 @$core.Deprecated('Use commandAcceptedDescriptor instead')
 const CommandAccepted$json = {
@@ -1398,6 +1437,7 @@ const TimelineChanged$json = {
     },
     {'1': 'project', '3': 12, '4': 1, '5': 4, '10': 'project'},
     {'1': 'snapped', '3': 13, '4': 1, '5': 8, '10': 'snapped'},
+    {'1': 'playing', '3': 14, '4': 1, '5': 8, '10': 'playing'},
   ],
 };
 
@@ -1411,7 +1451,7 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcBIfCgthY3RpdmVf'
     'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcBItCgZleHBvcnQYCyABKAsyFS5mcmFtaXgudjEuRXhwb3'
     'J0SW5mb1IGZXhwb3J0EhgKB3Byb2plY3QYDCABKARSB3Byb2plY3QSGAoHc25hcHBlZBgNIAEo'
-    'CFIHc25hcHBlZA==');
+    'CFIHc25hcHBlZBIYCgdwbGF5aW5nGA4gASgIUgdwbGF5aW5n');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {

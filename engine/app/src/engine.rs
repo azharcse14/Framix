@@ -51,6 +51,8 @@ pub struct Engine {
     export_job: Option<crate::export::ExportJob>,
     /// The running export's cancel flag; Some while an export runs (accepted, not finished).
     export_cancel: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    /// What playback advances by; without it Play is refused.
+    clock: Option<Box<dyn crate::clock::Clock>>,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -71,6 +73,9 @@ struct Preview {
 
 /// Longest time a change waits before the engine autosaves it.
 pub const AUTOSAVE_DELAY: std::time::Duration = std::time::Duration::from_secs(1);
+
+/// How often the playhead moves while playing: about 30 PlayheadChanged per second.
+pub const PLAYHEAD_INTERVAL: std::time::Duration = std::time::Duration::from_micros(33_333);
 
 /// Largest snap radius a Seek may ask for.
 const MAX_SNAP: Time = Time(10 * TICKS_PER_SECOND);
@@ -389,6 +394,25 @@ impl Engine {
         }
     }
 
+    /// Lets this engine play (Play) by `clock`; without it Play is refused.
+    pub fn with_clock(self, clock: Box<dyn crate::clock::Clock>) -> Self {
+        Self {
+            clock: Some(clock),
+            ..self
+        }
+    }
+
+    /// Playback is running: call [`Engine::advance_playback`] every [`PLAYHEAD_INTERVAL`].
+    pub fn is_playing(&self) -> bool {
+        false
+    }
+
+    /// While playing, moves the playhead to where the clock says and returns its
+    /// PlayheadChanged (playing false once it reached the end); None when not playing.
+    pub fn advance_playback(&mut self) -> Option<Event> {
+        None
+    }
+
     /// Lets this engine make thumbnails through `host`; without it RequestThumbnails fails.
     pub fn with_thumbnails(self, host: Box<dyn crate::thumbnail::ThumbnailHost>) -> Self {
         Self {
@@ -481,6 +505,7 @@ impl Engine {
                         time: self.playhead.0,
                         snapped,
                         active_clip: self.active_clip(),
+                        playing: self.is_playing(),
                     },
                 )),
             },
@@ -794,6 +819,7 @@ impl Engine {
                 self.move_playhead(to);
                 Ok(Reply::Playhead(false))
             }
+            command::Kind::Play(_) | command::Kind::Pause(_) => Err("not implemented".into()),
             command::Kind::CreatePreview(size) => self
                 .request_preview(size.width, size.height)
                 .map(|()| Reply::Accepted),
@@ -1042,6 +1068,7 @@ impl Engine {
                 project: self.project,
                 // `reply` sets it for the answer to a snapping edit.
                 snapped: false,
+                playing: self.is_playing(),
             })),
         }
     }

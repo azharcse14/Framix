@@ -58,6 +58,8 @@ enum Command_Kind {
   snapMove,
   openLibrary,
   listProjects,
+  play,
+  pause,
   notSet
 }
 
@@ -101,6 +103,8 @@ class Command extends $pb.GeneratedMessage {
     SnapMove? snapMove,
     OpenLibrary? openLibrary,
     ListProjects? listProjects,
+    Play? play,
+    Pause? pause,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -141,6 +145,8 @@ class Command extends $pb.GeneratedMessage {
     if (snapMove != null) result.snapMove = snapMove;
     if (openLibrary != null) result.openLibrary = openLibrary;
     if (listProjects != null) result.listProjects = listProjects;
+    if (play != null) result.play = play;
+    if (pause != null) result.pause = pause;
     return result;
   }
 
@@ -190,6 +196,8 @@ class Command extends $pb.GeneratedMessage {
     35: Command_Kind.snapMove,
     36: Command_Kind.openLibrary,
     37: Command_Kind.listProjects,
+    38: Command_Kind.play,
+    39: Command_Kind.pause,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -232,7 +240,9 @@ class Command extends $pb.GeneratedMessage {
       34,
       35,
       36,
-      37
+      37,
+      38,
+      39
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -309,6 +319,10 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: OpenLibrary.$_createMessage)
     ..aOM<ListProjects>(37, _omitFieldNames ? '' : 'listProjects',
         subBuilder: ListProjects.$_createMessage)
+    ..aOM<Play>(38, _omitFieldNames ? '' : 'play',
+        subBuilder: Play.$_createMessage)
+    ..aOM<Pause>(39, _omitFieldNames ? '' : 'pause',
+        subBuilder: Pause.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -367,6 +381,8 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(35)
   @$pb.TagNumber(36)
   @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -404,6 +420,8 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(35)
   @$pb.TagNumber(36)
   @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -811,6 +829,28 @@ class Command extends $pb.GeneratedMessage {
   void clearListProjects() => $_clearField(37);
   @$pb.TagNumber(37)
   ListProjects ensureListProjects() => $_ensure(36);
+
+  @$pb.TagNumber(38)
+  Play get play => $_getN(37);
+  @$pb.TagNumber(38)
+  set play(Play value) => $_setField(38, value);
+  @$pb.TagNumber(38)
+  $core.bool hasPlay() => $_has(37);
+  @$pb.TagNumber(38)
+  void clearPlay() => $_clearField(38);
+  @$pb.TagNumber(38)
+  Play ensurePlay() => $_ensure(37);
+
+  @$pb.TagNumber(39)
+  Pause get pause => $_getN(38);
+  @$pb.TagNumber(39)
+  set pause(Pause value) => $_setField(39, value);
+  @$pb.TagNumber(39)
+  $core.bool hasPause() => $_has(38);
+  @$pb.TagNumber(39)
+  void clearPause() => $_clearField(39);
+  @$pb.TagNumber(39)
+  Pause ensurePause() => $_ensure(38);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -3583,6 +3623,90 @@ class StepFrame extends $pb.GeneratedMessage {
   void clearFrames() => $_clearField(1);
 }
 
+/// Starts playback: the engine advances the playhead with the clock and sends PlayheadChanged
+/// (playing set) on its own, at most about 30 per second, until Pause or the timeline end
+/// (then one with playing false). From the end it starts again at 0. Answered with
+/// PlayheadChanged; playing stays false for an empty timeline. Seek and StepFrame keep it
+/// playing from the new time; edits keep it playing; NewProject and OpenProject stop it.
+class Play extends $pb.GeneratedMessage {
+  factory Play() => Play._();
+
+  Play._();
+
+  factory Play.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      Play()..mergeFromBuffer(data, registry);
+  factory Play.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      Play()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Play',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: Play.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Play clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Play copyWith(void Function(Play) updates) =>
+      super.copyWith((message) => updates(message as Play)) as Play;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use Play() / Play.new instead')
+  static Play create() => Play._();
+  static $pb.GeneratedMessage $_createMessage() => Play._();
+  @$core.override
+  Play createEmptyInstance() => Play._();
+  @$core.pragma('dart2js:noInline')
+  static Play getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Play>(Play.$_createMessage);
+  static Play? _defaultInstance;
+}
+
+/// Stops playback where the clock is now. Answered with PlayheadChanged (playing false).
+class Pause extends $pb.GeneratedMessage {
+  factory Pause() => Pause._();
+
+  Pause._();
+
+  factory Pause.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      Pause()..mergeFromBuffer(data, registry);
+  factory Pause.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      Pause()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Pause',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: Pause.$_createMessage)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Pause clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Pause copyWith(void Function(Pause) updates) =>
+      super.copyWith((message) => updates(message as Pause)) as Pause;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use Pause() / Pause.new instead')
+  static Pause create() => Pause._();
+  static $pb.GeneratedMessage $_createMessage() => Pause._();
+  @$core.override
+  Pause createEmptyInstance() => Pause._();
+  @$core.pragma('dart2js:noInline')
+  static Pause getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Pause>(Pause.$_createMessage);
+  static Pause? _defaultInstance;
+}
+
 /// Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws
 /// the preview there. Not an undo step. Answered with PlayheadChanged.
 class Seek extends $pb.GeneratedMessage {
@@ -3672,7 +3796,7 @@ enum Event_Kind {
 
 /// Sent by the engine. Exactly one kind is set. Every command is answered by exactly one event,
 /// in command order; results of accepted platform work (PreviewReady, or CommandFailed) arrive
-/// later on their own.
+/// later on their own, and so do PlayheadChanged events while playing (Play).
 class Event extends $pb.GeneratedMessage {
   factory Event({
     TimelineChanged? timelineChanged,
@@ -4261,17 +4385,20 @@ class ThumbnailReady extends $pb.GeneratedMessage {
   void clearPath() => $_clearField(4);
 }
 
-/// Where the playhead is now, after a Seek.
+/// Where the playhead is now, after a Seek, StepFrame, Play or Pause, or on its own while
+/// playing.
 class PlayheadChanged extends $pb.GeneratedMessage {
   factory PlayheadChanged({
     $fixnum.Int64? time,
     $core.bool? snapped,
     $fixnum.Int64? activeClip,
+    $core.bool? playing,
   }) {
     final result = PlayheadChanged._();
     if (time != null) result.time = time;
     if (snapped != null) result.snapped = snapped;
     if (activeClip != null) result.activeClip = activeClip;
+    if (playing != null) result.playing = playing;
     return result;
   }
 
@@ -4293,6 +4420,7 @@ class PlayheadChanged extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         3, _omitFieldNames ? '' : 'activeClip', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOB(4, _omitFieldNames ? '' : 'playing')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4345,6 +4473,16 @@ class PlayheadChanged extends $pb.GeneratedMessage {
   $core.bool hasActiveClip() => $_has(2);
   @$pb.TagNumber(3)
   void clearActiveClip() => $_clearField(3);
+
+  /// Playback is running (Play).
+  @$pb.TagNumber(4)
+  $core.bool get playing => $_getBF(3);
+  @$pb.TagNumber(4)
+  set playing($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPlaying() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPlaying() => $_clearField(4);
 }
 
 /// The command started work whose result comes later as its own event.
@@ -4541,6 +4679,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     ExportInfo? export,
     $fixnum.Int64? project,
     $core.bool? snapped,
+    $core.bool? playing,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -4556,6 +4695,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (export != null) result.export = export;
     if (project != null) result.project = project;
     if (snapped != null) result.snapped = snapped;
+    if (playing != null) result.playing = playing;
     return result;
   }
 
@@ -4593,6 +4733,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
         12, _omitFieldNames ? '' : 'project', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOB(13, _omitFieldNames ? '' : 'snapped')
+    ..aOB(14, _omitFieldNames ? '' : 'playing')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4738,6 +4879,16 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasSnapped() => $_has(12);
   @$pb.TagNumber(13)
   void clearSnapped() => $_clearField(13);
+
+  /// Playback is running (Play); false after NewProject and OpenProject.
+  @$pb.TagNumber(14)
+  $core.bool get playing => $_getBF(13);
+  @$pb.TagNumber(14)
+  set playing($core.bool value) => $_setBool(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasPlaying() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearPlaying() => $_clearField(14);
 }
 
 /// A track and its clips, sorted by start.

@@ -44,6 +44,8 @@ message Command {
     SnapMove snap_move = 35;
     OpenLibrary open_library = 36;
     ListProjects list_projects = 37;
+    Play play = 38;
+    Pause pause = 39;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -383,6 +385,16 @@ message StepFrame {
   int32 frames = 1;
 }
 
+// Starts playback: the engine advances the playhead with the clock and sends PlayheadChanged
+// (playing set) on its own, at most about 30 per second, until Pause or the timeline end
+// (then one with playing false). From the end it starts again at 0. Answered with
+// PlayheadChanged; playing stays false for an empty timeline. Seek and StepFrame keep it
+// playing from the new time; edits keep it playing; NewProject and OpenProject stop it.
+message Play {}
+
+// Stops playback where the clock is now. Answered with PlayheadChanged (playing false).
+message Pause {}
+
 // Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws
 // the preview there. Not an undo step. Answered with PlayheadChanged.
 message Seek {
@@ -394,7 +406,7 @@ message Seek {
 
 // Sent by the engine. Exactly one kind is set. Every command is answered by exactly one event,
 // in command order; results of accepted platform work (PreviewReady, or CommandFailed) arrive
-// later on their own.
+// later on their own, and so do PlayheadChanged events while playing (Play).
 message Event {
   oneof kind {
     TimelineChanged timeline_changed = 1;
@@ -443,13 +455,16 @@ message ThumbnailReady {
   string path = 4;
 }
 
-// Where the playhead is now, after a Seek.
+// Where the playhead is now, after a Seek, StepFrame, Play or Pause, or on its own while
+// playing.
 message PlayheadChanged {
   int64 time = 1;
   // The seek landed on a snap point.
   bool snapped = 2;
   // The clip canvas gestures act on at the new playhead; 0 = none.
   uint64 active_clip = 3;
+  // Playback is running (Play).
+  bool playing = 4;
 }
 
 // The command started work whose result comes later as its own event.
@@ -493,6 +508,8 @@ message TimelineChanged {
   // This answers a SnapTrim or SnapMove that the engine moved onto a snap point (the UI ticks,
   // as for a snapping Seek); false for every other change, and for a drop already on one.
   bool snapped = 13;
+  // Playback is running (Play); false after NewProject and OpenProject.
+  bool playing = 14;
 }
 
 // A track and its clips, sorted by start.
