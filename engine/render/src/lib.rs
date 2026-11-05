@@ -35,7 +35,8 @@ pub enum RenderError {
     #[error("no GPU device: {0}")]
     NoDevice(#[from] wgpu::RequestDeviceError),
     /// The external texture was null, empty, of a format or usage the call does not take, not
-    /// a plain 2D single-mip texture, or from another GPU than the one wgpu opened.
+    /// a plain 2D single-mip texture, or from another GPU than the one wgpu opened; or a
+    /// chroma plane is not half the luma, rounded up.
     #[error("invalid external texture")]
     InvalidTexture,
     /// Waiting for the GPU failed (timeout or device lost).
@@ -67,6 +68,23 @@ const ALL_SPACES: [YcbcrSpace; 4] = [
 
 const fn space(matrix: YcbcrMatrix, range: YcbcrRange) -> YcbcrSpace {
     YcbcrSpace { matrix, range }
+}
+
+/// Whether `texture` is one plain 2D image: what the passes bind and draw into.
+fn single_2d(texture: &wgpu::Texture) -> bool {
+    texture.dimension() == wgpu::TextureDimension::D2
+        && texture.depth_or_array_layers() == 1
+        && texture.mip_level_count() == 1
+        && texture.sample_count() == 1
+}
+
+/// Whether a pass can sample `texture` as `format`.
+fn sampled(texture: &wgpu::Texture, format: wgpu::TextureFormat) -> bool {
+    texture.format() == format
+        && single_2d(texture)
+        && texture
+            .usage()
+            .contains(wgpu::TextureUsages::TEXTURE_BINDING)
 }
 
 /// Position of `space` in [`ALL_SPACES`].
@@ -311,6 +329,9 @@ impl Gpu {
     /// Draws the test pattern into `target` and waits until the GPU is done, so the platform
     /// layer can tell Flutter a new frame is ready right after this returns.
     pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
+        if target.format() != PREVIEW_FORMAT {
+            return Err(RenderError::InvalidTexture);
+        }
         self.draw(target, Some(&self.pipeline), None)
     }
 
@@ -323,7 +344,7 @@ impl Gpu {
         frame: &wgpu::Texture,
         placement: &Placement,
     ) -> Result<(), RenderError> {
-        if target.format() != PREVIEW_FORMAT || frame.format() != wgpu::TextureFormat::Rgba8Unorm {
+        if target.format() != PREVIEW_FORMAT || !sampled(frame, wgpu::TextureFormat::Rgba8Unorm) {
             return Err(RenderError::InvalidTexture);
         }
         let bind_group = self.rgba_bind_group(&self.blit, frame, placement);
@@ -446,7 +467,7 @@ impl Gpu {
         unsafe { android::import_ahb(&self.device, ahb) }
     }
 
-    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB, placed on
+    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size, rounded up) to RGB, placed on
     /// `target` by `placement` (black around it), and waits until the GPU is done.
     pub fn draw_nv12(
         &self,
@@ -456,9 +477,12 @@ impl Gpu {
         space: YcbcrSpace,
         placement: &Placement,
     ) -> Result<(), RenderError> {
+        // Chroma is half the luma, rounded up (4:2:0).
+        let half = |n: u32| n.div_ceil(2);
         if target.format() != PREVIEW_FORMAT
-            || y.format() != wgpu::TextureFormat::R8Unorm
-            || cbcr.format() != wgpu::TextureFormat::Rg8Unorm
+            || !sampled(y, wgpu::TextureFormat::R8Unorm)
+            || !sampled(cbcr, wgpu::TextureFormat::Rg8Unorm)
+            || (cbcr.width(), cbcr.height()) != (half(y.width()), half(y.height()))
         {
             return Err(RenderError::InvalidTexture);
         }
@@ -505,6 +529,14 @@ impl Gpu {
         pipeline: Option<&wgpu::RenderPipeline>,
         bind_group: Option<&wgpu::BindGroup>,
     ) -> Result<(), RenderError> {
+        // Format is the caller's check: an Android window may not be PREVIEW_FORMAT.
+        if !single_2d(target)
+            || !target
+                .usage()
+                .contains(wgpu::TextureUsages::RENDER_ATTACHMENT)
+        {
+            return Err(RenderError::InvalidTexture);
+        }
         let view = target.create_view(&Default::default());
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
