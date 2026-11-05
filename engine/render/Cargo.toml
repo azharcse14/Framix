@@ -29,3 +29,11 @@ objc2-metal = { version = "=0.3.2", default-features = false, features = ["std",
 # Already in the lockfile through wgpu-hal; used only to build an IOSurface like the iOS app.
 objc2-io-surface = { version = "=0.3.2", default-features = false, features = ["std", "IOSurfaceRef", "IOSurfaceTypes", "objc2-core-foundation", "libc"] }
 objc2-core-foundation = { version = "=0.3.2", default-features = false, features = ["std", "CFArray", "CFDictionary", "CFNumber", "CFString"] }
+
+[dev-dependencies]
+# Benchmarks (docs/plan.md tool review: criterion); no plots or rayon.
+criterion = { version = "=0.8.2", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "draw"
+harness = false

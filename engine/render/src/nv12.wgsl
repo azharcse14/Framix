@@ -11,6 +11,7 @@
 fn fs(in: VsOut) -> @location(0) vec4<f32> {
   let uv = source_uv(in.uv, placement);
   let y = textureSample(luma, planes, uv).r;
-  let cbcr = textureSample(chroma, planes, uv).rg;
+  // Chroma siting shift from Rust (Gpu::draw_nv12), in source UV.
+  let cbcr = textureSample(chroma, planes, uv + vec2<f32>(placement.source0.w, 0.0)).rg;
   return vec4<f32>(on_picture(ycbcr_to_rgb(y, cbcr, space), in.uv, placement), 1.0);
 }
