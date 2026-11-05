@@ -13080,6 +13080,10 @@
     {
      "date": "2026-11-05",
      "text": "From P1-058: pool the placement uniform, bind groups and views on the render thread (no lock needed there); needs a texture cache per IOSurface since each decoder frame is newly wrapped today."
+    },
+    {
+     "date": "2026-11-05",
+     "text": "Takes over from P1-055 (ADR 0004 note): call SurfaceProducer.getSurface() before each draw and recreate the wgpu surface when it differs (always after setSize) or is invalid."
     }
    ],
    "source": "added"
@@ -13120,10 +13124,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-05",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-05",
+   "commit": "d2b4e46",
    "branch": "p1-055-release-textures",
    "notes": [
     {
@@ -13149,6 +13153,10 @@
     {
      "date": "2026-11-04",
      "text": "also on PreviewLost (P1-053): each loss -> CreatePreview leaks one platform texture today (see P1-093)"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "Done without the getSurface()-per-draw note (moved to P1-053). Untested: the shutdown release paths (panic fallback release_unused arm, inbox drain before EngineStopped); only the send-after-stop path has an ffi test. Ponytail race: an answer sent between the drain and the inbox drop is lost."
     }
    ],
    "source": "added"
@@ -13524,12 +13532,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "3f46349",
+   "branch": "p1-055-release-textures",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Fixed by P1-055 (3f46349): preview_texture_done releases a texture it cannot send; ffi test platform_release.rs."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14404,15 +14417,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "3f46349",
+   "branch": "p1-055-release-textures",
    "notes": [
     {
      "date": "2026-11-04",
      "text": "duplicate of P1-055 (unregister preview textures); work it there"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "Fixed by P1-055 (3f46349): a redraw that loses the texture releases it (engine_preview_release.rs, engine_preview_release_once.rs)."
     }
    ],
    "source": "added"
