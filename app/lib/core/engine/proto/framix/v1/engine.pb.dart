@@ -958,8 +958,10 @@ class ExportProject extends $pb.GeneratedMessage {
 }
 
 /// Recovers the project saved at `path` (undo cleared) if there is one, then saves the project
-/// there within about a second of each change and when the engine stops. A file that exists but
-/// can't be read or decoded is refused and left alone (autosave stays off). Send it once, at
+/// there within about a second of each change and when the engine stops. A damaged file is
+/// moved to `<path>.broken` and the newest backup that decodes is recovered instead (none: the
+/// current project stays); a file from a newer app, one the OS won't read, or one that can't be
+/// moved aside is refused and left alone (autosave stays off). Send it once, at
 /// startup, before edits: again with the same path changes nothing, another path is refused.
 /// The file is the working copy, not a user's project file; OpenProject/NewProject replace it.
 class EnableAutosave extends $pb.GeneratedMessage {

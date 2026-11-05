@@ -13531,7 +13531,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Since P1-089 the app runs in library mode (per-project autosave); EnableAutosave has no app caller. What's left: recovery notice after a crash and clean-exit vs crash; the app-support dir part is covered by OpenLibrary."
+    }
+   ],
    "source": "added"
   },
   {
@@ -13545,15 +13550,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "51e12e9",
+   "branch": "p1-067-bad-autosave",
    "notes": [
     {
      "date": "2026-11-04",
      "text": "also cover library projects: Home silently drops a project whose main file won't decode though .bak1/.bak2 exist (engine/app/src/library.rs list)"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "Review APPROVE (re-review 51e12e9). Open Warning: a failed write-back of a recovered EMPTY project is never retried (empty Timeline is the 'dirty' marker), so that empty library project can vanish from Home; no test with a failing save. Nit: ms crash window between set_aside and write-back (a missing file is not recovered from backups). EnableAutosave behaviour change is comment-only in proto, no protocol bump (no app caller)."
     }
    ],
    "source": "added"
@@ -14096,7 +14105,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Blocked on policy: buf breaking uses FILE, which refuses deleting the oneof field or message even when reserved; retiring needs an ADR to move to WIRE_JSON/WIRE or a deprecation-only approach."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14163,7 +14177,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Same buf FILE limit as P1-084: retire needs an ADR first."
+    }
+   ],
    "source": "added"
   },
   {

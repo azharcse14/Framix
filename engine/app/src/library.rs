@@ -6,7 +6,6 @@ use std::time::SystemTime;
 
 use framix_core::time::TICKS_PER_SECOND;
 
-use crate::project;
 use crate::proto::ProjectSummary;
 use crate::store::ProjectStore;
 
@@ -52,7 +51,7 @@ pub fn new_id(store: &dyn ProjectStore, dir: &Path) -> Result<String, String> {
 }
 
 /// The readable projects in `dir`, most recently saved first. Files that are not projects
-/// (other names, backups, temp files) or don't decode are skipped.
+/// (other names, backups, temp files) or don't decode, with no backup that does, are skipped.
 // ponytail: decodes every project for its duration; keep a summary cache when lists grow
 // long (OVL-015).
 pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>, String> {
@@ -73,7 +72,7 @@ fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Optio
     if !valid_id(id) {
         return None;
     }
-    let timeline = project::decode(&store.load(file).ok()?).ok()?;
+    let (timeline, _) = crate::store::load_or_backup(store, file).ok()?;
     let modified_ms = modified
         .duration_since(SystemTime::UNIX_EPOCH)
         .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX));
