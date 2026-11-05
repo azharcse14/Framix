@@ -1873,7 +1873,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Takes over P1-046's mute part: preview audio, export audio mix honor track mute."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -12747,10 +12752,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-04",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-05",
+   "commit": "d8e830c",
    "branch": "main",
    "notes": [
     {
@@ -12760,6 +12765,10 @@
     {
      "date": "2026-11-04",
      "text": "blocked: hide is done (P1-060); mute needs an audio mix and export audio, which don't exist yet (P2-001 audio engine, P2-003 mute/volume both todo)"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "closed: hide shipped and reviewed in P1-060 (d8e830c, core/tests/layer.rs); mute moves to P2-003 (audio mute/volume), which needs the audio mix that doesn't exist yet."
     }
    ],
    "source": "added"
@@ -13111,11 +13120,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-05",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "p1-055-release-textures",
    "notes": [
     {
      "date": "2026-10-20",
