@@ -129,7 +129,11 @@ fn a_top_that_covers_the_canvas_hides_the_rest() {
     let (mut tl, t) = timeline(2);
     place(&mut tl, t[0], PHOTO, 0, 100);
     place(&mut tl, t[1], FOUR_THREE, 0, 100);
-    assert_eq!(shown(&tl, 10), [PHOTO, FOUR_THREE], "4:3 on 16:9 leaves bars");
+    assert_eq!(
+        shown(&tl, 10),
+        [PHOTO, FOUR_THREE],
+        "4:3 on 16:9 leaves bars"
+    );
 }
 
 #[test]

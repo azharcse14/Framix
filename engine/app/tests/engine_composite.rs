@@ -105,7 +105,7 @@ fn pip() -> (Engine, Draws, Pip) {
         }),
     ));
     // Import appends to the first track: move media 1 up to a track of its own.
-    let second = t.tracks[0].clips[1].clone();
+    let second = t.tracks[0].clips[1];
     let t = changed(run(
         &mut engine,
         command::Kind::AddTrack(AddTrack {
