@@ -15,4 +15,15 @@ pub trait ProjectStore: Send {
         let _ = dir;
         Err(std::io::ErrorKind::Unsupported.into())
     }
+    /// The backups [`ProjectStore::save`] keeps for `path`, newest first (they may not exist).
+    fn backups(&self, path: &Path) -> Vec<PathBuf> {
+        let _ = path;
+        Vec::new()
+    }
+    /// Moves the file at `path` aside (replacing an earlier one set aside), so a new save
+    /// can't overwrite or rotate it away.
+    fn set_aside(&self, path: &Path) -> std::io::Result<()> {
+        let _ = path;
+        Err(std::io::ErrorKind::Unsupported.into())
+    }
 }
