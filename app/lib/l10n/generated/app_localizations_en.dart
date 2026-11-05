@@ -110,6 +110,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loopClip => 'Loop clip';
 
   @override
+  String get clearLoop => 'Clear loop';
+
+  @override
   String get timelineRuler => 'Timeline';
 
   @override
