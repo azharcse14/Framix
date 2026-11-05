@@ -69,6 +69,14 @@ const fn space(matrix: YcbcrMatrix, range: YcbcrRange) -> YcbcrSpace {
     YcbcrSpace { matrix, range }
 }
 
+/// Whether a pass can sample `texture` as `format`.
+fn sampled(texture: &wgpu::Texture, format: wgpu::TextureFormat) -> bool {
+    texture.format() == format
+        && texture
+            .usage()
+            .contains(wgpu::TextureUsages::TEXTURE_BINDING)
+}
+
 /// Position of `space` in [`ALL_SPACES`].
 fn space_index(space: YcbcrSpace) -> usize {
     let matrix = match space.matrix {
@@ -323,7 +331,7 @@ impl Gpu {
         frame: &wgpu::Texture,
         placement: &Placement,
     ) -> Result<(), RenderError> {
-        if target.format() != PREVIEW_FORMAT || frame.format() != wgpu::TextureFormat::Rgba8Unorm {
+        if target.format() != PREVIEW_FORMAT || !sampled(frame, wgpu::TextureFormat::Rgba8Unorm) {
             return Err(RenderError::InvalidTexture);
         }
         let bind_group = self.rgba_bind_group(&self.blit, frame, placement);
@@ -456,9 +464,12 @@ impl Gpu {
         space: YcbcrSpace,
         placement: &Placement,
     ) -> Result<(), RenderError> {
+        // Chroma is half the luma, rounded up (4:2:0).
+        let half = |n: u32| n.div_ceil(2);
         if target.format() != PREVIEW_FORMAT
-            || y.format() != wgpu::TextureFormat::R8Unorm
-            || cbcr.format() != wgpu::TextureFormat::Rg8Unorm
+            || !sampled(y, wgpu::TextureFormat::R8Unorm)
+            || !sampled(cbcr, wgpu::TextureFormat::Rg8Unorm)
+            || (cbcr.width(), cbcr.height()) != (half(y.width()), half(y.height()))
         {
             return Err(RenderError::InvalidTexture);
         }
@@ -505,6 +516,13 @@ impl Gpu {
         pipeline: Option<&wgpu::RenderPipeline>,
         bind_group: Option<&wgpu::BindGroup>,
     ) -> Result<(), RenderError> {
+        // Format is the caller's check: an Android window may not be PREVIEW_FORMAT.
+        if !target
+            .usage()
+            .contains(wgpu::TextureUsages::RENDER_ATTACHMENT)
+        {
+            return Err(RenderError::InvalidTexture);
+        }
         let view = target.create_view(&Default::default());
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
