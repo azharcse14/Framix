@@ -60,6 +60,10 @@ pub fn target_to_canvas(canvas: AspectRatio, width: u32, height: u32) -> Affine 
 /// The size of `media`'s picture on the canvas, placed by `transform` (crop, turns, fit, scale),
 /// as fractions of the canvas width and height. Centred at the transform's offset.
 pub fn picture_size(media: &Media, transform: &ClipTransform, canvas: AspectRatio) -> (f32, f32) {
+    // A color fills the canvas (render's draw_color), whatever its 1x1 picture says.
+    if media.kind() == crate::media::MediaKind::Color {
+        return (1.0, 1.0);
+    }
     let f = Fitted::new(media, transform, canvas);
     (
         (f.shown_w * f.size / f.canvas_w) as f32,

@@ -5306,8 +5306,9 @@ class Clip extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   void clearPlacementLocked() => $_clearField(19);
 
-  /// The picture's frame on the canvas after crop, turns, fit and scale, as fractions of the
-  /// canvas width and height; it is centred at (x, y). The canvas outline draws this box.
+  /// The picture's frame on the canvas after crop, turns, fit and scale, centred at (x, y); a
+  /// color fills the canvas. The canvas outline draws this box.
+  /// Frame width as a fraction of the canvas width.
   @$pb.TagNumber(20)
   $core.double get frameWidth => $_getN(19);
   @$pb.TagNumber(20)
@@ -5317,6 +5318,7 @@ class Clip extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   void clearFrameWidth() => $_clearField(20);
 
+  /// Frame height as a fraction of the canvas height.
   @$pb.TagNumber(21)
   $core.double get frameHeight => $_getN(20);
   @$pb.TagNumber(21)

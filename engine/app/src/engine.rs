@@ -1090,7 +1090,8 @@ impl Engine {
                         .clips()
                         .iter()
                         .enumerate()
-                        .map(|(i, c)| proto::Clip {
+                        .map(|(i, c)| (i, c, frame(c)))
+                        .map(|(i, c, (frame_width, frame_height))| proto::Clip {
                             id: c.id.0,
                             media_id: c.media.0,
                             source_start: c.source_start.0,
@@ -1116,8 +1117,8 @@ impl Engine {
                             mergeable_with_next: t.mergeable_with_next(i),
                             // A locked track refuses every edit (SetClipTransform included).
                             placement_locked: t.flags().locked || !timeline.placeable(c.media),
-                            frame_width: frame(c).0,
-                            frame_height: frame(c).1,
+                            frame_width,
+                            frame_height,
                         })
                         .collect(),
                     number: *count,
