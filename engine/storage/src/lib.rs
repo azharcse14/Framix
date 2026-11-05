@@ -67,6 +67,8 @@ impl ProjectStore for FileStore {
     }
 
     /// Renames the file to `<file>.broken`, over an earlier one.
+    // ponytail: one slot; a second damaged file replaces the first. Keep numbered slots if a
+    // validator change could ever refuse good files.
     fn set_aside(&self, path: &Path) -> io::Result<()> {
         fs::rename(path, sibling(path, ".broken"))?;
         sync_parent(path)
@@ -92,14 +94,15 @@ fn backup(path: &Path, n: usize) -> PathBuf {
 
 /// Shifts `.bak1`.. up by one (dropping the oldest) and makes `.bak1` the current file.
 fn rotate_backups(path: &Path) -> io::Result<()> {
+    // No current file (new, or set aside): nothing to keep, so the backups stay as they are.
+    if !path.exists() {
+        return Ok(());
+    }
     for n in (1..BACKUPS).rev() {
         match fs::rename(backup(path, n), backup(path, n + 1)) {
             Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
             _ => {}
         }
-    }
-    if !path.exists() {
-        return Ok(());
     }
     let newest = backup(path, 1);
     match fs::remove_file(&newest) {

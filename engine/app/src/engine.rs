@@ -1004,18 +1004,23 @@ impl Engine {
         let store = self.store()?;
         let (timeline, from_backup) =
             store::load_or_backup(store, &file).map_err(|e| e.to_string())?;
-        if from_backup {
-            // Best effort: if it stays, the next autosave only rotates it into the backups.
+        let saved = if from_backup {
+            // Best effort: if it stays, the write-back rotates it into .bak1 and the good copy
+            // is still the file and .bak2.
             let _ = store.set_aside(&file);
-        }
-        self.history = History::new(timeline.clone());
-        self.autosave_to(Some(file), timeline);
+            write_back(store, &file, &timeline)
+        } else {
+            timeline.clone()
+        };
+        self.history = History::new(timeline);
+        self.autosave_to(Some(file), saved);
         self.start_project();
         Ok(())
     }
 
-    /// Recovers the project at `path` if there is one, then autosaves there. A file that
-    /// exists but doesn't load or decode is refused and autosave stays off, so it is kept.
+    /// Recovers the project at `path` if there is one, then autosaves there. A damaged file is
+    /// set aside and its newest good backup recovered (written back at once); a file from a
+    /// newer app, one the OS won't read, or one that can't be set aside is refused and kept.
     fn enable_autosave(&mut self, path: &str) -> Result<(), String> {
         if self.library.is_some() {
             return Err("autosave is per project in the library".into());
@@ -1044,16 +1049,17 @@ impl Engine {
         if let Some((_, true)) = &recovered {
             set_aside(store, &path, &"broken autosave file")?;
         }
-        // A project recovered from a backup is written back to the file soon.
-        self.autosaved = match &recovered {
+        let saved = match &recovered {
             Some((timeline, false)) => timeline.clone(),
-            _ => Timeline::default(),
+            Some((timeline, true)) => write_back(store, &path, timeline),
+            // New work: the first autosave writes it.
+            None => Timeline::default(),
         };
         if let Some((timeline, _)) = recovered {
             self.history = History::new(timeline);
             self.start_project();
         }
-        self.autosave = Some(path);
+        self.autosave_to(Some(path), saved);
         Ok(())
     }
 
@@ -1353,4 +1359,18 @@ fn set_aside(
     store
         .set_aside(path)
         .map_err(|e| format!("{why}; could not set it aside: {}", e.kind()))
+}
+
+/// Writes a project recovered from a backup back to `path` at once, so a crash or Home never
+/// finds the file missing. Returns what autosave should treat as saved: the project, or an
+/// empty one when the write failed, so the next autosave retries and reports it.
+fn write_back(store: &dyn ProjectStore, path: &Path, timeline: &Timeline) -> Timeline {
+    let written = project::encode_for_save(timeline)
+        .ok()
+        .is_some_and(|bytes| store.save(path, &bytes).is_ok());
+    if written {
+        timeline.clone()
+    } else {
+        Timeline::default()
+    }
 }
