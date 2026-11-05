@@ -10,7 +10,7 @@ use framix_core::timeline::{
 
 fn media(kind: MediaKind, width: u32, height: u32, rotation: u32) -> Media {
     Media::validate(RawMedia {
-        uri: "media/m".into(),
+        uri: "media/m.mp4".into(),
         kind,
         duration_value: if kind == MediaKind::Video { 100_000 } else { 0 },
         duration_timescale: if kind == MediaKind::Video { 1000 } else { 0 },
