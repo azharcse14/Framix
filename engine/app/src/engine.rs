@@ -57,6 +57,9 @@ pub struct Engine {
     /// (Seek, StepFrame). The playhead is the anchor plus the clock's time since, so steps
     /// never add up rounding or late ticks.
     playing: Option<(Time, Time)>,
+    /// The range SetLoop set, as given (start < end); [`Engine::live_loop`] keeps it to the
+    /// timeline.
+    loop_range: Option<(Time, Time)>,
 }
 
 /// Where the preview comes from: the platform's texture and the GPU that draws into it.
@@ -426,6 +429,14 @@ impl Engine {
                 .0
                 .saturating_add(now.0.saturating_sub(clock_at.0).max(0)),
         );
+        if let Some((start, stop)) = self.live_loop(end).filter(|&(_, stop)| time >= stop) {
+            // Past the loop's end: on from its start by the overshoot, anchored there again so
+            // laps never add up rounding.
+            let at = Time(start.0 + (time.0 - stop.0) % (stop.0 - start.0));
+            self.move_playhead(at);
+            self.playing = Some((now, at));
+            return Some(self.playhead_changed(false));
+        }
         self.move_playhead(time);
         if time < end {
             self.playing = Some((clock_at, playhead_at));
@@ -448,8 +459,22 @@ impl Engine {
         if self.playhead >= end {
             self.move_playhead(Time(0));
         }
+        if let Some((start, stop)) = self.live_loop(end)
+            && !(start..stop).contains(&self.playhead)
+        {
+            self.move_playhead(start);
+        }
         self.playing = Some((now, self.playhead));
         Ok(())
+    }
+
+    /// The loop kept to the timeline (start at least 0, at most `end`, the timeline's end);
+    /// None when that leaves nothing.
+    fn live_loop(&self, end: Time) -> Option<(Time, Time)> {
+        let (start, stop) = self.loop_range?;
+        let start = Time(start.0.max(0));
+        let stop = Time(stop.0.min(end.0));
+        (start < stop).then_some((start, stop))
     }
 
     /// Stops playback where the clock is now.
@@ -885,6 +910,10 @@ impl Engine {
                 Ok(Reply::Playhead(false))
             }
             command::Kind::Play(_) => self.play().map(|()| Reply::Playhead(false)),
+            command::Kind::SetLoop(op) => {
+                self.loop_range = (op.end > op.start).then_some((Time(op.start), Time(op.end)));
+                Ok(Reply::Timeline)
+            }
             command::Kind::Pause(_) => {
                 self.pause();
                 Ok(Reply::Playhead(false))
@@ -917,6 +946,7 @@ impl Engine {
         self.project = self.project.wrapping_add(1);
         self.forget_thumbnails();
         self.playing = None;
+        self.loop_range = None;
         self.playhead = Time(0);
         self.redraw();
     }
@@ -1167,6 +1197,8 @@ impl Engine {
                 // `reply` sets it for the answer to a snapping edit.
                 snapped: false,
                 playing: self.is_playing(),
+                loop_start: self.loop_range.map_or(0, |(start, _)| start.0),
+                loop_end: self.loop_range.map_or(0, |(_, end)| end.0),
             })),
         }
     }

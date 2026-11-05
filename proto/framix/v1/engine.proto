@@ -46,6 +46,7 @@ message Command {
     ListProjects list_projects = 37;
     Play play = 38;
     Pause pause = 39;
+    SetLoop set_loop = 40;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -398,6 +399,15 @@ message Play {}
 // Stops playback where the clock is now. Answered with PlayheadChanged (playing false).
 message Pause {}
 
+// Plays [start, end) over and over: Play starts at `start` unless the playhead is inside, and
+// reaching `end` goes on from `start`. end <= start clears the loop. The range is kept to the
+// timeline when used; it is session state (not saved, not undone) and NewProject/OpenProject
+// clear it. Answered with TimelineChanged.
+message SetLoop {
+  int64 start = 1;
+  int64 end = 2;
+}
+
 // Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws
 // the preview there. Not an undo step. Answered with PlayheadChanged.
 message Seek {
@@ -513,6 +523,9 @@ message TimelineChanged {
   bool snapped = 13;
   // Playback is running (Play); false after NewProject and OpenProject.
   bool playing = 14;
+  // The loop SetLoop set, in ticks, as given; both 0 = no loop.
+  int64 loop_start = 15;
+  int64 loop_end = 16;
 }
 
 // A track and its clips, sorted by start.

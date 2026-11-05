@@ -60,6 +60,7 @@ enum Command_Kind {
   listProjects,
   play,
   pause,
+  setLoop,
   notSet
 }
 
@@ -105,6 +106,7 @@ class Command extends $pb.GeneratedMessage {
     ListProjects? listProjects,
     Play? play,
     Pause? pause,
+    SetLoop? setLoop,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -147,6 +149,7 @@ class Command extends $pb.GeneratedMessage {
     if (listProjects != null) result.listProjects = listProjects;
     if (play != null) result.play = play;
     if (pause != null) result.pause = pause;
+    if (setLoop != null) result.setLoop = setLoop;
     return result;
   }
 
@@ -198,6 +201,7 @@ class Command extends $pb.GeneratedMessage {
     37: Command_Kind.listProjects,
     38: Command_Kind.play,
     39: Command_Kind.pause,
+    40: Command_Kind.setLoop,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -242,7 +246,8 @@ class Command extends $pb.GeneratedMessage {
       36,
       37,
       38,
-      39
+      39,
+      40
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -323,6 +328,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Play.$_createMessage)
     ..aOM<Pause>(39, _omitFieldNames ? '' : 'pause',
         subBuilder: Pause.$_createMessage)
+    ..aOM<SetLoop>(40, _omitFieldNames ? '' : 'setLoop',
+        subBuilder: SetLoop.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -383,6 +390,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(37)
   @$pb.TagNumber(38)
   @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -422,6 +430,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(37)
   @$pb.TagNumber(38)
   @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -851,6 +860,17 @@ class Command extends $pb.GeneratedMessage {
   void clearPause() => $_clearField(39);
   @$pb.TagNumber(39)
   Pause ensurePause() => $_ensure(38);
+
+  @$pb.TagNumber(40)
+  SetLoop get setLoop => $_getN(39);
+  @$pb.TagNumber(40)
+  set setLoop(SetLoop value) => $_setField(40, value);
+  @$pb.TagNumber(40)
+  $core.bool hasSetLoop() => $_has(39);
+  @$pb.TagNumber(40)
+  void clearSetLoop() => $_clearField(40);
+  @$pb.TagNumber(40)
+  SetLoop ensureSetLoop() => $_ensure(39);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -3710,6 +3730,77 @@ class Pause extends $pb.GeneratedMessage {
   static Pause? _defaultInstance;
 }
 
+/// Plays [start, end) over and over: Play starts at `start` unless the playhead is inside, and
+/// reaching `end` goes on from `start`. end <= start clears the loop. The range is kept to the
+/// timeline when used; it is session state (not saved, not undone) and NewProject/OpenProject
+/// clear it. Answered with TimelineChanged.
+class SetLoop extends $pb.GeneratedMessage {
+  factory SetLoop({
+    $fixnum.Int64? start,
+    $fixnum.Int64? end,
+  }) {
+    final result = SetLoop._();
+    if (start != null) result.start = start;
+    if (end != null) result.end = end;
+    return result;
+  }
+
+  SetLoop._();
+
+  factory SetLoop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetLoop()..mergeFromBuffer(data, registry);
+  factory SetLoop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      SetLoop()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetLoop',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: SetLoop.$_createMessage)
+    ..aInt64(1, _omitFieldNames ? '' : 'start')
+    ..aInt64(2, _omitFieldNames ? '' : 'end')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetLoop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetLoop copyWith(void Function(SetLoop) updates) =>
+      super.copyWith((message) => updates(message as SetLoop)) as SetLoop;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use SetLoop() / SetLoop.new instead')
+  static SetLoop create() => SetLoop._();
+  static $pb.GeneratedMessage $_createMessage() => SetLoop._();
+  @$core.override
+  SetLoop createEmptyInstance() => SetLoop._();
+  @$core.pragma('dart2js:noInline')
+  static SetLoop getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SetLoop>(SetLoop.$_createMessage);
+  static SetLoop? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get start => $_getI64(0);
+  @$pb.TagNumber(1)
+  set start($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasStart() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStart() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get end => $_getI64(1);
+  @$pb.TagNumber(2)
+  set end($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEnd() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEnd() => $_clearField(2);
+}
+
 /// Moves the playhead to `time` (snapped, then clamped to [0, timeline duration]) and redraws
 /// the preview there. Not an undo step. Answered with PlayheadChanged.
 class Seek extends $pb.GeneratedMessage {
@@ -4683,6 +4774,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $fixnum.Int64? project,
     $core.bool? snapped,
     $core.bool? playing,
+    $fixnum.Int64? loopStart,
+    $fixnum.Int64? loopEnd,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -4699,6 +4792,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (project != null) result.project = project;
     if (snapped != null) result.snapped = snapped;
     if (playing != null) result.playing = playing;
+    if (loopStart != null) result.loopStart = loopStart;
+    if (loopEnd != null) result.loopEnd = loopEnd;
     return result;
   }
 
@@ -4737,6 +4832,8 @@ class TimelineChanged extends $pb.GeneratedMessage {
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOB(13, _omitFieldNames ? '' : 'snapped')
     ..aOB(14, _omitFieldNames ? '' : 'playing')
+    ..aInt64(15, _omitFieldNames ? '' : 'loopStart')
+    ..aInt64(16, _omitFieldNames ? '' : 'loopEnd')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4892,6 +4989,25 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasPlaying() => $_has(13);
   @$pb.TagNumber(14)
   void clearPlaying() => $_clearField(14);
+
+  /// The loop SetLoop set, in ticks, as given; both 0 = no loop.
+  @$pb.TagNumber(15)
+  $fixnum.Int64 get loopStart => $_getI64(14);
+  @$pb.TagNumber(15)
+  set loopStart($fixnum.Int64 value) => $_setInt64(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasLoopStart() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearLoopStart() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $fixnum.Int64 get loopEnd => $_getI64(15);
+  @$pb.TagNumber(16)
+  set loopEnd($fixnum.Int64 value) => $_setInt64(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasLoopEnd() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearLoopEnd() => $_clearField(16);
 }
 
 /// A track and its clips, sorted by start.

@@ -1438,12 +1438,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "bcf54cf",
+   "branch": "p1-027-loop",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Also adds Dart UI: the Loop button in the clip actions (row now scrolls sideways on narrow phones)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -7958,6 +7963,10 @@
     {
      "date": "2026-11-05",
      "text": "Engine playback exists now (P1-061): pause it (Pause command) when the app goes to the background; leaving the editor already pauses (TimelinePage PopScope)."
+    },
+    {
+     "date": "2026-11-05",
+     "text": "P1-027: a loop (SetLoop) makes playback never end by itself; background playback must stop or pause on its own."
     }
    ],
    "source": "plan"
@@ -14608,6 +14617,26 @@
      "text": "The work is Native (app/ios/Runner/FrameDecoder.swift); the Rust tag is only for the Decoder port contract, which should not change."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-099",
+   "section": "P1",
+   "group": null,
+   "title": "Show the loop on the ruler with a clear control; a loop left on an edited/deleted clip is invisible",
+   "tags": [
+    "Dart",
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

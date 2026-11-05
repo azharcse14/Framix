@@ -384,9 +384,13 @@ class _ClipActions extends StatelessWidget {
     final end = clip.start + clip.duration;
     // The neighbour that starts where this clip ends, if any.
     final next = track.clips.where((c) => c.start == end).firstOrNull;
-    return Padding(
+    // Playback repeats exactly this clip.
+    final looping = timeline.loopStart == clip.start && timeline.loopEnd == end;
+    // One row that scrolls sideways on a narrow phone, so its height never changes.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
-      child: Wrap(
+      child: Row(
         children: [
           IconButton(
             tooltip: l10n.splitClip,
@@ -404,6 +408,14 @@ class _ClipActions extends StatelessWidget {
             tooltip: l10n.trimEndToPlayhead,
             icon: const Icon(Icons.last_page),
             onPressed: () => cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_END),
+          ),
+          IconButton(
+            tooltip: l10n.loopClip,
+            icon: const Icon(Icons.repeat),
+            selectedIcon: const Icon(Icons.repeat_on),
+            isSelected: looping,
+            onPressed: () =>
+                looping ? cubit.clearLoop() : cubit.setLoop(clip.start, end),
           ),
           IconButton(
             tooltip: l10n.replaceClip,

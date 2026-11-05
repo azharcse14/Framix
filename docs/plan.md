@@ -395,7 +395,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
 - [x] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
 - [x] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
-- [ ] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
+- [x] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
 - [x] `P1-028` **1b:** Photo clip er default duration ar shob photo te ekshathe duration set \[Rust\]
 
 **Clip transform**
@@ -476,6 +476,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-096` iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting \[Native\]
 - [x] `P1-097` Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls) \[Dart\]
 - [ ] `P1-098` iOS FrameDecoder keeps a reader and photo per media (small LRU) so PIP with two videos or two photos doesn't reopen the reader or re-decode every frame (P1-071 follow-up) \[Rust\]
+- [ ] `P1-099` Show the loop on the ruler with a clear control; a loop left on an edited/deleted clip is invisible \[Dart\] \[Rust\]
 
 ## Phase 2: Audio
 

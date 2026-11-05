@@ -107,6 +107,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pause => 'Pause';
 
   @override
+  String get loopClip => 'Loop clip';
+
+  @override
   String get timelineRuler => 'Timeline';
 
   @override

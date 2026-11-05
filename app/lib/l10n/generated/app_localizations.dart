@@ -260,6 +260,12 @@ abstract class AppLocalizations {
   /// **'Pause'**
   String get pause;
 
+  /// No description provided for @loopClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop clip'**
+  String get loopClip;
+
   /// No description provided for @timelineRuler.
   ///
   /// In en, this message translates to:

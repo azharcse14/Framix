@@ -47,7 +47,7 @@
 /**
  * Version of the command/event contract (proto/framix/v1/engine.proto).
  */
-#define ENGINE_PROTOCOL_VERSION 42
+#define ENGINE_PROTOCOL_VERSION 43
 
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.

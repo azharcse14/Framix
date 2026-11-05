@@ -106,6 +106,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get pause => 'বিরতি দিন';
 
   @override
+  String get loopClip => 'ক্লিপ বারবার চালান';
+
+  @override
   String get timelineRuler => 'টাইমলাইন';
 
   @override
