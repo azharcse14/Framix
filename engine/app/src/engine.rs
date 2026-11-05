@@ -1077,6 +1077,12 @@ impl Engine {
                     timeline::TrackKind::Audio => (TrackKind::Audio, &mut audios),
                 };
                 *count += 1;
+                // The picture's frame on the canvas; nothing for a clip without its media.
+                let frame = |c: &timeline::Clip| {
+                    timeline.media(c.media).map_or((0.0, 0.0), |m| {
+                        framix_core::placement::picture_size(m, &c.transform, timeline.aspect())
+                    })
+                };
                 proto::Track {
                     id: t.id().0,
                     kind: kind as i32,
@@ -1110,8 +1116,8 @@ impl Engine {
                             mergeable_with_next: t.mergeable_with_next(i),
                             // A locked track refuses every edit (SetClipTransform included).
                             placement_locked: t.flags().locked || !timeline.placeable(c.media),
-                            frame_width: 0.0,
-                            frame_height: 0.0,
+                            frame_width: frame(c).0,
+                            frame_height: frame(c).1,
                         })
                         .collect(),
                     number: *count,
