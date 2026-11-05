@@ -84,3 +84,17 @@ fn a_file_set_aside_survives_later_saves() {
             .is_err_and(|e| e.kind() == std::io::ErrorKind::NotFound)
     );
 }
+
+#[test]
+fn a_save_with_no_current_file_keeps_the_backups() {
+    let dir = temp_dir("aside-save");
+    let path = dir.join("p.framix");
+    for bytes in [b"B", b"A", b"X"] {
+        FileStore.save(&path, bytes).unwrap();
+    }
+    // Main is X (say broken), .bak1 = A, .bak2 = B; set X aside and write A back.
+    FileStore.set_aside(&path).unwrap();
+    FileStore.save(&path, b"A").unwrap();
+    assert_eq!(fs::read(dir.join("p.framix.bak1")).unwrap(), b"A");
+    assert_eq!(fs::read(dir.join("p.framix.bak2")).unwrap(), b"B");
+}
