@@ -31,6 +31,7 @@
   "nextFrame": "Next frame",
   "play": "Play",
   "pause": "Pause",
+  "loopClip": "Loop clip",
   "timelineRuler": "Timeline",
   "canvasPlaceClip": "Move and resize the clip on the canvas",
   "export": "Export",
