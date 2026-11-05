@@ -1171,7 +1171,62 @@ fn draw_into(
 
 #[cfg(test)]
 mod tests {
-    use super::{ALL_SPACES, space_index};
+    use super::{ALL_SPACES, Placement, shown_pixels, space_index};
+    use framix_core::placement::Affine;
+
+    /// The canvas fills the target; the source is `source` (target UV -> source UV).
+    fn on_canvas(source: [f32; 6]) -> Placement {
+        Placement {
+            canvas: Affine::IDENTITY,
+            source: Affine { m: source },
+        }
+    }
+
+    #[test]
+    fn a_centred_half_picture_covers_the_middle_pixels() {
+        // Source u = 2u - 0.5: shown for target u in 0.25..=0.75.
+        let p = on_canvas([2.0, 0.0, -0.5, 0.0, 2.0, -0.5]);
+        assert_eq!(shown_pixels(&p, 16, 8), Some((4, 2, 8, 4)));
+    }
+
+    #[test]
+    fn flips_and_quarter_turns_keep_the_same_pixels() {
+        let flipped = on_canvas([-2.0, 0.0, 1.5, 0.0, -2.0, 1.5]);
+        assert_eq!(shown_pixels(&flipped, 16, 8), Some((4, 2, 8, 4)));
+        // A quarter turn: source u follows target v and source v follows target u.
+        let turned = on_canvas([0.0, 2.0, -0.5, -2.0, 0.0, 1.5]);
+        assert_eq!(shown_pixels(&turned, 16, 8), Some((4, 2, 8, 4)));
+    }
+
+    #[test]
+    fn the_canvas_limits_the_pixels_too() {
+        // A 2:1 canvas in the middle half of a square target's height; the picture fills it.
+        let canvas = Affine {
+            m: [1.0, 0.0, 0.0, 0.0, 2.0, -0.5],
+        };
+        let p = Placement {
+            canvas,
+            source: canvas,
+        };
+        assert_eq!(shown_pixels(&p, 8, 8), Some((0, 2, 8, 4)));
+    }
+
+    #[test]
+    fn a_picture_off_the_target_shows_nothing() {
+        let right_of_it = on_canvas([2.0, 0.0, -3.0, 0.0, 1.0, 0.0]);
+        assert_eq!(shown_pixels(&right_of_it, 16, 8), None);
+        let constant_outside = on_canvas([0.0, 0.0, 2.0, 0.0, 1.0, 0.0]);
+        assert_eq!(shown_pixels(&constant_outside, 16, 8), None);
+    }
+
+    #[test]
+    fn a_pixel_centre_on_the_edge_is_left_to_the_layer_under_it() {
+        // Edges at u = 0.25 and 0.75 of a 2-pixel row: exactly on both pixel centres. The CPU
+        // and the shader may round such a pixel apart; leaving it out shows the layer under it
+        // rather than the shader's black.
+        let p = on_canvas([2.0, 0.0, -0.5, 0.0, 1.0, 0.0]);
+        assert_eq!(shown_pixels(&p, 2, 4), None);
+    }
 
     #[test]
     fn every_space_indexes_its_own_uniform() {
