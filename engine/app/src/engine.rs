@@ -67,8 +67,8 @@ struct Preview {
     pending: u32,
     /// The texture last shown, redrawn when the playhead moves.
     shown: Option<PlatformTexture>,
-    /// The picture last drawn into it (None: an empty canvas).
-    drawn: Option<LayerKey>,
+    /// The pictures last drawn into it, bottom to top (empty: an empty canvas).
+    drawn: Vec<LayerKey>,
     /// The shown texture needs a redraw at the playhead ([`Engine::flush_preview`]).
     stale: bool,
     /// The texture a redraw lost on the GPU, until [`Engine::flush_preview`] reports it.
@@ -110,7 +110,7 @@ impl Engine {
                 renderer,
                 pending: 0,
                 shown: None,
-                drawn: None,
+                drawn: Vec::new(),
                 stale: false,
                 lost: None,
             }),
@@ -303,13 +303,14 @@ impl Engine {
             .ok_or("no preview was requested")?;
         preview.pending -= 1;
         let texture = texture?;
-        let layer = proxied(
-            self.history.timeline().layer_at(self.playhead),
+        let layers = preview_layers(
+            self.history.timeline(),
+            self.playhead,
             self.proxies.as_ref(),
         );
         match preview
             .renderer
-            .draw(texture, self.playhead, layer.as_ref())
+            .draw(texture, self.playhead, &mut layers.clone())
         {
             // A frame that can't be decoded shows black; the preview itself works.
             Ok(()) | Err(DrawError::Decode(_)) => {}
@@ -318,7 +319,7 @@ impl Engine {
         preview.host.frame_available(texture.id);
         // Only a preview that drew once is redrawn later.
         preview.shown = Some(texture);
-        preview.drawn = layer.map(|l| l.key());
+        remember(&mut preview.drawn, layers);
         preview.stale = false;
         Ok(texture.id)
     }
@@ -342,17 +343,18 @@ impl Engine {
         let Some(texture) = preview.shown else {
             return;
         };
-        let layer = proxied(
-            self.history.timeline().layer_at(self.playhead),
+        let layers = preview_layers(
+            self.history.timeline(),
+            self.playhead,
             self.proxies.as_ref(),
         );
         match preview
             .renderer
-            .draw(texture, self.playhead, layer.as_ref())
+            .draw(texture, self.playhead, &mut layers.clone())
         {
             Ok(()) | Err(DrawError::Decode(_)) => {
                 preview.host.frame_available(texture.id);
-                preview.drawn = layer.map(|l| l.key());
+                remember(&mut preview.drawn, layers);
             }
             Err(DrawError::Gpu(_)) => {
                 preview.shown = None;
@@ -378,12 +380,13 @@ impl Engine {
         let Some(preview) = self.preview.as_ref() else {
             return;
         };
-        let now = proxied(
-            self.history.timeline().layer_at(self.playhead),
+        let now = preview_layers(
+            self.history.timeline(),
+            self.playhead,
             self.proxies.as_ref(),
         )
         .map(|l| l.key());
-        if preview.shown.is_some() && now != preview.drawn {
+        if preview.shown.is_some() && !now.eq(preview.drawn.iter().copied()) {
             self.redraw();
         }
     }
@@ -1197,15 +1200,22 @@ fn snap_tolerance(within: i64) -> Result<Time, String> {
     Ok(Time(within.min(MAX_SNAP.0)))
 }
 
-/// `layer` as the preview draws it: from the media's proxy once that is ready.
-fn proxied<'a>(
-    layer: Option<Layer<'a>>,
-    proxies: Option<&crate::proxy::Proxies>,
-) -> Option<Layer<'a>> {
-    layer.map(|l| Layer {
+/// The layers at the playhead as the preview draws them: each from its proxy once that is ready.
+fn preview_layers<'a>(
+    timeline: &'a Timeline,
+    playhead: Time,
+    proxies: Option<&'a crate::proxy::Proxies>,
+) -> impl Iterator<Item = Layer<'a>> + Clone {
+    timeline.layers_at(playhead).map(move |l| Layer {
         proxy_side: proxies.and_then(|p| p.side(l.media_id)),
         ..l
     })
+}
+
+/// Records what a draw showed, reusing the list's memory.
+fn remember<'a>(drawn: &mut Vec<LayerKey>, layers: impl Iterator<Item = Layer<'a>>) {
+    drawn.clear();
+    drawn.extend(layers.map(|l| l.key()));
 }
 
 /// What a successful command reports.

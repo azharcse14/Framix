@@ -74,8 +74,10 @@ impl PreviewRenderer for Renderer {
         &mut self,
         _: PlatformTexture,
         _: Time,
-        layer: Option<&Layer>,
+        layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
+        let top = layers.last();
+        let layer = top.as_ref();
         let mut draws = self.draws.lock().unwrap();
         draws.push(layer.map(|l| (l.key(), l.media.uri().to_owned())));
         if self.undecodable.contains(&draws.len()) {
@@ -213,8 +215,10 @@ impl PreviewRenderer for ExportRenderer {
         &mut self,
         _: PlatformTexture,
         _: Time,
-        layer: Option<&Layer>,
+        layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
+        let top = layers.last();
+        let layer = top.as_ref();
         self.seen.0.lock().unwrap().push(layer.map(|l| l.media_id));
         if self.fail {
             return Err(DrawError::Decode("unreadable".into()));

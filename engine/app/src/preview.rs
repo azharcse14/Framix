@@ -36,13 +36,13 @@ pub enum DrawError {
 
 /// The GPU side of the preview (and of export: one render path).
 pub trait PreviewRenderer: Send {
-    /// Draws `layer`, the picture at `time` (none: an empty canvas), into `target` and returns
-    /// once the GPU is done with it.
+    /// Draws `layers`, the pictures at `time` bottom to top (none: an empty canvas), into
+    /// `target` and returns once the GPU is done with it.
     fn draw(
         &mut self,
         target: PlatformTexture,
         time: Time,
-        layer: Option<&Layer>,
+        layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError>;
 }
 

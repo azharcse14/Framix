@@ -86,8 +86,10 @@ impl PreviewRenderer for FakeRenderer {
         &mut self,
         target: PlatformTexture,
         time: Time,
-        _: Option<&Layer>,
+        layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
+        let top = layers.last();
+        let _ = top.as_ref();
         self.log.push(Call::Draw(target.id, time));
         self.draws += 1;
         if self.fail_at == Some(self.draws) {

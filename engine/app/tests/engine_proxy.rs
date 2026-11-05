@@ -56,8 +56,10 @@ impl PreviewRenderer for Renderer {
         &mut self,
         _: PlatformTexture,
         _: Time,
-        layer: Option<&Layer>,
+        layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
+        let top = layers.last();
+        let layer = top.as_ref();
         let seen = layer.map(|l| (l.media.uri().to_owned(), l.proxy_side));
         self.0.lock().unwrap().push(seen);
         Ok(())

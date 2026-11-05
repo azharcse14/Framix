@@ -57,7 +57,12 @@ impl EncoderHost for Host {
 
 struct Draw;
 impl PreviewRenderer for Draw {
-    fn draw(&mut self, _: PlatformTexture, _: Time, _: Option<&Layer>) -> Result<(), DrawError> {
+    fn draw(
+        &mut self,
+        _: PlatformTexture,
+        _: Time,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
+    ) -> Result<(), DrawError> {
         Ok(())
     }
 }

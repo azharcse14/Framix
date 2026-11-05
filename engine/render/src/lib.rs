@@ -348,7 +348,7 @@ impl Gpu {
         if target.format() != PREVIEW_FORMAT {
             return Err(RenderError::InvalidTexture);
         }
-        self.draw(target, Some(&self.pipeline), None)
+        self.draw(target, Some(&self.pipeline), None, None)
     }
 
     /// Draws an RGBA8 frame (a photo, or a decoder frame already converted to RGB, e.g. the
@@ -360,11 +360,27 @@ impl Gpu {
         frame: &wgpu::Texture,
         placement: &Placement,
     ) -> Result<(), RenderError> {
+        self.rgba(target, frame, placement, true)
+    }
+
+    /// [`Gpu::draw_rgba`]; `clear` false draws over what `target` holds (an upper layer).
+    fn rgba(
+        &self,
+        target: &wgpu::Texture,
+        frame: &wgpu::Texture,
+        placement: &Placement,
+        clear: bool,
+    ) -> Result<(), RenderError> {
         if target.format() != PREVIEW_FORMAT || !sampled(frame, wgpu::TextureFormat::Rgba8Unorm) {
             return Err(RenderError::InvalidTexture);
         }
         let bind_group = self.rgba_bind_group(&self.blit, frame, placement);
-        self.draw(target, Some(&self.blit), Some(&bind_group))
+        self.draw(
+            target,
+            Some(&self.blit),
+            Some(&bind_group),
+            (!clear).then_some(placement),
+        )
     }
 
     /// Fills the canvas part of `target` (`canvas` maps target UV to canvas UV) with `rgba`
@@ -375,13 +391,24 @@ impl Gpu {
         rgba: u32,
         canvas: Affine,
     ) -> Result<(), RenderError> {
+        self.color(target, rgba, canvas, true)
+    }
+
+    /// [`Gpu::draw_color`]; `clear` false draws over what `target` holds (an upper layer).
+    fn color(
+        &self,
+        target: &wgpu::Texture,
+        rgba: u32,
+        canvas: Affine,
+        clear: bool,
+    ) -> Result<(), RenderError> {
         let pixel = self.color_pixel(rgba);
         // Canvas UV is the pixel's UV, so the color covers the canvas exactly.
         let placement = Placement {
             canvas,
             source: canvas,
         };
-        self.draw_rgba(target, &pixel, &placement)
+        self.rgba(target, &pixel, &placement, clear)
     }
 
     /// The shared 1x1 RGBA8 texture, set to `rgba` (0xRRGGBBAA); held until the draw is done.
@@ -409,7 +436,7 @@ impl Gpu {
         if target.format() != PREVIEW_FORMAT {
             return Err(RenderError::InvalidTexture);
         }
-        self.draw(target, None, None)
+        self.draw(target, None, None, None)
     }
 
     /// A uniform buffer holding `placement`.
@@ -495,6 +522,19 @@ impl Gpu {
         space: YcbcrSpace,
         placement: &Placement,
     ) -> Result<(), RenderError> {
+        self.nv12(target, y, cbcr, space, placement, true)
+    }
+
+    /// [`Gpu::draw_nv12`]; `clear` false draws over what `target` holds (an upper layer).
+    fn nv12(
+        &self,
+        target: &wgpu::Texture,
+        y: &wgpu::Texture,
+        cbcr: &wgpu::Texture,
+        space: YcbcrSpace,
+        placement: &Placement,
+        clear: bool,
+    ) -> Result<(), RenderError> {
         // Chroma is half the luma, rounded up (4:2:0).
         let half = |n: u32| n.div_ceil(2);
         if target.format() != PREVIEW_FORMAT
@@ -509,6 +549,7 @@ impl Gpu {
         // luma columns: half a luma pixel right of where centre-sited sampling looks.
         // ponytail: always left-sited; read the stream's chroma location when a source needs
         // another.
+        let over = placement;
         let placement = self.placement_buffer(placement, 0.5 / y.width() as f32);
         // A bind group per frame: each decoder frame is a new wrapped texture. Caching needs
         // textures kept per IOSurface, which comes with the render thread (P1-053).
@@ -542,15 +583,23 @@ impl Gpu {
                 },
             ],
         });
-        self.draw(target, Some(&pass.pipeline), Some(&bind_group))
+        self.draw(
+            target,
+            Some(&pass.pipeline),
+            Some(&bind_group),
+            (!clear).then_some(over),
+        )
     }
 
-    /// One fullscreen draw of `pipeline` over black; without one, just the black.
+    /// One fullscreen draw of `pipeline` over black; without a pipeline, just the black. With
+    /// `over`, an upper layer: draws over what `target` holds, only on the pixels that show
+    /// that placement's picture (the shaders paint black around it).
     fn draw(
         &self,
         target: &wgpu::Texture,
         pipeline: Option<&wgpu::RenderPipeline>,
         bind_group: Option<&wgpu::BindGroup>,
+        over: Option<&Placement>,
     ) -> Result<(), RenderError> {
         // Format is the caller's check: an Android window may not be PREVIEW_FORMAT.
         if !single_2d(target)
@@ -560,6 +609,14 @@ impl Gpu {
         {
             return Err(RenderError::InvalidTexture);
         }
+        let scissor = match over {
+            Some(placement) => match shown_pixels(placement, target.width(), target.height()) {
+                Some(rect) => Some(rect),
+                // Nothing of the picture is on the target.
+                None => return Ok(()),
+            },
+            None => None,
+        };
         let view = target.create_view(&Default::default());
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
@@ -570,12 +627,18 @@ impl Gpu {
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        load: match over {
+                            None => wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                            Some(_) => wgpu::LoadOp::Load,
+                        },
                         store: wgpu::StoreOp::Store,
                     },
                 })],
                 ..Default::default()
             });
+            if let Some((x, y, width, height)) = scissor {
+                pass.set_scissor_rect(x, y, width, height);
+            }
             if let Some(pipeline) = pipeline {
                 pass.set_pipeline(pipeline);
                 pass.set_bind_group(0, bind_group, &[]);
@@ -641,11 +704,12 @@ impl Gpu {
                 let pipeline =
                     fullscreen_pipeline(&self.device, "rgba frame", BLIT_WGSL, config.format);
                 let bind_group = self.rgba_bind_group(&pipeline, source, placement);
-                self.draw(&frame.texture, Some(&pipeline), Some(&bind_group))?;
+                self.draw(&frame.texture, Some(&pipeline), Some(&bind_group), None)?;
             }
             None => self.draw(
                 &frame.texture,
                 Some(&test_pattern_pipeline(&self.device, config.format)),
+                None,
                 None,
             )?,
         }
@@ -835,6 +899,43 @@ impl Gpu {
     }
 }
 
+/// The pixels of a `width` x `height` target whose centres show `placement`'s picture (canvas
+/// and source UV both in 0..1, as the shaders test), as a scissor rect `(x, y, w, h)`; None when
+/// none do. Both maps are axis-aligned (quarter turns only), so the pixels form one rectangle.
+fn shown_pixels(placement: &Placement, width: u32, height: u32) -> Option<(u32, u32, u32, u32)> {
+    // Target UV ranges each map row keeps in 0..1: (u range, v range).
+    let mut u = (0.0f32, 1.0f32);
+    let mut v = (0.0f32, 1.0f32);
+    for map in [placement.canvas, placement.source] {
+        for [a, b, c] in [
+            [map.m[0], map.m[1], map.m[2]],
+            [map.m[3], map.m[4], map.m[5]],
+        ] {
+            let (range, k) = match (a != 0.0, b != 0.0) {
+                (true, false) => (&mut u, a),
+                (false, true) => (&mut v, b),
+                // A constant row: all or nothing.
+                (false, false) if (0.0..=1.0).contains(&c) => continue,
+                (false, false) => return None,
+                // ponytail: a sheared or freely rotated map has no rectangle; nothing makes
+                // one today. Draw the whole target then (black around the picture).
+                (true, true) => return Some((0, 0, width, height)),
+            };
+            let (lo, hi) = ((0.0 - c) / k, (1.0 - c) / k);
+            *range = (range.0.max(lo.min(hi)), range.1.min(lo.max(hi)));
+        }
+    }
+    // Pixel i's centre is (i + 0.5) / n.
+    let pixels = |(lo, hi): (f32, f32), n: u32| {
+        let first = (lo * n as f32 - 0.5).ceil().max(0.0);
+        let last = (hi * n as f32 - 0.5).floor().min(n as f32 - 1.0);
+        (first <= last).then(|| (first as u32, (last - first) as u32 + 1))
+    };
+    let (x, w) = pixels(u, width)?;
+    let (y, h) = pixels(v, height)?;
+    Some((x, y, w, h))
+}
+
 /// The fullscreen test-pattern pipeline for render targets of `format`.
 fn test_pattern_pipeline(
     device: &wgpu::Device,
@@ -909,7 +1010,7 @@ impl PreviewRenderer for GpuRenderer {
         &mut self,
         target: PlatformTexture,
         _time: framix_core::time::Time,
-        layer: Option<&Layer>,
+        layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
         let gpu = match self.gpu {
             Some(gpu) => gpu,
@@ -917,7 +1018,7 @@ impl PreviewRenderer for GpuRenderer {
                 .gpu
                 .insert(Gpu::shared().map_err(|e| DrawError::Gpu(e.to_string()))?),
         };
-        let drawn = draw_into(gpu, target, &mut self.decoder, layer);
+        let drawn = draw_into(gpu, target, &mut self.decoder, layers);
         #[cfg(target_os = "android")]
         if let Err(e) = &drawn {
             android::log(&format!("preview draw: {e}"));
@@ -926,85 +1027,114 @@ impl PreviewRenderer for GpuRenderer {
     }
 }
 
+/// Draws `layers` bottom to top: the first one drawn clears the target, later ones draw over
+/// it. Each layer is drawn and waited on before the next decode, since a decoder frame lives
+/// only until the decoder's next call. A layer that can't be decoded is left out (reported as
+/// Decode once all are drawn); the layers under and over it still show.
+// ponytail: one submit and wait per layer; a single submit needs frames that outlive the next
+// decode (render thread, P1-053).
 #[cfg(target_vendor = "apple")]
 fn draw_into(
     gpu: &Gpu,
     target: PlatformTexture,
     decoder: &mut Option<Box<dyn Decoder>>,
-    layer: Option<&Layer>,
+    layers: &mut dyn Iterator<Item = Layer<'_>>,
 ) -> Result<(), DrawError> {
-    use framix_app::preview::Frame;
-    use framix_core::media::MediaKind;
-    use framix_core::placement::{canvas_to_source, target_to_canvas};
     let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     // SAFETY: GpuRenderer::new's contract: the handle is a live id<MTLTexture> the platform
     // reported as made.
     let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut std::ffi::c_void) }
         .map_err(gpu_err)?;
-    if let Some(layer) = layer.filter(|l| l.media.kind() == MediaKind::Color) {
-        let canvas = target_to_canvas(layer.canvas, texture.width(), texture.height());
-        return gpu
-            .draw_color(&texture, layer.media.color(), canvas)
-            .map_err(gpu_err);
+    let mut cleared = false;
+    let mut undecoded = None;
+    for layer in layers {
+        match draw_layer(gpu, &texture, decoder, &layer, !cleared) {
+            Ok(drew) => cleared |= drew,
+            Err(DrawError::Decode(reason)) => {
+                undecoded.get_or_insert(reason);
+            }
+            Err(gpu_failed) => return Err(gpu_failed),
+        }
     }
-    let (Some(decoder), Some(layer)) = (decoder.as_mut(), layer) else {
-        return gpu.draw_black(&texture).map_err(gpu_err);
-    };
-    let frame = match decoder.frame(layer.media, layer.source_time, layer.proxy_side) {
-        Ok(frame) => frame,
-        Err(reason) => {
-            gpu.draw_black(&texture).map_err(gpu_err)?;
-            return Err(DrawError::Decode(reason));
-        }
-    };
+    if !cleared {
+        gpu.draw_black(&texture).map_err(gpu_err)?;
+    }
+    undecoded.map_or(Ok(()), |reason| Err(DrawError::Decode(reason)))
+}
+
+/// Draws one layer into `texture` (over black when `clear`); `Ok(false)` when nothing was drawn
+/// (no decoder).
+#[cfg(target_vendor = "apple")]
+fn draw_layer(
+    gpu: &Gpu,
+    texture: &wgpu::Texture,
+    decoder: &mut Option<Box<dyn Decoder>>,
+    layer: &Layer,
+    clear: bool,
+) -> Result<bool, DrawError> {
+    use framix_app::preview::Frame;
+    use framix_core::media::MediaKind;
+    use framix_core::placement::{canvas_to_source, target_to_canvas};
     let canvas = target_to_canvas(layer.canvas, texture.width(), texture.height());
-    let placement = Placement {
-        canvas,
-        source: canvas.then(&canvas_to_source(
-            layer.media,
-            &layer.transform,
-            layer.canvas,
-        )),
-    };
-    let drawn = match frame {
-        Frame::Nv12 { y, cbcr, space } => {
-            // SAFETY: GpuRenderer::new's contract: the decoder's planes are live R8/RG8
-            // textures on this device until its next call, which comes after this draw.
-            let (y, cbcr) = unsafe {
-                (
-                    gpu.wrap_metal_plane(y as *mut std::ffi::c_void),
-                    gpu.wrap_metal_plane(cbcr as *mut std::ffi::c_void),
-                )
-            };
-            y.and_then(|y| cbcr.map(|cbcr| (y, cbcr)))
-                .and_then(|(y, cbcr)| gpu.draw_nv12(&texture, &y, &cbcr, space, &placement))
-        }
-        Frame::Rgba { texture: picture } => {
-            // SAFETY: as above, for the decoder's RGBA8 texture.
-            unsafe { gpu.wrap_metal_plane(picture as *mut std::ffi::c_void) }
-                .and_then(|picture| gpu.draw_rgba(&texture, &picture, &placement))
+    let drawn = if layer.media.kind() == MediaKind::Color {
+        gpu.color(texture, layer.media.color(), canvas, clear)
+    } else {
+        let Some(decoder) = decoder.as_mut() else {
+            return Ok(false);
+        };
+        let frame = decoder
+            .frame(layer.media, layer.source_time, layer.proxy_side)
+            .map_err(DrawError::Decode)?;
+        let placement = Placement {
+            canvas,
+            source: canvas.then(&canvas_to_source(
+                layer.media,
+                &layer.transform,
+                layer.canvas,
+            )),
+        };
+        match frame {
+            Frame::Nv12 { y, cbcr, space } => {
+                // SAFETY: GpuRenderer::new's contract: the decoder's planes are live R8/RG8
+                // textures on this device until its next call, which comes after this draw.
+                let (y, cbcr) = unsafe {
+                    (
+                        gpu.wrap_metal_plane(y as *mut std::ffi::c_void),
+                        gpu.wrap_metal_plane(cbcr as *mut std::ffi::c_void),
+                    )
+                };
+                y.and_then(|y| cbcr.map(|cbcr| (y, cbcr)))
+                    .and_then(|(y, cbcr)| gpu.nv12(texture, &y, &cbcr, space, &placement, clear))
+            }
+            Frame::Rgba { texture: picture } => {
+                // SAFETY: as above, for the decoder's RGBA8 texture.
+                unsafe { gpu.wrap_metal_plane(picture as *mut std::ffi::c_void) }
+                    .and_then(|picture| gpu.rgba(texture, &picture, &placement, clear))
+            }
         }
     };
     match drawn {
-        // The target was checked above, so an unusable texture is the frame's: it shows black.
+        Ok(()) => Ok(true),
+        // The target was checked when wrapped, so an unusable texture is the frame's.
         Err(RenderError::InvalidTexture) => {
-            gpu.draw_black(&texture).map_err(gpu_err)?;
             Err(DrawError::Decode(RenderError::InvalidTexture.to_string()))
         }
-        other => other.map_err(gpu_err),
+        Err(e) => Err(DrawError::Gpu(e.to_string())),
     }
 }
 
-// ponytail: Android keeps the test pattern for media until its decoder lands (the Android
-// Decoder task); color clips need no decoder and are filled already.
+// ponytail: Android draws only the top layer, and the test pattern for media, until its decoder
+// lands (P1-070, which also composites all layers into one surface frame); colors need no
+// decoder and are filled already.
 #[cfg(target_os = "android")]
 fn draw_into(
     gpu: &Gpu,
     target: PlatformTexture,
     _decoder: &mut Option<Box<dyn Decoder>>,
-    layer: Option<&Layer>,
+    layers: &mut dyn Iterator<Item = Layer<'_>>,
 ) -> Result<(), DrawError> {
     use framix_core::media::MediaKind;
+    let layer = layers.last();
     use framix_core::placement::target_to_canvas;
     let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
@@ -1032,7 +1162,7 @@ fn draw_into(
     _: &Gpu,
     _: PlatformTexture,
     _: &mut Option<Box<dyn Decoder>>,
-    _: Option<&Layer>,
+    _: &mut dyn Iterator<Item = Layer<'_>>,
 ) -> Result<(), DrawError> {
     Err(DrawError::Gpu(
         "no platform texture support on this OS yet".to_owned(),

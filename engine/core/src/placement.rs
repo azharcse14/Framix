@@ -71,6 +71,24 @@ pub fn picture_size(media: &Media, transform: &ClipTransform, canvas: AspectRati
     )
 }
 
+/// Whether the clip's picture covers the whole canvas, so nothing under it shows. A color always
+/// does. Every layer is opaque today; opacity and blend modes (P3-011, P3-012) must revisit this.
+pub fn covers_canvas(media: &Media, transform: &ClipTransform, canvas: AspectRatio) -> bool {
+    if media.kind() == crate::media::MediaKind::Color {
+        return true;
+    }
+    let f = Fitted::new(media, transform, canvas);
+    // Half the frame and its centre, as fractions of the canvas; a same-shape picture at fit
+    // must count, so allow rounding.
+    const SLACK: f64 = 1e-6;
+    let reaches = |half: f64, offset: i32| {
+        let centre = 0.5 + f64::from(offset) / OFFSET_UNIT;
+        centre - half <= SLACK && centre + half >= 1.0 - SLACK
+    };
+    reaches(f.shown_w * f.size / f.canvas_w / 2.0, transform.x)
+        && reaches(f.shown_h * f.size / f.canvas_h / 2.0, transform.y)
+}
+
 /// The picture after crop and turns, fitted to the canvas and scaled: one home for the sizes
 /// both the frame ([`picture_size`]) and the sampling map ([`canvas_to_source`]) use.
 struct Fitted {

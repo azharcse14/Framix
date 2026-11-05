@@ -25,7 +25,12 @@ impl PreviewHost for Host {
 struct Dead;
 
 impl PreviewRenderer for Dead {
-    fn draw(&mut self, _: PlatformTexture, _: Time, _: Option<&Layer>) -> Result<(), DrawError> {
+    fn draw(
+        &mut self,
+        _: PlatformTexture,
+        _: Time,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
+    ) -> Result<(), DrawError> {
         Err(DrawError::Gpu("device lost".into()))
     }
 }
@@ -136,7 +141,12 @@ fn a_new_project_starts_at_zero() {
 struct DiesAfterFirst(std::sync::Arc<std::sync::atomic::AtomicU32>);
 
 impl PreviewRenderer for DiesAfterFirst {
-    fn draw(&mut self, _: PlatformTexture, _: Time, _: Option<&Layer>) -> Result<(), DrawError> {
+    fn draw(
+        &mut self,
+        _: PlatformTexture,
+        _: Time,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
+    ) -> Result<(), DrawError> {
         let n = self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         if n == 0 {
             Ok(())

@@ -136,9 +136,8 @@ pub fn run_export_with(
             .frame_to_time(i64::from(n))
             .ok_or_else(|| ExportError::Failed("frame time out of range".into()))?;
         let target = encoder.frame(time).map_err(ExportError::Failed)?;
-        let layer = timeline.layer_at(time);
         renderer
-            .draw(target, time, layer.as_ref())
+            .draw(target, time, &mut timeline.layers_at(time))
             .map_err(|e| ExportError::Failed(e.to_string()))?;
         let done = n + 1;
         let now = u64::from(done) * 100 / u64::from(frames);
