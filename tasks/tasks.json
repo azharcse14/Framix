@@ -14162,12 +14162,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "e441d06",
+   "branch": "p1-086-drag-polish",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Review APPROVE (re-review 4c9be3d), nit 2 fixed (moved latch). Open nits: the drawn clip lags a second-finger scroll until the next move; on a narrow-clip drag the original stays visible beside the ghost; no test removes a clip mid-drag (keys untested)."
+    }
+   ],
    "source": "added"
   },
   {

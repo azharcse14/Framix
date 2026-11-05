@@ -463,7 +463,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-083` Turning automatic bitrate off keeps the engine's current effective bitrate (engine-side), not the sheet's last-seen value, so 4K then auto-off before the reply doesn't pin 1080p's bitrate (P1-082 review) \[Rust\] \[Dart\]
 - [ ] `P1-084` Retire TrimClip (no app caller since SnapTrim, P1-074): keep it only behind the frozen engine_clip_ops.rs test or reserve it once that test moves to SnapTrim \[Rust\]
 - [x] `P1-085` A trim edge that snaps gives the same haptic tick as a snapping scrub (SnapTrim reply says it snapped; P1-074 review) \[Rust\] \[Dart\]
-- [ ] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
+- [x] `P1-086` Clip drag UI polish (split from P1-076): auto-scroll the timeline while a dragged clip is near the viewport edge; draw the dragged clip above other lanes \[Dart\]
 - [ ] `P1-087` Retire MoveClip (no app caller since SnapMove, P1-076): keep it only behind the frozen engine_move_clip.rs test or reserve it once that test moves to SnapMove \[Rust\]
 - [ ] `P1-088` Device check: a release build with a scratch SENTRY_DSN delivers one Dart error event to Sentry on iOS and Android, with paths scrubbed (P1-041) \[—\]
 - [x] `P1-089` Home screen: Projects list (New project, open, duration and edit time) on an engine project library with autosave per project (docs/plans/P1-089-home.md) \[Dart\] \[Rust\] \[Native\]
