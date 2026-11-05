@@ -231,7 +231,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [x] `TC-011` Pin Flutter with FVM in the repo (.fvmrc 3.47.7): pubspec needs Dart 3.13.5 but fvm falls back to the machine's global SDK \[Dart\]
 - [x] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
 - [x] `TC-013` native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist \[Native\] \[Dart\]
-- [ ] `TC-014` Upgrade sentry_flutter/sentry to 10.2.0+ (jni 1.1.0) once 14 days old (2026-11-05) and drop the jni Groovy allowlist line in scripts/native_warnings.sh \[Dart\] \[Native\]
+- [x] `TC-014` Upgrade sentry_flutter/sentry to 10.2.0+ (jni 1.1.0) once 14 days old (2026-11-05) and drop the jni Groovy allowlist line in scripts/native_warnings.sh \[Dart\] \[Native\]
 
 ## AI diye code lekha (Claude Code)
 
