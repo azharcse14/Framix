@@ -7,7 +7,7 @@ use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2_metal::{
     MTLCreateSystemDefaultDevice, MTLDevice, MTLOrigin, MTLPixelFormat, MTLRegion, MTLSize,
-    MTLStorageMode, MTLTexture, MTLTextureDescriptor, MTLTextureUsage,
+    MTLStorageMode, MTLTexture, MTLTextureDescriptor, MTLTextureType, MTLTextureUsage,
 };
 
 const W: u32 = 64;
@@ -98,6 +98,46 @@ fn rejects_null_wrong_format_and_non_render_target() {
                 gpu.wrap_metal_texture(Retained::as_ptr(t).cast_mut().cast())
                     .is_err()
             );
+        }
+    }
+}
+
+#[test]
+fn rejects_mipmapped_and_array_textures() {
+    let gpu = Gpu::new().expect("gpu");
+    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
+    let make = |format: MTLPixelFormat, mipmapped: bool, array: bool| {
+        // SAFETY: plain descriptor setup on a fresh object.
+        unsafe {
+            let desc =
+                MTLTextureDescriptor::texture2DDescriptorWithPixelFormat_width_height_mipmapped(
+                    format, W as usize, H as usize, mipmapped,
+                );
+            if array {
+                desc.setTextureType(MTLTextureType::Type2DArray);
+                desc.setArrayLength(2);
+            }
+            desc.setUsage(MTLTextureUsage::RenderTarget | MTLTextureUsage::ShaderRead);
+            device.newTextureWithDescriptor(&desc).expect("texture")
+        }
+    };
+    // Formats each wrap takes, so only the mips or the array make it refuse.
+    for (format, plane) in [
+        (MTLPixelFormat::BGRA8Unorm, false),
+        (MTLPixelFormat::RGBA8Unorm, true),
+    ] {
+        for (mipmapped, array) in [(true, false), (false, true)] {
+            let t = make(format, mipmapped, array);
+            let ptr = Retained::as_ptr(&t).cast_mut().cast();
+            // SAFETY: `t` is a live id<MTLTexture>.
+            let wrapped = unsafe {
+                if plane {
+                    gpu.wrap_metal_plane(ptr).is_ok()
+                } else {
+                    gpu.wrap_metal_texture(ptr).is_ok()
+                }
+            };
+            assert!(!wrapped, "{format:?} mipmapped {mipmapped} array {array}");
         }
     }
 }
