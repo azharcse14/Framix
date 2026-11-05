@@ -125,7 +125,11 @@ void main() {
     await tester.pump();
     await moveTo(tester, 5);
     // The user drags the lanes; the playhead goes on without them.
-    await tester.fling(find.byType(ClipBox), const Offset(-200, 0), 1000);
+    await tester.flingFrom(
+      tester.getTopLeft(find.byType(ClipBox)) + const Offset(20, 20),
+      const Offset(-200, 0),
+      1000,
+    );
     await tester.pumpAndSettle();
     await moveTo(tester, 100);
     expect(inView(tester), isFalse, reason: 'the user scrolled away');
