@@ -752,7 +752,8 @@ class _TrimHandleState extends State<_TrimHandle> {
 }
 
 /// A clip that is tapped to select it, or long-pressed and dragged to move it: it follows the
-/// finger and reports the offset once on release.
+/// finger over every lane (drawn in the overlay), scrolls the timeline while held near the
+/// view's left or right edge, and reports the offset (scrolling included) once on release.
 // ponytail: like the trim handles it springs back on release and the clip lands on the
 // engine's reply; a refused move springs back and shows the generic failure message.
 class _MovableClip extends StatefulWidget {
@@ -770,25 +771,109 @@ class _MovableClip extends StatefulWidget {
   State<_MovableClip> createState() => _MovableClipState();
 }
 
-class _MovableClipState extends State<_MovableClip> {
+class _MovableClipState extends State<_MovableClip>
+    with SingleTickerProviderStateMixin {
+  /// How near (dp) the view's edge the finger scrolls the timeline, and how far per frame.
+  static const _edge = 48.0;
+  static const _step = 12.0;
+
+  final _overlay = OverlayPortalController();
+  final _link = LayerLink();
+  late final _ticker = createTicker((_) => _scrollAtEdge());
+
+  /// The finger's offset from where the press began, and its x on screen.
   Offset _by = Offset.zero;
+  double _fingerX = 0;
+
+  /// The timeline's scroll position and how far it moved since the press began.
+  ScrollableState? _lanes;
+  double _scrolled = 0;
+  Size _size = Size.zero;
+
+  /// Where the clip is drawn and what a release reports: the finger plus the scroll.
+  Offset get _offset => _by + Offset(_scrolled, 0);
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final dragging = _overlay.isShowing;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: widget.onTap,
-      onLongPressMoveUpdate: (d) => setState(() => _by = d.offsetFromOrigin),
-      onLongPressEnd: (_) => _release(),
-      onLongPressCancel: () => setState(() => _by = Offset.zero),
-      child: Transform.translate(offset: _by, child: widget.child),
+      onLongPressStart: (d) => _lift(d.globalPosition.dx),
+      onLongPressMoveUpdate: (d) => setState(() {
+        _by = d.offsetFromOrigin;
+        _fingerX = d.globalPosition.dx;
+      }),
+      onLongPressEnd: (_) => _drop(report: true),
+      onLongPressCancel: () => _drop(report: false),
+      child: OverlayPortal(
+        controller: _overlay,
+        overlayChildBuilder: (_) => Align(
+          alignment: Alignment.topLeft,
+          child: CompositedTransformFollower(
+            link: _link,
+            offset: _offset,
+            showWhenUnlinked: false,
+            child: SizedBox.fromSize(size: _size, child: widget.child),
+          ),
+        ),
+        child: CompositedTransformTarget(
+          link: _link,
+          // Its place stays empty while the overlay draws it at the finger.
+          child: dragging ? SizedBox.fromSize(size: _size) : widget.child,
+        ),
+      ),
     );
   }
 
-  void _release() {
-    final by = _by;
-    setState(() => _by = Offset.zero);
-    if (by != Offset.zero) widget.onMove(by);
+  void _lift(double fingerX) {
+    _lanes = Scrollable.maybeOf(context, axis: Axis.horizontal);
+    _size = context.size ?? Size.zero;
+    _fingerX = fingerX;
+    _scrolled = 0;
+    _overlay.show();
+    _ticker.start();
+    setState(() {});
+  }
+
+  /// Scrolls the timeline a step while the finger is within [_edge] of the view's edge.
+  void _scrollAtEdge() {
+    final lanes = _lanes;
+    final box = lanes?.context.findRenderObject();
+    if (lanes == null || box is! RenderBox || !box.hasSize) return;
+    final left = box.localToGlobal(Offset.zero).dx;
+    final right = left + box.size.width;
+    final step = _fingerX > right - _edge
+        ? _step
+        : _fingerX < left + _edge
+        ? -_step
+        : 0.0;
+    if (step == 0) return;
+    final position = lanes.position;
+    final to = (position.pixels + step).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    if (to == position.pixels) return;
+    setState(() => _scrolled += to - position.pixels);
+    position.jumpTo(to);
+  }
+
+  void _drop({required bool report}) {
+    final by = _offset;
+    _ticker.stop();
+    _overlay.hide();
+    setState(() {
+      _by = Offset.zero;
+      _scrolled = 0;
+    });
+    if (report && by != Offset.zero) widget.onMove(by);
   }
 }
 
