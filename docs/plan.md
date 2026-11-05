@@ -435,7 +435,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-055` Unregister preview textures (iOS FlutterTextureRegistry, Android SurfaceProducer) when the preview goes away; release only after the engine stops drawing into them (P1-005 review) \[Native\] \[Rust\]
 - [x] `P1-056` Android half of P1-002: MediaCodec opaque YCbCr AHardwareBuffer to wgpu with no CPU copy; wgpu 30 Vulkan has no YCbCr sampler/external texture, so Rust imports the AHB as a VkImage (ash 0.38 direct dep, approved) and a VkSamplerYcbcrConversion pass converts to an RGBA wgpu texture (one GPU copy); verify on the Pixel_8 emulator with tests/media/color_quadrants_h264_320x240_1s.mp4 \[Native\] \[Rust\]
 - [x] `P1-057` Remove the P1-002 decode spike (engine_spike_draw_nv12, SpikeDecode in PlatformCallbacks.swift, FRAMIX_SPIKE_CLIP) once the Decoder port delivers frames; pass raw CV matrix/range tags to the engine instead of choosing 601/709 in Swift \[Native\] \[Rust\]
-- [ ] `P1-058` NV12 pass follow-ups: pool bind groups/views per frame, criterion bench for draw_nv12, check plane sizes and texture usages (InvalidTexture, not a wgpu panic), tests for texture type/mip/device checks and a no-copy test (rewrite IOSurface, redraw), chroma siting (H.264 left-sited) before goldens \[Rust\]
+- [x] `P1-058` NV12 pass follow-ups: pool bind groups/views per frame, criterion bench for draw_nv12, check plane sizes and texture usages (InvalidTexture, not a wgpu panic), tests for texture type/mip/device checks and a no-copy test (rewrite IOSurface, redraw), chroma siting (H.264 left-sited) before goldens \[Rust\]
 - [ ] `P1-059` FFmpeg (rsmpeg) fallback: minimal FFmpeg build for iOS/Android, probe and demux for formats the platform cannot read; also the Rust reader P1-012's fd path feeds (after LEG-003 license and SYS-024 size checks) \[Rust\] \[C++\]
 - [x] `P1-060` Preview shows the decoded frame at the playhead (needs the Decoder port); redraw after edits that change what is under the playhead even when it did not move (P1-020 redraws only on playhead moves) \[Rust\]
 - [ ] `P1-061` Playback: play/pause advances the playhead in the engine with throttled (~30/s) PlayheadChanged events (docs/architecture.md) \[Rust\] \[Dart\]
@@ -473,6 +473,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-093` Release or reuse the platform preview texture on PreviewLost (IOSurface / SurfaceProducer leak per loss) \[Native\] \[Rust\]
 - [x] `P1-094` Investigate the commandFailed snack bar at editor start in tests (no platform registered) and whether it shows on device \[Dart\]
 - [x] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
+- [ ] `P1-096` iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting \[Native\]
 
 ## Phase 2: Audio
 

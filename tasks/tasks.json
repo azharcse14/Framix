@@ -12979,6 +12979,10 @@
     {
      "date": "2026-11-04",
      "text": "the FRAMIX_SPIKE_CLIP hook is gone (P1-057): check the real-iPhone NV12 path by importing a clip in the app (Decoder port)"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "From P1-058: also check an odd-size H.264 (e.g. 853x480) previews with correct colour edges: chroma planes must be ceil(w/2) x ceil(h/2) or the frame draws black."
     }
    ],
    "source": "added"
@@ -13049,6 +13053,10 @@
     {
      "date": "2026-11-04",
      "text": "first slice merged (dac5b18): Seek coalescing + PreviewLost, protocol 40. Still open: render thread, GPU sync (MTLSharedEvent / fences), iOS double buffering, one Android wgpu surface, decode off the engine thread. Device check: scrub redraws the frame; forced GPU loss yields PreviewLost (serve-loop flush is untested on host)."
+    },
+    {
+     "date": "2026-11-05",
+     "text": "From P1-058: pool the placement uniform, bind groups and views on the render thread (no lock needed there); needs a texture cache per IOSurface since each decoder frame is newly wrapped today."
     }
    ],
    "source": "added"
@@ -13199,15 +13207,23 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "c57a7e7",
+   "branch": "p1-058-nv12-followups",
    "notes": [
     {
      "date": "2026-10-24",
      "text": "P1-060: placement uniform buffer is created per draw (render/src/lib.rs placement_buffer); pool it with the bind groups"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "slice 1 merged-ready: plane size (chroma = luma div_ceil 2), usage, single-2D (layers/mips/samples) checks -> InvalidTexture (tests/frame_checks.rs). Device check open: an odd-size H.264 (e.g. 853x480) decodes with chroma planes of ceil(w/2) x ceil(h/2) on iOS; a floored plane would now draw black. Still open: pooling (needs a lock or per-thread pool: Gpu is shared by preview and export), criterion bench, no-copy test, chroma siting."
+    },
+    {
+     "date": "2026-11-05",
+     "text": "Pooling not done, by decision: per-frame placement buffer/bind groups stay. Reusing one buffer showed no gain in benches/draw.rs (~288 us at 1080p, but each iteration includes the blocking GPU wait, so a few us of CPU are under the noise; measure encode+submit without the wait if this returns). Reuse needs a lock (preview and export share Gpu) and bind groups can't be cached while each decoder frame is a new wrapped texture; moved to P1-053. Device-mismatch check in wrap_metal untested (one Metal device on the host Mac). Odd-size check stays open in P1-051 (device check): chroma planes ceil(w/2) x ceil(h/2), and the 0.5/W siting shift is exact only for even W (odd W/H stretch, <=1 px at the right/bottom edge)."
     }
    ],
    "source": "added"
@@ -14477,6 +14493,25 @@
      "text": "review APPROVE (test 9b5c766, refactor f61f827); full check.sh green on main after f61f827. Suggestions left: icon.size is never null (?? 24 unused); import order in export/import buttons."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-096",
+   "section": "P1",
+   "group": null,
+   "title": "iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

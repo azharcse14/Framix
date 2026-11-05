@@ -128,11 +128,27 @@ impl Placement {
     };
 }
 
-/// The `Placement` uniform of shaders/common/placement.wgsl: two maps, two vec4 rows each.
-fn placement_uniform(placement: &Placement) -> [u8; 64] {
+/// The `Placement` uniform of shaders/common/placement.wgsl: two maps, two vec4 rows each;
+/// `chroma_shift` (source UV, NV12 only) rides in the source map's first unused w.
+fn placement_uniform(placement: &Placement, chroma_shift: f32) -> [u8; 64] {
     let (c, m) = (placement.canvas.m, placement.source.m);
     let rows = [
-        c[0], c[1], c[2], 0.0, c[3], c[4], c[5], 0.0, m[0], m[1], m[2], 0.0, m[3], m[4], m[5], 0.0,
+        c[0],
+        c[1],
+        c[2],
+        0.0,
+        c[3],
+        c[4],
+        c[5],
+        0.0,
+        m[0],
+        m[1],
+        m[2],
+        chroma_shift,
+        m[3],
+        m[4],
+        m[5],
+        0.0,
     ];
     let mut out = [0; 64];
     for (i, v) in rows.into_iter().enumerate() {
@@ -397,13 +413,14 @@ impl Gpu {
     }
 
     /// A uniform buffer holding `placement`.
-    fn placement_buffer(&self, placement: &Placement) -> wgpu::Buffer {
+    fn placement_buffer(&self, placement: &Placement, chroma_shift: f32) -> wgpu::Buffer {
         use wgpu::util::DeviceExt as _;
-        // ponytail: a buffer per frame, like the bind groups; pooled with them in P1-058.
+        // ponytail: a buffer per frame. Reusing one measured no gain (benches/draw.rs, 1080p
+        // ~288 us either way) and would need a lock: preview and export share this Gpu.
         self.device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("placement"),
-                contents: &placement_uniform(placement),
+                contents: &placement_uniform(placement, chroma_shift),
                 usage: wgpu::BufferUsages::UNIFORM,
             })
     }
@@ -415,8 +432,9 @@ impl Gpu {
         frame: &wgpu::Texture,
         placement: &Placement,
     ) -> wgpu::BindGroup {
-        let placement = self.placement_buffer(placement);
-        // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
+        let placement = self.placement_buffer(placement, 0.0);
+        // A bind group per frame: each decoder frame is a new wrapped texture. Caching needs
+        // textures kept per IOSurface, which comes with the render thread (P1-053).
         self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("rgba frame"),
             layout: &pipeline.get_bind_group_layout(0),
@@ -487,8 +505,13 @@ impl Gpu {
             return Err(RenderError::InvalidTexture);
         }
         let pass = &self.nv12;
-        let placement = self.placement_buffer(placement);
-        // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
+        // Left-sited chroma (H.264/HEVC default, chroma_sample_loc_type 0) sits on the even
+        // luma columns: half a luma pixel right of where centre-sited sampling looks.
+        // ponytail: always left-sited; read the stream's chroma location when a source needs
+        // another.
+        let placement = self.placement_buffer(placement, 0.5 / y.width() as f32);
+        // A bind group per frame: each decoder frame is a new wrapped texture. Caching needs
+        // textures kept per IOSurface, which comes with the render thread (P1-053).
         let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("nv12 frame"),
             layout: &pass.pipeline.get_bind_group_layout(0),

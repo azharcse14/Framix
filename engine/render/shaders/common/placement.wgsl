@@ -1,6 +1,7 @@
 // Where the picture lands (framix_core::placement): maps the target's uv to the canvas's uv
 // (the canvas is fitted in the target) and to the source's uv. The maps come from Rust, so
-// the placement rules live in one place. Each map is two rows of a 2x3 matrix; w unused.
+// the placement rules live in one place. Each map is two rows of a 2x3 matrix; w unused,
+// except source0.w: the NV12 chroma siting shift in source UV (0 elsewhere).
 struct Placement {
   canvas0: vec4<f32>,
   canvas1: vec4<f32>,

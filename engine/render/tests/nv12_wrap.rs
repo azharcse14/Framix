@@ -76,6 +76,13 @@ fn nv12_surface(format: i32, quadrants: &Quadrants) -> CFRetained<IOSurfaceRef> 
         ]);
         IOSurfaceRef::new(props.as_opaque()).expect("IOSurface")
     };
+    fill(&surface, quadrants);
+    surface
+}
+
+/// Writes `quadrants` into the surface's planes, as a decoder writing a new frame would.
+fn fill(surface: &IOSurfaceRef, quadrants: &Quadrants) {
+    let (cw, ch) = (W / 2, H / 2);
     let quadrant = |x: usize, y: usize, w: usize, h: usize| {
         quadrants[usize::from(y >= h / 2) * 2 + usize::from(x >= w / 2)]
     };
@@ -100,7 +107,6 @@ fn nv12_surface(format: i32, quadrants: &Quadrants) -> CFRetained<IOSurfaceRef> 
         }
         surface.unlock(IOSurfaceLockOptions::empty(), std::ptr::null_mut());
     }
-    surface
 }
 
 /// A Metal texture on one plane of `surface`, as the iOS app makes them from a CVPixelBuffer.
@@ -244,4 +250,36 @@ fn rejects_planes_of_the_wrong_format_or_usage() {
         gpu.draw_nv12(&out, &cbcr, &y, space, &Placement::FILL)
             .is_err()
     );
+}
+
+#[test]
+fn draws_what_the_surface_holds_now() {
+    // No copy: the wrapped planes are the IOSurface's memory, so rewriting the surface after
+    // wrapping changes what the next draw shows.
+    let gpu = Gpu::new().expect("gpu");
+    let gray = [[128, 128, 128]; 4];
+    let surface = nv12_surface(NV12_FULL, &gray);
+    let luma = plane_texture(&surface, 0, MTLPixelFormat::R8Unorm);
+    let chroma = plane_texture(&surface, 1, MTLPixelFormat::RG8Unorm);
+    let target = bgra_target(W, H);
+    // SAFETY: all three are live id<MTLTexture>s on the system default device.
+    let (y, cbcr, out) = unsafe {
+        (
+            gpu.wrap_metal_plane(ptr(&luma)).expect("wrap luma"),
+            gpu.wrap_metal_plane(ptr(&chroma)).expect("wrap chroma"),
+            gpu.wrap_metal_texture(ptr(&target)).expect("wrap target"),
+        )
+    };
+    let space = YcbcrSpace {
+        matrix: YcbcrMatrix::Bt601,
+        range: YcbcrRange::Full,
+    };
+    let draw = || {
+        gpu.draw_nv12(&out, &y, &cbcr, space, &Placement::FILL)
+            .expect("draw");
+        rgb(&target, W / 4, H / 4)
+    };
+    assert_close([draw(); 4], [[128, 128, 128]; 4]);
+    fill(&surface, &[[255, 128, 128]; 4]);
+    assert_close([draw(); 4], [[255, 255, 255]; 4]);
 }
