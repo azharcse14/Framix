@@ -131,3 +131,49 @@ fn rejects_an_rgba_frame_the_pass_cannot_sample() {
     );
     assert!(invalid(gpu.draw_rgba(&out, &rgba, &Placement::FILL)));
 }
+
+fn layered(
+    gpu: &Gpu,
+    format: wgpu::TextureFormat,
+    usage: wgpu::TextureUsages,
+    (layers, mips): (u32, u32),
+) -> wgpu::Texture {
+    gpu.device().create_texture(&wgpu::TextureDescriptor {
+        label: None,
+        size: wgpu::Extent3d {
+            width: 8,
+            height: 8,
+            depth_or_array_layers: layers,
+        },
+        mip_level_count: mips,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format,
+        usage,
+        view_formats: &[],
+    })
+}
+
+#[test]
+fn rejects_array_or_mipmapped_textures() {
+    let gpu = Gpu::new().expect("gpu");
+    let out = target(&gpu, RENDER);
+    let rgba = wgpu::TextureFormat::Rgba8Unorm;
+    let two_layers = layered(&gpu, rgba, SAMPLED, (2, 1));
+    assert!(invalid(gpu.draw_rgba(&out, &two_layers, &Placement::FILL)));
+    let frame = layered(&gpu, rgba, SAMPLED, (1, 1));
+    for shape in [(2, 1), (1, 2)] {
+        let out = layered(&gpu, wgpu::TextureFormat::Bgra8Unorm, RENDER, shape);
+        assert!(
+            invalid(gpu.draw_rgba(&out, &frame, &Placement::FILL)),
+            "target layers/mips {shape:?}"
+        );
+    }
+}
+
+#[test]
+fn the_test_pattern_rejects_a_target_of_another_format() {
+    let gpu = Gpu::new().expect("gpu");
+    let out = texture(&gpu, (8, 8), wgpu::TextureFormat::Rgba8Unorm, RENDER);
+    assert!(invalid(gpu.draw_test_pattern(&out)));
+}
