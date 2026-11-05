@@ -448,7 +448,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-068` GLES preview colours too dark (mid-gray ~0x33 vs 0x80; Vulkan correct): find the extra sRGB step in the GLES surface/blit path (ADR 0004, P1-004) \[Rust\]
 - [ ] `P1-069` Android export encoder: MediaCodec H.264 + MediaMuxer behind encoder_open/_frame/_finish, the codec's input Surface as the wgpu render target (ADR 0005; same surface path as the preview) \[Native\] \[Rust\]
 - [ ] `P1-070` Android Decoder port: MediaCodec frames for preview and export (decoder_open/frame/close, AHB import or GLES convert per P1-056) \[Rust\] \[Native\]
-- [ ] `P1-071` Composite several visible video tracks (PIP) in preview and export; today only the top layer is drawn \[Rust\]
+- [x] `P1-071` Composite several visible video tracks (PIP) in preview and export; today only the top layer is drawn \[Rust\]
 - [ ] `P1-072` Check the P1-060 iOS 17-25 decode path (LegacySource, copyNextSampleBuffer) on an iOS 17/18 simulator: scrub, flip, export; needs the runtime installed \[Native\]
 - [x] `P1-073` render: unused imports (Frame, canvas_to_source, target_to_canvas) fail clippy -D warnings for the Android target; check.sh only lints the host target \[Rust\]
 - [x] `P1-074` Trim handles snap like Seek: TrimClip gets snap_within and the engine snaps edges with Timeline::snap (proto bump) \[Dart\]
@@ -475,6 +475,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-095` Home: show progress on New project / a card while the engine saves and loads (taps are ignored meanwhile) \[Dart\]
 - [ ] `P1-096` iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting \[Native\]
 - [ ] `P1-097` Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls) \[Dart\]
+- [ ] `P1-098` iOS FrameDecoder keeps a reader and photo per media (small LRU) so PIP with two videos or two photos doesn't reopen the reader or re-decode every frame (P1-071 follow-up) \[Rust\]
 
 ## Phase 2: Audio
 

@@ -13704,6 +13704,10 @@
     {
      "date": "2026-11-04",
      "text": "remove the P1-056 spike when the Android decoder lands: SpikeDecode.kt, EnginePlatform.kt spikeDecode + nativeRenderFrame, engine/ffi/src/spike_preview.rs + its cbindgen exclude; reuse the Kotlin OES->RGBA pass; keep import_android_frame/ash (ADR 0004); drop ash if the import goes"
+    },
+    {
+     "date": "2026-11-05",
+     "text": "P1-071: Android draw_into still shows only the top layer; composite every layer into one surface frame (draw all, then present once) when the decoder lands."
     }
    ],
    "source": "added"
@@ -13719,12 +13723,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "19c4777",
+   "branch": "p1-071-pip",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Test fixture fixes after the test commit, no assertion changed: 4a36e77 (invalid media uri in core/tests/layers.rs), 5c38cbe (16:9 canvas in engine_composite, the engine default is 9:16), 0404711 (fmt, clippy clone on a Copy type). Bench (benches/draw.rs, interleaved with main, 1080p): discard nv12 +21%, blending +12%, scissor (kept) 308 vs 304-312 us nv12, 285-290 vs 288-290 us rgba; the upper-layer path is private, so the A/B ran on the single-layer draws, no new bench case."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14565,6 +14574,30 @@
    "commit": null,
    "branch": null,
    "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-098",
+   "section": "P1",
+   "group": null,
+   "title": "iOS FrameDecoder keeps a reader and photo per media (small LRU) so PIP with two videos or two photos doesn't reopen the reader or re-decode every frame (P1-071 follow-up)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "The work is Native (app/ios/Runner/FrameDecoder.swift); the Rust tag is only for the Decoder port contract, which should not change."
+    }
+   ],
    "source": "added"
   }
  ]
