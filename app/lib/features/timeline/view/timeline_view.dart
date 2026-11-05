@@ -805,6 +805,9 @@ class _MovableClipState extends State<_MovableClip>
   late final _ticker = createTicker(_scrollAtEdge);
   Duration _lastTick = Duration.zero;
 
+  /// The finger has moved past the slop since the lift (it stays set until the drop).
+  bool _moved = false;
+
   /// The finger's offset from where the press began, and its x on screen.
   Offset _by = Offset.zero;
   double _fingerX = 0;
@@ -873,6 +876,7 @@ class _MovableClipState extends State<_MovableClip>
     _size = context.size ?? Size.zero;
     _fingerX = fingerX;
     _lastTick = Duration.zero;
+    _moved = false;
     _overlay.show();
     _ticker.start();
     setState(() {});
@@ -883,7 +887,8 @@ class _MovableClipState extends State<_MovableClip>
   void _scrollAtEdge(Duration elapsed) {
     final seconds = (elapsed - _lastTick).inMicroseconds / 1e6;
     _lastTick = elapsed;
-    if (_by.distance <= kTouchSlop) return;
+    _moved |= _by.distance > kTouchSlop;
+    if (!_moved) return;
     final lanes = _lanes;
     final box = lanes?.context.findRenderObject();
     if (lanes == null || box is! RenderBox || !box.hasSize) return;
