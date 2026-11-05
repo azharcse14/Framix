@@ -20,6 +20,7 @@ struct Java {
     platform: jobject,
     create_preview_texture: jmethodID,
     request_thumbnail: jmethodID,
+    release_preview_texture: jmethodID,
 }
 
 // SAFETY: a JavaVM pointer, a global reference and method ids are valid on every thread (JNI
@@ -75,6 +76,7 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             request_proxy: Some(no_proxy),
             // Android export is its own task; until then the pre-flight does not block.
             free_bytes: Some(unknown_free_bytes),
+            release_preview_texture: Some(release_preview_texture),
         };
         // SAFETY: `platform` is a valid EnginePlatform; the callbacks are 'static fns.
         unsafe { engine_platform_register(&platform) }
@@ -104,12 +106,14 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
         };
         let create_preview_texture = method(c"createPreviewTexture", c"(IIJ)V")?;
         let request_thumbnail = method(c"requestThumbnail", c"(Ljava/lang/String;ZJIJ)V")?;
+        let release_preview_texture = method(c"releasePreviewTexture", c"(J)V")?;
         let platform = (jni.NewGlobalRef)(env, this);
         (!platform.is_null()).then_some(Java {
             vm,
             platform,
             create_preview_texture,
             request_thumbnail,
+            release_preview_texture,
         })
     }
 }
@@ -337,6 +341,35 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativePreviewTex
         };
         // SAFETY: `done_ctx` came from create_preview_texture and is answered once (contract).
         unsafe { preview_texture_done(done_ctx, status, texture_id, handle) };
+        ENGINE_OK
+    });
+}
+
+/// `release_preview_texture`: drops the engine's window reference, then asks Kotlin to release
+/// the SurfaceProducer (P1-055).
+unsafe extern "C" fn release_preview_texture(
+    _ctx: *mut c_void,
+    texture_id: i64,
+    texture: *mut c_void,
+) {
+    ffi_guard(|| {
+        if !texture.is_null() {
+            // SAFETY: `texture` is the ANativeWindow reference nativePreviewTextureDone gave the
+            // engine, given back once; the renderer already dropped its own reference.
+            unsafe { ANativeWindow_release(texture) };
+        }
+        let args = [jvalue { j: texture_id }];
+        // SAFETY: the value matches `(J)V`: the texture id.
+        unsafe {
+            with_kotlin(|env, java| {
+                ((**env).v1_6.CallVoidMethodA)(
+                    env,
+                    java.platform,
+                    java.release_preview_texture,
+                    args.as_ptr(),
+                )
+            })
+        };
         ENGINE_OK
     });
 }

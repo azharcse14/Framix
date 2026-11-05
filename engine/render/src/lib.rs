@@ -229,8 +229,8 @@ pub struct Gpu {
     /// the window-draw and frame-import paths (the Vulkan import submits on the raw queue), so
     /// the renderer and the decode spike never overlap (P1-004). The other draw methods take
     /// no lock and must not run concurrently with an import. SPIKE: the cache (and its window
-    /// reference) lives until another window is drawn; releasing the preview (P1-055) must
-    /// drop it.
+    /// reference) lives until another window is drawn or the preview releases it
+    /// ([`Gpu::forget_android_window`]).
     #[cfg(target_os = "android")]
     window_surface: std::sync::Mutex<Option<WindowSurface>>,
 }
@@ -510,6 +510,19 @@ impl Gpu {
         // SAFETY: forwarded from this function's contract; the device was opened with the
         // import extensions or is GLES (checked above); the queue lock is held.
         unsafe { android::import_ahb(&self.device, ahb) }
+    }
+
+    /// Drops the cached surface (and its window reference) if it draws into `window`, so the
+    /// platform can release that window (P1-055).
+    #[cfg(target_os = "android")]
+    pub fn forget_android_window(&self, window: *mut std::ffi::c_void) {
+        let mut cached = self
+            .window_surface
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        if cached.as_ref().is_some_and(|c| c.window.as_ptr() == window) {
+            *cached = None;
+        }
     }
 
     /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size, rounded up) to RGB, placed on
@@ -1027,6 +1040,15 @@ impl PreviewRenderer for GpuRenderer {
             android::log(&format!("preview draw: {e}"));
         }
         drawn
+    }
+
+    fn forget(&mut self, target: PlatformTexture) {
+        // Only Android keeps something per target: the window's surface.
+        #[cfg(target_os = "android")]
+        if let Some(gpu) = self.gpu {
+            gpu.forget_android_window(target.handle as *mut std::ffi::c_void);
+        }
+        let _ = target;
     }
 }
 

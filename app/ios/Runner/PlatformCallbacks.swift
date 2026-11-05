@@ -49,7 +49,7 @@ final class PreviewTexture: NSObject, FlutterTexture, @unchecked Sendable {
 @MainActor
 enum PlatformCallbacks {
   private static var registry: FlutterTextureRegistry?
-  // ponytail: textures are never unregistered; the preview makes one per launch.
+  /// Textures the engine holds, until it releases them.
   private static var textures: [Int64: PreviewTexture] = [:]
 
   /// Registers with the engine library Dart loads (same image, so the same registration).
@@ -69,7 +69,7 @@ enum PlatformCallbacks {
       request_thumbnail: requestThumbnail, encoder_open: encoderOpen,
       encoder_frame: encoderFrame, encoder_finish: encoderFinish, decoder_open: decoderOpen,
       decoder_frame: decoderFrame, decoder_close: decoderClose, request_proxy: requestProxy,
-      free_bytes: freeBytes)
+      free_bytes: freeBytes, release_preview_texture: releasePreviewTexture)
     let code = unsafeBitCast(symbol, to: Register.self)(&platform)
     assert(code == ENGINE_OK, "engine_platform_register failed: \(code)")
   }
@@ -89,6 +89,13 @@ enum PlatformCallbacks {
 
   fileprivate static func markFrameAvailable(_ id: Int64) {
     registry?.textureFrameAvailable(id)
+  }
+
+  /// The engine no longer draws into texture `id`: Flutter forgets it and its IOSurface goes.
+  fileprivate static func releaseTexture(_ id: Int64) {
+    guard let texture = textures.removeValue(forKey: id) else { return }
+    // Flutter forgets it before it can be freed.
+    withExtendedLifetime(texture) { registry?.unregisterTexture(id) }
   }
 }
 
@@ -181,6 +188,15 @@ enum Thumbnails {
     return thumb
   }
 }
+
+/// The engine has stopped drawing into the texture; the release runs on the main queue (P1-055).
+private let releasePreviewTexture:
+  @convention(c) (UnsafeMutableRawPointer?, Int64, UnsafeMutableRawPointer?) -> Void = {
+    _, id, _ in
+    DispatchQueue.main.async {
+      MainActor.assumeIsolated { PlatformCallbacks.releaseTexture(id) }
+    }
+  }
 
 private let frameAvailable: @convention(c) (UnsafeMutableRawPointer?, Int64) -> Void = { _, id in
   DispatchQueue.main.async {

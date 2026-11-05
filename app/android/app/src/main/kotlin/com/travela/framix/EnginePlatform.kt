@@ -38,7 +38,7 @@ object EnginePlatform {
     // Two workers, like the engine's in-flight limit; thumbnails never touch the main thread.
     private val thumbnails = Executors.newFixedThreadPool(2)
 
-    // ponytail: producers are never released; the preview makes one per launch (P1-055).
+    /** Producers the engine holds, by texture id, until it releases them. Main thread. */
     private val producers = mutableMapOf<Long, TextureRegistry.SurfaceProducer>()
 
     /** Registers once per process and serves [textures] until [detach]. Main thread. */
@@ -65,11 +65,17 @@ object EnginePlatform {
     @Suppress("unused") // Kept for JNI by proguard-rules.pro.
     fun createPreviewTexture(width: Int, height: Int, doneCtx: Long) {
         main.post {
+            var created: TextureRegistry.SurfaceProducer? = null
             val made = runCatching {
                 val registry = checkNotNull(textures) { "no FlutterEngine" }
-                val producer = registry.createSurfaceProducer().also { it.setSize(width, height) }
+                val producer = registry.createSurfaceProducer().also { created = it }
+                producer.setSize(width, height)
                 producer to producer.surface
-            }.onFailure { Log.w("framix", "preview texture failed", it) }.getOrNull()
+            }.onFailure {
+                Log.w("framix", "preview texture failed", it)
+                // A producer made before the failure is nobody's: release it now.
+                created?.let(::releaseProducer)
+            }.getOrNull()
             if (made == null) {
                 nativePreviewTextureDone(doneCtx, 0, null)
                 return@post
@@ -79,6 +85,24 @@ object EnginePlatform {
             nativePreviewTextureDone(doneCtx, producer.id(), surface)
             spikeDecode(producer)
         }
+    }
+
+    /**
+     * Called by Rust (JNI, engine thread) once the engine stopped drawing into texture [id] and
+     * dropped its window reference: releases the SurfaceProducer on the main thread (P1-055).
+     */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun releasePreviewTexture(id: Long) {
+        main.post { producers.remove(id)?.let(::releaseProducer) }
+    }
+
+    /**
+     * Releases [producer]; its FlutterEngine may be gone already (the Activity finished while
+     * the engine lives on), and then release throws. Main thread.
+     */
+    private fun releaseProducer(producer: TextureRegistry.SurfaceProducer) {
+        runCatching { producer.release() }
+            .onFailure { Log.w("framix", "preview texture release failed: ${it.javaClass.simpleName}") }
     }
 
     /**

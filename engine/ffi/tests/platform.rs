@@ -127,6 +127,7 @@ impl Session {
                 decoder_close: Some(no_decoder_close),
                 request_proxy: Some(no_proxy),
                 free_bytes: Some(no_free_bytes),
+                release_preview_texture: Some(no_release),
             };
             // SAFETY: valid platform with static callbacks and a null ctx.
             assert_eq!(unsafe { engine_platform_register(&platform) }, ENGINE_OK);
@@ -256,3 +257,5 @@ unsafe extern "C" fn no_proxy(
 unsafe extern "C" fn no_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
     -1
 }
+
+unsafe extern "C" fn no_release(_: *mut c_void, _: i64, _: *mut c_void) {}

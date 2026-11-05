@@ -52,7 +52,7 @@
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 6
+#define ENGINE_PLATFORM_VERSION 7
 
 /**
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
@@ -134,8 +134,8 @@ typedef struct EngineBuffer {
  * The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
  * with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
  * other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
- * iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive while
- * Flutter may show `texture_id`.
+ * iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive until
+ * `release_preview_texture` gives it back.
  */
 typedef void (*EnginePreviewTextureDone)(void *done_ctx,
                                          int32_t status,
@@ -289,6 +289,13 @@ typedef struct EnginePlatform {
    * export starts (docs/adr/0005-export-encoder.md, export pre-flight).
    */
   int64_t (*free_bytes)(void *ctx, const uint8_t *path, size_t path_len);
+  /**
+   * Gives back a texture `create_preview_texture` made (`texture_id` and `texture` as its
+   * `done` reported them): the engine no longer draws into it and Flutter need not show it.
+   * Called once per texture, from any thread; must return at once. On Android the engine has
+   * already dropped its own `ANativeWindow` reference (P1-055).
+   */
+  void (*release_preview_texture)(void *ctx, int64_t texture_id, void *texture);
 } EnginePlatform;
 
 /**

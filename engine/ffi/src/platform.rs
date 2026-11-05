@@ -18,13 +18,13 @@ use crate::{
 };
 
 /// Version of [`EnginePlatform`]; bump when its layout or meaning changes.
-pub const ENGINE_PLATFORM_VERSION: u32 = 6;
+pub const ENGINE_PLATFORM_VERSION: u32 = 7;
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
 /// other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
-/// iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive while
-/// Flutter may show `texture_id`.
+/// iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive until
+/// `release_preview_texture` gives it back.
 pub type EnginePreviewTextureDone =
     unsafe extern "C" fn(done_ctx: *mut c_void, status: i32, texture_id: i64, texture: *mut c_void);
 
@@ -210,6 +210,12 @@ pub struct EnginePlatform {
     /// export starts (docs/adr/0005-export-encoder.md, export pre-flight).
     pub free_bytes:
         Option<unsafe extern "C" fn(ctx: *mut c_void, path: *const u8, path_len: usize) -> i64>,
+    /// Gives back a texture `create_preview_texture` made (`texture_id` and `texture` as its
+    /// `done` reported them): the engine no longer draws into it and Flutter need not show it.
+    /// Called once per texture, from any thread; must return at once. On Android the engine has
+    /// already dropped its own `ANativeWindow` reference (P1-055).
+    pub release_preview_texture:
+        Option<unsafe extern "C" fn(ctx: *mut c_void, texture_id: i64, texture: *mut c_void)>,
 }
 
 /// Registers the platform callbacks for the whole process. Only the first valid call counts.
@@ -242,6 +248,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             Some(decoder_close),
             Some(request_proxy),
             Some(free_bytes),
+            Some(release_preview_texture),
         ) = (
             platform.create_preview_texture,
             platform.frame_available,
@@ -254,6 +261,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             platform.decoder_close,
             platform.request_proxy,
             platform.free_bytes,
+            platform.release_preview_texture,
         )
         else {
             return ENGINE_ERR_NULL;
@@ -271,6 +279,7 @@ pub unsafe extern "C" fn engine_platform_register(platform: *const EnginePlatfor
             decoder_close,
             request_proxy,
             free_bytes,
+            release_preview_texture,
         };
         match PLATFORM.set(registered) {
             Ok(()) => ENGINE_OK,
@@ -314,6 +323,7 @@ struct Registered {
     request_proxy:
         unsafe extern "C" fn(*mut c_void, *const u8, usize, u32, EngineProxyDone, *mut c_void),
     free_bytes: unsafe extern "C" fn(*mut c_void, *const u8, usize) -> i64,
+    release_preview_texture: unsafe extern "C" fn(*mut c_void, i64, *mut c_void),
 }
 
 // SAFETY: engine_platform_register's contract makes the callbacks callable from any engine
@@ -352,6 +362,32 @@ impl PreviewHost for PlatformHost {
             // SAFETY: as in create_texture.
             unsafe { (platform.frame_available)(platform.ctx, id) };
         }
+    }
+
+    fn release_texture(&self, texture: PlatformTexture) {
+        release(texture);
+    }
+}
+
+/// Gives `texture` back through `release_preview_texture`.
+fn release(texture: PlatformTexture) {
+    if let Some(platform) = PLATFORM.get() {
+        // SAFETY: registered callback (register's contract); the id and handle are the ones
+        // the platform's `done` reported, given back once.
+        unsafe {
+            (platform.release_preview_texture)(
+                platform.ctx,
+                texture.id,
+                texture.handle as *mut c_void,
+            )
+        };
+    }
+}
+
+/// A platform answer no engine will use: its texture goes straight back (P1-065).
+pub(crate) fn release_unused(texture: Result<PlatformTexture, String>) {
+    if let Ok(texture) = texture {
+        release(texture);
     }
 }
 
@@ -494,8 +530,12 @@ pub(crate) unsafe extern "C" fn preview_texture_done(
                 handle: texture as usize,
             })
         };
-        // A stopped engine no longer wants the answer.
-        let _ = engine.send(EngineMessage::PreviewTexture(texture));
+        // A stopped engine no longer wants the answer; its texture goes back at once.
+        if let Err(unsent) = engine.send(EngineMessage::PreviewTexture(texture))
+            && let EngineMessage::PreviewTexture(texture) = unsent.0
+        {
+            release_unused(texture);
+        }
         ENGINE_OK
     });
 }

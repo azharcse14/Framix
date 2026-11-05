@@ -124,6 +124,7 @@ fn proxies_are_asked_for_one_after_another() {
         decoder_close: Some(no_decoder_close),
         request_proxy: None,
         free_bytes: Some(no_free_bytes),
+        release_preview_texture: Some(no_release),
     };
     // SAFETY: valid platform with static callbacks and a null ctx.
     unsafe {
@@ -205,3 +206,5 @@ unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
 unsafe extern "C" fn no_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
     -1
 }
+
+unsafe extern "C" fn no_release(_: *mut c_void, _: i64, _: *mut c_void) {}

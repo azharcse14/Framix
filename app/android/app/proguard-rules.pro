@@ -2,4 +2,5 @@
 -keep class com.travela.framix.EnginePlatform {
     public void createPreviewTexture(int, int, long);
     public void requestThumbnail(java.lang.String, boolean, long, int, long);
+    public void releasePreviewTexture(long);
 }

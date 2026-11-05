@@ -21,6 +21,10 @@ pub trait PreviewHost: Send {
     fn create_texture(&self, width: u32, height: u32) -> Result<(), String>;
     /// Tells Flutter that texture `id` holds a new frame.
     fn frame_available(&self, id: i64);
+    /// Gives back a texture the engine no longer draws into or shows (P1-055).
+    fn release_texture(&self, texture: PlatformTexture) {
+        let _ = texture;
+    }
 }
 
 /// Why a draw failed.
@@ -44,6 +48,10 @@ pub trait PreviewRenderer: Send {
         time: Time,
         layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError>;
+    /// Drops anything kept for `target` (e.g. a window surface) before the platform releases it.
+    fn forget(&mut self, target: PlatformTexture) {
+        let _ = target;
+    }
 }
 
 /// The YCbCr -> RGB matrix a decoder frame was encoded with.
