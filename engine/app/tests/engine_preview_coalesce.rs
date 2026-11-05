@@ -31,7 +31,12 @@ struct Gpu {
 }
 
 impl PreviewRenderer for Gpu {
-    fn draw(&mut self, _: PlatformTexture, time: Time, _: Option<&Layer>) -> Result<(), DrawError> {
+    fn draw(
+        &mut self,
+        _: PlatformTexture,
+        time: Time,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
+    ) -> Result<(), DrawError> {
         self.draws.lock().unwrap().push(time);
         match *self.dead.lock().unwrap() {
             true => Err(DrawError::Gpu("device lost".into())),

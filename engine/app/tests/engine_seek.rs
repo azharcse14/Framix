@@ -149,7 +149,7 @@ impl PreviewRenderer for Renderer {
         &mut self,
         target: PlatformTexture,
         time: Time,
-        _: Option<&Layer>,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
         self.0.lock().unwrap().push((target.id, time));
         Ok(())

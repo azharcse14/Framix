@@ -50,7 +50,7 @@ impl PreviewRenderer for FakeRenderer {
         &mut self,
         target: PlatformTexture,
         _time: Time,
-        _: Option<&Layer>,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
         if self.fail {
             return Err(DrawError::Gpu("device lost".into()));

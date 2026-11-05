@@ -147,6 +147,11 @@ pub struct Layer<'a> {
 }
 
 impl Layer<'_> {
+    /// Nothing under this layer shows ([`crate::placement::covers_canvas`]).
+    pub fn covers_canvas(&self) -> bool {
+        crate::placement::covers_canvas(self.media, &self.transform, self.canvas)
+    }
+
     /// An owned value that differs exactly when the picture does.
     pub fn key(&self) -> LayerKey {
         LayerKey {
@@ -754,9 +759,25 @@ impl Timeline {
         self.top_clip(time).map(|c| c.id)
     }
 
-    /// The picture the preview and export show at `time`: [`Timeline::top_clip_at`]'s clip.
+    /// The top picture at `time`: [`Timeline::top_clip_at`]'s clip.
     pub fn layer_at(&self, time: Time) -> Option<Layer<'_>> {
-        let clip = self.top_clip(time)?;
+        self.layers_at(time).last()
+    }
+
+    /// Every picture the preview and export show at `time`, bottom to top: the visible video
+    /// tracks' clips from the topmost one that covers the canvas (the rest are never seen).
+    pub fn layers_at(&self, time: Time) -> impl Iterator<Item = Layer<'_>> + Clone {
+        let seen = |t: &&Track| t.kind == TrackKind::Video && !t.flags.hidden;
+        let layer = move |t: &Track| t.clip_at(time).and_then(|c| self.layer(c, time));
+        let floor = self
+            .tracks
+            .iter()
+            .rposition(|t| seen(&t) && layer(t).is_some_and(|l| l.covers_canvas()))
+            .unwrap_or(0);
+        self.tracks[floor..].iter().filter(seen).filter_map(layer)
+    }
+
+    fn layer(&self, clip: &Clip, time: Time) -> Option<Layer<'_>> {
         let media = self.media(clip.media)?;
         let source_time = match media.kind() {
             MediaKind::Image | MediaKind::Color => Time(0),

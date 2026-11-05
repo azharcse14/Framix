@@ -293,7 +293,12 @@ impl PreviewHost for Host {
 struct Renderer(Draws);
 
 impl PreviewRenderer for Renderer {
-    fn draw(&mut self, _: PlatformTexture, time: Time, _: Option<&Layer>) -> Result<(), DrawError> {
+    fn draw(
+        &mut self,
+        _: PlatformTexture,
+        time: Time,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
+    ) -> Result<(), DrawError> {
         self.0.lock().unwrap().push(time);
         Ok(())
     }
