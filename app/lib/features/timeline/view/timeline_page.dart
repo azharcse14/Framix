@@ -6,6 +6,7 @@ import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../preview/bloc/preview_cubit.dart';
 import '../../preview/view/preview_view.dart';
+import '../bloc/playback_cubit.dart';
 import '../bloc/timeline_cubit.dart';
 import 'aspect_ratio_bar.dart';
 import 'import_buttons.dart';
@@ -38,71 +39,77 @@ class _TimelinePageState extends State<TimelinePage> {
     // Tablets keep the stacked layout.
     final size = MediaQuery.sizeOf(context);
     final landscape = size.height < 480 && size.width >= 600;
-    return Scaffold(
-      appBar: AppBar(
-        // Material's landscape app bar height: the timeline needs every row.
-        toolbarHeight: landscape ? kMinInteractiveDimension : null,
-        title: Text(l10n.appTitle),
-        actions: [
-          const ImportButtons(),
-          BlocSelector<TimelineCubit, TimelineChanged, bool>(
-            selector: (s) => s.canUndo,
-            builder: (_, canUndo) => IconButton(
-              icon: const Icon(Icons.undo),
-              tooltip: l10n.undo,
-              onPressed: canUndo ? cubit.undo : null,
+    // Nobody sees the preview once the editor is gone, so playback stops with it.
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) context.read<PlaybackCubit>().pause();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          // Material's landscape app bar height: the timeline needs every row.
+          toolbarHeight: landscape ? kMinInteractiveDimension : null,
+          title: Text(l10n.appTitle),
+          actions: [
+            const ImportButtons(),
+            BlocSelector<TimelineCubit, TimelineChanged, bool>(
+              selector: (s) => s.canUndo,
+              builder: (_, canUndo) => IconButton(
+                icon: const Icon(Icons.undo),
+                tooltip: l10n.undo,
+                onPressed: canUndo ? cubit.undo : null,
+              ),
             ),
-          ),
-          BlocSelector<TimelineCubit, TimelineChanged, bool>(
-            selector: (s) => s.canRedo,
-            builder: (_, canRedo) => IconButton(
-              icon: const Icon(Icons.redo),
-              tooltip: l10n.redo,
-              onPressed: canRedo ? cubit.redo : null,
+            BlocSelector<TimelineCubit, TimelineChanged, bool>(
+              selector: (s) => s.canRedo,
+              builder: (_, canRedo) => IconButton(
+                icon: const Icon(Icons.redo),
+                tooltip: l10n.redo,
+                onPressed: canRedo ? cubit.redo : null,
+              ),
             ),
-          ),
-          // The export actions sit with the platform presets (AspectRatioBar): nine 48 dp
-          // actions don't fit a phone's app bar, and a second row costs timeline height.
-        ],
-      ),
-      body: landscape
-          // Phone landscape: the canvas takes the free height, the timeline and the add-track
-          // actions sit beside it.
-          ? SafeArea(
-              top: false,
-              child: Row(
+            // The export actions sit with the platform presets (AspectRatioBar): nine 48 dp
+            // actions don't fit a phone's app bar, and a second row costs timeline height.
+          ],
+        ),
+        body: landscape
+            // Phone landscape: the canvas takes the free height, the timeline and the add-track
+            // actions sit beside it.
+            ? SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Expanded(child: _Stage()),
+                          AspectRatioBar(key: _bar, canvas: false),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: TimelinePage.sidePaneWidth,
+                      child: Column(
+                        children: [
+                          Expanded(child: _Timeline(key: _timeline)),
+                          const _AddTrackButtons(padding: FramixSpace.s),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Expanded(child: _Stage()),
-                        AspectRatioBar(key: _bar, canvas: false),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: TimelinePage.sidePaneWidth,
-                    child: Column(
-                      children: [
-                        Expanded(child: _Timeline(key: _timeline)),
-                        const _AddTrackButtons(padding: FramixSpace.s),
-                      ],
-                    ),
-                  ),
+                  const PreviewView(),
+                  AspectRatioBar(key: _bar),
+                  Expanded(child: _Timeline(key: _timeline)),
                 ],
               ),
-            )
-          : Column(
-              children: [
-                const PreviewView(),
-                AspectRatioBar(key: _bar),
-                Expanded(child: _Timeline(key: _timeline)),
-              ],
-            ),
-      // Primary actions in the lower half (docs/design-system.md, touch).
-      bottomNavigationBar: landscape
-          ? null
-          : const SafeArea(child: _AddTrackButtons()),
+        // Primary actions in the lower half (docs/design-system.md, touch).
+        bottomNavigationBar: landscape
+            ? null
+            : const SafeArea(child: _AddTrackButtons()),
+      ),
     );
   }
 }

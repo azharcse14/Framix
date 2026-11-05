@@ -3627,7 +3627,8 @@ class StepFrame extends $pb.GeneratedMessage {
 /// (playing set) on its own, at most about 30 per second, until Pause or the timeline end
 /// (then one with playing false). From the end it starts again at 0. Answered with
 /// PlayheadChanged; playing stays false for an empty timeline. Seek and StepFrame keep it
-/// playing from the new time; edits keep it playing; NewProject and OpenProject stop it.
+/// playing from the new time; edits keep it playing; NewProject, OpenProject and the project EnableAutosave
+/// restores stop it.
 class Play extends $pb.GeneratedMessage {
   factory Play() => Play._();
 

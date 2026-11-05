@@ -443,10 +443,9 @@ class _Ruler extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTapDown: (d) => seekTo(d.localPosition.dx),
       // Playback would pull the playhead away from the finger.
-      onHorizontalDragStart: (_) {
-        final playback = context.read<PlaybackCubit>();
-        if (playback.state) playback.pause();
-      },
+      // Pause even if Dart doesn't know it plays yet (a Play still on its way); the engine
+      // ignores a Pause while stopped.
+      onHorizontalDragStart: (_) => context.read<PlaybackCubit>().pause(),
       onHorizontalDragUpdate: (d) => seekTo(d.localPosition.dx),
       child: CustomPaint(
         size: Size(double.infinity, height),

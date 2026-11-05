@@ -462,6 +462,12 @@ impl Engine {
         }
     }
 
+    /// PlayheadChanged at the playhead, unsnapped: e.g. to tell the UI playback stopped after
+    /// a step failed.
+    pub fn playhead_event(&self) -> Event {
+        self.playhead_changed(false)
+    }
+
     /// PlayheadChanged at the playhead.
     fn playhead_changed(&self, snapped: bool) -> Event {
         Event {

@@ -320,7 +320,11 @@ fn serve(
             })) {
                 Ok(None) => {}
                 Ok(Some(step)) => deliver(*callback, &step),
-                Err(_) => deliver(*callback, &command_failed("internal error")),
+                Err(_) => {
+                    deliver(*callback, &command_failed("internal error"));
+                    // The UI still thinks it plays; playback was stopped before the panic.
+                    deliver(*callback, &guarded(|| engine.playhead_event()));
+                }
             }
         }
         let Some(message) = message else { continue };

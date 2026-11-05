@@ -103,7 +103,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get play => 'চালান';
 
   @override
-  String get pause => 'থামান';
+  String get pause => 'বিরতি দিন';
 
   @override
   String get timelineRuler => 'টাইমলাইন';
