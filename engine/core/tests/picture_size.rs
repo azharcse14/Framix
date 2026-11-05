@@ -125,3 +125,35 @@ fn the_frame_edges_are_where_the_shader_meets_the_source_edges() {
         assert!(on_x && on_y, "corner ({u}, {v}) -> ({sx}, {sy})");
     }
 }
+
+#[test]
+fn a_color_fills_the_canvas_whatever_its_shape() {
+    // A color is a 1x1 picture, but render fills the whole canvas with it.
+    size_is(
+        &Media::solid(0xff00_00ff),
+        ClipTransform::default(),
+        aspect(16, 9),
+        (1.0, 1.0),
+    );
+}
+
+#[test]
+fn an_odd_quarter_turn_frame_meets_the_shader_too() {
+    let m = media(1920, 1080, 0);
+    let t = ClipTransform {
+        turns: 1,
+        scale: 640,
+        x: 900,
+        y: -300,
+        ..ClipTransform::default()
+    };
+    let canvas = aspect(16, 9);
+    let (w, h) = picture_size(&m, &t, canvas);
+    let (cx, cy) = (0.5 + t.x as f32 / 1e4, 0.5 + t.y as f32 / 1e4);
+    let map = canvas_to_source(&m, &t, canvas);
+    for (u, v) in [(cx - w / 2.0, cy - h / 2.0), (cx + w / 2.0, cy + h / 2.0)] {
+        let (sx, sy) = map.apply(u, v);
+        let edge = |s: f32| s.abs() < 1e-3 || (s - 1.0).abs() < 1e-3;
+        assert!(edge(sx) && edge(sy), "corner ({u}, {v}) -> ({sx}, {sy})");
+    }
+}
