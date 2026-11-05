@@ -61,6 +61,16 @@ impl ProjectStore for FileStore {
             })
             .collect())
     }
+
+    fn backups(&self, path: &Path) -> Vec<PathBuf> {
+        (1..=BACKUPS).map(|n| backup(path, n)).collect()
+    }
+
+    /// Renames the file to `<file>.broken`, over an earlier one.
+    fn set_aside(&self, path: &Path) -> io::Result<()> {
+        fs::rename(path, sibling(path, ".broken"))?;
+        sync_parent(path)
+    }
 }
 
 fn write_synced(path: &Path, bytes: &[u8]) -> io::Result<()> {

@@ -17,7 +17,7 @@ use crate::project;
 use crate::proto::{
     self, Command, CommandFailed, Event, ProjectSaved, TimelineChanged, TrackKind, command,
 };
-use crate::store::ProjectStore;
+use crate::store::{self, LoadError, ProjectStore};
 
 /// Engine state behind the FFI boundary: one project's timeline, its undo history, and where
 /// projects are saved.
@@ -1001,11 +1001,13 @@ impl Engine {
         let file = crate::library::path(dir, id).ok_or("malformed project id")?;
         // Save first: reading first would load stale bytes when `id` is the open project.
         self.save_current()?;
-        let bytes = self
-            .store()?
-            .load(&file)
-            .map_err(|e| e.kind().to_string())?;
-        let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
+        let store = self.store()?;
+        let (timeline, from_backup) =
+            store::load_or_backup(store, &file).map_err(|e| e.to_string())?;
+        if from_backup {
+            // Best effort: if it stays, the next autosave only rotates it into the backups.
+            let _ = store.set_aside(&file);
+        }
         self.history = History::new(timeline.clone());
         self.autosave_to(Some(file), timeline);
         self.start_project();
@@ -1027,18 +1029,29 @@ impl Engine {
                 Err("autosave is already on for another file".into())
             };
         }
-        match self.store()?.load(&path) {
-            Ok(bytes) => {
-                let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
-                self.autosaved = timeline.clone();
-                self.history = History::new(timeline);
-                self.start_project();
-            }
+        let store = self.store()?;
+        let recovered = match store::load_or_backup(store, &path) {
+            Ok(loaded) => Some(loaded),
             // Nothing saved yet: the current project is new work to save.
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                self.autosaved = Timeline::default();
+            Err(LoadError::Missing) => None,
+            // Broken with no good backup: the current project is new work, as above.
+            Err(e) if e.is_broken() => {
+                set_aside(store, &path, &e)?;
+                None
             }
-            Err(e) => return Err(format!("autosave file unreadable: {}", e.kind())),
+            Err(e) => return Err(e.to_string()),
+        };
+        if let Some((_, true)) = &recovered {
+            set_aside(store, &path, &"broken autosave file")?;
+        }
+        // A project recovered from a backup is written back to the file soon.
+        self.autosaved = match &recovered {
+            Some((timeline, false)) => timeline.clone(),
+            _ => Timeline::default(),
+        };
+        if let Some((timeline, _)) = recovered {
+            self.history = History::new(timeline);
+            self.start_project();
         }
         self.autosave = Some(path);
         Ok(())
@@ -1328,4 +1341,16 @@ fn media_from_item(item: proto::MediaItem) -> Result<Media, String> {
         codec: item.codec,
     };
     Media::validate(raw).map_err(|e| e.to_string())
+}
+
+/// Moves a broken autosave file aside so autosave can go on; refused (autosave stays off and
+/// the file is kept) when the store can't.
+fn set_aside(
+    store: &dyn ProjectStore,
+    path: &Path,
+    why: &dyn std::fmt::Display,
+) -> Result<(), String> {
+    store
+        .set_aside(path)
+        .map_err(|e| format!("{why}; could not set it aside: {}", e.kind()))
 }
