@@ -399,7 +399,8 @@ impl Gpu {
     /// A uniform buffer holding `placement`.
     fn placement_buffer(&self, placement: &Placement) -> wgpu::Buffer {
         use wgpu::util::DeviceExt as _;
-        // ponytail: a buffer per frame, like the bind groups; pooled with them in P1-058.
+        // ponytail: a buffer per frame. Reusing one measured no gain (benches/draw.rs, 1080p
+        // ~288 us either way) and would need a lock: preview and export share this Gpu.
         self.device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("placement"),
@@ -416,7 +417,8 @@ impl Gpu {
         placement: &Placement,
     ) -> wgpu::BindGroup {
         let placement = self.placement_buffer(placement);
-        // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
+        // A bind group per frame: each decoder frame is a new wrapped texture. Caching needs
+        // textures kept per IOSurface, which comes with the render thread (P1-053).
         self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("rgba frame"),
             layout: &pipeline.get_bind_group_layout(0),
@@ -488,7 +490,8 @@ impl Gpu {
         }
         let pass = &self.nv12;
         let placement = self.placement_buffer(placement);
-        // SPIKE: a bind group per frame; the render thread (P1-053) will pool them.
+        // A bind group per frame: each decoder frame is a new wrapped texture. Caching needs
+        // textures kept per IOSurface, which comes with the render thread (P1-053).
         let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("nv12 frame"),
             layout: &pass.pipeline.get_bind_group_layout(0),
