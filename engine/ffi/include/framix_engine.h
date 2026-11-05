@@ -52,7 +52,7 @@
 /**
  * Version of [`EnginePlatform`]; bump when its layout or meaning changes.
  */
-#define ENGINE_PLATFORM_VERSION 6
+#define ENGINE_PLATFORM_VERSION 7
 
 /**
  * [`EnginePlatform::request_thumbnail`]'s `kind`: a video.
@@ -289,6 +289,13 @@ typedef struct EnginePlatform {
    * export starts (docs/adr/0005-export-encoder.md, export pre-flight).
    */
   int64_t (*free_bytes)(void *ctx, const uint8_t *path, size_t path_len);
+  /**
+   * Gives back a texture `create_preview_texture` made (`texture_id` and `texture` as its
+   * `done` reported them): the engine no longer draws into it and Flutter need not show it.
+   * Called once per texture, from any thread; must return at once. On Android the engine has
+   * already dropped its own `ANativeWindow` reference (P1-055).
+   */
+  void (*release_preview_texture)(void *ctx, int64_t texture_id, void *texture);
 } EnginePlatform;
 
 /**

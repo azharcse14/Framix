@@ -105,6 +105,7 @@ fn an_export_opens_the_encoder_and_ends_with_export_finished() {
         decoder_close: Some(no_decoder_close),
         request_proxy: Some(no_proxy),
         free_bytes: Some(no_free_bytes),
+        release_preview_texture: Some(no_release),
     };
     let no_encoder = EnginePlatform {
         encoder_finish: None,
@@ -226,3 +227,5 @@ unsafe extern "C" fn no_proxy(
 unsafe extern "C" fn no_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
     -1
 }
+
+unsafe extern "C" fn no_release(_: *mut c_void, _: i64, _: *mut c_void) {}

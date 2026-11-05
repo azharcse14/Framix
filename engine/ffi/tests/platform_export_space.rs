@@ -110,6 +110,7 @@ fn an_export_that_does_not_fit_the_free_storage_is_refused() {
         decoder_close: Some(no_decoder_close),
         request_proxy: Some(no_proxy),
         free_bytes: None,
+        release_preview_texture: Some(no_release),
     };
     // SAFETY: valid platform with static callbacks and a null ctx.
     unsafe {
@@ -208,3 +209,5 @@ unsafe extern "C" fn no_decoder_frame(
 }
 
 unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
+
+unsafe extern "C" fn no_release(_: *mut c_void, _: i64, _: *mut c_void) {}

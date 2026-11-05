@@ -75,6 +75,7 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             request_proxy: Some(no_proxy),
             // Android export is its own task; until then the pre-flight does not block.
             free_bytes: Some(unknown_free_bytes),
+            release_preview_texture: Some(release_preview_texture),
         };
         // SAFETY: `platform` is a valid EnginePlatform; the callbacks are 'static fns.
         unsafe { engine_platform_register(&platform) }
@@ -339,6 +340,14 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativePreviewTex
         unsafe { preview_texture_done(done_ctx, status, texture_id, handle) };
         ENGINE_OK
     });
+}
+
+/// `release_preview_texture`: P1-055 stub.
+unsafe extern "C" fn release_preview_texture(
+    _ctx: *mut c_void,
+    _texture_id: i64,
+    _texture: *mut c_void,
+) {
 }
 
 /// No encoder on Android yet: every export fails to open.

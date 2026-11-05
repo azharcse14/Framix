@@ -97,7 +97,7 @@ const int ENGINE_MEDIA_VIDEO = 1;
 
 const int ENGINE_OK = 0;
 
-const int ENGINE_PLATFORM_VERSION = 6;
+const int ENGINE_PLATFORM_VERSION = 7;
 
 const int ENGINE_PROTOCOL_VERSION = 43;
 
@@ -340,6 +340,21 @@ final class EnginePlatform extends ffi.Struct {
   >
   free_bytes;
 
+  /// Gives back a texture `create_preview_texture` made (`texture_id` and `texture` as its
+  /// `done` reported them): the engine no longer draws into it and Flutter need not show it.
+  /// Called once per texture, from any thread; must return at once. On Android the engine has
+  /// already dropped its own `ANativeWindow` reference (P1-055).
+  external ffi.Pointer<
+    ffi.NativeFunction<
+      ffi.Void Function(
+        ffi.Pointer<ffi.Void> ctx,
+        ffi.Int64 texture_id,
+        ffi.Pointer<ffi.Void> texture,
+      )
+    >
+  >
+  release_preview_texture;
+
   static ffi.Pointer<EnginePlatform> $allocate(
     ffi.Allocator $allocator, {
     required int version,
@@ -464,6 +479,16 @@ final class EnginePlatform extends ffi.Struct {
       >
     >
     free_bytes,
+    required ffi.Pointer<
+      ffi.NativeFunction<
+        ffi.Void Function(
+          ffi.Pointer<ffi.Void> ctx,
+          ffi.Int64 texture_id,
+          ffi.Pointer<ffi.Void> texture,
+        )
+      >
+    >
+    release_preview_texture,
   }) => $allocator<EnginePlatform>()
     ..ref.version = version
     ..ref.ctx = ctx
@@ -477,7 +502,8 @@ final class EnginePlatform extends ffi.Struct {
     ..ref.decoder_frame = decoder_frame
     ..ref.decoder_close = decoder_close
     ..ref.request_proxy = request_proxy
-    ..ref.free_bytes = free_bytes;
+    ..ref.free_bytes = free_bytes
+    ..ref.release_preview_texture = release_preview_texture;
 }
 
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
