@@ -10,8 +10,7 @@ import '../../timeline/bloc/timeline_cubit.dart';
 
 /// Drag and pinch on the preview move and scale the active clip; an outline shows its frame.
 /// Positions are 1/10000 of the canvas from its centre, scale 1/1000 of fit (engine units).
-/// The outline is the canvas box times the scale; a clip whose shape differs from the canvas
-/// (or is cropped or turned) will not match it until the engine reports the frame rectangle.
+/// The outline is the frame the engine reports for the clip (after crop, turns, fit, scale).
 class CanvasGestures extends StatefulWidget {
   const CanvasGestures({super.key});
 
@@ -127,11 +126,10 @@ class _CanvasGesturesState extends State<CanvasGestures> {
     );
   }
 
-  /// The clip's frame at fit (the whole canvas) times its scale, centred at its offset.
+  /// The clip's frame as the engine reports it, centred at its offset.
   Widget _outline(BuildContext context, Clip clip, Size canvas) {
-    final scale = clip.scale / 1000;
-    final width = canvas.width * scale;
-    final height = canvas.height * scale;
+    final width = canvas.width * clip.frameWidth;
+    final height = canvas.height * clip.frameHeight;
     final centre = Offset(
       canvas.width / 2 + clip.x / 10000 * canvas.width,
       canvas.height / 2 + clip.y / 10000 * canvas.height,

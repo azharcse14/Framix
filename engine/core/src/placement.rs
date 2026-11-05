@@ -57,6 +57,69 @@ pub fn target_to_canvas(canvas: AspectRatio, width: u32, height: u32) -> Affine 
     }
 }
 
+/// The size of `media`'s picture on the canvas, placed by `transform` (crop, turns, fit, scale),
+/// as fractions of the canvas width and height. Centred at the transform's offset.
+pub fn picture_size(media: &Media, transform: &ClipTransform, canvas: AspectRatio) -> (f32, f32) {
+    // A color fills the canvas (render's draw_color), whatever its 1x1 picture says.
+    if media.kind() == crate::media::MediaKind::Color {
+        return (1.0, 1.0);
+    }
+    let f = Fitted::new(media, transform, canvas);
+    (
+        (f.shown_w * f.size / f.canvas_w) as f32,
+        (f.shown_h * f.size / f.canvas_h) as f32,
+    )
+}
+
+/// The picture after crop and turns, fitted to the canvas and scaled: one home for the sizes
+/// both the frame ([`picture_size`]) and the sampling map ([`canvas_to_source`]) use.
+struct Fitted {
+    width: f64,
+    height: f64,
+    cropped_w: f64,
+    cropped_h: f64,
+    quarter_turns: u32,
+    /// Shown sides in source pixels (after the turns).
+    shown_w: f64,
+    shown_h: f64,
+    canvas_w: f64,
+    canvas_h: f64,
+    /// Canvas units per shown source pixel.
+    size: f64,
+}
+
+impl Fitted {
+    fn new(media: &Media, t: &ClipTransform, canvas: AspectRatio) -> Self {
+        let (width, height) = media.size();
+        let (width, height) = (f64::from(width), f64::from(height));
+        let crop = t.crop;
+        // The timeline keeps at least one pixel each way after the crop.
+        let cropped_w = width - f64::from(crop.left) - f64::from(crop.right);
+        let cropped_h = height - f64::from(crop.top) - f64::from(crop.bottom);
+        let quarter_turns = (media.rotation() / 90 + u32::from(t.turns)) % 4;
+        let (shown_w, shown_h) = if quarter_turns % 2 == 1 {
+            (cropped_h, cropped_w)
+        } else {
+            (cropped_w, cropped_h)
+        };
+        // Fit inside the canvas, then scale.
+        let (canvas_w, canvas_h) = (f64::from(canvas.width()), f64::from(canvas.height()));
+        let fit = (canvas_w / shown_w).min(canvas_h / shown_h);
+        Self {
+            width,
+            height,
+            cropped_w,
+            cropped_h,
+            quarter_turns,
+            shown_w,
+            shown_h,
+            canvas_w,
+            canvas_h,
+            size: fit * f64::from(t.scale) / f64::from(FIT_SCALE),
+        }
+    }
+}
+
 /// Maps canvas UV (0..1 from the top-left) to the UV of `media`'s stored pixels, placing the
 /// picture as the clip's transform says: crop, then the media's rotation plus the clip's turns
 /// (clockwise), then the flips, then fit inside the canvas, then scale and position. UVs outside
@@ -75,23 +138,20 @@ pub fn canvas_to_source(media: &Media, transform: &ClipTransform, canvas: Aspect
 
 /// [`canvas_to_source`] for one point, undoing each step from the canvas back to the source.
 fn source_uv(media: &Media, t: &ClipTransform, canvas: AspectRatio, u: f64, v: f64) -> (f64, f64) {
-    let (width, height) = media.size();
-    let (width, height) = (f64::from(width), f64::from(height));
+    let Fitted {
+        width,
+        height,
+        cropped_w,
+        cropped_h,
+        quarter_turns,
+        shown_w,
+        shown_h,
+        canvas_w,
+        canvas_h,
+        size,
+    } = Fitted::new(media, t, canvas);
     let crop = t.crop;
-    // The timeline keeps at least one pixel each way after the crop.
-    let cropped_w = width - f64::from(crop.left) - f64::from(crop.right);
-    let cropped_h = height - f64::from(crop.top) - f64::from(crop.bottom);
-    let quarter_turns = (media.rotation() / 90 + u32::from(t.turns)) % 4;
-    let (shown_w, shown_h) = if quarter_turns % 2 == 1 {
-        (cropped_h, cropped_w)
-    } else {
-        (cropped_w, cropped_h)
-    };
-
-    // Fit inside the canvas, then scale; centred plus the offset.
-    let (canvas_w, canvas_h) = (f64::from(canvas.width()), f64::from(canvas.height()));
-    let fit = (canvas_w / shown_w).min(canvas_h / shown_h);
-    let size = fit * f64::from(t.scale) / f64::from(FIT_SCALE);
+    // Centred plus the offset.
     let centre_x = canvas_w * (0.5 + f64::from(t.x) / OFFSET_UNIT);
     let centre_y = canvas_h * (0.5 + f64::from(t.y) / OFFSET_UNIT);
     let mut px = (u * canvas_w - centre_x) / (shown_w * size) + 0.5;

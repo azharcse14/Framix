@@ -13445,12 +13445,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "b9263ba",
+   "branch": "p1-063-frame-rect",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Frame reported for every clip, not only the active one; the UI picks the active clip. Colors report the whole canvas."
+    }
+   ],
    "source": "added"
   },
   {

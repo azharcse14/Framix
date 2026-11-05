@@ -552,6 +552,12 @@ message Clip {
   // SetClipTransform refuses any change to this clip's transform (a color fills the canvas; a
   // locked track), so the canvas offers no gestures for it.
   bool placement_locked = 19;
+  // The picture's frame on the canvas after crop, turns, fit and scale, centred at (x, y); a
+  // color fills the canvas. The canvas outline draws this box.
+  // Frame width as a fraction of the canvas width.
+  float frame_width = 20;
+  // Frame height as a fraction of the canvas height.
+  float frame_height = 21;
 }
 
 // SaveProject finished.
