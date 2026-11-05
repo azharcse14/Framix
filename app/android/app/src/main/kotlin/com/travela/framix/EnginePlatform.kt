@@ -74,7 +74,7 @@ object EnginePlatform {
             }.onFailure {
                 Log.w("framix", "preview texture failed", it)
                 // A producer made before the failure is nobody's: release it now.
-                created?.release()
+                created?.let(::releaseProducer)
             }.getOrNull()
             if (made == null) {
                 nativePreviewTextureDone(doneCtx, 0, null)
@@ -93,7 +93,16 @@ object EnginePlatform {
      */
     @Suppress("unused") // Kept for JNI by proguard-rules.pro.
     fun releasePreviewTexture(id: Long) {
-        main.post { producers.remove(id)?.release() }
+        main.post { producers.remove(id)?.let(::releaseProducer) }
+    }
+
+    /**
+     * Releases [producer]; its FlutterEngine may be gone already (the Activity finished while
+     * the engine lives on), and then release throws. Main thread.
+     */
+    private fun releaseProducer(producer: TextureRegistry.SurfaceProducer) {
+        runCatching { producer.release() }
+            .onFailure { Log.w("framix", "preview texture release failed: ${it.javaClass.simpleName}") }
     }
 
     /**

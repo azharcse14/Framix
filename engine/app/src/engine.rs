@@ -343,7 +343,8 @@ impl Engine {
         }
         preview.host.frame_available(texture.id);
         // Only a preview that drew once is redrawn later; the one it replaces goes back.
-        if let Some(old) = preview.shown.replace(texture).filter(|&old| old != texture) {
+        // Platform texture ids are unique, so the old one is never the new one.
+        if let Some(old) = preview.shown.replace(texture) {
             preview.release(old);
         }
         remember(&mut preview.drawn, layers);

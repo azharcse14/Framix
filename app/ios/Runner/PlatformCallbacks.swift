@@ -93,8 +93,9 @@ enum PlatformCallbacks {
 
   /// The engine no longer draws into texture `id`: Flutter forgets it and its IOSurface goes.
   fileprivate static func releaseTexture(_ id: Int64) {
-    guard textures.removeValue(forKey: id) != nil else { return }
-    registry?.unregisterTexture(id)
+    guard let texture = textures.removeValue(forKey: id) else { return }
+    // Flutter forgets it before it can be freed.
+    withExtendedLifetime(texture) { registry?.unregisterTexture(id) }
   }
 }
 
