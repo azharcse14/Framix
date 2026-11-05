@@ -248,6 +248,18 @@ abstract class AppLocalizations {
   /// **'Next frame'**
   String get nextFrame;
 
+  /// No description provided for @play.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get play;
+
+  /// No description provided for @pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
   /// No description provided for @timelineRuler.
   ///
   /// In en, this message translates to:

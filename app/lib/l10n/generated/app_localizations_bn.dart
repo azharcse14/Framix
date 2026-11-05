@@ -100,6 +100,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get nextFrame => 'পরের ফ্রেম';
 
   @override
+  String get play => 'চালান';
+
+  @override
+  String get pause => 'থামান';
+
+  @override
   String get timelineRuler => 'টাইমলাইন';
 
   @override
