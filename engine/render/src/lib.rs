@@ -927,7 +927,8 @@ fn shown_pixels(placement: &Placement, width: u32, height: u32) -> Option<(u32, 
     }
     // Pixel i's centre is (i + 0.5) / n. A centre within EDGE of an edge is left out: the
     // shader may round it either way, and the layer under it beats the shader's black there.
-    const EDGE: f32 = 1e-3;
+    // 1/100 px: well above f32 error even at 4K, far below anything visible.
+    const EDGE: f32 = 1e-2;
     let pixels = |(lo, hi): (f32, f32), n: u32| {
         let first = (lo * n as f32 - 0.5 + EDGE).ceil().max(0.0);
         let last = (hi * n as f32 - 0.5 - EDGE).floor().min(n as f32 - 1.0);
