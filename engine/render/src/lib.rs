@@ -925,10 +925,12 @@ fn shown_pixels(placement: &Placement, width: u32, height: u32) -> Option<(u32, 
             *range = (range.0.max(lo.min(hi)), range.1.min(lo.max(hi)));
         }
     }
-    // Pixel i's centre is (i + 0.5) / n.
+    // Pixel i's centre is (i + 0.5) / n. A centre within EDGE of an edge is left out: the
+    // shader may round it either way, and the layer under it beats the shader's black there.
+    const EDGE: f32 = 1e-3;
     let pixels = |(lo, hi): (f32, f32), n: u32| {
-        let first = (lo * n as f32 - 0.5).ceil().max(0.0);
-        let last = (hi * n as f32 - 0.5).floor().min(n as f32 - 1.0);
+        let first = (lo * n as f32 - 0.5 + EDGE).ceil().max(0.0);
+        let last = (hi * n as f32 - 0.5 - EDGE).floor().min(n as f32 - 1.0);
         (first <= last).then(|| (first as u32, (last - first) as u32 + 1))
     };
     let (x, w) = pixels(u, width)?;
@@ -1134,8 +1136,8 @@ fn draw_into(
     layers: &mut dyn Iterator<Item = Layer<'_>>,
 ) -> Result<(), DrawError> {
     use framix_core::media::MediaKind;
-    let layer = layers.last();
     use framix_core::placement::target_to_canvas;
+    let layer = layers.last();
     let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
         .ok_or_else(|| DrawError::Gpu("null preview window".into()))?;

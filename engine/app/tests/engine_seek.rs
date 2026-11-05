@@ -149,10 +149,8 @@ impl PreviewRenderer for Renderer {
         &mut self,
         target: PlatformTexture,
         time: Time,
-        layers: &mut dyn Iterator<Item = Layer<'_>>,
+        _: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
-        let top = layers.last();
-        let _ = top.as_ref();
         self.0.lock().unwrap().push((target.id, time));
         Ok(())
     }
