@@ -885,6 +885,7 @@ impl Engine {
                 Ok(Reply::Playhead(false))
             }
             command::Kind::Play(_) => self.play().map(|()| Reply::Playhead(false)),
+            command::Kind::SetLoop(_) => Ok(Reply::Timeline),
             command::Kind::Pause(_) => {
                 self.pause();
                 Ok(Reply::Playhead(false))
@@ -1167,6 +1168,8 @@ impl Engine {
                 // `reply` sets it for the answer to a snapping edit.
                 snapped: false,
                 playing: self.is_playing(),
+                loop_start: 0,
+                loop_end: 0,
             })),
         }
     }

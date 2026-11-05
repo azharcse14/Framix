@@ -458,6 +458,15 @@ const Command$json = {
       '9': 0,
       '10': 'pause'
     },
+    {
+      '1': 'set_loop',
+      '3': 40,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.SetLoop',
+      '9': 0,
+      '10': 'setLoop'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -508,8 +517,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'CHNuYXBNb3ZlEjsKDG9wZW5fbGlicmFyeRgkIAEoCzIWLmZyYW1peC52MS5PcGVuTGlicmFyeU'
     'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
     'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSJQoEcGxheRgmIAEoCzIPLmZyYW1peC52MS5QbGF5SA'
-    'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USDgoCaWQY'
-    'GyABKARSAmlkQgYKBGtpbmQ=');
+    'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USLwoIc2V0'
+    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEg4KAmlkGBsgASgEUg'
+    'JpZEIGCgRraW5k');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -1146,6 +1156,19 @@ const Pause$json = {
 final $typed_data.Uint8List pauseDescriptor =
     $convert.base64Decode('CgVQYXVzZQ==');
 
+@$core.Deprecated('Use setLoopDescriptor instead')
+const SetLoop$json = {
+  '1': 'SetLoop',
+  '2': [
+    {'1': 'start', '3': 1, '4': 1, '5': 3, '10': 'start'},
+    {'1': 'end', '3': 2, '4': 1, '5': 3, '10': 'end'},
+  ],
+};
+
+/// Descriptor for `SetLoop`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setLoopDescriptor = $convert.base64Decode(
+    'CgdTZXRMb29wEhQKBXN0YXJ0GAEgASgDUgVzdGFydBIQCgNlbmQYAiABKANSA2VuZA==');
+
 @$core.Deprecated('Use seekDescriptor instead')
 const Seek$json = {
   '1': 'Seek',
@@ -1438,6 +1461,8 @@ const TimelineChanged$json = {
     {'1': 'project', '3': 12, '4': 1, '5': 4, '10': 'project'},
     {'1': 'snapped', '3': 13, '4': 1, '5': 8, '10': 'snapped'},
     {'1': 'playing', '3': 14, '4': 1, '5': 8, '10': 'playing'},
+    {'1': 'loop_start', '3': 15, '4': 1, '5': 3, '10': 'loopStart'},
+    {'1': 'loop_end', '3': 16, '4': 1, '5': 3, '10': 'loopEnd'},
   ],
 };
 
@@ -1451,7 +1476,8 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'NlY29uZBIlCg50aHVtYm5haWxfc3RlcBgJIAEoA1INdGh1bWJuYWlsU3RlcBIfCgthY3RpdmVf'
     'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcBItCgZleHBvcnQYCyABKAsyFS5mcmFtaXgudjEuRXhwb3'
     'J0SW5mb1IGZXhwb3J0EhgKB3Byb2plY3QYDCABKARSB3Byb2plY3QSGAoHc25hcHBlZBgNIAEo'
-    'CFIHc25hcHBlZBIYCgdwbGF5aW5nGA4gASgIUgdwbGF5aW5n');
+    'CFIHc25hcHBlZBIYCgdwbGF5aW5nGA4gASgIUgdwbGF5aW5nEh0KCmxvb3Bfc3RhcnQYDyABKA'
+    'NSCWxvb3BTdGFydBIZCghsb29wX2VuZBgQIAEoA1IHbG9vcEVuZA==');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {
