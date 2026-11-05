@@ -78,6 +78,23 @@ struct Preview {
     lost: Option<i64>,
 }
 
+impl Preview {
+    /// Gives `texture` back to the platform once the renderer has dropped what it kept for it.
+    fn release(&mut self, texture: PlatformTexture) {
+        self.renderer.forget(texture);
+        self.host.release_texture(texture);
+    }
+}
+
+impl Drop for Preview {
+    /// The engine is going away: the shown texture goes back to the platform.
+    fn drop(&mut self) {
+        if let Some(texture) = self.shown.take() {
+            self.release(texture);
+        }
+    }
+}
+
 /// Longest time a change waits before the engine autosaves it.
 pub const AUTOSAVE_DELAY: std::time::Duration = std::time::Duration::from_secs(1);
 
@@ -299,11 +316,13 @@ impl Engine {
     }
 
     fn show_preview(&mut self, texture: Result<PlatformTexture, String>) -> Result<i64, String> {
-        let preview = self
-            .preview
-            .as_mut()
-            .filter(|p| p.pending > 0)
-            .ok_or("no preview was requested")?;
+        let preview = self.preview.as_mut().ok_or("no preview was requested")?;
+        if preview.pending == 0 {
+            if let Ok(texture) = texture {
+                preview.release(texture);
+            }
+            return Err("no preview was requested".into());
+        }
         preview.pending -= 1;
         let texture = texture?;
         let layers = preview_layers(
@@ -317,11 +336,16 @@ impl Engine {
         {
             // A frame that can't be decoded shows black; the preview itself works.
             Ok(()) | Err(DrawError::Decode(_)) => {}
-            Err(DrawError::Gpu(reason)) => return Err(reason),
+            Err(DrawError::Gpu(reason)) => {
+                preview.release(texture);
+                return Err(reason);
+            }
         }
         preview.host.frame_available(texture.id);
-        // Only a preview that drew once is redrawn later.
-        preview.shown = Some(texture);
+        // Only a preview that drew once is redrawn later; the one it replaces goes back.
+        if let Some(old) = preview.shown.replace(texture).filter(|&old| old != texture) {
+            preview.release(old);
+        }
         remember(&mut preview.drawn, layers);
         preview.stale = false;
         Ok(texture.id)
@@ -362,6 +386,7 @@ impl Engine {
             Err(DrawError::Gpu(_)) => {
                 preview.shown = None;
                 preview.lost = Some(texture.id);
+                preview.release(texture);
             }
         }
     }

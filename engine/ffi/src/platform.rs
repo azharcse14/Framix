@@ -23,8 +23,8 @@ pub const ENGINE_PLATFORM_VERSION: u32 = 7;
 /// The platform's answer to `create_preview_texture`. Call it exactly once, from any thread,
 /// with the `done_ctx` that came with the request. `status` is [`crate::ENGINE_OK`] or any
 /// other value for failure; on success `texture` is the GPU handle (an `id<MTLTexture>` on
-/// iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive while
-/// Flutter may show `texture_id`.
+/// iOS, an `ANativeWindow*` reference the engine then owns on Android) and must stay alive until
+/// `release_preview_texture` gives it back.
 pub type EnginePreviewTextureDone =
     unsafe extern "C" fn(done_ctx: *mut c_void, status: i32, texture_id: i64, texture: *mut c_void);
 
@@ -363,6 +363,32 @@ impl PreviewHost for PlatformHost {
             unsafe { (platform.frame_available)(platform.ctx, id) };
         }
     }
+
+    fn release_texture(&self, texture: PlatformTexture) {
+        release(texture);
+    }
+}
+
+/// Gives `texture` back through `release_preview_texture`.
+fn release(texture: PlatformTexture) {
+    if let Some(platform) = PLATFORM.get() {
+        // SAFETY: registered callback (register's contract); the id and handle are the ones
+        // the platform's `done` reported, given back once.
+        unsafe {
+            (platform.release_preview_texture)(
+                platform.ctx,
+                texture.id,
+                texture.handle as *mut c_void,
+            )
+        };
+    }
+}
+
+/// A platform answer no engine will use: its texture goes straight back (P1-065).
+pub(crate) fn release_unused(texture: Result<PlatformTexture, String>) {
+    if let Ok(texture) = texture {
+        release(texture);
+    }
 }
 
 impl ThumbnailHost for PlatformHost {
@@ -504,8 +530,12 @@ pub(crate) unsafe extern "C" fn preview_texture_done(
                 handle: texture as usize,
             })
         };
-        // A stopped engine no longer wants the answer.
-        let _ = engine.send(EngineMessage::PreviewTexture(texture));
+        // A stopped engine no longer wants the answer; its texture goes back at once.
+        if let Err(unsent) = engine.send(EngineMessage::PreviewTexture(texture))
+            && let EngineMessage::PreviewTexture(texture) = unsent.0
+        {
+            release_unused(texture);
+        }
         ENGINE_OK
     });
 }

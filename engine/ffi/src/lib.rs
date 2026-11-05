@@ -203,12 +203,20 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                     let failed = command_failed("engine stopped");
                     deliver(callback, &framix_app::engine::answering(id, failed));
                 }
-                EngineMessage::PreviewTexture(_)
-                | EngineMessage::Thumbnail(..)
+                EngineMessage::PreviewTexture(texture) => platform::release_unused(texture),
+                EngineMessage::Thumbnail(..)
                 | EngineMessage::Proxy(..)
                 | EngineMessage::ExportProgress(..)
                 | EngineMessage::Export(_) => {}
             }
+        }
+    }
+    // Textures the platform made while the engine was stopping have no engine left to use them.
+    // ponytail: an answer sent between this drain and the inbox's drop is still lost; closing
+    // the inbox first needs the senders to see it (they only see a dropped receiver).
+    for message in inbox.try_iter() {
+        if let EngineMessage::PreviewTexture(texture) = message {
+            platform::release_unused(texture);
         }
     }
     deliver(

@@ -35,3 +35,8 @@ plumbing in Dart.
 - Android fills the same vtable through a Rust JNI shim (Kotlin has no C function pointers):
   `EnginePlatform.kt` registers itself, Rust trampolines call it, and the SurfaceProducer's
   `ANativeWindow` is the texture handle (P1-052, engine/ffi/src/android_platform.rs).
+- Every texture a `done` reported goes back once through `release_preview_texture` (platform
+  v7, P1-055): when a new preview replaces it, a draw loses it, nobody asked for it, or the
+  engine stops (also for answers that arrive after that). The engine releases it only after
+  the renderer dropped what it kept for it (Android: the window surface and the engine's
+  `ANativeWindow` reference); the platform then unregisters the Flutter texture.
