@@ -7954,7 +7954,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Engine playback exists now (P1-061): pause it (Pause command) when the app goes to the background; leaving the editor already pauses (TimelinePage PopScope)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13344,12 +13349,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "b4466d4",
+   "branch": "p1-061-playback",
+   "notes": [
+    {
+     "date": "2026-11-05",
+     "text": "Review fixes: pause on editor pop, ruler drag pauses unconditionally, panic in a step sends PlayheadChanged(playing=false). Background pause belongs to RES-004. Decode still runs on the command thread during playback (P1-053)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14502,6 +14512,25 @@
    "title": "iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting",
    "tags": [
     "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-097",
+   "section": "P1",
+   "group": null,
+   "title": "Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
