@@ -35,7 +35,8 @@ pub enum RenderError {
     #[error("no GPU device: {0}")]
     NoDevice(#[from] wgpu::RequestDeviceError),
     /// The external texture was null, empty, of a format or usage the call does not take, not
-    /// a plain 2D single-mip texture, or from another GPU than the one wgpu opened.
+    /// a plain 2D single-mip texture, or from another GPU than the one wgpu opened; or a
+    /// chroma plane is not half the luma, rounded up.
     #[error("invalid external texture")]
     InvalidTexture,
     /// Waiting for the GPU failed (timeout or device lost).
@@ -69,9 +70,18 @@ const fn space(matrix: YcbcrMatrix, range: YcbcrRange) -> YcbcrSpace {
     YcbcrSpace { matrix, range }
 }
 
+/// Whether `texture` is one plain 2D image: what the passes bind and draw into.
+fn single_2d(texture: &wgpu::Texture) -> bool {
+    texture.dimension() == wgpu::TextureDimension::D2
+        && texture.depth_or_array_layers() == 1
+        && texture.mip_level_count() == 1
+        && texture.sample_count() == 1
+}
+
 /// Whether a pass can sample `texture` as `format`.
 fn sampled(texture: &wgpu::Texture, format: wgpu::TextureFormat) -> bool {
     texture.format() == format
+        && single_2d(texture)
         && texture
             .usage()
             .contains(wgpu::TextureUsages::TEXTURE_BINDING)
@@ -319,6 +329,9 @@ impl Gpu {
     /// Draws the test pattern into `target` and waits until the GPU is done, so the platform
     /// layer can tell Flutter a new frame is ready right after this returns.
     pub fn draw_test_pattern(&self, target: &wgpu::Texture) -> Result<(), RenderError> {
+        if target.format() != PREVIEW_FORMAT {
+            return Err(RenderError::InvalidTexture);
+        }
         self.draw(target, Some(&self.pipeline), None)
     }
 
@@ -454,7 +467,7 @@ impl Gpu {
         unsafe { android::import_ahb(&self.device, ahb) }
     }
 
-    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size) to RGB, placed on
+    /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size, rounded up) to RGB, placed on
     /// `target` by `placement` (black around it), and waits until the GPU is done.
     pub fn draw_nv12(
         &self,
@@ -517,9 +530,10 @@ impl Gpu {
         bind_group: Option<&wgpu::BindGroup>,
     ) -> Result<(), RenderError> {
         // Format is the caller's check: an Android window may not be PREVIEW_FORMAT.
-        if !target
-            .usage()
-            .contains(wgpu::TextureUsages::RENDER_ATTACHMENT)
+        if !single_2d(target)
+            || !target
+                .usage()
+                .contains(wgpu::TextureUsages::RENDER_ATTACHMENT)
         {
             return Err(RenderError::InvalidTexture);
         }
