@@ -6,7 +6,7 @@ use framix_app::engine::Engine;
 use framix_app::preview::{DrawError, PlatformTexture, PreviewHost, PreviewRenderer};
 use framix_app::proto::{
     AddTrack, Command, CreatePreview, Event, ImportMedia, InsertClip, MediaItem, MediaKind, Seek,
-    SetClipTransform, SetTrackFlags, TimelineChanged, TrackKind, command, event,
+    SetAspectRatio, SetClipTransform, SetTrackFlags, TimelineChanged, TrackKind, command, event,
 };
 use framix_core::time::{TICKS_PER_SECOND, Time};
 use framix_core::timeline::{Layer, LayerKey};
@@ -83,6 +83,14 @@ fn pip() -> (Engine, Draws, Pip) {
     let draws = Draws::default();
     let mut engine =
         Engine::default().with_preview(Box::new(Host), Box::new(Renderer(draws.clone())));
+    // A 16:9 canvas, the videos' shape: at full size the top covers it.
+    changed(run(
+        &mut engine,
+        command::Kind::SetAspectRatio(SetAspectRatio {
+            width: 16,
+            height: 9,
+        }),
+    ));
     let t = changed(run(
         &mut engine,
         command::Kind::ImportMedia(ImportMedia {
