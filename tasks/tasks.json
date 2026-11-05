@@ -14191,15 +14191,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-05",
+   "commit": "eca84f3",
+   "branch": "tc-014-sentry-10-2",
    "notes": [
     {
      "date": "2026-11-04",
      "text": "From TC-013 review: the Groovy allowlist line also covers sentry_flutter 10.1.0 build.gradle line 26 (namespace), still in 10.2.0, and SentryFlutterPlugin.kt defaultDisplay deprecation (also still in 10.2.0). After the upgrade re-check both; only the jni part goes away."
+    },
+    {
+     "date": "2026-11-05",
+     "text": "Only the jni part of the Groovy allowlist went away; the line stays for sentry_flutter 10.2.0 build.gradle:26. jni locked at 1.1.0 (1.1.1/1.1.2 under 14 days). Cold native_warnings.sh green (after flutter clean: a Kotlin IC cache dropped SentryFlutterPlugin.class on the 10.1.0->10.2.0 path change)."
     }
    ],
    "source": "added"
