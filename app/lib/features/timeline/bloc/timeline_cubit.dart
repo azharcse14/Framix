@@ -193,9 +193,6 @@ class TimelineCubit extends Cubit<TimelineChanged> {
     );
   }
 
-  /// Moves [clip] to [start] ticks on track [trackId]; the engine snaps it to an edge within
-  /// [snapWithin] ticks, puts a start before 0 at 0, and refuses a taken spot, a locked track
-  /// or another kind of track.
   /// Asks the engine to play [start, end) over and over; end <= start clears the loop.
   void setLoop(Int64 start, Int64 end) => _engine.send(
     Command(
@@ -206,6 +203,9 @@ class TimelineCubit extends Cubit<TimelineChanged> {
   /// Asks the engine to stop looping.
   void clearLoop() => _engine.send(Command(setLoop: SetLoop()));
 
+  /// Moves [clip] to [start] ticks on track [trackId]; the engine snaps it to an edge within
+  /// [snapWithin] ticks, puts a start before 0 at 0, and refuses a taken spot, a locked track
+  /// or another kind of track.
   void moveClip(Clip clip, Int64 trackId, int start, {int snapWithin = 0}) =>
       _engine.send(
         Command(

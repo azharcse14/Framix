@@ -386,9 +386,11 @@ class _ClipActions extends StatelessWidget {
     final next = track.clips.where((c) => c.start == end).firstOrNull;
     // Playback repeats exactly this clip.
     final looping = timeline.loopStart == clip.start && timeline.loopEnd == end;
-    return Padding(
+    // One row that scrolls sideways on a narrow phone, so its height never changes.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
-      child: Wrap(
+      child: Row(
         children: [
           IconButton(
             tooltip: l10n.splitClip,

@@ -429,7 +429,7 @@ impl Engine {
                 .0
                 .saturating_add(now.0.saturating_sub(clock_at.0).max(0)),
         );
-        if let Some((start, stop)) = self.live_loop().filter(|&(_, stop)| time >= stop) {
+        if let Some((start, stop)) = self.live_loop(end).filter(|&(_, stop)| time >= stop) {
             // Past the loop's end: on from its start by the overshoot, anchored there again so
             // laps never add up rounding.
             let at = Time(start.0 + (time.0 - stop.0) % (stop.0 - start.0));
@@ -459,7 +459,7 @@ impl Engine {
         if self.playhead >= end {
             self.move_playhead(Time(0));
         }
-        if let Some((start, stop)) = self.live_loop()
+        if let Some((start, stop)) = self.live_loop(end)
             && !(start..stop).contains(&self.playhead)
         {
             self.move_playhead(start);
@@ -468,12 +468,12 @@ impl Engine {
         Ok(())
     }
 
-    /// The loop kept to the timeline (start at least 0, end at most its end); None when that
-    /// leaves nothing.
-    fn live_loop(&self) -> Option<(Time, Time)> {
+    /// The loop kept to the timeline (start at least 0, at most `end`, the timeline's end);
+    /// None when that leaves nothing.
+    fn live_loop(&self, end: Time) -> Option<(Time, Time)> {
         let (start, stop) = self.loop_range?;
         let start = Time(start.0.max(0));
-        let stop = Time(stop.0.min(self.history.timeline().duration().0));
+        let stop = Time(stop.0.min(end.0));
         (start < stop).then_some((start, stop))
     }
 
