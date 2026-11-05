@@ -11,15 +11,12 @@ class _NativeTransport implements Transport {
 }
 
 void main() {
-  test(
-    'events go over HTTP, not through the native SDKs that stay off (P1-041 review)',
-    () {
-      final options = SentryFlutterOptions()..transport = _NativeTransport();
+  test('events go over HTTP, not through the native SDKs that stay off (P1-041 review)', () {
+    final options = SentryFlutterOptions()..transport = _NativeTransport();
 
-      configureCrashReporting(options, dsn: 'https://key@o1.ingest.sentry.io/1');
+    configureCrashReporting(options, dsn: 'https://key@o1.ingest.sentry.io/1');
 
-      // SentryClient swaps a NoOpTransport for its HttpTransport.
-      expect(options.transport, isA<NoOpTransport>());
-    },
-  );
+    // SentryClient swaps a NoOpTransport for its HttpTransport.
+    expect(options.transport, isA<NoOpTransport>());
+  });
 }
