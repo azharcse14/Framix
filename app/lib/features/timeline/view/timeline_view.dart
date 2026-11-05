@@ -12,6 +12,7 @@ import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/timecode.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/clip_selection_cubit.dart';
+import '../bloc/playback_cubit.dart';
 import '../bloc/playhead_cubit.dart';
 import '../bloc/thumbnail_cubit.dart';
 import '../bloc/timeline_cubit.dart';
@@ -245,7 +246,7 @@ class _TimelineViewState extends State<TimelineView> {
   }
 }
 
-/// Playhead time, previous/next frame, and the zoom buttons (the button path for pinch,
+/// Playhead time, play/pause, previous/next frame, and the zoom buttons (the button path for pinch,
 /// docs/design-system.md).
 class _Toolbar extends StatelessWidget {
   const _Toolbar({required this.ticksPerSecond});
@@ -260,15 +261,30 @@ class _Toolbar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
       child: Row(
         children: [
-          BlocBuilder<PlayheadCubit, int>(
-            builder: (_, playhead) => Text(
-              timecode(playhead, ticksPerSecond),
-              style: const TextStyle(
-                fontFeatures: [FontFeature.tabularFigures()],
+          // The buttons keep their 48 dp; in a narrow pane the timecode shrinks instead.
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: BlocBuilder<PlayheadCubit, int>(
+                builder: (_, playhead) => Text(
+                  timecode(playhead, ticksPerSecond),
+                  style: const TextStyle(
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
               ),
             ),
           ),
-          const Spacer(),
+          BlocBuilder<PlaybackCubit, bool>(
+            builder: (context, playing) => IconButton(
+              tooltip: playing ? l10n.pause : l10n.play,
+              icon: Icon(playing ? Icons.pause : Icons.play_arrow),
+              onPressed: playing
+                  ? context.read<PlaybackCubit>().pause
+                  : context.read<PlaybackCubit>().play,
+            ),
+          ),
           IconButton(
             tooltip: l10n.previousFrame,
             icon: const Icon(Icons.chevron_left),
@@ -426,6 +442,10 @@ class _Ruler extends StatelessWidget {
       key: TimelineView.rulerKey,
       behavior: HitTestBehavior.opaque,
       onTapDown: (d) => seekTo(d.localPosition.dx),
+      // Playback would pull the playhead away from the finger.
+      // Pause even if Dart doesn't know it plays yet (a Play still on its way); the engine
+      // ignores a Pause while stopped.
+      onHorizontalDragStart: (_) => context.read<PlaybackCubit>().pause(),
       onHorizontalDragUpdate: (d) => seekTo(d.localPosition.dx),
       child: CustomPaint(
         size: Size(double.infinity, height),

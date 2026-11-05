@@ -5,6 +5,7 @@ import 'package:framix/core/media/media_importer.dart';
 import 'package:framix/core/ui/framix_theme.dart';
 import 'package:framix/features/export/bloc/export_cubit.dart';
 import 'package:framix/features/preview/bloc/preview_cubit.dart';
+import 'package:framix/features/timeline/bloc/playback_cubit.dart';
 import 'package:framix/features/timeline/bloc/playhead_cubit.dart';
 import 'package:framix/features/timeline/bloc/thumbnail_cubit.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
@@ -51,6 +52,7 @@ void main() {
                 BlocProvider(create: (_) => TimelineCubit(engine)),
                 BlocProvider(create: (_) => PreviewCubit(engine)),
                 BlocProvider(create: (_) => PlayheadCubit(engine)),
+                BlocProvider(create: (_) => PlaybackCubit(engine)),
                 BlocProvider(create: (_) => TimelineZoomCubit()),
                 BlocProvider(create: (_) => ThumbnailCubit(engine)),
                 BlocProvider<ExportCubit>.value(value: export),

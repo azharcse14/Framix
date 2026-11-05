@@ -101,6 +101,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextFrame => 'Next frame';
 
   @override
+  String get play => 'Play';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
   String get timelineRuler => 'Timeline';
 
   @override
