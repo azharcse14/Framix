@@ -376,4 +376,27 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get noMatchingProjects => 'কোনো প্রজেক্ট মেলেনি।';
+
+  @override
+  String get deleteProject => 'মুছে ফেলুন';
+
+  @override
+  String get recentlyDeleted => 'সম্প্রতি মোছা';
+
+  @override
+  String get recentlyDeletedEmpty =>
+      'কিছু মোছা হয়নি। মোছা প্রজেক্ট এখানে ৩০ দিন থাকে।';
+
+  @override
+  String get restoreProject => 'ফিরিয়ে আনুন';
+
+  @override
+  String daysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'আর $count দিন',
+    );
+    return '$_temp0';
+  }
 }

@@ -35,6 +35,10 @@ pub trait ProjectStore: Send {
         let _ = path;
         Err(std::io::ErrorKind::Unsupported.into())
     }
+    /// Now, by the clock that stamps this store's files (see [`ProjectStore::list`]).
+    fn now(&self) -> SystemTime {
+        SystemTime::now()
+    }
     /// Moves the file at `path` aside (replacing an earlier one set aside), so a new save
     /// can't overwrite or rotate it away.
     fn set_aside(&self, path: &Path) -> std::io::Result<()> {

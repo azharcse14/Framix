@@ -659,6 +659,7 @@ impl Engine {
                     projects,
                     recovered,
                     folders,
+                    deleted: 0,
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -993,6 +994,9 @@ impl Engine {
                 let dir = self.library.clone().ok_or("no library")?;
                 crate::library::rename(self.store()?, &dir, &op.id, &op.name)
                     .map(|()| Reply::Accepted)
+            }
+            command::Kind::DeleteProject(_) | command::Kind::RestoreProject(_) => {
+                Err("not implemented".into())
             }
             command::Kind::MoveProject(op) => {
                 let dir = self.library.clone().ok_or("no library")?;

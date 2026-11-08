@@ -54,6 +54,8 @@ message Command {
     DuplicateClips duplicate_clips = 43;
     RenameProject rename_project = 44;
     MoveProject move_project = 45;
+    DeleteProject delete_project = 46;
+    RestoreProject restore_project = 47;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -245,6 +247,21 @@ message ListProjects {
   string query = 2;
   // Only projects in this folder (MoveProject); empty: every project.
   string folder = 3;
+  // List Recently deleted (DeleteProject) instead of the other projects.
+  bool deleted = 4;
+}
+
+// Moves library project `id` to Recently deleted: ListProjects shows it only with `deleted`,
+// OpenProject refuses it, and 30 days after this it is removed for good (with its backups) by
+// the next ListProjects. Answered CommandAccepted.
+message DeleteProject {
+  string id = 1;
+}
+
+// Takes library project `id` out of Recently deleted, keeping its name and folder. Answered
+// CommandAccepted; refused for a project that is not deleted.
+message RestoreProject {
+  string id = 1;
 }
 
 // How ListProjects orders projects. Ties go newest saved first.
@@ -652,6 +669,8 @@ message ProjectList {
   string recovered = 2;
   // Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
   repeated string folders = 3;
+  // How many projects are in Recently deleted.
+  uint32 deleted = 4;
 }
 
 // One library project as Home lists it.
@@ -671,6 +690,9 @@ message ProjectSummary {
   string folder = 7;
   // Size of the project file.
   uint64 bytes = 8;
+  // In Recently deleted: when it will be removed for good, in milliseconds since the Unix
+  // epoch; 0: not deleted.
+  int64 purge_ms = 9;
 }
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

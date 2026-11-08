@@ -379,4 +379,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noMatchingProjects => 'No projects match.';
+
+  @override
+  String get deleteProject => 'Delete';
+
+  @override
+  String get recentlyDeleted => 'Recently deleted';
+
+  @override
+  String get recentlyDeletedEmpty =>
+      'Nothing deleted. Deleted projects stay here for 30 days.';
+
+  @override
+  String get restoreProject => 'Restore';
+
+  @override
+  String daysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
+  }
 }

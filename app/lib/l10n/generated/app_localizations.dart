@@ -685,6 +685,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No projects match.'**
   String get noMatchingProjects;
+
+  /// Project menu: moves the project to Recently deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteProject;
+
+  /// Home filter chip: deleted projects, kept 30 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently deleted'**
+  String get recentlyDeleted;
+
+  /// No description provided for @recentlyDeletedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing deleted. Deleted projects stay here for 30 days.'**
+  String get recentlyDeletedEmpty;
+
+  /// No description provided for @restoreProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreProject;
+
+  /// On a deleted project: days until it is removed for good.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
+  String daysLeft(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -97,5 +97,10 @@
   "sortByName": "নাম",
   "sortBySize": "সাইজ",
   "allProjects": "সব",
-  "noMatchingProjects": "কোনো প্রজেক্ট মেলেনি।"
+  "noMatchingProjects": "কোনো প্রজেক্ট মেলেনি।",
+  "deleteProject": "মুছে ফেলুন",
+  "recentlyDeleted": "সম্প্রতি মোছা",
+  "recentlyDeletedEmpty": "কিছু মোছা হয়নি। মোছা প্রজেক্ট এখানে ৩০ দিন থাকে।",
+  "restoreProject": "ফিরিয়ে আনুন",
+  "daysLeft": "{count, plural, other{আর {count} দিন}}"
 }

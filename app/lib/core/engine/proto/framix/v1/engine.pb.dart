@@ -66,6 +66,8 @@ enum Command_Kind {
   duplicateClips,
   renameProject,
   moveProject,
+  deleteProject,
+  restoreProject,
   notSet
 }
 
@@ -117,6 +119,8 @@ class Command extends $pb.GeneratedMessage {
     DuplicateClips? duplicateClips,
     RenameProject? renameProject,
     MoveProject? moveProject,
+    DeleteProject? deleteProject,
+    RestoreProject? restoreProject,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -165,6 +169,8 @@ class Command extends $pb.GeneratedMessage {
     if (duplicateClips != null) result.duplicateClips = duplicateClips;
     if (renameProject != null) result.renameProject = renameProject;
     if (moveProject != null) result.moveProject = moveProject;
+    if (deleteProject != null) result.deleteProject = deleteProject;
+    if (restoreProject != null) result.restoreProject = restoreProject;
     return result;
   }
 
@@ -222,6 +228,8 @@ class Command extends $pb.GeneratedMessage {
     43: Command_Kind.duplicateClips,
     44: Command_Kind.renameProject,
     45: Command_Kind.moveProject,
+    46: Command_Kind.deleteProject,
+    47: Command_Kind.restoreProject,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -272,7 +280,9 @@ class Command extends $pb.GeneratedMessage {
       42,
       43,
       44,
-      45
+      45,
+      46,
+      47
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -365,6 +375,10 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: RenameProject.$_createMessage)
     ..aOM<MoveProject>(45, _omitFieldNames ? '' : 'moveProject',
         subBuilder: MoveProject.$_createMessage)
+    ..aOM<DeleteProject>(46, _omitFieldNames ? '' : 'deleteProject',
+        subBuilder: DeleteProject.$_createMessage)
+    ..aOM<RestoreProject>(47, _omitFieldNames ? '' : 'restoreProject',
+        subBuilder: RestoreProject.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -431,6 +445,8 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(43)
   @$pb.TagNumber(44)
   @$pb.TagNumber(45)
+  @$pb.TagNumber(46)
+  @$pb.TagNumber(47)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -476,6 +492,8 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(43)
   @$pb.TagNumber(44)
   @$pb.TagNumber(45)
+  @$pb.TagNumber(46)
+  @$pb.TagNumber(47)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -983,6 +1001,28 @@ class Command extends $pb.GeneratedMessage {
   void clearMoveProject() => $_clearField(45);
   @$pb.TagNumber(45)
   MoveProject ensureMoveProject() => $_ensure(44);
+
+  @$pb.TagNumber(46)
+  DeleteProject get deleteProject => $_getN(45);
+  @$pb.TagNumber(46)
+  set deleteProject(DeleteProject value) => $_setField(46, value);
+  @$pb.TagNumber(46)
+  $core.bool hasDeleteProject() => $_has(45);
+  @$pb.TagNumber(46)
+  void clearDeleteProject() => $_clearField(46);
+  @$pb.TagNumber(46)
+  DeleteProject ensureDeleteProject() => $_ensure(45);
+
+  @$pb.TagNumber(47)
+  RestoreProject get restoreProject => $_getN(46);
+  @$pb.TagNumber(47)
+  set restoreProject(RestoreProject value) => $_setField(47, value);
+  @$pb.TagNumber(47)
+  $core.bool hasRestoreProject() => $_has(46);
+  @$pb.TagNumber(47)
+  void clearRestoreProject() => $_clearField(47);
+  @$pb.TagNumber(47)
+  RestoreProject ensureRestoreProject() => $_ensure(46);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2385,11 +2425,13 @@ class ListProjects extends $pb.GeneratedMessage {
     ProjectSort? sort,
     $core.String? query,
     $core.String? folder,
+    $core.bool? deleted,
   }) {
     final result = ListProjects._();
     if (sort != null) result.sort = sort;
     if (query != null) result.query = query;
     if (folder != null) result.folder = folder;
+    if (deleted != null) result.deleted = deleted;
     return result;
   }
 
@@ -2410,6 +2452,7 @@ class ListProjects extends $pb.GeneratedMessage {
         enumValues: ProjectSort.values)
     ..aOS(2, _omitFieldNames ? '' : 'query')
     ..aOS(3, _omitFieldNames ? '' : 'folder')
+    ..aOB(4, _omitFieldNames ? '' : 'deleted')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2463,6 +2506,135 @@ class ListProjects extends $pb.GeneratedMessage {
   $core.bool hasFolder() => $_has(2);
   @$pb.TagNumber(3)
   void clearFolder() => $_clearField(3);
+
+  /// List Recently deleted (DeleteProject) instead of the other projects.
+  @$pb.TagNumber(4)
+  $core.bool get deleted => $_getBF(3);
+  @$pb.TagNumber(4)
+  set deleted($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDeleted() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDeleted() => $_clearField(4);
+}
+
+/// Moves library project `id` to Recently deleted: ListProjects shows it only with `deleted`,
+/// OpenProject refuses it, and 30 days after this it is removed for good (with its backups) by
+/// the next ListProjects. Answered CommandAccepted.
+class DeleteProject extends $pb.GeneratedMessage {
+  factory DeleteProject({
+    $core.String? id,
+  }) {
+    final result = DeleteProject._();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  DeleteProject._();
+
+  factory DeleteProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DeleteProject()..mergeFromBuffer(data, registry);
+  factory DeleteProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DeleteProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DeleteProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: DeleteProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DeleteProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DeleteProject copyWith(void Function(DeleteProject) updates) =>
+      super.copyWith((message) => updates(message as DeleteProject))
+          as DeleteProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DeleteProject() / DeleteProject.new instead')
+  static DeleteProject create() => DeleteProject._();
+  static $pb.GeneratedMessage $_createMessage() => DeleteProject._();
+  @$core.override
+  DeleteProject createEmptyInstance() => DeleteProject._();
+  @$core.pragma('dart2js:noInline')
+  static DeleteProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DeleteProject>(
+          DeleteProject.$_createMessage);
+  static DeleteProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+}
+
+/// Takes library project `id` out of Recently deleted, keeping its name and folder. Answered
+/// CommandAccepted; refused for a project that is not deleted.
+class RestoreProject extends $pb.GeneratedMessage {
+  factory RestoreProject({
+    $core.String? id,
+  }) {
+    final result = RestoreProject._();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  RestoreProject._();
+
+  factory RestoreProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RestoreProject()..mergeFromBuffer(data, registry);
+  factory RestoreProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RestoreProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RestoreProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RestoreProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RestoreProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RestoreProject copyWith(void Function(RestoreProject) updates) =>
+      super.copyWith((message) => updates(message as RestoreProject))
+          as RestoreProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RestoreProject() / RestoreProject.new instead')
+  static RestoreProject create() => RestoreProject._();
+  static $pb.GeneratedMessage $_createMessage() => RestoreProject._();
+  @$core.override
+  RestoreProject createEmptyInstance() => RestoreProject._();
+  @$core.pragma('dart2js:noInline')
+  static RestoreProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RestoreProject>(
+          RestoreProject.$_createMessage);
+  static RestoreProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
 }
 
 /// Names library project `id` (ProjectSummary.id). The name is trimmed; empty clears it, more
@@ -5969,11 +6141,13 @@ class ProjectList extends $pb.GeneratedMessage {
     $core.Iterable<ProjectSummary>? projects,
     $core.String? recovered,
     $core.Iterable<$core.String>? folders,
+    $core.int? deleted,
   }) {
     final result = ProjectList._();
     if (projects != null) result.projects.addAll(projects);
     if (recovered != null) result.recovered = recovered;
     if (folders != null) result.folders.addAll(folders);
+    if (deleted != null) result.deleted = deleted;
     return result;
   }
 
@@ -5994,6 +6168,7 @@ class ProjectList extends $pb.GeneratedMessage {
         subBuilder: ProjectSummary.$_createMessage)
     ..aOS(2, _omitFieldNames ? '' : 'recovered')
     ..pPS(3, _omitFieldNames ? '' : 'folders')
+    ..aI(4, _omitFieldNames ? '' : 'deleted', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6037,6 +6212,16 @@ class ProjectList extends $pb.GeneratedMessage {
   /// Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
   @$pb.TagNumber(3)
   $pb.PbList<$core.String> get folders => $_getList(2);
+
+  /// How many projects are in Recently deleted.
+  @$pb.TagNumber(4)
+  $core.int get deleted => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set deleted($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDeleted() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDeleted() => $_clearField(4);
 }
 
 /// One library project as Home lists it.
@@ -6050,6 +6235,7 @@ class ProjectSummary extends $pb.GeneratedMessage {
     $core.String? name,
     $core.String? folder,
     $fixnum.Int64? bytes,
+    $fixnum.Int64? purgeMs,
   }) {
     final result = ProjectSummary._();
     if (id != null) result.id = id;
@@ -6060,6 +6246,7 @@ class ProjectSummary extends $pb.GeneratedMessage {
     if (name != null) result.name = name;
     if (folder != null) result.folder = folder;
     if (bytes != null) result.bytes = bytes;
+    if (purgeMs != null) result.purgeMs = purgeMs;
     return result;
   }
 
@@ -6085,6 +6272,7 @@ class ProjectSummary extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'folder')
     ..a<$fixnum.Int64>(8, _omitFieldNames ? '' : 'bytes', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(9, _omitFieldNames ? '' : 'purgeMs')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6187,6 +6375,17 @@ class ProjectSummary extends $pb.GeneratedMessage {
   $core.bool hasBytes() => $_has(7);
   @$pb.TagNumber(8)
   void clearBytes() => $_clearField(8);
+
+  /// In Recently deleted: when it will be removed for good, in milliseconds since the Unix
+  /// epoch; 0: not deleted.
+  @$pb.TagNumber(9)
+  $fixnum.Int64 get purgeMs => $_getI64(8);
+  @$pb.TagNumber(9)
+  set purgeMs($fixnum.Int64 value) => $_setInt64(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasPurgeMs() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearPurgeMs() => $_clearField(9);
 }
 
 /// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

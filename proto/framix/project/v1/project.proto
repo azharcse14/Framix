@@ -101,4 +101,7 @@ message LibraryEntry {
   string id = 1;
   string name = 2;
   string folder = 3;
+  // When DeleteProject moved it to Recently deleted, in milliseconds since the Unix epoch;
+  // 0: not deleted.
+  int64 deleted_ms = 4;
 }
