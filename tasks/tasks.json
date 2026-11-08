@@ -14657,6 +14657,49 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-08",
+   "commit": "029ff83",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "No engine work needed: the engine already keeps the loop when its clip is deleted (loop_ruler_test checks state().loopEnd != 0); the Rust tag was for that check."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-100",
+   "section": "P1",
+   "group": null,
+   "title": "Clear loop toolbar icon squeezes the timecode on 360 dp (side pane, portrait phone); move the control to the ruler band or test the timecode size",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-101",
+   "section": "P1",
+   "group": null,
+   "title": "Widget test: trimming a looped clip keeps the ruler band on the engine's loop range",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,

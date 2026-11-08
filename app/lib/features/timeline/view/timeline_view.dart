@@ -32,6 +32,9 @@ class TimelineView extends StatefulWidget {
   /// The playhead line.
   static const playheadKey = ValueKey('timeline-playhead');
 
+  /// The looped range on the ruler; absent while nothing loops.
+  static const loopKey = ValueKey('timeline-loop');
+
   static const _headerWidth = 176.0;
   // A touch target (48dp), not just the marks.
   static const _rulerHeight = 48.0;
@@ -128,6 +131,7 @@ class _TimelineViewState extends State<TimelineView> {
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
     int ticks(double px) => _ticksAt(px, pps, ticksPerSecond);
+    final looping = timeline.loopEnd > timeline.loopStart;
 
     // The selection is this view's own state: it ends when the view does.
     // A clip lifted to be dragged ends following until the next play, like a scroll.
@@ -149,7 +153,7 @@ class _TimelineViewState extends State<TimelineView> {
           create: (_) => ClipSelectionCubit(),
           child: Column(
             children: [
-              _Toolbar(ticksPerSecond: ticksPerSecond),
+              _Toolbar(ticksPerSecond: ticksPerSecond, looping: looping),
               _ClipActions(timeline: timeline),
               Expanded(
                 child: SingleChildScrollView(
@@ -172,7 +176,13 @@ class _TimelineViewState extends State<TimelineView> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, box) {
-                            final end = px(timeline.duration.toInt());
+                            // A loop left past the last clip (its clip deleted) stays in reach.
+                            final end = px(
+                              math.max(
+                                timeline.duration.toInt(),
+                                timeline.loopEnd.toInt(),
+                              ),
+                            );
                             // Room to scroll past the end, so the last clip can reach the middle.
                             final width = math.max(
                               box.maxWidth,
@@ -259,6 +269,25 @@ class _TimelineViewState extends State<TimelineView> {
                                           ],
                                         ),
                                       ),
+                                      // The loop as the engine reports it, even if its clip is gone.
+                                      if (looping)
+                                        Positioned(
+                                          key: TimelineView.loopKey,
+                                          left: px(timeline.loopStart.toInt()),
+                                          width: px(
+                                            (timeline.loopEnd -
+                                                    timeline.loopStart)
+                                                .toInt(),
+                                          ),
+                                          top: 0,
+                                          height: FramixSpace.s,
+                                          child: IgnorePointer(
+                                            child: ColoredBox(
+                                              color: FramixColors.of(context)
+                                                  .accentFill,
+                                            ),
+                                          ),
+                                        ),
                                       // The playhead changes often; only this line rebuilds.
                                       BlocBuilder<PlayheadCubit, int>(
                                         builder: (context, playhead) =>
@@ -300,9 +329,12 @@ class _TimelineViewState extends State<TimelineView> {
 /// Playhead time, play/pause, previous/next frame, and the zoom buttons (the button path for pinch,
 /// docs/design-system.md).
 class _Toolbar extends StatelessWidget {
-  const _Toolbar({required this.ticksPerSecond});
+  const _Toolbar({required this.ticksPerSecond, required this.looping});
 
   final int ticksPerSecond;
+
+  /// A loop is set; shows the control that clears it.
+  final bool looping;
 
   @override
   Widget build(BuildContext context) {
@@ -336,6 +368,12 @@ class _Toolbar extends StatelessWidget {
                   : context.read<PlaybackCubit>().play,
             ),
           ),
+          if (looping)
+            IconButton(
+              tooltip: l10n.clearLoop,
+              icon: const Icon(Icons.repeat_on),
+              onPressed: context.read<TimelineCubit>().clearLoop,
+            ),
           IconButton(
             tooltip: l10n.previousFrame,
             icon: const Icon(Icons.chevron_left),

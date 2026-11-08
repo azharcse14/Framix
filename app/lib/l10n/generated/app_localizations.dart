@@ -266,6 +266,12 @@ abstract class AppLocalizations {
   /// **'Loop clip'**
   String get loopClip;
 
+  /// No description provided for @clearLoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear loop'**
+  String get clearLoop;
+
   /// No description provided for @timelineRuler.
   ///
   /// In en, this message translates to:
