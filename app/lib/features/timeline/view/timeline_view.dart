@@ -248,6 +248,9 @@ class _TimelineViewState extends State<TimelineView> {
                                                       _Lane(
                                                         key: ValueKey(track.id),
                                                         track: track,
+                                                        tracks: widget
+                                                            .timeline
+                                                            .tracks,
                                                         height: laneHeight,
                                                         px: px,
                                                         ticks: ticks,
@@ -671,6 +674,7 @@ class _Lane extends StatelessWidget {
   const _Lane({
     super.key,
     required this.track,
+    required this.tracks,
     required this.height,
     required this.px,
     required this.ticks,
@@ -679,6 +683,9 @@ class _Lane extends StatelessWidget {
   });
 
   final Track track;
+
+  /// Every track, to see what of the selection the timeline still has.
+  final List<Track> tracks;
   final double height;
   final double Function(int ticks) px;
   final int Function(double px) ticks;
@@ -695,6 +702,9 @@ class _Lane extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final selection = context.watch<ClipSelectionCubit>();
     final cubit = context.read<TimelineCubit>();
+    // Trim handles belong to a single selected clip the timeline still has (any track).
+    final live = _selectedClips(tracks, selection.state.ids);
+    final single = live.length == 1 ? live.single.$2.id.toInt() : 0;
     ClipBox box(Clip clip) => ClipBox(
       width: px(clip.duration.toInt()),
       audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
@@ -759,8 +769,7 @@ class _Lane extends StatelessWidget {
           // Drawn after the clips so they take touches at the edges.
           for (final clip in track.clips)
             // Trim handles belong to a single selected clip.
-            if (selection.state.ids.length == 1 &&
-                selection.state.contains(clip.id.toInt())) ...[
+            if (single == clip.id.toInt()) ...[
               _TrimHandle(
                 // Left of the clip, clamped into the lane for a clip at 0.
                 left: math.max(0, px(clip.start.toInt()) - _TrimHandle.size),

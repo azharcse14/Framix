@@ -691,15 +691,12 @@ impl Timeline {
     /// Copies a clip to right after itself on the same track (no ripple: refused with
     /// [`TimelineError::Overlap`] if that space is taken).
     pub fn duplicate_clip(&mut self, clip: ClipId) -> Result<ClipId, TimelineError> {
-        let (t, i) = self.locate(clip)?;
-        let c = self.tracks[t].clips[i];
-        let copy = ClipPlacement {
-            media: c.media,
-            source_start: c.source_start,
-            start: c.end(),
-            duration: c.duration,
-        };
-        self.insert_clip_with(self.tracks[t].id, copy, c.transform)
+        let copies = self.duplicate_clips(&[clip])?;
+        // One clip in, one copy out.
+        copies
+            .first()
+            .copied()
+            .ok_or(TimelineError::UnknownClip(clip))
     }
 
     /// Removes every clip in `clips`; all or nothing. Refused like [`Timeline::remove_clip`]
@@ -908,7 +905,8 @@ impl Timeline {
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.
-    // ponytail: linear scan over all clips, once per command; index by id if profiles show it.
+    // ponytail: linear scan over all clips, per clip edited (O(k·n) for a k-clip edit, k capped
+    // at n by the engine); index by id if profiles show it.
     fn locate(&self, clip: ClipId) -> Result<(usize, usize), TimelineError> {
         let (t, i) = self
             .tracks
