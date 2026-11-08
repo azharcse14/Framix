@@ -14975,12 +14975,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "3ec4a19",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time; reviewer approved. Choices: a failed autosave before clean is answered once and nothing is cleaned (not just logged); the P1-017 test expectation that a .part file is removed was reversed on purpose. Known gap: ListProjects swallows the one autosave failure first (follow-up filed)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -15062,6 +15067,63 @@
      "text": "Reviewer list: export_settings_quick, export_settings, export_fix_bitrate, playback_button, frame_step, trim_to_playhead, clip_actions, photo_duration, zoom, playback_leave, edit_snap_sticky, thumbnail_project_late, home_recovered (250x20 ms autosave wait)."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "P1-116",
+   "section": "P1",
+   "group": null,
+   "title": "ListProjects drops the one-time autosave failure (let _ = self.autosave()), so a failed autosave is never shown once Home lists first; carry the failure on ProjectList or don't consume it (P1-111 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-117",
+   "section": "P1",
+   "group": null,
+   "title": "Partial cache writes (.part) left by a crash are never cleaned now; remove .part files older than ~1 h during clean/purge (P1-111 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-118",
+   "section": "P1",
+   "group": null,
+   "title": "Test: purge of an expired project whose main file is damaged reads its backup for the media caches (P1-111 review nit)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
