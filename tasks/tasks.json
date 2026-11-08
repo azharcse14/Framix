@@ -1160,6 +1160,10 @@
     {
      "date": "2026-11-08",
      "text": "07e68f8 fixed a flaky helper in the review regression test engine_library_index.rs (project() took list[0] while all files share a save time); no assertion changed."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "c824722: home_folder_test teardown awaits engine.events.drain(); no assertion changed"
     }
    ],
    "source": "plan"
@@ -1176,15 +1180,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-08",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-08",
+   "commit": "af2ed96",
    "branch": "worktree-agent-a2a76e9631cd30add",
    "notes": [
     {
      "date": "2026-11-08",
      "text": "Built on the P1-015 branch: its tests (a801969) landed before P1-015's review fixes, so P1-015's last commits carry P1-016's proto and stubs. Known gap: while library.index can't be read (I/O error or newer app) deleted projects list as live and open. 'Delete forever now' left out."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "c824722/747168f: trash test teardown drain, clippy as_str, fmt; no assertion changed"
     }
    ],
    "source": "plan"

@@ -381,7 +381,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-013` Metadata read (duration, resolution, codec, rotation) \[Rust\]
 - [x] `P1-014` Timeline data model multi-track ar keyframe mathay rekhe design \[Rust\]
 - [x] `P1-015` **1b:** Project folder, search, sort (date, naam, size) \[Dart\]\[Rust\]
-- [ ] `P1-016` **1b:** Recently deleted (30 din), vul kore delete hole ferot ana \[Rust\]\[Dart\]
+- [x] `P1-016` **1b:** Recently deleted (30 din), vul kore delete hole ferot ana \[Rust\]\[Dart\]
 - [ ] `P1-017` **1b:** Protita project koto storage nicche dekhano, proxy/cache clean option \[Rust\]\[Dart\]
 
 **Timeline basics**
