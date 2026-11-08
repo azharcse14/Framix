@@ -203,3 +203,22 @@ proptest! {
         }
     }
 }
+
+#[test]
+fn a_shift_past_the_largest_time_is_refused_and_changes_nothing() {
+    let mut tl = Timeline::default();
+    let v1 = tl.add_track(TrackKind::Video);
+    let a = tl.insert_clip(v1, place(10, 10)).unwrap();
+    let far = tl.insert_clip(v1, place(i64::MAX - 20, 10)).unwrap();
+    let before = tl.clone();
+    assert_eq!(
+        tl.move_clips(&[a], Time(i64::MAX)),
+        Err(TimelineError::TimeOverflow)
+    );
+    // The block [10, MAX - 10) is copied MAX - 20 later: past the largest time.
+    assert_eq!(
+        tl.duplicate_clips(&[a, far]),
+        Err(TimelineError::TimeOverflow)
+    );
+    assert_eq!(tl, before);
+}
