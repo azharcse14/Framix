@@ -654,11 +654,11 @@ impl Engine {
                     free_bytes: free,
                 })),
             },
-            Ok(Reply::Projects(projects, recovered)) => Event {
+            Ok(Reply::Projects(projects, recovered, folders)) => Event {
                 kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
                     projects,
                     recovered,
-                    folders: Vec::new(),
+                    folders,
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -724,7 +724,7 @@ impl Engine {
                 self.start_project();
             })),
             command::Kind::OpenLibrary(op) => self.open_library(op.dir).map(|()| Reply::Accepted),
-            command::Kind::ListProjects(_) => {
+            command::Kind::ListProjects(op) => {
                 let dir = self.library.clone().ok_or("no library")?;
                 // A failed save was reported by autosave; the list still shows the last save.
                 let _ = self.autosave();
@@ -737,7 +737,8 @@ impl Engine {
                     .take()
                     .filter(|id| projects.iter().any(|p| p.id == *id))
                     .unwrap_or_default();
-                Ok(Reply::Projects(projects, recovered))
+                let (projects, folders) = crate::library::find(projects, &op);
+                Ok(Reply::Projects(projects, recovered, folders))
             }
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
@@ -988,8 +989,15 @@ impl Engine {
                 self.loop_range = (op.end > op.start).then_some((Time(op.start), Time(op.end)));
                 Ok(Reply::Timeline)
             }
-            command::Kind::RenameProject(_) | command::Kind::MoveProject(_) => {
-                Err("not implemented".into())
+            command::Kind::RenameProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::rename(self.store()?, &dir, &op.id, &op.name)
+                    .map(|()| Reply::Accepted)
+            }
+            command::Kind::MoveProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::move_to(self.store()?, &dir, &op.id, &op.folder)
+                    .map(|()| Reply::Accepted)
             }
             command::Kind::Pause(_) => {
                 self.pause();
@@ -1366,8 +1374,9 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
-    /// The library's projects and the one recovered after a crash, if any (ListProjects).
-    Projects(Vec<proto::ProjectSummary>, String),
+    /// The library's projects, the one recovered after a crash, if any, and every folder
+    /// (ListProjects).
+    Projects(Vec<proto::ProjectSummary>, String, Vec<String>),
     /// Where the playhead is now, and whether the seek snapped.
     Playhead(bool),
     /// An export was refused before it started: it needs about `needed` bytes, `free` are free.

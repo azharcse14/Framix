@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/engine/framix_engine.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart'
-    show ProjectSummary;
+    show ProjectSort, ProjectSummary;
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/small_spinner.dart';
@@ -91,16 +91,31 @@ class _HomeView extends StatelessWidget {
                       onPressed: context.read<HomeCubit>().retry,
                     ),
                   ),
-                  HomeProjects(projects: []) => _Message(
+                  HomeProjects(projects: [], filtered: false) => _Message(
                     icon: Icons.movie_creation_outlined,
                     title: l10n.projectsEmptyTitle,
                     body: l10n.projectsEmpty,
                   ),
-                  HomeProjects(:final projects, :final opening) => _ProjectGrid(
-                    projects: projects,
-                    opening: opening,
-                    onOpen: (id) =>
-                        _editAfter(context, context.read<HomeCubit>().open(id)),
+                  HomeProjects(:final projects, :final opening) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _FindBar(state: state),
+                      Expanded(
+                        child: projects.isEmpty
+                            ? _Message(
+                                icon: Icons.search_off,
+                                body: l10n.noMatchingProjects,
+                              )
+                            : _ProjectGrid(
+                                projects: projects,
+                                opening: opening,
+                                onOpen: (id) => _editAfter(
+                                  context,
+                                  context.read<HomeCubit>().open(id),
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
                 },
               ),
@@ -128,6 +143,84 @@ class _HomeView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Search, sort and the folder chips above the projects (P1-015).
+class _FindBar extends StatelessWidget {
+  const _FindBar({required this.state});
+
+  final HomeProjects state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cubit = context.read<HomeCubit>();
+    final sorts = {
+      ProjectSort.PROJECT_SORT_UNSPECIFIED: l10n.sortByDate,
+      ProjectSort.PROJECT_SORT_NAME: l10n.sortByName,
+      ProjectSort.PROJECT_SORT_SIZE: l10n.sortBySize,
+    };
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        FramixSpace.m,
+        0,
+        FramixSpace.s,
+        FramixSpace.s,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: l10n.searchProjects,
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                  textInputAction: TextInputAction.search,
+                  onChanged: cubit.search,
+                ),
+              ),
+              PopupMenuButton<ProjectSort>(
+                icon: const Icon(Icons.sort),
+                tooltip: l10n.sortProjects,
+                initialValue: state.sort,
+                onSelected: cubit.sortBy,
+                itemBuilder: (_) => [
+                  for (final MapEntry(:key, :value) in sorts.entries)
+                    CheckedPopupMenuItem(
+                      value: key,
+                      checked: key == state.sort,
+                      child: Text(value),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          if (state.folders.isNotEmpty)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(top: FramixSpace.s),
+              child: Row(
+                spacing: FramixSpace.s,
+                children: [
+                  for (final (folder, label) in [
+                    ('', l10n.allProjects),
+                    for (final f in state.folders) (f, f),
+                  ])
+                    ChoiceChip(
+                      label: Text(label),
+                      selected: state.folder == folder,
+                      onSelected: (_) => cubit.showFolder(folder),
+                    ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -314,6 +407,7 @@ class _ProjectCard extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap,
+            onLongPress: () => _projectActions(context, project),
             child: Padding(
               padding: const EdgeInsets.all(FramixSpace.s),
               child: Column(
@@ -381,9 +475,19 @@ class _ProjectCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        edited,
+                        project.name.isEmpty
+                            ? l10n.untitledProject
+                            : project.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: text.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        edited,
+                        style: text.bodySmall?.copyWith(
+                          color: colors.textMuted,
                         ),
                       ),
                       Text(
@@ -400,6 +504,108 @@ class _ProjectCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The long-press menu of [project]: rename it or move it to a folder.
+Future<void> _projectActions(
+  BuildContext context,
+  ProjectSummary project,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final cubit = context.read<HomeCubit>();
+  final rename = await showModalBottomSheet<bool>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(
+              l10n.projectActions,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l10n.renameProject),
+            onTap: () => Navigator.pop(context, true),
+          ),
+          ListTile(
+            leading: const Icon(Icons.drive_file_move_outlined),
+            title: Text(l10n.moveToFolder),
+            onTap: () => Navigator.pop(context, false),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (rename == null || !context.mounted) return;
+  final text = await showDialog<String>(
+    context: context,
+    builder: (_) => rename
+        ? _TextDialog(
+            title: l10n.renameProject,
+            label: l10n.projectName,
+            initial: project.name,
+          )
+        : _TextDialog(
+            title: l10n.moveToFolder,
+            label: l10n.folderName,
+            initial: project.folder,
+          ),
+  );
+  if (text == null) return;
+  rename ? cubit.rename(project.id, text) : cubit.moveTo(project.id, text);
+}
+
+/// A dialog asking for one line of text; pops it on Save, null on Cancel.
+class _TextDialog extends StatefulWidget {
+  const _TextDialog({
+    required this.title,
+    required this.label,
+    required this.initial,
+  });
+
+  final String title;
+  final String label;
+  final String initial;
+
+  @override
+  State<_TextDialog> createState() => _TextDialogState();
+}
+
+class _TextDialogState extends State<_TextDialog> {
+  late final _text = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(widget.title),
+      content: TextField(
+        controller: _text,
+        autofocus: true,
+        decoration: InputDecoration(labelText: widget.label),
+        onSubmitted: (text) => Navigator.pop(context, text),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _text.text),
+          child: Text(l10n.save),
+        ),
+      ],
     );
   }
 }

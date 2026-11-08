@@ -1,12 +1,16 @@
 //! The user's projects for Home (P1-089): files `<dir>/<id>.framix` in one folder.
 
+use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::hash::{BuildHasher, Hasher};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use framix_core::time::TICKS_PER_SECOND;
+use prost::Message as _;
 
-use crate::proto::ProjectSummary;
+use crate::project_proto::{LibraryEntry, LibraryIndex};
+use crate::proto::{ListProjects, ProjectSort, ProjectSummary};
 use crate::store::ProjectStore;
 
 /// File extension of a library project.
@@ -77,18 +81,174 @@ pub fn take_open(store: &dyn ProjectStore, dir: &Path) -> Option<String> {
     String::from_utf8(bytes).ok().filter(|id| valid_id(id))
 }
 
-/// The readable projects in `dir`, most recently saved first. Files that are not projects
-/// (other names, backups, temp files) or don't decode, with no backup that does, are skipped.
+/// The readable projects in `dir` with their names and folders, most recently saved first.
+/// Files that are not projects (other names, backups, temp files, the index) or don't decode,
+/// with no backup that does, are skipped.
 // ponytail: decodes every project for its duration; keep a summary cache when lists grow
 // long (OVL-015).
 pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>, String> {
     let files = store.list(dir).map_err(|e| e.kind().to_string())?;
+    // A newer app's index can't be read here; its projects are still listed.
+    let index = read_index(store, dir).unwrap_or_default();
     let mut projects: Vec<ProjectSummary> = files
         .into_iter()
         .filter_map(|(file, modified)| summary(store, &file, modified))
+        .map(|mut p| {
+            if let Some(entry) = index.get(&p.id) {
+                p.name.clone_from(&entry.name);
+                p.folder.clone_from(&entry.folder);
+            }
+            p
+        })
         .collect();
-    projects.sort_by(|a, b| b.modified_ms.cmp(&a.modified_ms).then(a.id.cmp(&b.id)));
+    projects.sort_by(newest_first);
     Ok(projects)
+}
+
+fn newest_first(a: &ProjectSummary, b: &ProjectSummary) -> Ordering {
+    b.modified_ms.cmp(&a.modified_ms).then(a.id.cmp(&b.id))
+}
+
+/// `projects` (from [`list`]) as `op` asks: searched by name, in one folder, sorted. Also
+/// every folder that holds a project, A to Z ignoring case.
+pub fn find(
+    projects: Vec<ProjectSummary>,
+    op: &ListProjects,
+) -> (Vec<ProjectSummary>, Vec<String>) {
+    let mut folders: Vec<String> = projects
+        .iter()
+        .filter(|p| !p.folder.is_empty())
+        .map(|p| p.folder.clone())
+        .collect();
+    folders.sort_by_cached_key(|f| (f.to_lowercase(), f.clone()));
+    folders.dedup();
+    let query = op.query.trim().to_lowercase();
+    let mut found: Vec<ProjectSummary> = projects
+        .into_iter()
+        .filter(|p| p.name.to_lowercase().contains(&query))
+        .filter(|p| op.folder.is_empty() || p.folder == op.folder)
+        .collect();
+    match ProjectSort::try_from(op.sort) {
+        Ok(ProjectSort::Name) => found.sort_by(|a, b| {
+            (a.name.is_empty(), a.name.to_lowercase())
+                .cmp(&(b.name.is_empty(), b.name.to_lowercase()))
+                .then_with(|| newest_first(a, b))
+        }),
+        Ok(ProjectSort::Size) => {
+            found.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| newest_first(a, b)));
+        }
+        // Already newest first; so is an order from a newer UI this engine doesn't know.
+        Ok(ProjectSort::Unspecified) | Err(_) => {}
+    }
+    (found, folders)
+}
+
+/// Longest project name, in characters.
+const MAX_NAME_CHARS: usize = 80;
+/// Longest folder name, in characters.
+const MAX_FOLDER_CHARS: usize = 40;
+
+/// Names project `id`; empty clears the name.
+pub fn rename(store: &dyn ProjectStore, dir: &Path, id: &str, name: &str) -> Result<(), String> {
+    let name = label(name, MAX_NAME_CHARS)?;
+    update_entry(store, dir, id, |e| e.name = name)
+}
+
+/// Puts project `id` in `folder`; empty takes it out of its folder.
+pub fn move_to(store: &dyn ProjectStore, dir: &Path, id: &str, folder: &str) -> Result<(), String> {
+    let folder = label(folder, MAX_FOLDER_CHARS)?;
+    update_entry(store, dir, id, |e| e.folder = folder)
+}
+
+/// `text` trimmed; refused when longer than `max` characters or holding a control character.
+fn label(text: &str, max: usize) -> Result<String, String> {
+    let text = text.trim();
+    if text.chars().count() > max {
+        return Err(format!("longer than {max} characters"));
+    }
+    if text.chars().any(char::is_control) {
+        return Err("control character".into());
+    }
+    Ok(text.to_owned())
+}
+
+fn update_entry(
+    store: &dyn ProjectStore,
+    dir: &Path,
+    id: &str,
+    change: impl FnOnce(&mut LibraryEntry),
+) -> Result<(), String> {
+    let file = path(dir, id).ok_or("malformed project id")?;
+    store.load(&file).map_err(|_| "no such project")?;
+    let mut index = read_index(store, dir)?;
+    let entry = index.entry(id.to_owned()).or_insert_with(|| LibraryEntry {
+        id: id.to_owned(),
+        ..LibraryEntry::default()
+    });
+    change(entry);
+    if entry.name.is_empty() && entry.folder.is_empty() {
+        index.remove(id);
+    }
+    write_index(store, dir, index)
+}
+
+/// The library's file of names and folders, apart from the projects so autosave never
+/// rewrites it. Saved like a project (atomic, with backups); not a `.framix` file, so [`list`]
+/// skips it.
+const INDEX: &str = "library.index";
+/// Index format this engine writes and the newest it reads.
+const INDEX_FORMAT_VERSION: u32 = 1;
+/// Largest index read; far above 80-character names for thousands of projects.
+const MAX_INDEX_BYTES: usize = 1024 * 1024;
+
+/// The index by project id. Missing: empty. Damaged: its newest backup that decodes, else
+/// empty (only names and folders are lost). Refused when a newer app wrote it, so a write
+/// here can't drop what that app keeps.
+fn read_index(
+    store: &dyn ProjectStore,
+    dir: &Path,
+) -> Result<HashMap<String, LibraryEntry>, String> {
+    let file = dir.join(INDEX);
+    let decode = |path: &Path| {
+        let bytes = store
+            .load(path)
+            .ok()
+            .filter(|b| b.len() <= MAX_INDEX_BYTES)?;
+        // proto3 decodes junk or empty bytes as zero fields; a real index has a version.
+        LibraryIndex::decode(bytes.as_slice())
+            .ok()
+            .filter(|i| i.format_version != 0 && i.min_reader_version != 0)
+    };
+    let index = decode(&file).or_else(|| store.backups(&file).iter().find_map(|b| decode(b)));
+    let Some(index) = index else {
+        return Ok(HashMap::new());
+    };
+    if index.min_reader_version > INDEX_FORMAT_VERSION {
+        return Err("library index is from a newer app".into());
+    }
+    Ok(index
+        .projects
+        .into_iter()
+        .map(|e| (e.id.clone(), e))
+        .collect())
+}
+
+fn write_index(
+    store: &dyn ProjectStore,
+    dir: &Path,
+    index: HashMap<String, LibraryEntry>,
+) -> Result<(), String> {
+    let mut projects: Vec<LibraryEntry> = index.into_values().collect();
+    projects.sort_by(|a, b| a.id.cmp(&b.id));
+    let bytes = LibraryIndex {
+        format_version: INDEX_FORMAT_VERSION,
+        min_reader_version: INDEX_FORMAT_VERSION,
+        projects,
+    }
+    .encode_to_vec();
+    store
+        .save(&dir.join(INDEX), &bytes)
+        .map_err(|e| e.kind().to_string())
 }
 
 fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Option<ProjectSummary> {
@@ -99,7 +259,11 @@ fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Optio
     if !valid_id(id) {
         return None;
     }
-    let (timeline, _) = crate::store::load_or_backup(store, file).ok()?;
+    let raw = store.load(file);
+    let timeline = match raw.as_deref().map(crate::project::decode) {
+        Ok(Ok(timeline)) => timeline,
+        _ => crate::store::load_or_backup(store, file).ok()?.0,
+    };
     let modified_ms = modified
         .duration_since(SystemTime::UNIX_EPOCH)
         .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX));
@@ -115,6 +279,8 @@ fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Optio
         modified_ms,
         // Timeline caps clips far below u32::MAX (project::MAX_CLIPS).
         clips: u32::try_from(clips).unwrap_or(u32::MAX),
+        // The project file's size, even when a backup stood in for it.
+        bytes: raw.map_or(0, |b| b.len() as u64),
         ..ProjectSummary::default()
     })
 }
