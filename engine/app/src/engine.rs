@@ -717,7 +717,7 @@ impl Engine {
             command::Kind::MergeClips(op) => {
                 timeline(self.edit(|tl| tl.merge_clips(ClipId(op.left_id), ClipId(op.right_id))))
             }
-            // Retired command (ADR 0008), still answered for old callers and its frozen test.
+            // Retired command (ADR 0008), kept for its frozen test.
             #[allow(deprecated)]
             command::Kind::TrimClip(op) => timeline(
                 self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), Time(op.start), Time(op.end))),
@@ -755,7 +755,7 @@ impl Engine {
                     tl.set_track_flags(track, flags)
                 }))
             }
-            // Retired command (ADR 0008), still answered for old callers and its frozen test.
+            // Retired command (ADR 0008), kept for its frozen test.
             #[allow(deprecated)]
             command::Kind::MoveClip(op) => {
                 timeline(self.edit(|tl| {
