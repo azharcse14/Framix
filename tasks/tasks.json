@@ -14689,12 +14689,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "6c08a02",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved; merge conflict with P1-102/103 resolved, 130 timeline tests pass on merged main."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14708,12 +14713,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "5ada13b",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved; merge conflict with P1-102/103 resolved, 130 timeline tests pass on merged main."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14790,6 +14800,25 @@
    "title": "Proto docs of SnapMove/SnapTrim/TrimToPlayhead/MoveClips describe their rules via retired MoveClip/TrimClip; spell the rule out (ADR 0008 review nit)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-106",
+   "section": "P1",
+   "group": null,
+   "title": "Widget tests: Clear loop shows with two clips selected and with another clip selected, hides on the looped clip (P1-100 review); pass looping into _ClipActions",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,

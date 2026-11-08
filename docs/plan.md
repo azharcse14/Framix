@@ -477,12 +477,13 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-097` Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls) \[Dart\]
 - [ ] `P1-098` iOS FrameDecoder keeps a reader and photo per media (small LRU) so PIP with two videos or two photos doesn't reopen the reader or re-decode every frame (P1-071 follow-up) \[Rust\]
 - [x] `P1-099` Show the loop on the ruler with a clear control; a loop left on an edited/deleted clip is invisible \[Dart\] \[Rust\]
-- [ ] `P1-100` Clear loop toolbar icon squeezes the timecode on 360 dp (side pane, portrait phone); move the control to the ruler band or test the timecode size \[Dart\]
-- [ ] `P1-101` Widget test: trimming a looped clip keeps the ruler band on the engine's loop range \[Dart\]
+- [x] `P1-100` Clear loop toolbar icon squeezes the timecode on 360 dp (side pane, portrait phone); move the control to the ruler band or test the timecode size \[Dart\]
+- [x] `P1-101` Widget test: trimming a looped clip keeps the ruler band on the engine's loop range \[Dart\]
 - [x] `P1-102` Multi-select drag: the ghost follows the finger vertically but the drop ignores dy; lock it to the horizontal axis (or move tracks) \[Dart\]
 - [x] `P1-103` ClipSelectionCubit keeps ids of clips the timeline no longer has; drop them on TimelineChanged so tap/selection logic matches what is shown \[Dart\]
 - [ ] `P1-104` Widget test: multi-select vertical drag on a narrow clip (48 dp drag target) keeps to the lane \[Dart\]
 - [ ] `P1-105` Proto docs of SnapMove/SnapTrim/TrimToPlayhead/MoveClips describe their rules via retired MoveClip/TrimClip; spell the rule out (ADR 0008 review nit) \[Rust\]
+- [ ] `P1-106` Widget tests: Clear loop shows with two clips selected and with another clip selected, hides on the looped clip (P1-100 review); pass looping into _ClipActions \[Dart\]
 
 ## Phase 2: Audio
 
