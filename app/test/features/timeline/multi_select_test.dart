@@ -128,4 +128,27 @@ void main() {
       expect(tester.getRect(clip(0)).left, closeTo(first.left, 1));
     },
   );
+
+  // P1-102: a multi-clip move only shifts time, so the lifted clip keeps to its lane.
+  testWidgets(
+    'a lifted clip of a multi-selection follows the finger sideways only',
+    (tester) async {
+      final l10n = await threeClips(tester, const Locale('en'));
+      await selectMore(tester, l10n, [1, 2]);
+      final third = tester.getRect(clip(2));
+
+      final gesture = await tester.startGesture(third.center);
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+      await gesture.moveBy(const Offset(50, 40));
+      await tester.pump();
+      for (final box in find.byType(ClipBox).evaluate()) {
+        expect(
+          tester.getRect(find.byWidget(box.widget)).top,
+          closeTo(third.top, 1),
+        );
+      }
+      await gesture.up();
+      await tester.pump();
+    },
+  );
 }
