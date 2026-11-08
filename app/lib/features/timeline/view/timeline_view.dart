@@ -169,7 +169,7 @@ class _TimelineViewState extends State<TimelineView> {
                 }),
             child: Column(
               children: [
-                _Toolbar(ticksPerSecond: ticksPerSecond, looping: looping),
+                _Toolbar(ticksPerSecond: ticksPerSecond),
                 _ClipActions(timeline: timeline),
                 Expanded(
                   child: SingleChildScrollView(
@@ -362,12 +362,9 @@ class _TimelineViewState extends State<TimelineView> {
 /// Playhead time, play/pause, previous/next frame, and the zoom buttons (the button path for pinch,
 /// docs/design-system.md).
 class _Toolbar extends StatelessWidget {
-  const _Toolbar({required this.ticksPerSecond, required this.looping});
+  const _Toolbar({required this.ticksPerSecond});
 
   final int ticksPerSecond;
-
-  /// A loop is set; shows the control that clears it.
-  final bool looping;
 
   @override
   Widget build(BuildContext context) {
@@ -401,12 +398,6 @@ class _Toolbar extends StatelessWidget {
                   : context.read<PlaybackCubit>().play,
             ),
           ),
-          if (looping)
-            IconButton(
-              tooltip: l10n.clearLoop,
-              icon: const Icon(Icons.repeat_on),
-              onPressed: context.read<TimelineCubit>().clearLoop,
-            ),
           IconButton(
             tooltip: l10n.previousFrame,
             icon: const Icon(Icons.chevron_left),
@@ -433,8 +424,9 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
-/// What can be done to the selected clip; nothing while no clip is selected. The engine checks
-/// every edit (e.g. a split needs the playhead inside the clip).
+/// What can be done to the selected clip, led by Clear loop while a loop is set (here, not in the
+/// toolbar, so the timecode keeps its size on a 360 dp phone). The engine checks every edit
+/// (e.g. a split needs the playhead inside the clip).
 class _ClipActions extends StatelessWidget {
   const _ClipActions({required this.timeline});
 
@@ -449,8 +441,16 @@ class _ClipActions extends StatelessWidget {
     final cubit = context.read<TimelineCubit>();
     final selection = context.watch<ClipSelectionCubit>();
     final selected = _selectedClips(timeline.tracks, selection.state.ids);
+    final clearLoop = IconButton(
+      tooltip: l10n.clearLoop,
+      icon: const Icon(Icons.repeat_on),
+      onPressed: cubit.clearLoop,
+    );
+    final loopSet = timeline.loopEnd > timeline.loopStart;
     // The row's height stays reserved, so selecting never moves the lanes under the finger.
-    if (selected.isEmpty) return const SizedBox(height: _rowHeight);
+    if (selected.isEmpty) {
+      return loopSet ? _row([clearLoop]) : const SizedBox(height: _rowHeight);
+    }
     final more = IconButton(
       tooltip: l10n.selectMore,
       icon: const Icon(Icons.library_add_check_outlined),
@@ -461,6 +461,7 @@ class _ClipActions extends StatelessWidget {
     if (selected.length > 1) {
       final clips = selected.map((s) => s.$2);
       return _row([
+        if (loopSet) clearLoop,
         more,
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
@@ -488,6 +489,8 @@ class _ClipActions extends StatelessWidget {
     // Playback repeats exactly this clip.
     final looping = timeline.loopStart == clip.start && timeline.loopEnd == end;
     return _row([
+      // The Loop toggle below already clears a loop on this clip.
+      if (loopSet && !looping) clearLoop,
       more,
       IconButton(
         tooltip: l10n.splitClip,
