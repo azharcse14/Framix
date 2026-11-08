@@ -14908,12 +14908,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "564f99e",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time; reviewer approved. Root cause: library delete/restore saves library.index with two F_FULLFSYNC (0.8-2.2 s under disk load) vs a ~2 s pump-count poll budget; shared app/test/pump_until.dart now waits 10 s wall clock. Remaining inline loops: P1-115; fsync cost: P1-114."
+    }
+   ],
    "source": "added"
   },
   {
@@ -15046,7 +15051,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Reviewer list: export_settings_quick, export_settings, export_fix_bitrate, playback_button, frame_step, trim_to_playhead, clip_actions, photo_duration, zoom, playback_leave, edit_snap_sticky, thumbnail_project_late, home_recovered (250x20 ms autosave wait)."
+    }
+   ],
    "source": "added"
   }
  ]
