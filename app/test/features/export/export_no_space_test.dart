@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
+import 'package:framix/core/ui/file_size.dart';
 import 'package:framix/features/export/bloc/export_cubit.dart';
 import 'package:framix/features/export/view/export_buttons.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
@@ -60,8 +61,16 @@ void main() {
       );
       cubit.seed(const ExportNoSpace(2500000001, 400999999));
       await tester.pump();
-      // Needed rounds up, free rounds down, in megabytes.
-      expect(find.text(l10n.exportNoSpace(2501, 400)), findsOneWidget);
+      // P1-110: sizes in the shared format, as Home shows them.
+      String size(int bytes) => fileSize(l10n, '$locale', bytes);
+      expect(
+        find.text(l10n.exportNoSpace(size(2500000001), size(400999999))),
+        findsOneWidget,
+      );
+      if (locale.languageCode == 'en') {
+        expect(find.textContaining('2.5 GB'), findsOneWidget);
+        expect(find.textContaining('401 MB'), findsOneWidget);
+      }
       expect(find.text(l10n.exportFailed), findsNothing);
     });
   }
