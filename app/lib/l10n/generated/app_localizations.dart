@@ -353,8 +353,8 @@ abstract class AppLocalizations {
   /// No description provided for @exportNoSpace.
   ///
   /// In en, this message translates to:
-  /// **'Not enough storage: the export needs about {neededMb} MB and {freeMb} MB is free.'**
-  String exportNoSpace(int neededMb, int freeMb);
+  /// **'Not enough storage: the export needs about {needed} and {free} is free.'**
+  String exportNoSpace(String needed, String free);
 
   /// No description provided for @clip.
   ///
@@ -503,8 +503,8 @@ abstract class AppLocalizations {
   /// No description provided for @exportEstimate.
   ///
   /// In en, this message translates to:
-  /// **'About {mb} MB (estimate)'**
-  String exportEstimate(int mb);
+  /// **'About {size} (estimate)'**
+  String exportEstimate(String size);
 
   /// No description provided for @newProject.
   ///

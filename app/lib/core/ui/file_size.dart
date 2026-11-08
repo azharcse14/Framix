@@ -1,14 +1,15 @@
 import 'package:intl/intl.dart';
 
-import '../../../l10n/generated/app_localizations.dart';
+import '../../l10n/generated/app_localizations.dart';
 
-/// [bytes] as Home shows a size: B, KB, MB or GB (1024 each), one decimal under 10.
+/// [bytes] as the app shows a size: B, KB, MB or GB, one decimal under 10. 1000 steps (SI), as the
+/// iOS and Android storage screens count, so our numbers match theirs.
 String fileSize(AppLocalizations l10n, String locale, int bytes) {
   const units = ['b', 'kb', 'mb', 'gb'];
   var value = bytes.toDouble();
   var unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
+  while (value >= 1000 && unit < units.length - 1) {
+    value /= 1000;
     unit++;
   }
   final pattern = unit > 0 && value < 10 ? '#,##0.#' : '#,##0';

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
+import '../../../core/ui/file_size.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../timeline/bloc/timeline_cubit.dart';
@@ -114,7 +115,11 @@ class _ExportSettingsSheet extends StatelessWidget {
                 Text(l10n.exportFrameSize(e.width, e.height)),
                 Text(
                   l10n.exportEstimate(
-                    (e.estimatedBytes.toInt() + 999999) ~/ 1000000,
+                    fileSize(
+                      l10n,
+                      '${Localizations.localeOf(context)}',
+                      e.estimatedBytes.toInt(),
+                    ),
                   ),
                 ),
               ],

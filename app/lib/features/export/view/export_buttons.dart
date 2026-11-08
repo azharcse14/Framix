@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/media/export_sharer.dart';
+import '../../../core/ui/file_size.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/export_cubit.dart';
 import '../../../core/ui/small_spinner.dart';
@@ -76,12 +77,11 @@ class _ExportButtonsState extends State<ExportButtons> {
     final cubit = context.read<ExportCubit>();
     return BlocConsumer<ExportCubit, ExportState>(
       listenWhen: (_, next) => next is ExportFailed || next is ExportNoSpace,
-      listener: (_, state) => _tell(switch (state) {
-        // Megabytes: what is needed rounds up, what is free rounds down.
+      listener: (context, state) => _tell(switch (state) {
         ExportNoSpace(:final neededBytes, :final freeBytes) =>
           l10n.exportNoSpace(
-            (neededBytes + 999999) ~/ 1000000,
-            freeBytes ~/ 1000000,
+            fileSize(l10n, '${Localizations.localeOf(context)}', neededBytes),
+            fileSize(l10n, '${Localizations.localeOf(context)}', freeBytes),
           ),
         _ => l10n.exportFailed,
       }),
