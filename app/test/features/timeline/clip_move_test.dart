@@ -11,7 +11,7 @@ import 'package:material_ui/material_ui.dart';
 import 'import_test.dart' show FakeImporter;
 import 'timeline_page_test.dart' show pumpUntil;
 
-/// Moving clips (P1-047): long-press a clip, drag, release; the engine moves it (MoveClip).
+/// Moving clips (P1-047): long-press a clip, drag, release; the engine moves it (SnapMove).
 void main() {
   late FramixEngine engine;
   final l10n = lookupAppLocalizations(const Locale('en'));
