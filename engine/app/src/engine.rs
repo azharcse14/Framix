@@ -736,7 +736,7 @@ impl Engine {
                 let recovered = self
                     .recovered
                     .take()
-                    .filter(|id| projects.iter().any(|p| p.id == *id && p.purge_ms == 0))
+                    .filter(|id| projects.iter().any(|p| p.id == *id))
                     .unwrap_or_default();
                 Ok(Reply::Projects(
                     crate::library::find(projects, &op),

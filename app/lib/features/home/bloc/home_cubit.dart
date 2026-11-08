@@ -108,7 +108,8 @@ class HomeCubit extends Cubit<HomeState> {
       // The shown folder's last project left it: list every project instead.
       if (_folder.isNotEmpty && !_list!.folders.contains(_folder)) {
         _folder = '';
-        _listProjects();
+        // Its answer replaces this stale, empty list.
+        return _listProjects();
       }
       _emitList(recovered: e.projectList.recovered.isNotEmpty);
     }

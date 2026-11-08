@@ -698,7 +698,7 @@ abstract class AppLocalizations {
   /// **'Recently deleted'**
   String get recentlyDeleted;
 
-  /// No description provided for @recentlyDeletedEmpty.
+  /// 30 days is the engine's KEEP_DELETED_MS (engine/app/src/library.rs); change both together.
   ///
   /// In en, this message translates to:
   /// **'Nothing deleted. Deleted projects stay here for 30 days.'**

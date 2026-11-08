@@ -6209,7 +6209,8 @@ class ProjectList extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearRecovered() => $_clearField(2);
 
-  /// Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
+  /// Every folder that holds a project not in Recently deleted, A to Z ignoring case (whatever
+  /// ListProjects filtered).
   @$pb.TagNumber(3)
   $pb.PbList<$core.String> get folders => $_getList(2);
 

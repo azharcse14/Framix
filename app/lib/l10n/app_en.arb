@@ -130,6 +130,7 @@
   "recentlyDeleted": "Recently deleted",
   "@recentlyDeleted": {"description": "Home filter chip: deleted projects, kept 30 days."},
   "recentlyDeletedEmpty": "Nothing deleted. Deleted projects stay here for 30 days.",
+  "@recentlyDeletedEmpty": {"description": "30 days is the engine's KEEP_DELETED_MS (engine/app/src/library.rs); change both together."},
   "restoreProject": "Restore",
   "daysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
   "@daysLeft": {"description": "On a deleted project: days until it is removed for good.", "placeholders": {"count": {"type": "int"}}}

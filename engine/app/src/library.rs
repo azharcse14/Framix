@@ -130,10 +130,7 @@ fn purge(
     let mut removed = false;
     for id in expired {
         let Some(file) = path(dir, &id) else { continue };
-        let gone = std::iter::once(file.clone())
-            .chain(store.backups(&file))
-            .all(|f| store.remove(&f).is_ok());
-        if gone {
+        if store.remove_all(&file).is_ok() {
             index.remove(&id);
             removed = true;
         }
@@ -156,6 +153,7 @@ fn newest_first(a: &ProjectSummary, b: &ProjectSummary) -> Ordering {
 
 /// What [`find`] lists.
 pub struct Found {
+    /// The projects `op` asked for, in its order.
     pub projects: Vec<ProjectSummary>,
     /// Every folder that holds a project not deleted, A to Z ignoring case.
     pub folders: Vec<String>,

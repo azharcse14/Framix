@@ -112,10 +112,14 @@ class _HomeView extends StatelessWidget {
                             ? _Message(
                                 icon: state.showingDeleted
                                     ? Icons.delete_outline
-                                    : Icons.search_off,
+                                    : state.filtered
+                                    ? Icons.search_off
+                                    : Icons.movie_creation_outlined,
                                 body: state.showingDeleted
                                     ? l10n.recentlyDeletedEmpty
-                                    : l10n.noMatchingProjects,
+                                    : state.filtered
+                                    ? l10n.noMatchingProjects
+                                    : l10n.projectsEmpty,
                               )
                             : _ProjectGrid(
                                 projects: projects,
@@ -417,8 +421,8 @@ class _ProjectCard extends StatelessWidget {
               1,
               (DateTime.fromMillisecondsSinceEpoch(project.purgeMs.toInt())
                           .difference(now)
-                          .inHours /
-                      24)
+                          .inMinutes /
+                      Duration.minutesPerDay)
                   .ceil(),
             ),
           )

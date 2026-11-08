@@ -667,7 +667,8 @@ message ProjectList {
   // after OpenLibrary only, and only for a listed project whose last autosave worked; empty
   // otherwise.
   string recovered = 2;
-  // Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
+  // Every folder that holds a project not in Recently deleted, A to Z ignoring case (whatever
+  // ListProjects filtered).
   repeated string folders = 3;
   // How many projects are in Recently deleted.
   uint32 deleted = 4;
