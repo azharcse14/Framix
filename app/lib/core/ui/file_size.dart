@@ -4,6 +4,7 @@ import '../../l10n/generated/app_localizations.dart';
 
 /// Which way [fileSize] rounds at the precision it shows.
 enum SizeRounding {
+  /// Half up: a size shown for information.
   nearest,
 
   /// Never shows less than [bytes]: a size that is needed.

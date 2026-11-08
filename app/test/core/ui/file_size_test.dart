@@ -44,6 +44,10 @@ void main() {
     expect(down(2300000), '2.3 MB');
   });
 
+  test('tenths that round up to 10 drop the decimal', () {
+    expect(fileSize(en, 'en', 9950000, rounding: SizeRounding.up), '10 MB');
+  });
+
   test('bn uses its own digits', () {
     expect(fileSize(bn, 'bn', 1500000), '১.৫ MB');
     expect(fileSize(bn, 'bn', 5), '৫ বাইট');
