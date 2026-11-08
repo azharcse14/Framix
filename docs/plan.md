@@ -382,7 +382,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-014` Timeline data model multi-track ar keyframe mathay rekhe design \[Rust\]
 - [x] `P1-015` **1b:** Project folder, search, sort (date, naam, size) \[Dart\]\[Rust\]
 - [x] `P1-016` **1b:** Recently deleted (30 din), vul kore delete hole ferot ana \[Rust\]\[Dart\]
-- [ ] `P1-017` **1b:** Protita project koto storage nicche dekhano, proxy/cache clean option \[Rust\]\[Dart\]
+- [x] `P1-017` **1b:** Protita project koto storage nicche dekhano, proxy/cache clean option \[Rust\]\[Dart\]
 
 **Timeline basics**
 
@@ -486,6 +486,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-106` Widget tests: Clear loop shows with two clips selected and with another clip selected, hides on the looped clip (P1-100 review); pass looping into _ClipActions \[Dart\]
 - [ ] `P1-107` Library index follow-ups: LibraryIndex format-1 fixture; tests for the write-side MAX_INDEX_BYTES refusal and for retry() clearing the Home search \[Rust\] \[Dart\]
 - [ ] `P1-108` Flaky under CPU load: home_trash_test 'a deleted project waits in Recently deleted' fails in pumpUntilGone (2 s poll budget) during full flutter test while another build runs; passes alone and on an idle machine. Find why the delete reply is slow or give the poll helpers a load-safe budget \[Dart\]
+- [ ] `P1-109` Project storage counts the project file only; add its backups (.bak1/.bak2) and imported media copies so the Storage sheet shows real disk use (P1-017 review W1) \[Dart\]
+- [ ] `P1-110` One file-size formatter in app/lib/core/ui (Home uses 1024 steps, export uses 1000000 per MB); pick one base (P1-017 review W2) \[Dart\]
+- [ ] `P1-111` Cache clean: SHA-256 padding-boundary tests (55/56/64 bytes), skip in-progress .part files, log a failed autosave before clean, clean caches of projects purged from Recently deleted (P1-017 review) \[Rust\]
 
 ## Phase 2: Audio
 

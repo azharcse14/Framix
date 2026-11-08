@@ -1209,12 +1209,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "3196912",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved. Decision (W1): the merge of main changed the committed test's project size from file+backups to file only, to reuse ProjectSummary.bytes (P1-015 sort-by-size); accepted, backups counting filed as a follow-up."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -14884,6 +14889,63 @@
    "title": "Flaky under CPU load: home_trash_test 'a deleted project waits in Recently deleted' fails in pumpUntilGone (2 s poll budget) during full flutter test while another build runs; passes alone and on an idle machine. Find why the delete reply is slow or give the poll helpers a load-safe budget",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-109",
+   "section": "P1",
+   "group": null,
+   "title": "Project storage counts the project file only; add its backups (.bak1/.bak2) and imported media copies so the Storage sheet shows real disk use (P1-017 review W1)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-110",
+   "section": "P1",
+   "group": null,
+   "title": "One file-size formatter in app/lib/core/ui (Home uses 1024 steps, export uses 1000000 per MB); pick one base (P1-017 review W2)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-111",
+   "section": "P1",
+   "group": null,
+   "title": "Cache clean: SHA-256 padding-boundary tests (55/56/64 bytes), skip in-progress .part files, log a failed autosave before clean, clean caches of projects purged from Recently deleted (P1-017 review)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
