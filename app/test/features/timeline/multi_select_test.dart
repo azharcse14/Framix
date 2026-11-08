@@ -184,7 +184,9 @@ void main() {
           closeTo(third.top, 1),
         );
       }
-      await gesture.up();
+      // Cancel, not drop: a drop would send a move that overlaps clip 1 and is refused after
+      // the test body ends.
+      await gesture.cancel();
       await tester.pump();
     },
   );
