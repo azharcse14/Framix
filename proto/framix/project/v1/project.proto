@@ -86,3 +86,22 @@ message SavedClip {
   int32 y = 13;
   uint32 scale = 14;
 }
+
+// The library's own data about its projects (file `<dir>/library.index`), apart from the
+// project files so autosave never rewrites it. Losing it only loses names and folders.
+message LibraryIndex {
+  // Version that wrote the file; readers refuse a newer min_reader_version.
+  uint32 format_version = 1;
+  uint32 min_reader_version = 2;
+  repeated LibraryEntry projects = 3;
+}
+
+// One project's library data; projects without an entry have none.
+message LibraryEntry {
+  string id = 1;
+  string name = 2;
+  string folder = 3;
+  // When DeleteProject moved it to Recently deleted, in milliseconds since the Unix epoch;
+  // 0: not deleted.
+  int64 deleted_ms = 4;
+}

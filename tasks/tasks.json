@@ -1147,12 +1147,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "8e0797e",
+   "branch": "worktree-agent-a2a76e9631cd30add",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "cb18c68 changed only the wait in the frozen widget test (one pump after runAsync never draws a bloc change: pump draws only if a frame is scheduled); assertion unchanged. LibraryIndex format 1 has no fixture yet."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "07e68f8 fixed a flaky helper in the review regression test engine_library_index.rs (project() took list[0] while all files share a save time); no assertion changed."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "c824722: home_folder_test teardown awaits engine.events.drain(); no assertion changed"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1167,12 +1180,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "af2ed96",
+   "branch": "worktree-agent-a2a76e9631cd30add",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Built on the P1-015 branch: its tests (a801969) landed before P1-015's review fixes, so P1-015's last commits carry P1-016's proto and stubs. Known gap: while library.index can't be read (I/O error or newer app) deleted projects list as live and open. 'Delete forever now' left out."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "c824722/747168f: trash test teardown drain, clippy as_str, fmt; no assertion changed"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -1369,11 +1391,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "fe7c54e",
+   "branch": "p1-024-multi-select",
    "notes": [],
    "source": "plan"
   },
@@ -13557,15 +13579,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "7b522af",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-05",
      "text": "Since P1-089 the app runs in library mode (per-project autosave); EnableAutosave has no app caller. What's left: recovery notice after a crash and clean-exit vs crash; the app-support dir part is covered by OpenLibrary."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved; review fixes (no 'saved' claim after a failed autosave, catch_unwind around close) in 5e27725. Decision: the app never calls engine_destroy (GetIt is never reset), so in practice a clean exit = back on Home; a swipe-away or OS kill with the editor open shows the notice on next launch. Intended on mobile."
     }
    ],
    "source": "added"
@@ -14140,15 +14166,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "3fdd3ab",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-05",
      "text": "Blocked on policy: buf breaking uses FILE, which refuses deleting the oneof field or message even when reserved; retiring needs an ADR to move to WIRE_JSON/WIRE or a deprecation-only approach."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer Critical (Dart same-package deprecation not linted) fixed in the follow-up commit; analyze probe confirms the guard."
     }
    ],
    "source": "added"
@@ -14217,15 +14247,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "3fdd3ab",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-05",
      "text": "Same buf FILE limit as P1-084: retire needs an ADR first."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer Critical (Dart same-package deprecation not linted) fixed in the follow-up commit; analyze probe confirms the guard."
     }
    ],
    "source": "added"
@@ -14653,6 +14687,184 @@
    "tags": [
     "Dart",
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-11-05",
+   "done": "2026-11-08",
+   "commit": "029ff83",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "No engine work needed: the engine already keeps the loop when its clip is deleted (loop_ruler_test checks state().loopEnd != 0); the Rust tag was for that check."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-100",
+   "section": "P1",
+   "group": null,
+   "title": "Clear loop toolbar icon squeezes the timecode on 360 dp (side pane, portrait phone); move the control to the ruler band or test the timecode size",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "6c08a02",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved; merge conflict with P1-102/103 resolved, 130 timeline tests pass on merged main."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-101",
+   "section": "P1",
+   "group": null,
+   "title": "Widget test: trimming a looped clip keeps the ruler band on the engine's loop range",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "5ada13b",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved; merge conflict with P1-102/103 resolved, 130 timeline tests pass on merged main."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-102",
+   "section": "P1",
+   "group": null,
+   "title": "Multi-select drag: the ghost follows the finger vertically but the drop ignores dy; lock it to the horizontal axis (or move tracks)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "6c92c54",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer: no Critical code issues; duplicated ghost/drop rule fixed in 671c603."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-103",
+   "section": "P1",
+   "group": null,
+   "title": "ClipSelectionCubit keeps ids of clips the timeline no longer has; drop them on TimelineChanged so tap/selection logic matches what is shown",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "fe93831",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer: no Critical code issues; duplicated ghost/drop rule fixed in 671c603."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "P1-104",
+   "section": "P1",
+   "group": null,
+   "title": "Widget test: multi-select vertical drag on a narrow clip (48 dp drag target) keeps to the lane",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-105",
+   "section": "P1",
+   "group": null,
+   "title": "Proto docs of SnapMove/SnapTrim/TrimToPlayhead/MoveClips describe their rules via retired MoveClip/TrimClip; spell the rule out (ADR 0008 review nit)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-106",
+   "section": "P1",
+   "group": null,
+   "title": "Widget tests: Clear loop shows with two clips selected and with another clip selected, hides on the looped clip (P1-100 review); pass looping into _ClipActions",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-107",
+   "section": "P1",
+   "group": null,
+   "title": "Library index follow-ups: LibraryIndex format-1 fixture; tests for the write-side MAX_INDEX_BYTES refusal and for retry() clearing the Home search",
+   "tags": [
+    "Rust",
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,

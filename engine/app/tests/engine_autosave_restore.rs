@@ -187,7 +187,7 @@ fn open(engine: &mut Engine) -> Event {
 }
 
 fn listed(engine: &mut Engine) -> Vec<String> {
-    match run(engine, command::Kind::ListProjects(ListProjects {})).kind {
+    match run(engine, command::Kind::ListProjects(ListProjects::default())).kind {
         Some(event::Kind::ProjectList(l)) => l.projects.into_iter().map(|p| p.id).collect(),
         other => panic!("expected ProjectList, got {other:?}"),
     }

@@ -266,6 +266,12 @@ abstract class AppLocalizations {
   /// **'Loop clip'**
   String get loopClip;
 
+  /// No description provided for @clearLoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear loop'**
+  String get clearLoop;
+
   /// No description provided for @timelineRuler.
   ///
   /// In en, this message translates to:
@@ -571,6 +577,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your first video starts here'**
   String get projectsEmptyTitle;
+
+  /// No description provided for @selectMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Select more'**
+  String get selectMore;
+
+  /// No description provided for @selectedClipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} selected}}'**
+  String selectedClipCount(int count);
+
+  /// Home notice after the app closed unexpectedly (crash, or the system ended it) with a project open: its work is saved up to the last edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved up to your last edit'**
+  String get workRecovered;
+
+  /// No description provided for @untitledProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled project'**
+  String get untitledProject;
+
+  /// Title of a project's long-press menu on Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Project options'**
+  String get projectActions;
+
+  /// No description provided for @renameProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get renameProject;
+
+  /// No description provided for @projectName.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name'**
+  String get projectName;
+
+  /// No description provided for @moveToFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to folder'**
+  String get moveToFolder;
+
+  /// Move-to-folder dialog field; leaving it empty takes the project out of its folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get folderName;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @searchProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Search projects'**
+  String get searchProjects;
+
+  /// No description provided for @sortProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort projects'**
+  String get sortProjects;
+
+  /// Sort option: most recently edited first.
+  ///
+  /// In en, this message translates to:
+  /// **'Date edited'**
+  String get sortByDate;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sortByName;
+
+  /// No description provided for @sortBySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get sortBySize;
+
+  /// Home folder filter chip: every project.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allProjects;
+
+  /// No description provided for @noMatchingProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects match.'**
+  String get noMatchingProjects;
+
+  /// Project menu: moves the project to Recently deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteProject;
+
+  /// Home filter chip: deleted projects, kept 30 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently deleted'**
+  String get recentlyDeleted;
+
+  /// 30 days is the engine's KEEP_DELETED_MS (engine/app/src/library.rs); change both together.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing deleted. Deleted projects stay here for 30 days.'**
+  String get recentlyDeletedEmpty;
+
+  /// No description provided for @restoreProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreProject;
+
+  /// On a deleted project: days until it is removed for good.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
+  String daysLeft(int count);
 
   /// No description provided for @projectStorage.
   ///

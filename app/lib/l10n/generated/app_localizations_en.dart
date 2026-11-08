@@ -110,6 +110,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loopClip => 'Loop clip';
 
   @override
+  String get clearLoop => 'Clear loop';
+
+  @override
   String get timelineRuler => 'Timeline';
 
   @override
@@ -315,6 +318,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'Your first video starts here';
+
+  @override
+  String get selectMore => 'Select more';
+
+  @override
+  String selectedClipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workRecovered => 'Saved up to your last edit';
+
+  @override
+  String get untitledProject => 'Untitled project';
+
+  @override
+  String get projectActions => 'Project options';
+
+  @override
+  String get renameProject => 'Rename';
+
+  @override
+  String get projectName => 'Project name';
+
+  @override
+  String get moveToFolder => 'Move to folder';
+
+  @override
+  String get folderName => 'Folder name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get searchProjects => 'Search projects';
+
+  @override
+  String get sortProjects => 'Sort projects';
+
+  @override
+  String get sortByDate => 'Date edited';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortBySize => 'Size';
+
+  @override
+  String get allProjects => 'All';
+
+  @override
+  String get noMatchingProjects => 'No projects match.';
+
+  @override
+  String get deleteProject => 'Delete';
+
+  @override
+  String get recentlyDeleted => 'Recently deleted';
+
+  @override
+  String get recentlyDeletedEmpty =>
+      'Nothing deleted. Deleted projects stay here for 30 days.';
+
+  @override
+  String get restoreProject => 'Restore';
+
+  @override
+  String daysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get projectStorage => 'Storage';

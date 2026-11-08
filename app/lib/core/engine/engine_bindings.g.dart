@@ -99,7 +99,7 @@ const int ENGINE_OK = 0;
 
 const int ENGINE_PLATFORM_VERSION = 7;
 
-const int ENGINE_PROTOCOL_VERSION = 44;
+const int ENGINE_PROTOCOL_VERSION = 47;
 
 const int ENGINE_RANGE_FULL = 2;
 

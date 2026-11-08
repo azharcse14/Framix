@@ -14,7 +14,7 @@ import 'home_open_test.dart' show pumpUntil;
 const _hash =
     '7aecb2d1a8f1e1a1bb1a226552bf563f3fc4eab13817d66dd0e3fc4817775b33';
 
-/// Long-pressing a project shows its storage and clears its cache (P1-017).
+/// A project's menu shows its storage and clears its cache (P1-017).
 void main() {
   late FramixEngine engine;
   late Directory root;
@@ -75,12 +75,21 @@ void main() {
     return l10n;
   }
 
-  testWidgets('long-press shows the sizes; Clear cache removes the cache', (
+  /// Opens the storage sheet from the project's long-press menu.
+  Future<void> openStorage(WidgetTester tester, AppLocalizations l10n) async {
+    await tester.longPress(find.text(l10n.clipCount(1)));
+    await pumpUntil(tester, find.text(l10n.projectStorage));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.projectStorage));
+    await pumpUntil(tester, find.text(l10n.clearCache));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the menu shows the sizes; Clear cache removes the cache', (
     tester,
   ) async {
     final l10n = await homeWithPhoto(tester, const Locale('en'));
-    await tester.longPress(find.text(l10n.clipCount(1)));
-    await pumpUntil(tester, find.text(l10n.projectStorage));
+    await openStorage(tester, l10n);
     expect(find.text(l10n.storageCache), findsOneWidget);
     expect(find.text(l10n.fileSize('2', 'kb')), findsOneWidget);
     expect(find.text(l10n.storageProjectFiles), findsOneWidget);
@@ -109,9 +118,8 @@ void main() {
     tester,
   ) async {
     final bn = await homeWithPhoto(tester, const Locale('bn'));
-    await tester.longPress(find.text(bn.clipCount(1)));
-    await pumpUntil(tester, find.text(bn.projectStorage));
-    expect(find.text(bn.clearCache), findsOneWidget);
+    await openStorage(tester, bn);
+    expect(find.text(bn.storageCacheNote), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

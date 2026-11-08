@@ -45,7 +45,7 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 44;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 47;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread. After [`engine_destroy`] the
@@ -348,6 +348,9 @@ fn serve(
                 engine.cancel_running_export();
                 // The last save happens before EngineStopped.
                 let _ = autosave(&mut engine, *callback);
+                // A normal stop: the next launch reports no crash recovery. A panic here
+                // only leaves the marker, so the next launch shows the notice.
+                let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.close()));
                 break;
             }
             EngineMessage::Command(bytes) => {

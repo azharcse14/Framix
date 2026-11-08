@@ -123,6 +123,34 @@ class TrackKind extends $pb.ProtobufEnum {
   const TrackKind._(super.value, super.name);
 }
 
+/// How ListProjects orders projects. Ties go newest saved first.
+class ProjectSort extends $pb.ProtobufEnum {
+  /// Newest saved first.
+  static const ProjectSort PROJECT_SORT_UNSPECIFIED =
+      ProjectSort._(0, _omitEnumNames ? '' : 'PROJECT_SORT_UNSPECIFIED');
+
+  /// By name, A to Z ignoring case; unnamed projects last.
+  static const ProjectSort PROJECT_SORT_NAME =
+      ProjectSort._(1, _omitEnumNames ? '' : 'PROJECT_SORT_NAME');
+
+  /// Largest first (ProjectSummary.bytes).
+  static const ProjectSort PROJECT_SORT_SIZE =
+      ProjectSort._(2, _omitEnumNames ? '' : 'PROJECT_SORT_SIZE');
+
+  static const $core.List<ProjectSort> values = <ProjectSort>[
+    PROJECT_SORT_UNSPECIFIED,
+    PROJECT_SORT_NAME,
+    PROJECT_SORT_SIZE,
+  ];
+
+  static final $core.List<ProjectSort?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static ProjectSort? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ProjectSort._(super.value, super.name);
+}
+
 /// Which end of a clip.
 class ClipEdge extends $pb.ProtobufEnum {
   static const ClipEdge CLIP_EDGE_UNSPECIFIED =

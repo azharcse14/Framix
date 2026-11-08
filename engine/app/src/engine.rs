@@ -39,6 +39,9 @@ pub struct Engine {
     autosave: Option<PathBuf>,
     /// The folder of the user's projects, once OpenLibrary succeeded.
     library: Option<PathBuf>,
+    /// The library project that was open when the last engine stopped without closing, until
+    /// the first ProjectList reports it.
+    recovered: Option<String>,
     /// The timeline last autosaved or recovered; autosave writes only when it differs.
     autosaved: Timeline,
     /// The last autosave failed and was reported; later failures stay quiet until a success.
@@ -154,6 +157,9 @@ impl Engine {
         match saved {
             Ok(()) => {
                 self.autosaved = self.history.timeline().clone();
+                if self.autosave_failed {
+                    self.mark_saved_work(&path, true);
+                }
                 self.autosave_failed = false;
                 None
             }
@@ -161,8 +167,21 @@ impl Engine {
             Err(_) if self.autosave_failed => None,
             Err(reason) => {
                 self.autosave_failed = true;
+                self.mark_saved_work(&path, false);
                 Some(command_failed(format!("autosave failed: {reason}")))
             }
+        }
+    }
+
+    /// In a library, whether a crash now would find the open project's work saved: the
+    /// crash marker names the project only while its autosaves succeed.
+    fn mark_saved_work(&self, file: &Path, saved: bool) {
+        let (Some(store), Some(dir)) = (self.store.as_deref(), self.library.as_deref()) else {
+            return;
+        };
+        match file.file_stem().and_then(|id| id.to_str()) {
+            Some(id) if saved => crate::library::mark_open(store, dir, id),
+            _ => crate::library::clear_open(store, dir),
         }
     }
 
@@ -635,9 +654,12 @@ impl Engine {
                     free_bytes: free,
                 })),
             },
-            Ok(Reply::Projects(projects)) => Event {
+            Ok(Reply::Projects(found, recovered)) => Event {
                 kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
-                    projects,
+                    projects: found.projects,
+                    recovered,
+                    folders: found.folders,
+                    deleted: found.deleted,
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -682,7 +704,9 @@ impl Engine {
                 let file = match self.library.clone() {
                     Some(dir) => {
                         self.save_current()?;
-                        let id = crate::library::new_id(self.store()?, &dir)?;
+                        let store = self.store()?;
+                        let id = crate::library::new_id(store, &dir)?;
+                        crate::library::mark_open(store, &dir, &id);
                         crate::library::path(&dir, &id)
                     }
                     None => None,
@@ -701,11 +725,23 @@ impl Engine {
                 self.start_project();
             })),
             command::Kind::OpenLibrary(op) => self.open_library(op.dir).map(|()| Reply::Accepted),
-            command::Kind::ListProjects(_) => {
+            command::Kind::ListProjects(op) => {
                 let dir = self.library.clone().ok_or("no library")?;
                 // A failed save was reported by autosave; the list still shows the last save.
                 let _ = self.autosave();
-                crate::library::list(self.store()?, &dir).map(Reply::Projects)
+                let store = self.store()?;
+                // Home shows: no project is open in the editor now.
+                crate::library::clear_open(store, &dir);
+                let projects = crate::library::list(store, &dir)?;
+                let recovered = self
+                    .recovered
+                    .take()
+                    .filter(|id| projects.iter().any(|p| p.id == *id))
+                    .unwrap_or_default();
+                Ok(Reply::Projects(
+                    crate::library::find(projects, &op),
+                    recovered,
+                ))
             }
             command::Kind::CleanProjectCache(_) => Err("not yet".into()),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
@@ -718,6 +754,8 @@ impl Engine {
             command::Kind::MergeClips(op) => {
                 timeline(self.edit(|tl| tl.merge_clips(ClipId(op.left_id), ClipId(op.right_id))))
             }
+            // Retired command (ADR 0008), kept for its frozen test.
+            #[allow(deprecated)]
             command::Kind::TrimClip(op) => timeline(
                 self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), Time(op.start), Time(op.end))),
             ),
@@ -726,6 +764,18 @@ impl Engine {
             }
             command::Kind::DuplicateClip(op) => {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
+            }
+            command::Kind::RemoveClips(op) => {
+                let ids = self.selection(&op.clip_ids)?;
+                timeline(self.edit(|tl| tl.remove_clips(&ids)))
+            }
+            command::Kind::MoveClips(op) => {
+                let ids = self.selection(&op.clip_ids)?;
+                timeline(self.edit(|tl| tl.move_clips(&ids, Time(op.by))))
+            }
+            command::Kind::DuplicateClips(op) => {
+                let ids = self.selection(&op.clip_ids)?;
+                timeline(self.edit(|tl| tl.duplicate_clips(&ids)))
             }
             command::Kind::SetTrackFlags(op) => {
                 let track = TrackId(op.track_id);
@@ -742,6 +792,8 @@ impl Engine {
                     tl.set_track_flags(track, flags)
                 }))
             }
+            // Retired command (ADR 0008), kept for its frozen test.
+            #[allow(deprecated)]
             command::Kind::MoveClip(op) => {
                 timeline(self.edit(|tl| {
                     tl.move_clip(ClipId(op.clip_id), TrackId(op.track_id), Time(op.start))
@@ -941,6 +993,24 @@ impl Engine {
                 self.loop_range = (op.end > op.start).then_some((Time(op.start), Time(op.end)));
                 Ok(Reply::Timeline)
             }
+            command::Kind::RenameProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::rename(self.store()?, &dir, &op.id, &op.name)
+                    .map(|()| Reply::Accepted)
+            }
+            command::Kind::DeleteProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::delete(self.store()?, &dir, &op.id).map(|()| Reply::Accepted)
+            }
+            command::Kind::RestoreProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::restore(self.store()?, &dir, &op.id).map(|()| Reply::Accepted)
+            }
+            command::Kind::MoveProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::move_to(self.store()?, &dir, &op.id, &op.folder)
+                    .map(|()| Reply::Accepted)
+            }
             command::Kind::Pause(_) => {
                 self.pause();
                 Ok(Reply::Playhead(false))
@@ -1032,6 +1102,10 @@ impl Engine {
             Some(_) => Err("the library is already open on another folder".into()),
             None if self.autosave.is_some() => Err("autosave is on for a single file".into()),
             None => {
+                self.recovered = self
+                    .store
+                    .as_deref()
+                    .and_then(|store| crate::library::take_open(store, &dir));
                 self.library = Some(dir);
                 Ok(())
             }
@@ -1057,8 +1131,11 @@ impl Engine {
 
     /// Opens library project `id` and autosaves there; the current project is saved first.
     fn open_from_library(&mut self, id: &str) -> Result<(), String> {
-        let dir = self.library.as_deref().ok_or("no library")?;
-        let file = crate::library::path(dir, id).ok_or("malformed project id")?;
+        let dir = self.library.clone().ok_or("no library")?;
+        let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
+        if crate::library::is_deleted(self.store()?, &dir, id) {
+            return Err("project is in Recently deleted".into());
+        }
         // Save first: reading first would load stale bytes when `id` is the open project.
         self.save_current()?;
         let store = self.store()?;
@@ -1072,10 +1149,19 @@ impl Engine {
         } else {
             timeline.clone()
         };
+        crate::library::mark_open(store, &dir, id);
         self.history = History::new(timeline);
         self.autosave_to(Some(file), saved);
         self.start_project();
         Ok(())
+    }
+
+    /// The engine stops normally (after its last autosave): the open project was closed, so
+    /// the next OpenLibrary reports no recovery.
+    pub fn close(&mut self) {
+        if let (Some(store), Some(dir)) = (self.store.as_deref(), &self.library) {
+            crate::library::clear_open(store, dir);
+        }
     }
 
     /// Recovers the project at `path` if there is one, then autosaves there. A damaged file is
@@ -1132,6 +1218,22 @@ impl Engine {
         let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
         self.history = History::new(timeline);
         Ok(())
+    }
+
+    /// The clip ids of a multi-clip command; a list longer than the timeline's clip count
+    /// is refused before any work.
+    fn selection(&self, ids: &[u64]) -> Result<Vec<ClipId>, String> {
+        let count: usize = self
+            .history
+            .timeline()
+            .tracks()
+            .iter()
+            .map(|t| t.clips().len())
+            .sum();
+        if ids.len() > count {
+            return Err("more clips selected than the timeline has".to_string());
+        }
+        Ok(ids.iter().map(|&id| ClipId(id)).collect())
     }
 
     fn edit<T>(
@@ -1287,8 +1389,9 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
-    /// The library's projects (ListProjects).
-    Projects(Vec<proto::ProjectSummary>),
+    /// The library's projects as ListProjects asked, and the one recovered after a crash,
+    /// if any.
+    Projects(crate::library::Found, String),
     /// Where the playhead is now, and whether the seek snapped.
     Playhead(bool),
     /// An export was refused before it started: it needs about `needed` bytes, `free` are free.

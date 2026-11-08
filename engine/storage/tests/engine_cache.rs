@@ -86,7 +86,16 @@ fn projects(e: Option<event::Kind>) -> Vec<ProjectSummary> {
 }
 
 fn list(engine: &mut Engine) -> Vec<ProjectSummary> {
-    projects(run(engine, command::Kind::ListProjects(ListProjects {})))
+    projects(run(
+        engine,
+        command::Kind::ListProjects(ListProjects::default()),
+    ))
+}
+
+fn cleaned(engine: &mut Engine, id: &str) -> Vec<ProjectSummary> {
+    let e = clean(engine, id);
+    assert!(matches!(e, Some(event::Kind::CommandAccepted(_))), "{e:?}");
+    list(engine)
 }
 
 fn clean(engine: &mut Engine, id: &str) -> Option<event::Kind> {
@@ -101,13 +110,11 @@ fn write(path: &Path, len: usize) {
     fs::write(path, vec![7u8; len]).unwrap();
 }
 
-/// Bytes of the project file and its backups, read straight from the folder.
+/// Bytes of the project file, read straight from the folder.
 fn project_bytes(dir: &Path, id: &str) -> u64 {
-    ["", ".bak1", ".bak2"]
-        .iter()
-        .filter_map(|s| fs::metadata(dir.join(format!("{id}.framix{s}"))).ok())
-        .map(|m| m.len())
-        .sum()
+    fs::metadata(dir.join(format!("{id}.framix")))
+        .unwrap()
+        .len()
 }
 
 /// Every file under `dir`, relative, sorted.
@@ -158,9 +165,9 @@ fn each_project_counts_its_files_and_the_caches_of_its_media() {
 
     assert_eq!(first.cache_bytes, 1150);
     assert_eq!(second.cache_bytes, 7);
-    assert!(first.project_bytes > 0);
-    assert_eq!(first.project_bytes, project_bytes(&lib, &first.id));
-    assert_eq!(second.project_bytes, project_bytes(&lib, &second.id));
+    assert!(first.bytes > 0);
+    assert_eq!(first.bytes, project_bytes(&lib, &first.id));
+    assert_eq!(second.bytes, project_bytes(&lib, &second.id));
 }
 
 #[test]
@@ -170,7 +177,7 @@ fn without_a_cache_folder_projects_have_no_cache_and_cleaning_is_refused() {
     project_with(&mut engine, &[A]);
     let p = list(&mut engine).remove(0);
     assert_eq!(p.cache_bytes, 0);
-    assert_eq!(p.project_bytes, project_bytes(&lib, &p.id));
+    assert_eq!(p.bytes, project_bytes(&lib, &p.id));
     assert!(matches!(
         clean(&mut engine, &p.id),
         Some(event::Kind::CommandFailed(_))
@@ -220,11 +227,11 @@ fn cleaning_removes_only_that_projects_cache_files() {
         .map(|f| fs::read(lib.join(f)).unwrap())
         .collect();
 
-    let after = projects(clean(&mut engine, &first.id));
+    let after = cleaned(&mut engine, &first.id);
     let row = |id: &str| after.iter().find(|p| p.id == id).unwrap().clone();
     assert_eq!(row(&first.id).cache_bytes, 0);
     assert_eq!(row(&second.id).cache_bytes, 7);
-    assert_eq!(row(&first.id).project_bytes, first.project_bytes);
+    assert_eq!(row(&first.id).bytes, first.bytes);
 
     let mut left = vec![
         format!("thumbs/{B_HASH}-0-128.jpg"),
@@ -252,7 +259,7 @@ fn cleaning_with_an_empty_cache_folder_is_fine() {
     let mut engine = library(&lib, cache.to_str().unwrap());
     project_with(&mut engine, &[A]);
     let p = list(&mut engine).remove(0);
-    assert_eq!(projects(clean(&mut engine, &p.id))[0].cache_bytes, 0);
+    assert_eq!(cleaned(&mut engine, &p.id)[0].cache_bytes, 0);
 }
 
 #[test]

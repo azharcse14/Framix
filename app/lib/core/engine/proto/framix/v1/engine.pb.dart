@@ -61,6 +61,13 @@ enum Command_Kind {
   play,
   pause,
   setLoop,
+  removeClips,
+  moveClips,
+  duplicateClips,
+  renameProject,
+  moveProject,
+  deleteProject,
+  restoreProject,
   cleanProjectCache,
   notSet
 }
@@ -80,10 +87,10 @@ class Command extends $pb.GeneratedMessage {
     RemoveClip? removeClip,
     SplitClip? splitClip,
     MergeClips? mergeClips,
-    TrimClip? trimClip,
+    @$core.Deprecated('This field is deprecated.') TrimClip? trimClip,
     DuplicateClip? duplicateClip,
     SetTrackFlags? setTrackFlags,
-    MoveClip? moveClip,
+    @$core.Deprecated('This field is deprecated.') MoveClip? moveClip,
     ImportMedia? importMedia,
     CreatePreview? createPreview,
     Seek? seek,
@@ -108,6 +115,13 @@ class Command extends $pb.GeneratedMessage {
     Play? play,
     Pause? pause,
     SetLoop? setLoop,
+    RemoveClips? removeClips,
+    MoveClips? moveClips,
+    DuplicateClips? duplicateClips,
+    RenameProject? renameProject,
+    MoveProject? moveProject,
+    DeleteProject? deleteProject,
+    RestoreProject? restoreProject,
     CleanProjectCache? cleanProjectCache,
   }) {
     final result = Command._();
@@ -152,6 +166,13 @@ class Command extends $pb.GeneratedMessage {
     if (play != null) result.play = play;
     if (pause != null) result.pause = pause;
     if (setLoop != null) result.setLoop = setLoop;
+    if (removeClips != null) result.removeClips = removeClips;
+    if (moveClips != null) result.moveClips = moveClips;
+    if (duplicateClips != null) result.duplicateClips = duplicateClips;
+    if (renameProject != null) result.renameProject = renameProject;
+    if (moveProject != null) result.moveProject = moveProject;
+    if (deleteProject != null) result.deleteProject = deleteProject;
+    if (restoreProject != null) result.restoreProject = restoreProject;
     if (cleanProjectCache != null) result.cleanProjectCache = cleanProjectCache;
     return result;
   }
@@ -205,7 +226,14 @@ class Command extends $pb.GeneratedMessage {
     38: Command_Kind.play,
     39: Command_Kind.pause,
     40: Command_Kind.setLoop,
-    41: Command_Kind.cleanProjectCache,
+    41: Command_Kind.removeClips,
+    42: Command_Kind.moveClips,
+    43: Command_Kind.duplicateClips,
+    44: Command_Kind.renameProject,
+    45: Command_Kind.moveProject,
+    46: Command_Kind.deleteProject,
+    47: Command_Kind.restoreProject,
+    48: Command_Kind.cleanProjectCache,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -252,7 +280,14 @@ class Command extends $pb.GeneratedMessage {
       38,
       39,
       40,
-      41
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -335,7 +370,21 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Pause.$_createMessage)
     ..aOM<SetLoop>(40, _omitFieldNames ? '' : 'setLoop',
         subBuilder: SetLoop.$_createMessage)
-    ..aOM<CleanProjectCache>(41, _omitFieldNames ? '' : 'cleanProjectCache',
+    ..aOM<RemoveClips>(41, _omitFieldNames ? '' : 'removeClips',
+        subBuilder: RemoveClips.$_createMessage)
+    ..aOM<MoveClips>(42, _omitFieldNames ? '' : 'moveClips',
+        subBuilder: MoveClips.$_createMessage)
+    ..aOM<DuplicateClips>(43, _omitFieldNames ? '' : 'duplicateClips',
+        subBuilder: DuplicateClips.$_createMessage)
+    ..aOM<RenameProject>(44, _omitFieldNames ? '' : 'renameProject',
+        subBuilder: RenameProject.$_createMessage)
+    ..aOM<MoveProject>(45, _omitFieldNames ? '' : 'moveProject',
+        subBuilder: MoveProject.$_createMessage)
+    ..aOM<DeleteProject>(46, _omitFieldNames ? '' : 'deleteProject',
+        subBuilder: DeleteProject.$_createMessage)
+    ..aOM<RestoreProject>(47, _omitFieldNames ? '' : 'restoreProject',
+        subBuilder: RestoreProject.$_createMessage)
+    ..aOM<CleanProjectCache>(48, _omitFieldNames ? '' : 'cleanProjectCache',
         subBuilder: CleanProjectCache.$_createMessage)
     ..hasRequiredFields = false;
 
@@ -399,6 +448,13 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
+  @$pb.TagNumber(43)
+  @$pb.TagNumber(44)
+  @$pb.TagNumber(45)
+  @$pb.TagNumber(46)
+  @$pb.TagNumber(47)
+  @$pb.TagNumber(48)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -440,6 +496,13 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
+  @$pb.TagNumber(43)
+  @$pb.TagNumber(44)
+  @$pb.TagNumber(45)
+  @$pb.TagNumber(46)
+  @$pb.TagNumber(47)
+  @$pb.TagNumber(48)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -574,14 +637,20 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   MergeClips ensureMergeClips() => $_ensure(11);
 
+  /// Retired (ADR 0008): the app sends SnapTrim; kept for the frozen engine test.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   TrimClip get trimClip => $_getN(12);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   set trimClip(TrimClip value) => $_setField(13, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   $core.bool hasTrimClip() => $_has(12);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   void clearTrimClip() => $_clearField(13);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   TrimClip ensureTrimClip() => $_ensure(12);
 
@@ -607,14 +676,20 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   SetTrackFlags ensureSetTrackFlags() => $_ensure(14);
 
+  /// Retired (ADR 0008): the app sends SnapMove; kept for the frozen engine test.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   MoveClip get moveClip => $_getN(15);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   set moveClip(MoveClip value) => $_setField(16, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   $core.bool hasMoveClip() => $_has(15);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   void clearMoveClip() => $_clearField(16);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   MoveClip ensureMoveClip() => $_ensure(15);
 
@@ -882,15 +957,92 @@ class Command extends $pb.GeneratedMessage {
   SetLoop ensureSetLoop() => $_ensure(39);
 
   @$pb.TagNumber(41)
-  CleanProjectCache get cleanProjectCache => $_getN(40);
+  RemoveClips get removeClips => $_getN(40);
   @$pb.TagNumber(41)
-  set cleanProjectCache(CleanProjectCache value) => $_setField(41, value);
+  set removeClips(RemoveClips value) => $_setField(41, value);
   @$pb.TagNumber(41)
-  $core.bool hasCleanProjectCache() => $_has(40);
+  $core.bool hasRemoveClips() => $_has(40);
   @$pb.TagNumber(41)
-  void clearCleanProjectCache() => $_clearField(41);
+  void clearRemoveClips() => $_clearField(41);
   @$pb.TagNumber(41)
-  CleanProjectCache ensureCleanProjectCache() => $_ensure(40);
+  RemoveClips ensureRemoveClips() => $_ensure(40);
+
+  @$pb.TagNumber(42)
+  MoveClips get moveClips => $_getN(41);
+  @$pb.TagNumber(42)
+  set moveClips(MoveClips value) => $_setField(42, value);
+  @$pb.TagNumber(42)
+  $core.bool hasMoveClips() => $_has(41);
+  @$pb.TagNumber(42)
+  void clearMoveClips() => $_clearField(42);
+  @$pb.TagNumber(42)
+  MoveClips ensureMoveClips() => $_ensure(41);
+
+  @$pb.TagNumber(43)
+  DuplicateClips get duplicateClips => $_getN(42);
+  @$pb.TagNumber(43)
+  set duplicateClips(DuplicateClips value) => $_setField(43, value);
+  @$pb.TagNumber(43)
+  $core.bool hasDuplicateClips() => $_has(42);
+  @$pb.TagNumber(43)
+  void clearDuplicateClips() => $_clearField(43);
+  @$pb.TagNumber(43)
+  DuplicateClips ensureDuplicateClips() => $_ensure(42);
+
+  @$pb.TagNumber(44)
+  RenameProject get renameProject => $_getN(43);
+  @$pb.TagNumber(44)
+  set renameProject(RenameProject value) => $_setField(44, value);
+  @$pb.TagNumber(44)
+  $core.bool hasRenameProject() => $_has(43);
+  @$pb.TagNumber(44)
+  void clearRenameProject() => $_clearField(44);
+  @$pb.TagNumber(44)
+  RenameProject ensureRenameProject() => $_ensure(43);
+
+  @$pb.TagNumber(45)
+  MoveProject get moveProject => $_getN(44);
+  @$pb.TagNumber(45)
+  set moveProject(MoveProject value) => $_setField(45, value);
+  @$pb.TagNumber(45)
+  $core.bool hasMoveProject() => $_has(44);
+  @$pb.TagNumber(45)
+  void clearMoveProject() => $_clearField(45);
+  @$pb.TagNumber(45)
+  MoveProject ensureMoveProject() => $_ensure(44);
+
+  @$pb.TagNumber(46)
+  DeleteProject get deleteProject => $_getN(45);
+  @$pb.TagNumber(46)
+  set deleteProject(DeleteProject value) => $_setField(46, value);
+  @$pb.TagNumber(46)
+  $core.bool hasDeleteProject() => $_has(45);
+  @$pb.TagNumber(46)
+  void clearDeleteProject() => $_clearField(46);
+  @$pb.TagNumber(46)
+  DeleteProject ensureDeleteProject() => $_ensure(45);
+
+  @$pb.TagNumber(47)
+  RestoreProject get restoreProject => $_getN(46);
+  @$pb.TagNumber(47)
+  set restoreProject(RestoreProject value) => $_setField(47, value);
+  @$pb.TagNumber(47)
+  $core.bool hasRestoreProject() => $_has(46);
+  @$pb.TagNumber(47)
+  void clearRestoreProject() => $_clearField(47);
+  @$pb.TagNumber(47)
+  RestoreProject ensureRestoreProject() => $_ensure(46);
+
+  @$pb.TagNumber(48)
+  CleanProjectCache get cleanProjectCache => $_getN(47);
+  @$pb.TagNumber(48)
+  set cleanProjectCache(CleanProjectCache value) => $_setField(48, value);
+  @$pb.TagNumber(48)
+  $core.bool hasCleanProjectCache() => $_has(47);
+  @$pb.TagNumber(48)
+  void clearCleanProjectCache() => $_clearField(48);
+  @$pb.TagNumber(48)
+  CleanProjectCache ensureCleanProjectCache() => $_ensure(47);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2303,7 +2455,7 @@ class OpenLibrary extends $pb.GeneratedMessage {
 
 /// Removes the thumbnails and proxies of library project `id`'s media from the cache folder
 /// (OpenLibrary.cache_dir); they are made again when needed. Never touches project files or
-/// backups. Answered with ProjectList. Refused without a library or cache folder, for a
+/// backups. Answered CommandAccepted. Refused without a library or cache folder, for a
 /// malformed or unknown id, or when a cache file could not be removed.
 class CleanProjectCache extends $pb.GeneratedMessage {
   factory CleanProjectCache({
@@ -2362,10 +2514,22 @@ class CleanProjectCache extends $pb.GeneratedMessage {
   void clearId() => $_clearField(1);
 }
 
-/// Saves the current project if it changed, then answers ProjectList. Refused without a
-/// library.
+/// Saves the current project if it changed, then answers ProjectList. Home is showing, so no
+/// project counts as open for ProjectList.recovered. Refused without a library.
 class ListProjects extends $pb.GeneratedMessage {
-  factory ListProjects() => ListProjects._();
+  factory ListProjects({
+    ProjectSort? sort,
+    $core.String? query,
+    $core.String? folder,
+    $core.bool? deleted,
+  }) {
+    final result = ListProjects._();
+    if (sort != null) result.sort = sort;
+    if (query != null) result.query = query;
+    if (folder != null) result.folder = folder;
+    if (deleted != null) result.deleted = deleted;
+    return result;
+  }
 
   ListProjects._();
 
@@ -2380,6 +2544,11 @@ class ListProjects extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'ListProjects',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: ListProjects.$_createMessage)
+    ..aE<ProjectSort>(1, _omitFieldNames ? '' : 'sort',
+        enumValues: ProjectSort.values)
+    ..aOS(2, _omitFieldNames ? '' : 'query')
+    ..aOS(3, _omitFieldNames ? '' : 'folder')
+    ..aOB(4, _omitFieldNames ? '' : 'deleted')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2403,6 +2572,308 @@ class ListProjects extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListProjects>(
           ListProjects.$_createMessage);
   static ListProjects? _defaultInstance;
+
+  /// Order of the list; unspecified is newest saved first.
+  @$pb.TagNumber(1)
+  ProjectSort get sort => $_getN(0);
+  @$pb.TagNumber(1)
+  set sort(ProjectSort value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSort() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSort() => $_clearField(1);
+
+  /// Only projects whose name contains this (ignoring case and surrounding spaces); empty: all.
+  @$pb.TagNumber(2)
+  $core.String get query => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set query($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasQuery() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearQuery() => $_clearField(2);
+
+  /// Only projects in this folder (MoveProject); empty: every project.
+  @$pb.TagNumber(3)
+  $core.String get folder => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set folder($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFolder() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFolder() => $_clearField(3);
+
+  /// List Recently deleted (DeleteProject) instead of the other projects.
+  @$pb.TagNumber(4)
+  $core.bool get deleted => $_getBF(3);
+  @$pb.TagNumber(4)
+  set deleted($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDeleted() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDeleted() => $_clearField(4);
+}
+
+/// Moves library project `id` to Recently deleted: ListProjects shows it only with `deleted`,
+/// OpenProject refuses it, and 30 days after this it is removed for good (with its backups) by
+/// the next ListProjects. Answered CommandAccepted.
+class DeleteProject extends $pb.GeneratedMessage {
+  factory DeleteProject({
+    $core.String? id,
+  }) {
+    final result = DeleteProject._();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  DeleteProject._();
+
+  factory DeleteProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DeleteProject()..mergeFromBuffer(data, registry);
+  factory DeleteProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DeleteProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DeleteProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: DeleteProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DeleteProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DeleteProject copyWith(void Function(DeleteProject) updates) =>
+      super.copyWith((message) => updates(message as DeleteProject))
+          as DeleteProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DeleteProject() / DeleteProject.new instead')
+  static DeleteProject create() => DeleteProject._();
+  static $pb.GeneratedMessage $_createMessage() => DeleteProject._();
+  @$core.override
+  DeleteProject createEmptyInstance() => DeleteProject._();
+  @$core.pragma('dart2js:noInline')
+  static DeleteProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DeleteProject>(
+          DeleteProject.$_createMessage);
+  static DeleteProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+}
+
+/// Takes library project `id` out of Recently deleted, keeping its name and folder. Answered
+/// CommandAccepted; refused for a project that is not deleted.
+class RestoreProject extends $pb.GeneratedMessage {
+  factory RestoreProject({
+    $core.String? id,
+  }) {
+    final result = RestoreProject._();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  RestoreProject._();
+
+  factory RestoreProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RestoreProject()..mergeFromBuffer(data, registry);
+  factory RestoreProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RestoreProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RestoreProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RestoreProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RestoreProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RestoreProject copyWith(void Function(RestoreProject) updates) =>
+      super.copyWith((message) => updates(message as RestoreProject))
+          as RestoreProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RestoreProject() / RestoreProject.new instead')
+  static RestoreProject create() => RestoreProject._();
+  static $pb.GeneratedMessage $_createMessage() => RestoreProject._();
+  @$core.override
+  RestoreProject createEmptyInstance() => RestoreProject._();
+  @$core.pragma('dart2js:noInline')
+  static RestoreProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RestoreProject>(
+          RestoreProject.$_createMessage);
+  static RestoreProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+}
+
+/// Names library project `id` (ProjectSummary.id). The name is trimmed; empty clears it, more
+/// than 80 characters or a control character is refused. Answered CommandAccepted.
+class RenameProject extends $pb.GeneratedMessage {
+  factory RenameProject({
+    $core.String? id,
+    $core.String? name,
+  }) {
+    final result = RenameProject._();
+    if (id != null) result.id = id;
+    if (name != null) result.name = name;
+    return result;
+  }
+
+  RenameProject._();
+
+  factory RenameProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RenameProject()..mergeFromBuffer(data, registry);
+  factory RenameProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RenameProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RenameProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RenameProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RenameProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RenameProject copyWith(void Function(RenameProject) updates) =>
+      super.copyWith((message) => updates(message as RenameProject))
+          as RenameProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RenameProject() / RenameProject.new instead')
+  static RenameProject create() => RenameProject._();
+  static $pb.GeneratedMessage $_createMessage() => RenameProject._();
+  @$core.override
+  RenameProject createEmptyInstance() => RenameProject._();
+  @$core.pragma('dart2js:noInline')
+  static RenameProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RenameProject>(
+          RenameProject.$_createMessage);
+  static RenameProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get name => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set name($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearName() => $_clearField(2);
+}
+
+/// Puts library project `id` in `folder`, a single-level label like a name (trimmed, at most
+/// 40 characters, no control characters); empty takes it out of its folder. A folder exists
+/// while a project is in it. Answered CommandAccepted.
+class MoveProject extends $pb.GeneratedMessage {
+  factory MoveProject({
+    $core.String? id,
+    $core.String? folder,
+  }) {
+    final result = MoveProject._();
+    if (id != null) result.id = id;
+    if (folder != null) result.folder = folder;
+    return result;
+  }
+
+  MoveProject._();
+
+  factory MoveProject.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveProject()..mergeFromBuffer(data, registry);
+  factory MoveProject.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveProject()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MoveProject',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MoveProject.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aOS(2, _omitFieldNames ? '' : 'folder')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveProject clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveProject copyWith(void Function(MoveProject) updates) =>
+      super.copyWith((message) => updates(message as MoveProject))
+          as MoveProject;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MoveProject() / MoveProject.new instead')
+  static MoveProject create() => MoveProject._();
+  static $pb.GeneratedMessage $_createMessage() => MoveProject._();
+  @$core.override
+  MoveProject createEmptyInstance() => MoveProject._();
+  @$core.pragma('dart2js:noInline')
+  static MoveProject getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MoveProject>(
+          MoveProject.$_createMessage);
+  static MoveProject? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get folder => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set folder($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasFolder() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFolder() => $_clearField(2);
 }
 
 /// Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
@@ -2673,6 +3144,8 @@ class MergeClips extends $pb.GeneratedMessage {
 }
 
 /// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+/// Retired (ADR 0008): the app sends SnapTrim.
+@$core.Deprecated('This message is deprecated')
 class TrimClip extends $pb.GeneratedMessage {
   factory TrimClip({
     $fixnum.Int64? clipId,
@@ -3233,8 +3706,181 @@ class SetTrackFlags extends $pb.GeneratedMessage {
   void clearLocked() => $_clearField(4);
 }
 
+/// Removes several clips as one undo step; all or nothing. Refused when the list is empty,
+/// names a clip twice, or is longer than the timeline's clip count.
+class RemoveClips extends $pb.GeneratedMessage {
+  factory RemoveClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+  }) {
+    final result = RemoveClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    return result;
+  }
+
+  RemoveClips._();
+
+  factory RemoveClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClips()..mergeFromBuffer(data, registry);
+  factory RemoveClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RemoveClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RemoveClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClips copyWith(void Function(RemoveClips) updates) =>
+      super.copyWith((message) => updates(message as RemoveClips))
+          as RemoveClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RemoveClips() / RemoveClips.new instead')
+  static RemoveClips create() => RemoveClips._();
+  static $pb.GeneratedMessage $_createMessage() => RemoveClips._();
+  @$core.override
+  RemoveClips createEmptyInstance() => RemoveClips._();
+  @$core.pragma('dart2js:noInline')
+  static RemoveClips getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RemoveClips>(
+          RemoveClips.$_createMessage);
+  static RemoveClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+}
+
+/// Shifts several clips by `by` ticks, each on its own track, as one undo step; all or nothing
+/// (refused like MoveClip for any clip, and like RemoveClips for the list). Selected clips may
+/// take each other's old spots.
+class MoveClips extends $pb.GeneratedMessage {
+  factory MoveClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+    $fixnum.Int64? by,
+  }) {
+    final result = MoveClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    if (by != null) result.by = by;
+    return result;
+  }
+
+  MoveClips._();
+
+  factory MoveClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClips()..mergeFromBuffer(data, registry);
+  factory MoveClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MoveClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MoveClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..aInt64(2, _omitFieldNames ? '' : 'by')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClips copyWith(void Function(MoveClips) updates) =>
+      super.copyWith((message) => updates(message as MoveClips)) as MoveClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MoveClips() / MoveClips.new instead')
+  static MoveClips create() => MoveClips._();
+  static $pb.GeneratedMessage $_createMessage() => MoveClips._();
+  @$core.override
+  MoveClips createEmptyInstance() => MoveClips._();
+  @$core.pragma('dart2js:noInline')
+  static MoveClips getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MoveClips>(MoveClips.$_createMessage);
+  static MoveClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get by => $_getI64(1);
+  @$pb.TagNumber(2)
+  set by($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBy() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBy() => $_clearField(2);
+}
+
+/// Copies several clips as one block right after the selection (each copy starts later by the
+/// selection's span: last end - first start), each on its own track; one undo step, all or
+/// nothing. Refused if a copy's space is taken, and like RemoveClips for the list.
+class DuplicateClips extends $pb.GeneratedMessage {
+  factory DuplicateClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+  }) {
+    final result = DuplicateClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    return result;
+  }
+
+  DuplicateClips._();
+
+  factory DuplicateClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClips()..mergeFromBuffer(data, registry);
+  factory DuplicateClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DuplicateClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: DuplicateClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClips copyWith(void Function(DuplicateClips) updates) =>
+      super.copyWith((message) => updates(message as DuplicateClips))
+          as DuplicateClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DuplicateClips() / DuplicateClips.new instead')
+  static DuplicateClips create() => DuplicateClips._();
+  static $pb.GeneratedMessage $_createMessage() => DuplicateClips._();
+  @$core.override
+  DuplicateClips createEmptyInstance() => DuplicateClips._();
+  @$core.pragma('dart2js:noInline')
+  static DuplicateClips getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DuplicateClips>(
+          DuplicateClips.$_createMessage);
+  static DuplicateClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+}
+
 /// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
 /// if either track is locked or the spot is taken.
+/// Retired (ADR 0008): the app sends SnapMove.
+@$core.Deprecated('This message is deprecated')
 class MoveClip extends $pb.GeneratedMessage {
   factory MoveClip({
     $fixnum.Int64? clipId,
@@ -5589,9 +6235,15 @@ class ProjectSaved extends $pb.GeneratedMessage {
 class ProjectList extends $pb.GeneratedMessage {
   factory ProjectList({
     $core.Iterable<ProjectSummary>? projects,
+    $core.String? recovered,
+    $core.Iterable<$core.String>? folders,
+    $core.int? deleted,
   }) {
     final result = ProjectList._();
     if (projects != null) result.projects.addAll(projects);
+    if (recovered != null) result.recovered = recovered;
+    if (folders != null) result.folders.addAll(folders);
+    if (deleted != null) result.deleted = deleted;
     return result;
   }
 
@@ -5610,6 +6262,9 @@ class ProjectList extends $pb.GeneratedMessage {
       createEmptyInstance: ProjectList.$_createMessage)
     ..pPM<ProjectSummary>(1, _omitFieldNames ? '' : 'projects',
         subBuilder: ProjectSummary.$_createMessage)
+    ..aOS(2, _omitFieldNames ? '' : 'recovered')
+    ..pPS(3, _omitFieldNames ? '' : 'folders')
+    ..aI(4, _omitFieldNames ? '' : 'deleted', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5636,6 +6291,34 @@ class ProjectList extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $pb.PbList<ProjectSummary> get projects => $_getList(0);
+
+  /// The project that was open when the engine last stopped without closing (a crash, or the
+  /// OS ended the app); it holds the work autosaved up to then. Set on the first ProjectList
+  /// after OpenLibrary only, and only for a listed project whose last autosave worked; empty
+  /// otherwise.
+  @$pb.TagNumber(2)
+  $core.String get recovered => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set recovered($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRecovered() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRecovered() => $_clearField(2);
+
+  /// Every folder that holds a project not in Recently deleted, A to Z ignoring case (whatever
+  /// ListProjects filtered).
+  @$pb.TagNumber(3)
+  $pb.PbList<$core.String> get folders => $_getList(2);
+
+  /// How many projects are in Recently deleted.
+  @$pb.TagNumber(4)
+  $core.int get deleted => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set deleted($core.int value) => $_setUnsignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDeleted() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDeleted() => $_clearField(4);
 }
 
 /// One library project as Home lists it.
@@ -5646,7 +6329,10 @@ class ProjectSummary extends $pb.GeneratedMessage {
     $fixnum.Int64? ticksPerSecond,
     $fixnum.Int64? modifiedMs,
     $core.int? clips,
-    $fixnum.Int64? projectBytes,
+    $core.String? name,
+    $core.String? folder,
+    $fixnum.Int64? bytes,
+    $fixnum.Int64? purgeMs,
     $fixnum.Int64? cacheBytes,
   }) {
     final result = ProjectSummary._();
@@ -5655,7 +6341,10 @@ class ProjectSummary extends $pb.GeneratedMessage {
     if (ticksPerSecond != null) result.ticksPerSecond = ticksPerSecond;
     if (modifiedMs != null) result.modifiedMs = modifiedMs;
     if (clips != null) result.clips = clips;
-    if (projectBytes != null) result.projectBytes = projectBytes;
+    if (name != null) result.name = name;
+    if (folder != null) result.folder = folder;
+    if (bytes != null) result.bytes = bytes;
+    if (purgeMs != null) result.purgeMs = purgeMs;
     if (cacheBytes != null) result.cacheBytes = cacheBytes;
     return result;
   }
@@ -5678,11 +6367,13 @@ class ProjectSummary extends $pb.GeneratedMessage {
     ..aInt64(3, _omitFieldNames ? '' : 'ticksPerSecond')
     ..aInt64(4, _omitFieldNames ? '' : 'modifiedMs')
     ..aI(5, _omitFieldNames ? '' : 'clips', fieldType: $pb.PbFieldType.OU3)
-    ..a<$fixnum.Int64>(
-        6, _omitFieldNames ? '' : 'projectBytes', $pb.PbFieldType.OU6,
+    ..aOS(6, _omitFieldNames ? '' : 'name')
+    ..aOS(7, _omitFieldNames ? '' : 'folder')
+    ..a<$fixnum.Int64>(8, _omitFieldNames ? '' : 'bytes', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(9, _omitFieldNames ? '' : 'purgeMs')
     ..a<$fixnum.Int64>(
-        7, _omitFieldNames ? '' : 'cacheBytes', $pb.PbFieldType.OU6,
+        10, _omitFieldNames ? '' : 'cacheBytes', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
@@ -5757,26 +6448,57 @@ class ProjectSummary extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearClips() => $_clearField(5);
 
-  /// The project file and its backups.
+  /// RenameProject's name; empty: unnamed (the UI shows a placeholder).
   @$pb.TagNumber(6)
-  $fixnum.Int64 get projectBytes => $_getI64(5);
+  $core.String get name => $_getSZ(5);
   @$pb.TagNumber(6)
-  set projectBytes($fixnum.Int64 value) => $_setInt64(5, value);
+  set name($core.String value) => $_setString(5, value);
   @$pb.TagNumber(6)
-  $core.bool hasProjectBytes() => $_has(5);
+  $core.bool hasName() => $_has(5);
   @$pb.TagNumber(6)
-  void clearProjectBytes() => $_clearField(6);
+  void clearName() => $_clearField(6);
+
+  /// MoveProject's folder; empty: none.
+  @$pb.TagNumber(7)
+  $core.String get folder => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set folder($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasFolder() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearFolder() => $_clearField(7);
+
+  /// Size of the project file.
+  @$pb.TagNumber(8)
+  $fixnum.Int64 get bytes => $_getI64(7);
+  @$pb.TagNumber(8)
+  set bytes($fixnum.Int64 value) => $_setInt64(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasBytes() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearBytes() => $_clearField(8);
+
+  /// In Recently deleted: when it will be removed for good, in milliseconds since the Unix
+  /// epoch; 0: not deleted.
+  @$pb.TagNumber(9)
+  $fixnum.Int64 get purgeMs => $_getI64(8);
+  @$pb.TagNumber(9)
+  set purgeMs($fixnum.Int64 value) => $_setInt64(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasPurgeMs() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearPurgeMs() => $_clearField(9);
 
   /// Thumbnails and proxies of its media (CleanProjectCache removes them). A media used by
   /// more than one project counts in each.
-  @$pb.TagNumber(7)
-  $fixnum.Int64 get cacheBytes => $_getI64(6);
-  @$pb.TagNumber(7)
-  set cacheBytes($fixnum.Int64 value) => $_setInt64(6, value);
-  @$pb.TagNumber(7)
-  $core.bool hasCacheBytes() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearCacheBytes() => $_clearField(7);
+  @$pb.TagNumber(10)
+  $fixnum.Int64 get cacheBytes => $_getI64(9);
+  @$pb.TagNumber(10)
+  set cacheBytes($fixnum.Int64 value) => $_setInt64(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasCacheBytes() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearCacheBytes() => $_clearField(10);
 }
 
 /// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
