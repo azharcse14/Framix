@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -91,11 +93,16 @@ class _HomeView extends StatelessWidget {
                       onPressed: context.read<HomeCubit>().retry,
                     ),
                   ),
-                  HomeProjects(projects: [], filtered: false) => _Message(
-                    icon: Icons.movie_creation_outlined,
-                    title: l10n.projectsEmptyTitle,
-                    body: l10n.projectsEmpty,
-                  ),
+                  HomeProjects(
+                    projects: [],
+                    filtered: false,
+                    deletedCount: 0,
+                  ) =>
+                    _Message(
+                      icon: Icons.movie_creation_outlined,
+                      title: l10n.projectsEmptyTitle,
+                      body: l10n.projectsEmpty,
+                    ),
                   HomeProjects(:final projects, :final opening) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -103,8 +110,12 @@ class _HomeView extends StatelessWidget {
                       Expanded(
                         child: projects.isEmpty
                             ? _Message(
-                                icon: Icons.search_off,
-                                body: l10n.noMatchingProjects,
+                                icon: state.showingDeleted
+                                    ? Icons.delete_outline
+                                    : Icons.search_off,
+                                body: state.showingDeleted
+                                    ? l10n.recentlyDeletedEmpty
+                                    : l10n.noMatchingProjects,
                               )
                             : _ProjectGrid(
                                 projects: projects,
@@ -201,7 +212,9 @@ class _FindBar extends StatelessWidget {
               ),
             ],
           ),
-          if (state.folders.isNotEmpty)
+          if (state.folders.isNotEmpty ||
+              state.deletedCount > 0 ||
+              state.showingDeleted)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.only(top: FramixSpace.s),
@@ -214,8 +227,15 @@ class _FindBar extends StatelessWidget {
                   ])
                     ChoiceChip(
                       label: Text(label),
-                      selected: state.folder == folder,
+                      selected: !state.showingDeleted && state.folder == folder,
                       onSelected: (_) => cubit.showFolder(folder),
+                    ),
+                  if (state.deletedCount > 0 || state.showingDeleted)
+                    ChoiceChip(
+                      avatar: const Icon(Icons.delete_outline),
+                      label: Text(l10n.recentlyDeleted),
+                      selected: state.showingDeleted,
+                      onSelected: (_) => cubit.showDeleted(),
                     ),
                 ],
               ),
@@ -389,12 +409,25 @@ class _ProjectCard extends StatelessWidget {
       project.duration.toInt(),
       project.ticksPerSecond.toInt(),
     );
-    final edited = editedLabel(
-      l10n,
-      locale,
-      DateTime.now(),
-      DateTime.fromMillisecondsSinceEpoch(project.modifiedMs.toInt()),
-    );
+    final deleted = project.purgeMs != 0;
+    final now = DateTime.now();
+    final edited = deleted
+        ? l10n.daysLeft(
+            max(
+              1,
+              (DateTime.fromMillisecondsSinceEpoch(project.purgeMs.toInt())
+                          .difference(now)
+                          .inHours /
+                      24)
+                  .ceil(),
+            ),
+          )
+        : editedLabel(
+            l10n,
+            locale,
+            now,
+            DateTime.fromMillisecondsSinceEpoch(project.modifiedMs.toInt()),
+          );
     return MergeSemantics(
       child: Semantics(
         button: true,
@@ -406,7 +439,8 @@ class _ProjectCard extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: onTap,
+            // A deleted project doesn't open; its menu offers Restore.
+            onTap: deleted ? () => _projectActions(context, project) : onTap,
             onLongPress: () => _projectActions(context, project),
             child: Padding(
               padding: const EdgeInsets.all(FramixSpace.s),
@@ -508,14 +542,24 @@ class _ProjectCard extends StatelessWidget {
   }
 }
 
-/// The long-press menu of [project]: rename it or move it to a folder.
+/// What the project menu does.
+enum _Action { rename, move, delete, restore }
+
+/// The menu of [project]: rename, move to a folder or delete it; Restore once deleted.
 Future<void> _projectActions(
   BuildContext context,
   ProjectSummary project,
 ) async {
   final l10n = AppLocalizations.of(context);
   final cubit = context.read<HomeCubit>();
-  final rename = await showModalBottomSheet<bool>(
+  final actions = project.purgeMs != 0
+      ? {_Action.restore: (Icons.restore, l10n.restoreProject)}
+      : {
+          _Action.rename: (Icons.edit_outlined, l10n.renameProject),
+          _Action.move: (Icons.drive_file_move_outlined, l10n.moveToFolder),
+          _Action.delete: (Icons.delete_outline, l10n.deleteProject),
+        };
+  final action = await showModalBottomSheet<_Action>(
     context: context,
     builder: (context) => SafeArea(
       child: Column(
@@ -527,21 +571,26 @@ Future<void> _projectActions(
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: Text(l10n.renameProject),
-            onTap: () => Navigator.pop(context, true),
-          ),
-          ListTile(
-            leading: const Icon(Icons.drive_file_move_outlined),
-            title: Text(l10n.moveToFolder),
-            onTap: () => Navigator.pop(context, false),
-          ),
+          for (final MapEntry(key: action, value: (icon, label))
+              in actions.entries)
+            ListTile(
+              leading: Icon(icon),
+              title: Text(label),
+              onTap: () => Navigator.pop(context, action),
+            ),
         ],
       ),
     ),
   );
-  if (rename == null || !context.mounted) return;
+  if (action == null || !context.mounted) return;
+  switch (action) {
+    case _Action.delete:
+      return cubit.delete(project.id);
+    case _Action.restore:
+      return cubit.restore(project.id);
+    case _Action.rename || _Action.move:
+  }
+  final rename = action == _Action.rename;
   final text = await showDialog<String>(
     context: context,
     builder: (_) => rename

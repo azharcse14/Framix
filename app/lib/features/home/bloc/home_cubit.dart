@@ -31,7 +31,15 @@ final class HomeProjects extends HomeState {
     this.folder = '',
     this.sort = ProjectSort.PROJECT_SORT_UNSPECIFIED,
     this.filtered = false,
+    this.showingDeleted = false,
+    this.deletedCount = 0,
   });
+
+  /// [projects] are Recently deleted ones (ProjectSummary.purgeMs set).
+  final bool showingDeleted;
+
+  /// How many projects are in Recently deleted (ProjectList.deleted).
+  final int deletedCount;
 
   final List<ProjectSummary> projects;
 
@@ -160,7 +168,12 @@ class HomeCubit extends Cubit<HomeState> {
   // lists grow long (OVL-015).
   void _listProjects() {
     if (!_opened) return;
-    final op = ListProjects(sort: _sort, query: _query, folder: _folder);
+    final op = ListProjects(
+      sort: _sort,
+      query: _query,
+      folder: _folder,
+      deleted: _deleted,
+    );
     _lists.add(_engine.send(Command(listProjects: op)));
   }
 
@@ -183,6 +196,28 @@ class HomeCubit extends Cubit<HomeState> {
   /// Lists only the projects in [folder]; empty: every project.
   void showFolder(String folder) {
     _folder = folder;
+    _deleted = false;
+    _listProjects();
+  }
+
+  /// Lists Recently deleted.
+  void showDeleted() {
+    _folder = '';
+    _deleted = true;
+    _listProjects();
+  }
+
+  bool _deleted = false;
+
+  /// Moves project [id] to Recently deleted, like [rename].
+  void delete(String id) {
+    _engine.send(Command(deleteProject: DeleteProject(id: id)));
+    _listProjects();
+  }
+
+  /// Takes project [id] out of Recently deleted, like [rename].
+  void restore(String id) {
+    _engine.send(Command(restoreProject: RestoreProject(id: id)));
     _listProjects();
   }
 
@@ -246,7 +281,9 @@ class HomeCubit extends Cubit<HomeState> {
         folders: list.folders,
         folder: _folder,
         sort: _sort,
-        filtered: _query.trim().isNotEmpty || _folder.isNotEmpty,
+        filtered: _query.trim().isNotEmpty || _folder.isNotEmpty || _deleted,
+        showingDeleted: _deleted,
+        deletedCount: list.deleted,
       ),
     );
   }

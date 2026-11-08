@@ -87,9 +87,12 @@ pub fn take_open(store: &dyn ProjectStore, dir: &Path) -> Option<String> {
 // ponytail: decodes every project for its duration; keep a summary cache when lists grow
 // long (OVL-015).
 pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>, String> {
-    let files = store.list(dir).map_err(|e| e.kind().to_string())?;
     // A newer app's index can't be read here; its projects are still listed.
-    let index = read_index(store, dir).unwrap_or_default();
+    let index = match read_index(store, dir) {
+        Ok(index) => purge(store, dir, index),
+        Err(_) => HashMap::new(),
+    };
+    let files = store.list(dir).map_err(|e| e.kind().to_string())?;
     let mut projects: Vec<ProjectSummary> = files
         .into_iter()
         .filter_map(|(file, modified)| summary(store, &file, modified))
@@ -97,6 +100,9 @@ pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>,
             if let Some(entry) = index.get(&p.id) {
                 p.name.clone_from(&entry.name);
                 p.folder.clone_from(&entry.folder);
+                if entry.deleted_ms != 0 {
+                    p.purge_ms = entry.deleted_ms.saturating_add(KEEP_DELETED_MS);
+                }
             }
             p
         })
@@ -105,19 +111,65 @@ pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>,
     Ok(projects)
 }
 
+/// How long Recently deleted keeps a project: 30 days.
+const KEEP_DELETED_MS: i64 = 30 * 24 * 60 * 60 * 1000;
+
+/// Removes for good, with their backups, the projects deleted [`KEEP_DELETED_MS`] ago or
+/// more, and returns the index without them. Best effort: what fails is tried next time.
+fn purge(
+    store: &dyn ProjectStore,
+    dir: &Path,
+    mut index: HashMap<String, LibraryEntry>,
+) -> HashMap<String, LibraryEntry> {
+    let now = unix_ms(store.now());
+    let expired: Vec<String> = index
+        .values()
+        .filter(|e| e.deleted_ms != 0 && now >= e.deleted_ms.saturating_add(KEEP_DELETED_MS))
+        .map(|e| e.id.clone())
+        .collect();
+    let mut removed = false;
+    for id in expired {
+        let Some(file) = path(dir, &id) else { continue };
+        let gone = std::iter::once(file.clone())
+            .chain(store.backups(&file))
+            .all(|f| store.remove(&f).is_ok());
+        if gone {
+            index.remove(&id);
+            removed = true;
+        }
+    }
+    if removed {
+        let _ = write_index(store, dir, index.clone());
+    }
+    index
+}
+
+/// `at` in milliseconds since the Unix epoch (0 before it).
+fn unix_ms(at: SystemTime) -> i64 {
+    at.duration_since(SystemTime::UNIX_EPOCH)
+        .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX))
+}
+
 fn newest_first(a: &ProjectSummary, b: &ProjectSummary) -> Ordering {
     b.modified_ms.cmp(&a.modified_ms).then(a.id.cmp(&b.id))
 }
 
-/// `projects` (from [`list`]) as `op` asks: searched by name, in one folder, sorted. Also
-/// every folder that holds a project, A to Z ignoring case.
-pub fn find(
-    projects: Vec<ProjectSummary>,
-    op: &ListProjects,
-) -> (Vec<ProjectSummary>, Vec<String>) {
+/// What [`find`] lists.
+pub struct Found {
+    pub projects: Vec<ProjectSummary>,
+    /// Every folder that holds a project not deleted, A to Z ignoring case.
+    pub folders: Vec<String>,
+    /// How many projects are in Recently deleted.
+    pub deleted: u32,
+}
+
+/// `projects` (from [`list`]) as `op` asks: Recently deleted or the others, searched by name,
+/// in one folder, sorted.
+pub fn find(projects: Vec<ProjectSummary>, op: &ListProjects) -> Found {
+    let deleted = projects.iter().filter(|p| p.purge_ms != 0).count();
     let mut folders: Vec<String> = projects
         .iter()
-        .filter(|p| !p.folder.is_empty())
+        .filter(|p| !p.folder.is_empty() && p.purge_ms == 0)
         .map(|p| p.folder.clone())
         .collect();
     folders.sort_by_cached_key(|f| (f.to_lowercase(), f.clone()));
@@ -125,6 +177,7 @@ pub fn find(
     let query = op.query.trim().to_lowercase();
     let mut found: Vec<ProjectSummary> = projects
         .into_iter()
+        .filter(|p| (p.purge_ms != 0) == op.deleted)
         .filter(|p| p.name.to_lowercase().contains(&query))
         .filter(|p| op.folder.is_empty() || p.folder == op.folder)
         .collect();
@@ -139,7 +192,12 @@ pub fn find(
         // Already newest first; so is an order from a newer UI this engine doesn't know.
         Ok(ProjectSort::Unspecified) | Err(_) => {}
     }
-    (found, folders)
+    Found {
+        projects: found,
+        folders,
+        // Far below u32::MAX: one per project file.
+        deleted: u32::try_from(deleted).unwrap_or(u32::MAX),
+    }
 }
 
 /// Longest project name, in characters.
@@ -150,13 +208,47 @@ const MAX_FOLDER_CHARS: usize = 40;
 /// Names project `id`; empty clears the name.
 pub fn rename(store: &dyn ProjectStore, dir: &Path, id: &str, name: &str) -> Result<(), String> {
     let name = label(name, MAX_NAME_CHARS)?;
-    update_entry(store, dir, id, |e| e.name = name)
+    update_entry(store, dir, id, |e| {
+        e.name = name;
+        Ok(())
+    })
 }
 
 /// Puts project `id` in `folder`; empty takes it out of its folder.
 pub fn move_to(store: &dyn ProjectStore, dir: &Path, id: &str, folder: &str) -> Result<(), String> {
     let folder = label(folder, MAX_FOLDER_CHARS)?;
-    update_entry(store, dir, id, |e| e.folder = folder)
+    update_entry(store, dir, id, |e| {
+        e.folder = folder;
+        Ok(())
+    })
+}
+
+/// Moves project `id` to Recently deleted.
+pub fn delete(store: &dyn ProjectStore, dir: &Path, id: &str) -> Result<(), String> {
+    let now = unix_ms(store.now()).max(1);
+    update_entry(store, dir, id, |e| {
+        if e.deleted_ms != 0 {
+            return Err("already deleted".into());
+        }
+        e.deleted_ms = now;
+        Ok(())
+    })
+}
+
+/// Takes project `id` out of Recently deleted.
+pub fn restore(store: &dyn ProjectStore, dir: &Path, id: &str) -> Result<(), String> {
+    update_entry(store, dir, id, |e| {
+        if e.deleted_ms == 0 {
+            return Err("not deleted".into());
+        }
+        e.deleted_ms = 0;
+        Ok(())
+    })
+}
+
+/// Whether project `id` is in Recently deleted. An unreadable index says no.
+pub fn is_deleted(store: &dyn ProjectStore, dir: &Path, id: &str) -> bool {
+    read_index(store, dir).is_ok_and(|index| index.get(id).is_some_and(|e| e.deleted_ms != 0))
 }
 
 /// `text` trimmed; refused when longer than `max` characters or holding a control character.
@@ -175,7 +267,7 @@ fn update_entry(
     store: &dyn ProjectStore,
     dir: &Path,
     id: &str,
-    change: impl FnOnce(&mut LibraryEntry),
+    change: impl FnOnce(&mut LibraryEntry) -> Result<(), String>,
 ) -> Result<(), String> {
     let file = path(dir, id).ok_or("malformed project id")?;
     store.load(&file).map_err(|_| "no such project")?;
@@ -185,12 +277,12 @@ fn update_entry(
         ..LibraryEntry::default()
     });
     let mut entry = before.clone();
-    change(&mut entry);
+    change(&mut entry)?;
     // Unchanged: a write would only rotate a good backup away.
     if entry == before {
         return Ok(());
     }
-    if entry.name.is_empty() && entry.folder.is_empty() {
+    if entry.name.is_empty() && entry.folder.is_empty() && entry.deleted_ms == 0 {
         index.remove(id);
     } else {
         index.insert(id.to_owned(), entry);
@@ -283,9 +375,7 @@ fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Optio
         Ok(Ok(timeline)) => timeline,
         _ => crate::store::load_or_backup(store, file).ok()?.0,
     };
-    let modified_ms = modified
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX));
+    let modified_ms = unix_ms(modified);
     let clips = timeline
         .tracks()
         .iter()

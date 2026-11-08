@@ -654,12 +654,12 @@ impl Engine {
                     free_bytes: free,
                 })),
             },
-            Ok(Reply::Projects(projects, recovered, folders)) => Event {
+            Ok(Reply::Projects(found, recovered)) => Event {
                 kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
-                    projects,
+                    projects: found.projects,
                     recovered,
-                    folders,
-                    deleted: 0,
+                    folders: found.folders,
+                    deleted: found.deleted,
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -736,10 +736,12 @@ impl Engine {
                 let recovered = self
                     .recovered
                     .take()
-                    .filter(|id| projects.iter().any(|p| p.id == *id))
+                    .filter(|id| projects.iter().any(|p| p.id == *id && p.purge_ms == 0))
                     .unwrap_or_default();
-                let (projects, folders) = crate::library::find(projects, &op);
-                Ok(Reply::Projects(projects, recovered, folders))
+                Ok(Reply::Projects(
+                    crate::library::find(projects, &op),
+                    recovered,
+                ))
             }
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
@@ -995,8 +997,13 @@ impl Engine {
                 crate::library::rename(self.store()?, &dir, &op.id, &op.name)
                     .map(|()| Reply::Accepted)
             }
-            command::Kind::DeleteProject(_) | command::Kind::RestoreProject(_) => {
-                Err("not implemented".into())
+            command::Kind::DeleteProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::delete(self.store()?, &dir, &op.id).map(|()| Reply::Accepted)
+            }
+            command::Kind::RestoreProject(op) => {
+                let dir = self.library.clone().ok_or("no library")?;
+                crate::library::restore(self.store()?, &dir, &op.id).map(|()| Reply::Accepted)
             }
             command::Kind::MoveProject(op) => {
                 let dir = self.library.clone().ok_or("no library")?;
@@ -1125,6 +1132,9 @@ impl Engine {
     fn open_from_library(&mut self, id: &str) -> Result<(), String> {
         let dir = self.library.clone().ok_or("no library")?;
         let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
+        if crate::library::is_deleted(self.store()?, &dir, id) {
+            return Err("project is in Recently deleted".into());
+        }
         // Save first: reading first would load stale bytes when `id` is the open project.
         self.save_current()?;
         let store = self.store()?;
@@ -1378,9 +1388,9 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
-    /// The library's projects, the one recovered after a crash, if any, and every folder
-    /// (ListProjects).
-    Projects(Vec<proto::ProjectSummary>, String, Vec<String>),
+    /// The library's projects as ListProjects asked, and the one recovered after a crash,
+    /// if any.
+    Projects(crate::library::Found, String),
     /// Where the playhead is now, and whether the seek snapped.
     Playhead(bool),
     /// An export was refused before it started: it needs about `needed` bytes, `free` are free.
