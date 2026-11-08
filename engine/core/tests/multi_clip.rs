@@ -79,15 +79,18 @@ fn duplicate_clips_copies_the_selection_as_a_block_after_it() {
     }
 }
 
+/// Name, edit, its clips and the error it must give.
+type Refusal = (
+    &'static str,
+    fn(&mut Timeline, &[ClipId]) -> Result<(), TimelineError>,
+    Vec<ClipId>,
+    TimelineError,
+);
+
 #[test]
 fn refused_edits_change_nothing() {
     let (tl, v1, _, [a, b, c, d]) = sample();
-    let refusals: [(
-        &str,
-        fn(&mut Timeline, &[ClipId]) -> Result<(), TimelineError>,
-        Vec<ClipId>,
-        TimelineError,
-    ); 9] = [
+    let refusals: [Refusal; 9] = [
         (
             "empty remove",
             |t, ids| t.remove_clips(ids),
