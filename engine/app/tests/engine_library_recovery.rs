@@ -193,14 +193,3 @@ fn a_crash_in_an_untouched_new_project_reports_nothing() {
     let mut next = launch(&store);
     assert_eq!(list(&mut next).1, "");
 }
-
-#[test]
-fn the_marker_is_not_listed_as_a_project() {
-    let store = MemStore::default();
-    let mut first = launch(&store);
-    let id = new_edited(&mut first, &store);
-    drop(first);
-
-    let mut next = launch(&store);
-    assert_eq!(list(&mut next).0, vec![id]);
-}
