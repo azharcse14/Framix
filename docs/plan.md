@@ -476,7 +476,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-096` iOS decoder reads the chroma location (kCVImageBufferChromaLocationTopFieldKey) and passes it with YcbcrSpace; NV12 is drawn left-sited always today (HDR/BT.2020 HEVC often top-left, MJPEG centre); check our proxies' siting \[Native\]
 - [x] `P1-097` Timeline follows the playhead while playing (auto-scroll so the playhead stays in view; stop following when the user scrolls) \[Dart\]
 - [ ] `P1-098` iOS FrameDecoder keeps a reader and photo per media (small LRU) so PIP with two videos or two photos doesn't reopen the reader or re-decode every frame (P1-071 follow-up) \[Rust\]
-- [ ] `P1-099` Show the loop on the ruler with a clear control; a loop left on an edited/deleted clip is invisible \[Dart\] \[Rust\]
+- [x] `P1-099` Show the loop on the ruler with a clear control; a loop left on an edited/deleted clip is invisible \[Dart\] \[Rust\]
+- [ ] `P1-100` Clear loop toolbar icon squeezes the timecode on 360 dp (side pane, portrait phone); move the control to the ruler band or test the timecode size \[Dart\]
+- [ ] `P1-101` Widget test: trimming a looped clip keeps the ruler band on the engine's loop range \[Dart\]
 
 ## Phase 2: Audio
 
