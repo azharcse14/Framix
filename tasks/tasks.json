@@ -14745,6 +14745,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "P1-104",
+   "section": "P1",
+   "group": null,
+   "title": "Widget test: multi-select vertical drag on a narrow clip (48 dp drag target) keeps to the lane",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

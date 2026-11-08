@@ -481,6 +481,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-101` Widget test: trimming a looped clip keeps the ruler band on the engine's loop range \[Dart\]
 - [ ] `P1-102` Multi-select drag: the ghost follows the finger vertically but the drop ignores dy; lock it to the horizontal axis (or move tracks) \[Dart\]
 - [ ] `P1-103` ClipSelectionCubit keeps ids of clips the timeline no longer has; drop them on TimelineChanged so tap/selection logic matches what is shown \[Dart\]
+- [ ] `P1-104` Widget test: multi-select vertical drag on a narrow clip (48 dp drag target) keeps to the lane \[Dart\]
 
 ## Phase 2: Audio
 
