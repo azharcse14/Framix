@@ -169,3 +169,20 @@ fn a_newer_apps_index_is_listed_without_names_and_never_rewritten() {
     assert!(!accepted(rename(&mut engine, &id, "x")));
     assert_eq!(store.load(&index()).unwrap(), newer);
 }
+
+#[test]
+fn an_unchanged_name_does_not_rotate_the_backup() {
+    let store = MemStore::default();
+    let mut engine = library(&store);
+    let id = project(&mut engine);
+    assert!(accepted(rename(&mut engine, &id, "a")));
+    assert!(accepted(rename(&mut engine, &id, "b")));
+    // The same name again: a write would push "a" out of the backup.
+    assert!(accepted(rename(&mut engine, &id, " b ")));
+    store
+        .files
+        .lock()
+        .unwrap()
+        .insert(index(), b"garbage".to_vec());
+    assert_eq!(list(&mut engine)[0].name, "a");
+}
