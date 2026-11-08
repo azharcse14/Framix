@@ -26,6 +26,21 @@ void main() {
           .read<TimelineCubit>()
           .state
           .export;
+      // An empty timeline lasts 0 and estimates 0 bytes; one photo gives it a length.
+      engine.send(
+        Command(
+          importMedia: ImportMedia(
+            items: [
+              MediaItem(
+                uri: 'media/a.jpg',
+                kind: MediaKind.MEDIA_KIND_IMAGE,
+                width: 10,
+                height: 10,
+              ),
+            ],
+          ),
+        ),
+      );
       for (var i = 0; i < 100 && export().estimatedBytes == 0; i++) {
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 20)),
