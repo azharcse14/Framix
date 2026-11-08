@@ -312,4 +312,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'আপনার প্রথম ভিডিও এখান থেকে শুরু';
+
+  @override
+  String get workRecovered => 'শেষ কাজ পর্যন্ত সেভ আছে';
 }

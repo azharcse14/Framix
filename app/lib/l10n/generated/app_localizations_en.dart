@@ -315,4 +315,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'Your first video starts here';
+
+  @override
+  String get workRecovered => 'Saved up to your last edit';
 }

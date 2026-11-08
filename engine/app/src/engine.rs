@@ -638,6 +638,7 @@ impl Engine {
             Ok(Reply::Projects(projects)) => Event {
                 kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
                     projects,
+                    recovered: String::new(),
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -1076,6 +1077,10 @@ impl Engine {
         self.start_project();
         Ok(())
     }
+
+    /// The engine stops normally (after its last autosave): the open project was closed, so
+    /// the next OpenLibrary reports no recovery.
+    pub fn close(&mut self) {}
 
     /// Recovers the project at `path` if there is one, then autosaves there. A damaged file is
     /// set aside and its newest good backup recovered (written back at once); a file from a

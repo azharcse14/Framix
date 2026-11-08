@@ -571,6 +571,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your first video starts here'**
   String get projectsEmptyTitle;
+
+  /// Home notice after the app closed unexpectedly (crash, or the system ended it) with a project open: its work is saved up to the last edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved up to your last edit'**
+  String get workRecovered;
 }
 
 class _AppLocalizationsDelegate

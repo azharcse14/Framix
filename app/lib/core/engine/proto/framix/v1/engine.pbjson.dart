@@ -1591,13 +1591,14 @@ const ProjectList$json = {
       '6': '.framix.v1.ProjectSummary',
       '10': 'projects'
     },
+    {'1': 'recovered', '3': 2, '4': 1, '5': 9, '10': 'recovered'},
   ],
 };
 
 /// Descriptor for `ProjectList`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List projectListDescriptor = $convert.base64Decode(
     'CgtQcm9qZWN0TGlzdBI1Cghwcm9qZWN0cxgBIAMoCzIZLmZyYW1peC52MS5Qcm9qZWN0U3VtbW'
-    'FyeVIIcHJvamVjdHM=');
+    'FyeVIIcHJvamVjdHMSHAoJcmVjb3ZlcmVkGAIgASgJUglyZWNvdmVyZWQ=');
 
 @$core.Deprecated('Use projectSummaryDescriptor instead')
 const ProjectSummary$json = {
