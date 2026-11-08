@@ -348,6 +348,8 @@ fn serve(
                 engine.cancel_running_export();
                 // The last save happens before EngineStopped.
                 let _ = autosave(&mut engine, *callback);
+                // A normal stop: the next launch reports no crash recovery.
+                engine.close();
                 break;
             }
             EngineMessage::Command(bytes) => {

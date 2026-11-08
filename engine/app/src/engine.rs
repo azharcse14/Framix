@@ -1091,8 +1091,8 @@ impl Engine {
 
     /// Opens library project `id` and autosaves there; the current project is saved first.
     fn open_from_library(&mut self, id: &str) -> Result<(), String> {
-        let dir = self.library.as_deref().ok_or("no library")?;
-        let file = crate::library::path(dir, id).ok_or("malformed project id")?;
+        let dir = self.library.clone().ok_or("no library")?;
+        let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
         // Save first: reading first would load stale bytes when `id` is the open project.
         self.save_current()?;
         let store = self.store()?;
@@ -1106,7 +1106,7 @@ impl Engine {
         } else {
             timeline.clone()
         };
-        crate::library::mark_open(store, dir, id);
+        crate::library::mark_open(store, &dir, id);
         self.history = History::new(timeline);
         self.autosave_to(Some(file), saved);
         self.start_project();
