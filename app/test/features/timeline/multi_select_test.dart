@@ -9,7 +9,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// Multi-select (P1-024): "Select more" picks several clips; Delete, Duplicate and a long-press
 /// drag act on all of them as one edit.

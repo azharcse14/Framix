@@ -4,7 +4,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-037: a platform preset chip sets the canvas (and the export settings) in one tap.
 void main() {

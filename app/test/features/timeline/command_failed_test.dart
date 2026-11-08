@@ -8,7 +8,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// A refused command shows a short generic message (P1-049), unless the feature that sent it
 /// reports the failure itself (export).

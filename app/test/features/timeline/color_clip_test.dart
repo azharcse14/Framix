@@ -10,7 +10,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// Color (blank) clips (P1-048): one tap adds a black clip; the engine owns it like a photo.
 void main() {

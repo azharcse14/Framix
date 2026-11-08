@@ -8,17 +8,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Engine events arrive through a native port, so give real time between pumps.
-Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 250; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
-    await tester.pump();
-    if (finder.evaluate().isNotEmpty) return;
-  }
-  throw TestFailure('never found: $finder');
-}
+import '../../pump_until.dart';
 
 /// After a crash with a project open, Home says its work is saved (P1-066).
 void main() {

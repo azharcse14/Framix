@@ -11,7 +11,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// Loop button edges (P1-027 review): the loop is the selected clip's own range, and the
 /// actions row with it still fits a phone, so selecting never moves the lanes.

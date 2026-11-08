@@ -11,7 +11,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// Loop playback (P1-027): the selected clip's Loop button asks the engine to repeat its range;
 /// tapped again it clears the loop.

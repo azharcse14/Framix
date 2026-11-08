@@ -11,7 +11,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-061: the play button plays, turns into pause, and the ruler pauses while scrubbing.
 void main() {

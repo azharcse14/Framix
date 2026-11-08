@@ -9,7 +9,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// Moving clips (P1-047): long-press a clip, drag, release; the engine moves it (MoveClip).
 void main() {

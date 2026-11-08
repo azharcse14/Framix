@@ -16,8 +16,9 @@ import 'package:material_ui/material_ui.dart'
     show BackButton, Scrollable, ScrollableState;
 
 import 'import_test.dart' show FakeImporter;
+import '../../pump_until.dart';
+
 // The 10 s budget: the Home case makes many engine round trips (see home_open_test).
-import '../home/home_open_test.dart' show pumpUntil;
 
 /// DS-008: Bangla text in Home, buttons, chips, segmented buttons and toolbars is never cut at
 /// the top or bottom. A style's `height` sets the line box (M3 styles all set one), but glyphs
