@@ -131,6 +131,7 @@ class _TimelineViewState extends State<TimelineView> {
     double px(int ticks) =>
         ticksPerSecond == 0 ? 0 : ticks / ticksPerSecond * pps;
     int ticks(double px) => _ticksAt(px, pps, ticksPerSecond);
+    final looping = timeline.loopEnd > timeline.loopStart;
 
     // The selection is this view's own state: it ends when the view does.
     // A clip lifted to be dragged ends following until the next play, like a scroll.
@@ -152,10 +153,7 @@ class _TimelineViewState extends State<TimelineView> {
           create: (_) => ClipSelectionCubit(),
           child: Column(
             children: [
-              _Toolbar(
-                ticksPerSecond: ticksPerSecond,
-                looping: timeline.loopEnd > timeline.loopStart,
-              ),
+              _Toolbar(ticksPerSecond: ticksPerSecond, looping: looping),
               _ClipActions(timeline: timeline),
               Expanded(
                 child: SingleChildScrollView(
@@ -178,7 +176,13 @@ class _TimelineViewState extends State<TimelineView> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, box) {
-                            final end = px(timeline.duration.toInt());
+                            // A loop left past the last clip (its clip deleted) stays in reach.
+                            final end = px(
+                              math.max(
+                                timeline.duration.toInt(),
+                                timeline.loopEnd.toInt(),
+                              ),
+                            );
                             // Room to scroll past the end, so the last clip can reach the middle.
                             final width = math.max(
                               box.maxWidth,
@@ -266,7 +270,7 @@ class _TimelineViewState extends State<TimelineView> {
                                         ),
                                       ),
                                       // The loop as the engine reports it, even if its clip is gone.
-                                      if (timeline.loopEnd > timeline.loopStart)
+                                      if (looping)
                                         Positioned(
                                           key: TimelineView.loopKey,
                                           left: px(timeline.loopStart.toInt()),
