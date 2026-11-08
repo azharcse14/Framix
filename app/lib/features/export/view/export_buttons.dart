@@ -75,13 +75,15 @@ class _ExportButtonsState extends State<ExportButtons> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<ExportCubit>();
+    final locale = '${Localizations.localeOf(context)}';
     return BlocConsumer<ExportCubit, ExportState>(
       listenWhen: (_, next) => next is ExportFailed || next is ExportNoSpace,
-      listener: (context, state) => _tell(switch (state) {
+      listener: (_, state) => _tell(switch (state) {
+        // Needed rounds up, free rounds down: needed always reads as more than free.
         ExportNoSpace(:final neededBytes, :final freeBytes) =>
           l10n.exportNoSpace(
-            fileSize(l10n, '${Localizations.localeOf(context)}', neededBytes),
-            fileSize(l10n, '${Localizations.localeOf(context)}', freeBytes),
+            fileSize(l10n, locale, neededBytes, rounding: SizeRounding.up),
+            fileSize(l10n, locale, freeBytes, rounding: SizeRounding.down),
           ),
         _ => l10n.exportFailed,
       }),
