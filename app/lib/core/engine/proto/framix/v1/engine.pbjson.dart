@@ -547,6 +547,15 @@ const Command$json = {
       '9': 0,
       '10': 'restoreProject'
     },
+    {
+      '1': 'clean_project_cache',
+      '3': 48,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.CleanProjectCache',
+      '9': 0,
+      '10': 'cleanProjectCache'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -607,7 +616,8 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'eC52MS5Nb3ZlUHJvamVjdEgAUgttb3ZlUHJvamVjdBJBCg5kZWxldGVfcHJvamVjdBguIAEoCz'
     'IYLmZyYW1peC52MS5EZWxldGVQcm9qZWN0SABSDWRlbGV0ZVByb2plY3QSRAoPcmVzdG9yZV9w'
     'cm9qZWN0GC8gASgLMhkuZnJhbWl4LnYxLlJlc3RvcmVQcm9qZWN0SABSDnJlc3RvcmVQcm9qZW'
-    'N0Eg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
+    'N0Ek4KE2NsZWFuX3Byb2plY3RfY2FjaGUYMCABKAsyHC5mcmFtaXgudjEuQ2xlYW5Qcm9qZWN0'
+    'Q2FjaGVIAFIRY2xlYW5Qcm9qZWN0Q2FjaGUSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -930,12 +940,26 @@ const OpenLibrary$json = {
   '1': 'OpenLibrary',
   '2': [
     {'1': 'dir', '3': 1, '4': 1, '5': 9, '10': 'dir'},
+    {'1': 'cache_dir', '3': 2, '4': 1, '5': 9, '10': 'cacheDir'},
   ],
 };
 
 /// Descriptor for `OpenLibrary`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List openLibraryDescriptor =
-    $convert.base64Decode('CgtPcGVuTGlicmFyeRIQCgNkaXIYASABKAlSA2Rpcg==');
+final $typed_data.Uint8List openLibraryDescriptor = $convert.base64Decode(
+    'CgtPcGVuTGlicmFyeRIQCgNkaXIYASABKAlSA2RpchIbCgljYWNoZV9kaXIYAiABKAlSCGNhY2'
+    'hlRGly');
+
+@$core.Deprecated('Use cleanProjectCacheDescriptor instead')
+const CleanProjectCache$json = {
+  '1': 'CleanProjectCache',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+  ],
+};
+
+/// Descriptor for `CleanProjectCache`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cleanProjectCacheDescriptor =
+    $convert.base64Decode('ChFDbGVhblByb2plY3RDYWNoZRIOCgJpZBgBIAEoCVICaWQ=');
 
 @$core.Deprecated('Use listProjectsDescriptor instead')
 const ListProjects$json = {
@@ -1808,6 +1832,7 @@ const ProjectSummary$json = {
     {'1': 'folder', '3': 7, '4': 1, '5': 9, '10': 'folder'},
     {'1': 'bytes', '3': 8, '4': 1, '5': 4, '10': 'bytes'},
     {'1': 'purge_ms', '3': 9, '4': 1, '5': 3, '10': 'purgeMs'},
+    {'1': 'cache_bytes', '3': 10, '4': 1, '5': 4, '10': 'cacheBytes'},
   ],
 };
 
@@ -1817,7 +1842,8 @@ final $typed_data.Uint8List projectSummaryDescriptor = $convert.base64Decode(
     'F0aW9uEigKEHRpY2tzX3Blcl9zZWNvbmQYAyABKANSDnRpY2tzUGVyU2Vjb25kEh8KC21vZGlm'
     'aWVkX21zGAQgASgDUgptb2RpZmllZE1zEhQKBWNsaXBzGAUgASgNUgVjbGlwcxISCgRuYW1lGA'
     'YgASgJUgRuYW1lEhYKBmZvbGRlchgHIAEoCVIGZm9sZGVyEhQKBWJ5dGVzGAggASgEUgVieXRl'
-    'cxIZCghwdXJnZV9tcxgJIAEoA1IHcHVyZ2VNcw==');
+    'cxIZCghwdXJnZV9tcxgJIAEoA1IHcHVyZ2VNcxIfCgtjYWNoZV9ieXRlcxgKIAEoBFIKY2FjaG'
+    'VCeXRlcw==');
 
 @$core.Deprecated('Use commandFailedDescriptor instead')
 const CommandFailed$json = {

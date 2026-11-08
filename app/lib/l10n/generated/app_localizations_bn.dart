@@ -399,4 +399,31 @@ class AppLocalizationsBn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get projectStorage => 'স্টোরেজ';
+
+  @override
+  String get storageProjectFiles => 'প্রজেক্ট';
+
+  @override
+  String get storageCache => 'ক্যাশ';
+
+  @override
+  String get storageCacheNote =>
+      'থাম্বনেইল আর প্রিভিউ কপি। দরকার হলে আবার তৈরি হবে।';
+
+  @override
+  String get clearCache => 'ক্যাশ মুছুন';
+
+  @override
+  String fileSize(String size, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'kb': 'KB',
+      'mb': 'MB',
+      'gb': 'GB',
+      'other': 'বাইট',
+    });
+    return '$size $_temp0';
+  }
 }

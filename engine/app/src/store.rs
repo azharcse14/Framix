@@ -20,6 +20,11 @@ pub trait ProjectStore: Send {
         let _ = dir;
         Err(std::io::ErrorKind::Unsupported.into())
     }
+    /// Regular files directly in `dir` (no folders, links or recursion) with their sizes.
+    fn sizes(&self, dir: &Path) -> std::io::Result<Vec<(PathBuf, u64)>> {
+        let _ = dir;
+        Err(std::io::ErrorKind::Unsupported.into())
+    }
     /// The backups [`ProjectStore::save`] keeps for `path`, newest first (they may not exist).
     fn backups(&self, path: &Path) -> Vec<PathBuf> {
         let _ = path;

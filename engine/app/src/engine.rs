@@ -39,6 +39,8 @@ pub struct Engine {
     autosave: Option<PathBuf>,
     /// The folder of the user's projects, once OpenLibrary succeeded.
     library: Option<PathBuf>,
+    /// The platform's cache folder (thumbnails, proxies), set with the library.
+    cache_dir: Option<PathBuf>,
     /// The library project that was open when the last engine stopped without closing, until
     /// the first ProjectList reports it.
     recovered: Option<String>,
@@ -724,7 +726,9 @@ impl Engine {
             command::Kind::OpenProject(open) => timeline(self.open(&open.path).map(|()| {
                 self.start_project();
             })),
-            command::Kind::OpenLibrary(op) => self.open_library(op.dir).map(|()| Reply::Accepted),
+            command::Kind::OpenLibrary(op) => self
+                .open_library(op.dir, op.cache_dir)
+                .map(|()| Reply::Accepted),
             command::Kind::ListProjects(op) => {
                 let dir = self.library.clone().ok_or("no library")?;
                 // A failed save was reported by autosave; the list still shows the last save.
@@ -732,7 +736,12 @@ impl Engine {
                 let store = self.store()?;
                 // Home shows: no project is open in the editor now.
                 crate::library::clear_open(store, &dir);
-                let projects = crate::library::list(store, &dir)?;
+                let cache = self
+                    .cache_dir
+                    .as_deref()
+                    .map(|c| crate::cache::sizes(store, c))
+                    .unwrap_or_default();
+                let projects = crate::library::list(store, &dir, &cache)?;
                 let recovered = self
                     .recovered
                     .take()
@@ -742,6 +751,9 @@ impl Engine {
                     crate::library::find(projects, &op),
                     recovered,
                 ))
+            }
+            command::Kind::CleanProjectCache(op) => {
+                self.clean_cache(&op.id).map(|()| Reply::Accepted)
             }
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
@@ -1091,10 +1103,14 @@ impl Engine {
     }
 
     /// Sets the library folder once; refused next to EnableAutosave's single file.
-    fn open_library(&mut self, dir: String) -> Result<(), String> {
+    fn open_library(&mut self, dir: String, cache_dir: String) -> Result<(), String> {
         let dir = PathBuf::from(dir);
         if !dir.is_absolute() {
             return Err("the library folder must be an absolute path".into());
+        }
+        let cache_dir = (!cache_dir.is_empty()).then(|| PathBuf::from(cache_dir));
+        if cache_dir.as_ref().is_some_and(|c| !c.is_absolute()) {
+            return Err("the cache folder must be an absolute path".into());
         }
         match &self.library {
             Some(on) if *on == dir => Ok(()),
@@ -1106,9 +1122,23 @@ impl Engine {
                     .as_deref()
                     .and_then(|store| crate::library::take_open(store, &dir));
                 self.library = Some(dir);
+                self.cache_dir = cache_dir;
                 Ok(())
             }
         }
+    }
+
+    /// Removes the cache files of library project `id`'s media (CleanProjectCache).
+    fn clean_cache(&mut self, id: &str) -> Result<(), String> {
+        let dir = self.library.clone().ok_or("no library")?;
+        let cache = self.cache_dir.clone().ok_or("no cache folder")?;
+        let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
+        // The open project may hold media its file doesn't have yet.
+        let _ = self.autosave();
+        let store = self.store()?;
+        let (timeline, _) =
+            crate::store::load_or_backup(store, &file).map_err(|e| e.to_string())?;
+        crate::cache::clean(store, &cache, &timeline)
     }
 
     /// Saves the current project before another one replaces it; refused if that fails, so

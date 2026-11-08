@@ -33,6 +33,8 @@ class MediaPicker(private val activity: Activity) : MethodChannel.MethodCallHand
         // Exports go to the cache, the only folder save and FileProvider share accept (Dart's
         // own temp folder is code_cache, which FileProvider can't serve).
         if (call.method == "exportDir") return result.success(activity.cacheDir.path)
+        // Thumbnails (EnginePlatform.thumbnailFile) live in cacheDir/thumbs (P1-017).
+        if (call.method == "cacheDir") return result.success(activity.cacheDir.path)
         if (call.method == "projectsDir") {
             // The user's projects (P1-089), in app storage that auto backup includes.
             val dir = File(activity.filesDir, "projects")

@@ -133,5 +133,12 @@
   "@recentlyDeletedEmpty": {"description": "30 days is the engine's KEEP_DELETED_MS (engine/app/src/library.rs); change both together."},
   "restoreProject": "Restore",
   "daysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
-  "@daysLeft": {"description": "On a deleted project: days until it is removed for good.", "placeholders": {"count": {"type": "int"}}}
+  "@daysLeft": {"description": "On a deleted project: days until it is removed for good.", "placeholders": {"count": {"type": "int"}}},
+  "projectStorage": "Storage",
+  "storageProjectFiles": "Project",
+  "storageCache": "Cache",
+  "storageCacheNote": "Thumbnails and preview copies. They are made again when needed.",
+  "clearCache": "Clear cache",
+  "fileSize": "{size} {unit, select, kb{KB} mb{MB} gb{GB} other{B}}",
+  "@fileSize": {"placeholders": {"size": {"type": "String"}, "unit": {"type": "String"}}}
 }

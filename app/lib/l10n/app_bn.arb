@@ -102,5 +102,11 @@
   "recentlyDeleted": "সম্প্রতি মোছা",
   "recentlyDeletedEmpty": "কিছু মোছা হয়নি। মোছা প্রজেক্ট এখানে ৩০ দিন থাকে।",
   "restoreProject": "ফিরিয়ে আনুন",
-  "daysLeft": "{count, plural, other{আর {count} দিন}}"
+  "daysLeft": "{count, plural, other{আর {count} দিন}}",
+  "projectStorage": "স্টোরেজ",
+  "storageProjectFiles": "প্রজেক্ট",
+  "storageCache": "ক্যাশ",
+  "storageCacheNote": "থাম্বনেইল আর প্রিভিউ কপি। দরকার হলে আবার তৈরি হবে।",
+  "clearCache": "ক্যাশ মুছুন",
+  "fileSize": "{size} {unit, select, kb{KB} mb{MB} gb{GB} other{বাইট}}"
 }

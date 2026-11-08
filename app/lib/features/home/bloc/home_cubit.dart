@@ -67,13 +67,22 @@ final class HomeProjects extends HomeState {
 
 /// Mirrors the engine's project library (P1-089); sends commands only.
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._engine, this._projectsDir) : super(const HomeLoading()) {
+  HomeCubit(
+    this._engine,
+    this._projectsDir, {
+    Future<String?> Function()? cacheDir,
+  }) : _cacheDir = cacheDir ?? _noCache,
+       super(const HomeLoading()) {
     _events = _engine.events.listen(_onEvent);
     _open();
   }
 
   final FramixEngine _engine;
   final Future<String?> Function() _projectsDir;
+
+  /// The platform's cache folder, so the engine can count and clean project caches.
+  final Future<String?> Function() _cacheDir;
+  static Future<String?> _noCache() async => null;
   late final StreamSubscription<Event> _events;
 
   /// Id of OpenLibrary, whose refusal this cubit shows itself, until its reply.
@@ -148,10 +157,13 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> _open() async {
     final dir = await _projectsDir();
+    final cache = await _cacheDir();
     if (isClosed) return;
     if (dir == null) return emit(const HomeUnavailable());
     _library = _engine.send(
-      Command(openLibrary: OpenLibrary(dir: dir)),
+      Command(
+        openLibrary: OpenLibrary(dir: dir, cacheDir: cache ?? ''),
+      ),
       reportsFailure: true,
     );
     _opened = true;
@@ -219,6 +231,12 @@ class HomeCubit extends Cubit<HomeState> {
   /// Takes project [id] out of Recently deleted, like [rename].
   void restore(String id) {
     _engine.send(Command(restoreProject: RestoreProject(id: id)));
+    _listProjects();
+  }
+
+  /// Removes project [id]'s thumbnails and proxies, like [rename].
+  void cleanCache(String id) {
+    _engine.send(Command(cleanProjectCache: CleanProjectCache(id: id)));
     _listProjects();
   }
 

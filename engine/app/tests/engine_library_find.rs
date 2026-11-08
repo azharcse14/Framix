@@ -63,7 +63,10 @@ fn run(engine: &mut Engine, kind: command::Kind) -> Option<event::Kind> {
 
 fn library(store: &MemStore) -> Engine {
     let mut engine = Engine::with_store(Box::new(store.clone()));
-    let dir = OpenLibrary { dir: DIR.into() };
+    let dir = OpenLibrary {
+        dir: DIR.into(),
+        cache_dir: String::new(),
+    };
     run(&mut engine, command::Kind::OpenLibrary(dir));
     engine
 }

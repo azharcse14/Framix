@@ -72,6 +72,7 @@ fn a_normal_stop_with_a_project_open_reports_no_recovery() {
     std::fs::create_dir_all(&dir).unwrap();
     let library = command::Kind::OpenLibrary(OpenLibrary {
         dir: dir.to_str().unwrap().into(),
+        cache_dir: String::new(),
     });
     let list = command::Kind::ListProjects(ListProjects::default());
 

@@ -121,7 +121,10 @@ object EnginePlatform {
         }
     }
 
-    /** The cached thumbnail file for these arguments, made if missing. */
+    /**
+     * The cached thumbnail file for these arguments, made if missing. The engine finds a
+     * media's cache files by this name (engine/app/src/cache.rs); change both.
+     */
     private fun thumbnailFile(uri: String, image: Boolean, timeUs: Long, maxSide: Int): String {
         val ctx = checkNotNull(context) { "not attached" }
         val dir = File(ctx.cacheDir, "thumbs").apply { mkdirs() }

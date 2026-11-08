@@ -68,6 +68,7 @@ enum Command_Kind {
   moveProject,
   deleteProject,
   restoreProject,
+  cleanProjectCache,
   notSet
 }
 
@@ -121,6 +122,7 @@ class Command extends $pb.GeneratedMessage {
     MoveProject? moveProject,
     DeleteProject? deleteProject,
     RestoreProject? restoreProject,
+    CleanProjectCache? cleanProjectCache,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -171,6 +173,7 @@ class Command extends $pb.GeneratedMessage {
     if (moveProject != null) result.moveProject = moveProject;
     if (deleteProject != null) result.deleteProject = deleteProject;
     if (restoreProject != null) result.restoreProject = restoreProject;
+    if (cleanProjectCache != null) result.cleanProjectCache = cleanProjectCache;
     return result;
   }
 
@@ -230,6 +233,7 @@ class Command extends $pb.GeneratedMessage {
     45: Command_Kind.moveProject,
     46: Command_Kind.deleteProject,
     47: Command_Kind.restoreProject,
+    48: Command_Kind.cleanProjectCache,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -282,7 +286,8 @@ class Command extends $pb.GeneratedMessage {
       44,
       45,
       46,
-      47
+      47,
+      48
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -379,6 +384,8 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: DeleteProject.$_createMessage)
     ..aOM<RestoreProject>(47, _omitFieldNames ? '' : 'restoreProject',
         subBuilder: RestoreProject.$_createMessage)
+    ..aOM<CleanProjectCache>(48, _omitFieldNames ? '' : 'cleanProjectCache',
+        subBuilder: CleanProjectCache.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -447,6 +454,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(45)
   @$pb.TagNumber(46)
   @$pb.TagNumber(47)
+  @$pb.TagNumber(48)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -494,6 +502,7 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(45)
   @$pb.TagNumber(46)
   @$pb.TagNumber(47)
+  @$pb.TagNumber(48)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1023,6 +1032,17 @@ class Command extends $pb.GeneratedMessage {
   void clearRestoreProject() => $_clearField(47);
   @$pb.TagNumber(47)
   RestoreProject ensureRestoreProject() => $_ensure(46);
+
+  @$pb.TagNumber(48)
+  CleanProjectCache get cleanProjectCache => $_getN(47);
+  @$pb.TagNumber(48)
+  set cleanProjectCache(CleanProjectCache value) => $_setField(48, value);
+  @$pb.TagNumber(48)
+  $core.bool hasCleanProjectCache() => $_has(47);
+  @$pb.TagNumber(48)
+  void clearCleanProjectCache() => $_clearField(48);
+  @$pb.TagNumber(48)
+  CleanProjectCache ensureCleanProjectCache() => $_ensure(47);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2364,9 +2384,11 @@ class OpenProject extends $pb.GeneratedMessage {
 class OpenLibrary extends $pb.GeneratedMessage {
   factory OpenLibrary({
     $core.String? dir,
+    $core.String? cacheDir,
   }) {
     final result = OpenLibrary._();
     if (dir != null) result.dir = dir;
+    if (cacheDir != null) result.cacheDir = cacheDir;
     return result;
   }
 
@@ -2384,6 +2406,7 @@ class OpenLibrary extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
       createEmptyInstance: OpenLibrary.$_createMessage)
     ..aOS(1, _omitFieldNames ? '' : 'dir')
+    ..aOS(2, _omitFieldNames ? '' : 'cacheDir')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2416,6 +2439,79 @@ class OpenLibrary extends $pb.GeneratedMessage {
   $core.bool hasDir() => $_has(0);
   @$pb.TagNumber(1)
   void clearDir() => $_clearField(1);
+
+  /// The platform's cache folder (absolute; empty = none): thumbnails in `thumbs/` and proxies
+  /// in `proxies/`, each named `<SHA-256 hex of the media uri>-...`. Lets ProjectSummary count
+  /// a project's cache and CleanProjectCache remove it. Taken with the first OpenLibrary only.
+  @$pb.TagNumber(2)
+  $core.String get cacheDir => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set cacheDir($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasCacheDir() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCacheDir() => $_clearField(2);
+}
+
+/// Removes the thumbnails and proxies of library project `id`'s media from the cache folder
+/// (OpenLibrary.cache_dir); they are made again when needed. Never touches project files or
+/// backups. Answered CommandAccepted. Refused without a library or cache folder, for a
+/// malformed or unknown id, or when a cache file could not be removed.
+class CleanProjectCache extends $pb.GeneratedMessage {
+  factory CleanProjectCache({
+    $core.String? id,
+  }) {
+    final result = CleanProjectCache._();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  CleanProjectCache._();
+
+  factory CleanProjectCache.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CleanProjectCache()..mergeFromBuffer(data, registry);
+  factory CleanProjectCache.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      CleanProjectCache()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'CleanProjectCache',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: CleanProjectCache.$_createMessage)
+    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CleanProjectCache clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CleanProjectCache copyWith(void Function(CleanProjectCache) updates) =>
+      super.copyWith((message) => updates(message as CleanProjectCache))
+          as CleanProjectCache;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use CleanProjectCache() / CleanProjectCache.new instead')
+  static CleanProjectCache create() => CleanProjectCache._();
+  static $pb.GeneratedMessage $_createMessage() => CleanProjectCache._();
+  @$core.override
+  CleanProjectCache createEmptyInstance() => CleanProjectCache._();
+  @$core.pragma('dart2js:noInline')
+  static CleanProjectCache getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CleanProjectCache>(
+          CleanProjectCache.$_createMessage);
+  static CleanProjectCache? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
 }
 
 /// Saves the current project if it changed, then answers ProjectList. Home is showing, so no
@@ -6237,6 +6333,7 @@ class ProjectSummary extends $pb.GeneratedMessage {
     $core.String? folder,
     $fixnum.Int64? bytes,
     $fixnum.Int64? purgeMs,
+    $fixnum.Int64? cacheBytes,
   }) {
     final result = ProjectSummary._();
     if (id != null) result.id = id;
@@ -6248,6 +6345,7 @@ class ProjectSummary extends $pb.GeneratedMessage {
     if (folder != null) result.folder = folder;
     if (bytes != null) result.bytes = bytes;
     if (purgeMs != null) result.purgeMs = purgeMs;
+    if (cacheBytes != null) result.cacheBytes = cacheBytes;
     return result;
   }
 
@@ -6274,6 +6372,9 @@ class ProjectSummary extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(8, _omitFieldNames ? '' : 'bytes', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aInt64(9, _omitFieldNames ? '' : 'purgeMs')
+    ..a<$fixnum.Int64>(
+        10, _omitFieldNames ? '' : 'cacheBytes', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6387,6 +6488,17 @@ class ProjectSummary extends $pb.GeneratedMessage {
   $core.bool hasPurgeMs() => $_has(8);
   @$pb.TagNumber(9)
   void clearPurgeMs() => $_clearField(9);
+
+  /// Thumbnails and proxies of its media (CleanProjectCache removes them). A media used by
+  /// more than one project counts in each.
+  @$pb.TagNumber(10)
+  $fixnum.Int64 get cacheBytes => $_getI64(9);
+  @$pb.TagNumber(10)
+  set cacheBytes($fixnum.Int64 value) => $_setInt64(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasCacheBytes() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearCacheBytes() => $_clearField(10);
 }
 
 /// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

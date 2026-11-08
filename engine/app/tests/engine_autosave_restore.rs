@@ -164,7 +164,10 @@ fn library(store: &MemStore) -> Engine {
     let mut engine = Engine::with_store(Box::new(store.clone()));
     let e = run(
         &mut engine,
-        command::Kind::OpenLibrary(OpenLibrary { dir: DIR.into() }),
+        command::Kind::OpenLibrary(OpenLibrary {
+            dir: DIR.into(),
+            cache_dir: String::new(),
+        }),
     );
     assert!(
         matches!(e.kind, Some(event::Kind::CommandAccepted(_))),

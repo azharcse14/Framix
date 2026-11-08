@@ -9,6 +9,7 @@ use std::time::SystemTime;
 use framix_core::time::TICKS_PER_SECOND;
 use prost::Message as _;
 
+use crate::cache::CacheSizes;
 use crate::project_proto::{LibraryEntry, LibraryIndex};
 use crate::proto::{ListProjects, ProjectSort, ProjectSummary};
 use crate::store::ProjectStore;
@@ -86,7 +87,12 @@ pub fn take_open(store: &dyn ProjectStore, dir: &Path) -> Option<String> {
 /// with no backup that does, are skipped.
 // ponytail: decodes every project for its duration; keep a summary cache when lists grow
 // long (OVL-015).
-pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>, String> {
+/// `cache` gives each project's [`ProjectSummary::cache_bytes`].
+pub fn list(
+    store: &dyn ProjectStore,
+    dir: &Path,
+    cache: &CacheSizes,
+) -> Result<Vec<ProjectSummary>, String> {
     // A newer app's index can't be read here; its projects are still listed.
     let index = match read_index(store, dir) {
         Ok(index) => purge(store, dir, index),
@@ -95,7 +101,7 @@ pub fn list(store: &dyn ProjectStore, dir: &Path) -> Result<Vec<ProjectSummary>,
     let files = store.list(dir).map_err(|e| e.kind().to_string())?;
     let mut projects: Vec<ProjectSummary> = files
         .into_iter()
-        .filter_map(|(file, modified)| summary(store, &file, modified))
+        .filter_map(|(file, modified)| summary(store, &file, modified, cache))
         .map(|mut p| {
             if let Some(entry) = index.get(&p.id) {
                 p.name.clone_from(&entry.name);
@@ -360,7 +366,12 @@ fn write_index(
         .map_err(|e| e.kind().to_string())
 }
 
-fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Option<ProjectSummary> {
+fn summary(
+    store: &dyn ProjectStore,
+    file: &Path,
+    modified: SystemTime,
+    cache: &CacheSizes,
+) -> Option<ProjectSummary> {
     if file.extension()? != EXTENSION {
         return None;
     }
@@ -388,6 +399,7 @@ fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Optio
         clips: u32::try_from(clips).unwrap_or(u32::MAX),
         // The project file's size, even when a backup stood in for it.
         bytes: raw.map_or(0, |b| b.len() as u64),
+        cache_bytes: crate::cache::project_bytes(cache, &timeline),
         ..ProjectSummary::default()
     })
 }

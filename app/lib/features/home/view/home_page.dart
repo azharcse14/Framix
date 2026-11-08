@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/engine/framix_engine.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart'
     show ProjectSort, ProjectSummary;
+
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/small_spinner.dart';
@@ -14,17 +15,29 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../timeline/view/timeline_page.dart';
 import '../bloc/home_cubit.dart';
 import 'edited_label.dart';
+import 'file_size.dart';
 
 /// Home: the user's projects and New project (P1-089, P1-090). The editor opens on top.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, this.projectsDir = media.projectsDir});
+  const HomePage({
+    super.key,
+    this.projectsDir = media.projectsDir,
+    this.cacheDir = media.cacheDir,
+  });
 
   /// Where the projects live (the platform's folder; a temp folder in tests).
   final Future<String?> Function() projectsDir;
 
+  /// The platform's cache folder (thumbnails, proxies); null when there is none.
+  final Future<String?> Function() cacheDir;
+
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (context) => HomeCubit(context.read<FramixEngine>(), projectsDir),
+    create: (context) => HomeCubit(
+      context.read<FramixEngine>(),
+      projectsDir,
+      cacheDir: cacheDir,
+    ),
     child: const _HomeView(),
   );
 }
@@ -547,7 +560,7 @@ class _ProjectCard extends StatelessWidget {
 }
 
 /// What the project menu does.
-enum _Action { rename, move, delete, restore }
+enum _Action { rename, move, storage, delete, restore }
 
 /// The menu of [project]: rename, move to a folder or delete it; Restore once deleted.
 Future<void> _projectActions(
@@ -561,6 +574,7 @@ Future<void> _projectActions(
       : {
           _Action.rename: (Icons.edit_outlined, l10n.renameProject),
           _Action.move: (Icons.drive_file_move_outlined, l10n.moveToFolder),
+          _Action.storage: (Icons.data_usage, l10n.projectStorage),
           _Action.delete: (Icons.delete_outline, l10n.deleteProject),
         };
   final action = await showModalBottomSheet<_Action>(
@@ -592,6 +606,8 @@ Future<void> _projectActions(
       return cubit.delete(project.id);
     case _Action.restore:
       return cubit.restore(project.id);
+    case _Action.storage:
+      return _showStorage(context, project.id);
     case _Action.rename || _Action.move:
   }
   final rename = action == _Action.rename;
@@ -611,6 +627,93 @@ Future<void> _projectActions(
   );
   if (text == null) return;
   rename ? cubit.rename(project.id, text) : cubit.moveTo(project.id, text);
+}
+
+/// The sheet with project [id]'s sizes and Clear cache; follows the cubit's lists, so the
+/// sizes update once the engine cleaned.
+Future<void> _showStorage(BuildContext context, String id) {
+  final cubit = context.read<HomeCubit>();
+  return showModalBottomSheet<void>(
+    context: context,
+    builder: (_) => BlocProvider.value(
+      value: cubit,
+      child: _StorageSheet(id: id),
+    ),
+  );
+}
+
+class _StorageSheet extends StatelessWidget {
+  const _StorageSheet({required this.id});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = FramixColors.of(context);
+    final text = Theme.of(context).textTheme;
+    final locale = Localizations.localeOf(context).toString();
+    String size(int bytes) => fileSize(l10n, locale, bytes);
+    final project = context.select<HomeCubit, ProjectSummary?>(
+      (cubit) => switch (cubit.state) {
+        HomeProjects(:final projects) =>
+          projects.where((p) => p.id == id).firstOrNull,
+        _ => null,
+      },
+    );
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(FramixSpace.m),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.projectStorage, style: text.titleMedium),
+            const SizedBox(height: FramixSpace.s),
+            if (project != null) ...[
+              _SizeRow(l10n.storageProjectFiles, size(project.bytes.toInt())),
+              _SizeRow(l10n.storageCache, size(project.cacheBytes.toInt())),
+            ],
+            const SizedBox(height: FramixSpace.s),
+            Text(
+              l10n.storageCacheNote,
+              style: text.bodySmall?.copyWith(color: colors.textMuted),
+            ),
+            const SizedBox(height: FramixSpace.m),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              icon: const Icon(Icons.cleaning_services_outlined),
+              label: Text(l10n.clearCache),
+              onPressed: project == null || project.cacheBytes == 0
+                  ? null
+                  : () => context.read<HomeCubit>().cleanCache(id),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A label with a size at the end.
+class _SizeRow extends StatelessWidget {
+  const _SizeRow(this.label, this.size);
+
+  final String label;
+  final String size;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: FramixSpace.s / 2),
+    child: Row(
+      children: [
+        Expanded(child: Text(label)),
+        Text(size, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ],
+    ),
+  );
 }
 
 /// A dialog asking for one line of text; pops it on Save, null on Cancel.

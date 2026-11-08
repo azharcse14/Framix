@@ -56,6 +56,7 @@ message Command {
     MoveProject move_project = 45;
     DeleteProject delete_project = 46;
     RestoreProject restore_project = 47;
+    CleanProjectCache clean_project_cache = 48;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -236,6 +237,18 @@ message OpenProject {
 // refused. Projects are files `<dir>/<id>.framix`, each autosaved like EnableAutosave's.
 message OpenLibrary {
   string dir = 1;
+  // The platform's cache folder (absolute; empty = none): thumbnails in `thumbs/` and proxies
+  // in `proxies/`, each named `<SHA-256 hex of the media uri>-...`. Lets ProjectSummary count
+  // a project's cache and CleanProjectCache remove it. Taken with the first OpenLibrary only.
+  string cache_dir = 2;
+}
+
+// Removes the thumbnails and proxies of library project `id`'s media from the cache folder
+// (OpenLibrary.cache_dir); they are made again when needed. Never touches project files or
+// backups. Answered CommandAccepted. Refused without a library or cache folder, for a
+// malformed or unknown id, or when a cache file could not be removed.
+message CleanProjectCache {
+  string id = 1;
 }
 
 // Saves the current project if it changed, then answers ProjectList. Home is showing, so no
@@ -694,6 +707,9 @@ message ProjectSummary {
   // In Recently deleted: when it will be removed for good, in milliseconds since the Unix
   // epoch; 0: not deleted.
   int64 purge_ms = 9;
+  // Thumbnails and proxies of its media (CleanProjectCache removes them). A media used by
+  // more than one project counts in each.
+  uint64 cache_bytes = 10;
 }
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
