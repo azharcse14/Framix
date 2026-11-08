@@ -315,4 +315,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'Your first video starts here';
+
+  @override
+  String get projectStorage => 'Storage';
+
+  @override
+  String get storageProjectFiles => 'Project';
+
+  @override
+  String get storageCache => 'Cache';
+
+  @override
+  String get storageCacheNote =>
+      'Thumbnails and preview copies. They are made again when needed.';
+
+  @override
+  String get clearCache => 'Clear cache';
+
+  @override
+  String fileSize(String size, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'kb': 'KB',
+      'mb': 'MB',
+      'gb': 'GB',
+      'other': 'B',
+    });
+    return '$size $_temp0';
+  }
 }

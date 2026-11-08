@@ -707,6 +707,7 @@ impl Engine {
                 let _ = self.autosave();
                 crate::library::list(self.store()?, &dir).map(Reply::Projects)
             }
+            command::Kind::CleanProjectCache(_) => Err("not yet".into()),
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
                 timeline(self.edit(|tl| tl.remove_clip(ClipId(op.clip_id))))

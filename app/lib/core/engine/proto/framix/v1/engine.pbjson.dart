@@ -467,6 +467,15 @@ const Command$json = {
       '9': 0,
       '10': 'setLoop'
     },
+    {
+      '1': 'clean_project_cache',
+      '3': 41,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.CleanProjectCache',
+      '9': 0,
+      '10': 'cleanProjectCache'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -518,8 +527,9 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
     'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSJQoEcGxheRgmIAEoCzIPLmZyYW1peC52MS5QbGF5SA'
     'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USLwoIc2V0'
-    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEg4KAmlkGBsgASgEUg'
-    'JpZEIGCgRraW5k');
+    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEk4KE2NsZWFuX3Byb2'
+    'plY3RfY2FjaGUYKSABKAsyHC5mcmFtaXgudjEuQ2xlYW5Qcm9qZWN0Q2FjaGVIAFIRY2xlYW5Q'
+    'cm9qZWN0Q2FjaGUSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -842,12 +852,26 @@ const OpenLibrary$json = {
   '1': 'OpenLibrary',
   '2': [
     {'1': 'dir', '3': 1, '4': 1, '5': 9, '10': 'dir'},
+    {'1': 'cache_dir', '3': 2, '4': 1, '5': 9, '10': 'cacheDir'},
   ],
 };
 
 /// Descriptor for `OpenLibrary`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List openLibraryDescriptor =
-    $convert.base64Decode('CgtPcGVuTGlicmFyeRIQCgNkaXIYASABKAlSA2Rpcg==');
+final $typed_data.Uint8List openLibraryDescriptor = $convert.base64Decode(
+    'CgtPcGVuTGlicmFyeRIQCgNkaXIYASABKAlSA2RpchIbCgljYWNoZV9kaXIYAiABKAlSCGNhY2'
+    'hlRGly');
+
+@$core.Deprecated('Use cleanProjectCacheDescriptor instead')
+const CleanProjectCache$json = {
+  '1': 'CleanProjectCache',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+  ],
+};
+
+/// Descriptor for `CleanProjectCache`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cleanProjectCacheDescriptor =
+    $convert.base64Decode('ChFDbGVhblByb2plY3RDYWNoZRIOCgJpZBgBIAEoCVICaWQ=');
 
 @$core.Deprecated('Use listProjectsDescriptor instead')
 const ListProjects$json = {
@@ -1608,6 +1632,8 @@ const ProjectSummary$json = {
     {'1': 'ticks_per_second', '3': 3, '4': 1, '5': 3, '10': 'ticksPerSecond'},
     {'1': 'modified_ms', '3': 4, '4': 1, '5': 3, '10': 'modifiedMs'},
     {'1': 'clips', '3': 5, '4': 1, '5': 13, '10': 'clips'},
+    {'1': 'project_bytes', '3': 6, '4': 1, '5': 4, '10': 'projectBytes'},
+    {'1': 'cache_bytes', '3': 7, '4': 1, '5': 4, '10': 'cacheBytes'},
   ],
 };
 
@@ -1615,7 +1641,9 @@ const ProjectSummary$json = {
 final $typed_data.Uint8List projectSummaryDescriptor = $convert.base64Decode(
     'Cg5Qcm9qZWN0U3VtbWFyeRIOCgJpZBgBIAEoCVICaWQSGgoIZHVyYXRpb24YAiABKANSCGR1cm'
     'F0aW9uEigKEHRpY2tzX3Blcl9zZWNvbmQYAyABKANSDnRpY2tzUGVyU2Vjb25kEh8KC21vZGlm'
-    'aWVkX21zGAQgASgDUgptb2RpZmllZE1zEhQKBWNsaXBzGAUgASgNUgVjbGlwcw==');
+    'aWVkX21zGAQgASgDUgptb2RpZmllZE1zEhQKBWNsaXBzGAUgASgNUgVjbGlwcxIjCg1wcm9qZW'
+    'N0X2J5dGVzGAYgASgEUgxwcm9qZWN0Qnl0ZXMSHwoLY2FjaGVfYnl0ZXMYByABKARSCmNhY2hl'
+    'Qnl0ZXM=');
 
 @$core.Deprecated('Use commandFailedDescriptor instead')
 const CommandFailed$json = {

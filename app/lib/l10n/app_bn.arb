@@ -78,5 +78,11 @@
   "editedMinutesAgo": "{count, plural, other{{count} মিনিট আগে সম্পাদিত}}",
   "editedHoursAgo": "{count, plural, other{{count} ঘণ্টা আগে সম্পাদিত}}",
   "editedYesterday": "গতকাল সম্পাদিত",
-  "projectsEmptyTitle": "আপনার প্রথম ভিডিও এখান থেকে শুরু"
+  "projectsEmptyTitle": "আপনার প্রথম ভিডিও এখান থেকে শুরু",
+  "projectStorage": "স্টোরেজ",
+  "storageProjectFiles": "প্রজেক্ট",
+  "storageCache": "ক্যাশ",
+  "storageCacheNote": "থাম্বনেইল আর প্রিভিউ কপি। দরকার হলে আবার তৈরি হবে।",
+  "clearCache": "ক্যাশ মুছুন",
+  "fileSize": "{size} {unit, select, kb{KB} mb{MB} gb{GB} other{বাইট}}"
 }

@@ -15,10 +15,17 @@ import 'edited_label.dart';
 
 /// Home: the user's projects and New project (P1-089, P1-090). The editor opens on top.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, this.projectsDir = media.projectsDir});
+  const HomePage({
+    super.key,
+    this.projectsDir = media.projectsDir,
+    this.cacheDir = media.cacheDir,
+  });
 
   /// Where the projects live (the platform's folder; a temp folder in tests).
   final Future<String?> Function() projectsDir;
+
+  /// The platform's cache folder (thumbnails, proxies); null when there is none.
+  final Future<String?> Function() cacheDir;
 
   @override
   Widget build(BuildContext context) => BlocProvider(

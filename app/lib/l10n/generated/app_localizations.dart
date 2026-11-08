@@ -571,6 +571,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your first video starts here'**
   String get projectsEmptyTitle;
+
+  /// No description provided for @projectStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get projectStorage;
+
+  /// No description provided for @storageProjectFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get storageProjectFiles;
+
+  /// No description provided for @storageCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache'**
+  String get storageCache;
+
+  /// No description provided for @storageCacheNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnails and preview copies. They are made again when needed.'**
+  String get storageCacheNote;
+
+  /// No description provided for @clearCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get clearCache;
+
+  /// No description provided for @fileSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} {unit, select, kb{KB} mb{MB} gb{GB} other{B}}'**
+  String fileSize(String size, String unit);
 }
 
 class _AppLocalizationsDelegate

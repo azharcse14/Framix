@@ -79,7 +79,10 @@ fn library(store: &MemStore) -> Engine {
     let mut engine = Engine::with_store(Box::new(store.clone()));
     let e = run(
         &mut engine,
-        command::Kind::OpenLibrary(OpenLibrary { dir: DIR.into() }),
+        command::Kind::OpenLibrary(OpenLibrary {
+            dir: DIR.into(),
+            cache_dir: String::new(),
+        }),
     );
     assert!(matches!(e, Some(event::Kind::CommandAccepted(_))), "{e:?}");
     engine
@@ -276,7 +279,10 @@ fn the_library_opens_once() {
     let again = |engine: &mut Engine, dir: &str| {
         run(
             engine,
-            command::Kind::OpenLibrary(OpenLibrary { dir: dir.into() }),
+            command::Kind::OpenLibrary(OpenLibrary {
+                dir: dir.into(),
+                cache_dir: String::new(),
+            }),
         )
     };
     assert!(matches!(

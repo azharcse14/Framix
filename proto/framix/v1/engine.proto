@@ -47,6 +47,7 @@ message Command {
     Play play = 38;
     Pause pause = 39;
     SetLoop set_loop = 40;
+    CleanProjectCache clean_project_cache = 41;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -227,6 +228,18 @@ message OpenProject {
 // refused. Projects are files `<dir>/<id>.framix`, each autosaved like EnableAutosave's.
 message OpenLibrary {
   string dir = 1;
+  // The platform's cache folder (absolute; empty = none): thumbnails in `thumbs/` and proxies
+  // in `proxies/`, each named `<SHA-256 hex of the media uri>-...`. Lets ProjectSummary count
+  // a project's cache and CleanProjectCache remove it. Taken with the first OpenLibrary only.
+  string cache_dir = 2;
+}
+
+// Removes the thumbnails and proxies of library project `id`'s media from the cache folder
+// (OpenLibrary.cache_dir); they are made again when needed. Never touches project files or
+// backups. Answered with ProjectList. Refused without a library or cache folder, for a
+// malformed or unknown id, or when a cache file could not be removed.
+message CleanProjectCache {
+  string id = 1;
 }
 
 // Saves the current project if it changed, then answers ProjectList. Refused without a
@@ -594,6 +607,11 @@ message ProjectSummary {
   int64 modified_ms = 4;
   // Clips on every track.
   uint32 clips = 5;
+  // The project file and its backups.
+  uint64 project_bytes = 6;
+  // Thumbnails and proxies of its media (CleanProjectCache removes them). A media used by
+  // more than one project counts in each.
+  uint64 cache_bytes = 7;
 }
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

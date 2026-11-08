@@ -97,5 +97,12 @@
   "editedHoursAgo": "{count, plural, =1{Edited 1 hour ago} other{Edited {count} hours ago}}",
   "@editedHoursAgo": {"placeholders": {"count": {"type": "int"}}},
   "editedYesterday": "Edited yesterday",
-  "projectsEmptyTitle": "Your first video starts here"
+  "projectsEmptyTitle": "Your first video starts here",
+  "projectStorage": "Storage",
+  "storageProjectFiles": "Project",
+  "storageCache": "Cache",
+  "storageCacheNote": "Thumbnails and preview copies. They are made again when needed.",
+  "clearCache": "Clear cache",
+  "fileSize": "{size} {unit, select, kb{KB} mb{MB} gb{GB} other{B}}",
+  "@fileSize": {"placeholders": {"size": {"type": "String"}, "unit": {"type": "String"}}}
 }

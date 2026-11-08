@@ -20,6 +20,9 @@ Future<String?> projectsDir() async {
   }
 }
 
+/// The platform's cache folder, where thumbnails and proxies go; null when there is none.
+Future<String?> cacheDir() async => null;
+
 /// [MediaImporter] over the `framix/media` method channel (app/ios/Runner/MediaPicker.swift,
 /// app/android/.../MediaPicker.kt). Missing fields stay at their defaults, so the engine
 /// refuses them instead of Dart guessing.

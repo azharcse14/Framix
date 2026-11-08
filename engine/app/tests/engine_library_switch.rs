@@ -97,7 +97,10 @@ fn library(store: &Store) -> Engine {
     let mut engine = Engine::with_store(Box::new(store.clone()));
     run(
         &mut engine,
-        command::Kind::OpenLibrary(OpenLibrary { dir: DIR.into() }),
+        command::Kind::OpenLibrary(OpenLibrary {
+            dir: DIR.into(),
+            cache_dir: String::new(),
+        }),
     );
     run(&mut engine, command::Kind::NewProject(NewProject {}));
     engine
@@ -146,7 +149,10 @@ fn an_empty_or_relative_library_folder_is_refused() {
         let mut engine = Engine::with_store(Box::new(Store::default()));
         let e = run(
             &mut engine,
-            command::Kind::OpenLibrary(OpenLibrary { dir: dir.into() }),
+            command::Kind::OpenLibrary(OpenLibrary {
+                dir: dir.into(),
+                cache_dir: String::new(),
+            }),
         );
         assert!(matches!(e, Some(event::Kind::CommandFailed(_))), "{dir:?}");
     }
