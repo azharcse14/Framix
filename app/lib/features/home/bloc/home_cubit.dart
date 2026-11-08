@@ -97,6 +97,11 @@ class HomeCubit extends Cubit<HomeState> {
     if (e.hasProjectList()) {
       if (_lists.isNotEmpty) _lists.removeAt(0);
       _list = e.projectList;
+      // The shown folder's last project left it: list every project instead.
+      if (_folder.isNotEmpty && !_list!.folders.contains(_folder)) {
+        _folder = '';
+        _listProjects();
+      }
       _emitList(recovered: e.projectList.recovered.isNotEmpty);
     }
     if (e.hasCommandAccepted() &&
@@ -127,6 +132,8 @@ class HomeCubit extends Cubit<HomeState> {
   void retry() {
     if (state is! HomeUnavailable) return;
     emit(const HomeLoading());
+    // The search box comes back empty.
+    _query = '';
     _open();
   }
 
@@ -237,8 +244,7 @@ class HomeCubit extends Cubit<HomeState> {
         opening: _opening,
         recovered: recovered,
         folders: list.folders,
-        // The folder's last project may have left it.
-        folder: list.folders.contains(_folder) ? _folder : '',
+        folder: _folder,
         sort: _sort,
         filtered: _query.trim().isNotEmpty || _folder.isNotEmpty,
       ),

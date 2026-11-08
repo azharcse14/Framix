@@ -1,6 +1,6 @@
 //! The user's projects for Home (P1-089): files `<dir>/<id>.framix` in one folder.
 
-use std::cmp::Ordering;
+use std::cmp::{Ordering, Reverse};
 use std::collections::HashMap;
 use std::hash::{BuildHasher, Hasher};
 use std::path::{Path, PathBuf};
@@ -129,10 +129,9 @@ pub fn find(
         .filter(|p| op.folder.is_empty() || p.folder == op.folder)
         .collect();
     match ProjectSort::try_from(op.sort) {
-        Ok(ProjectSort::Name) => found.sort_by(|a, b| {
-            (a.name.is_empty(), a.name.to_lowercase())
-                .cmp(&(b.name.is_empty(), b.name.to_lowercase()))
-                .then_with(|| newest_first(a, b))
+        Ok(ProjectSort::Name) => found.sort_by_cached_key(|p| {
+            let newest = (Reverse(p.modified_ms), p.id.clone());
+            (p.name.is_empty(), p.name.to_lowercase(), newest)
         }),
         Ok(ProjectSort::Size) => {
             found.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| newest_first(a, b)));
@@ -181,13 +180,20 @@ fn update_entry(
     let file = path(dir, id).ok_or("malformed project id")?;
     store.load(&file).map_err(|_| "no such project")?;
     let mut index = read_index(store, dir)?;
-    let entry = index.entry(id.to_owned()).or_insert_with(|| LibraryEntry {
+    let before = index.get(id).cloned().unwrap_or_else(|| LibraryEntry {
         id: id.to_owned(),
         ..LibraryEntry::default()
     });
-    change(entry);
+    let mut entry = before.clone();
+    change(&mut entry);
+    // Unchanged: a write would only rotate a good backup away.
+    if entry == before {
+        return Ok(());
+    }
     if entry.name.is_empty() && entry.folder.is_empty() {
         index.remove(id);
+    } else {
+        index.insert(id.to_owned(), entry);
     }
     write_index(store, dir, index)
 }
@@ -209,17 +215,27 @@ fn read_index(
     dir: &Path,
 ) -> Result<HashMap<String, LibraryEntry>, String> {
     let file = dir.join(INDEX);
-    let decode = |path: &Path| {
-        let bytes = store
-            .load(path)
-            .ok()
-            .filter(|b| b.len() <= MAX_INDEX_BYTES)?;
+    let decode = |bytes: Vec<u8>| {
+        if bytes.len() > MAX_INDEX_BYTES {
+            return None;
+        }
         // proto3 decodes junk or empty bytes as zero fields; a real index has a version.
         LibraryIndex::decode(bytes.as_slice())
             .ok()
             .filter(|i| i.format_version != 0 && i.min_reader_version != 0)
     };
-    let index = decode(&file).or_else(|| store.backups(&file).iter().find_map(|b| decode(b)));
+    let index = match store.load(&file) {
+        Ok(bytes) => decode(bytes),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(HashMap::new()),
+        // Not damaged, just unreadable now: a write would lose every entry.
+        Err(e) => return Err(format!("library index unreadable: {}", e.kind())),
+    };
+    let index = index.or_else(|| {
+        store
+            .backups(&file)
+            .iter()
+            .find_map(|b| store.load(b).ok().and_then(decode))
+    });
     let Some(index) = index else {
         return Ok(HashMap::new());
     };
@@ -246,6 +262,9 @@ fn write_index(
         projects,
     }
     .encode_to_vec();
+    if bytes.len() > MAX_INDEX_BYTES {
+        return Err("library index full".into());
+    }
     store
         .save(&dir.join(INDEX), &bytes)
         .map_err(|e| e.kind().to_string())
