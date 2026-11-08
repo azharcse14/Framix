@@ -380,7 +380,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-012` Android e boro file er jonno file descriptor (fd), copy chhara \[Native\]
 - [x] `P1-013` Metadata read (duration, resolution, codec, rotation) \[Rust\]
 - [x] `P1-014` Timeline data model multi-track ar keyframe mathay rekhe design \[Rust\]
-- [ ] `P1-015` **1b:** Project folder, search, sort (date, naam, size) \[Dart\]\[Rust\]
+- [x] `P1-015` **1b:** Project folder, search, sort (date, naam, size) \[Dart\]\[Rust\]
 - [ ] `P1-016` **1b:** Recently deleted (30 din), vul kore delete hole ferot ana \[Rust\]\[Dart\]
 - [ ] `P1-017` **1b:** Protita project koto storage nicche dekhano, proxy/cache clean option \[Rust\]\[Dart\]
 
@@ -484,6 +484,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-104` Widget test: multi-select vertical drag on a narrow clip (48 dp drag target) keeps to the lane \[Dart\]
 - [ ] `P1-105` Proto docs of SnapMove/SnapTrim/TrimToPlayhead/MoveClips describe their rules via retired MoveClip/TrimClip; spell the rule out (ADR 0008 review nit) \[Rust\]
 - [ ] `P1-106` Widget tests: Clear loop shows with two clips selected and with another clip selected, hides on the looped clip (P1-100 review); pass looping into _ClipActions \[Dart\]
+- [ ] `P1-107` Library index follow-ups: LibraryIndex format-1 fixture; tests for the write-side MAX_INDEX_BYTES refusal and for retry() clearing the Home search \[Rust\] \[Dart\]
 
 ## Phase 2: Audio
 
