@@ -39,6 +39,9 @@ pub struct Engine {
     autosave: Option<PathBuf>,
     /// The folder of the user's projects, once OpenLibrary succeeded.
     library: Option<PathBuf>,
+    /// The library project that was open when the last engine stopped without closing, until
+    /// the first ProjectList reports it.
+    recovered: Option<String>,
     /// The timeline last autosaved or recovered; autosave writes only when it differs.
     autosaved: Timeline,
     /// The last autosave failed and was reported; later failures stay quiet until a success.
@@ -154,6 +157,9 @@ impl Engine {
         match saved {
             Ok(()) => {
                 self.autosaved = self.history.timeline().clone();
+                if self.autosave_failed {
+                    self.mark_saved_work(&path, true);
+                }
                 self.autosave_failed = false;
                 None
             }
@@ -161,8 +167,21 @@ impl Engine {
             Err(_) if self.autosave_failed => None,
             Err(reason) => {
                 self.autosave_failed = true;
+                self.mark_saved_work(&path, false);
                 Some(command_failed(format!("autosave failed: {reason}")))
             }
+        }
+    }
+
+    /// In a library, whether a crash now would find the open project's work saved: the
+    /// crash marker names the project only while its autosaves succeed.
+    fn mark_saved_work(&self, file: &Path, saved: bool) {
+        let (Some(store), Some(dir)) = (self.store.as_deref(), self.library.as_deref()) else {
+            return;
+        };
+        match file.file_stem().and_then(|id| id.to_str()) {
+            Some(id) if saved => crate::library::mark_open(store, dir, id),
+            _ => crate::library::clear_open(store, dir),
         }
     }
 
@@ -635,9 +654,10 @@ impl Engine {
                     free_bytes: free,
                 })),
             },
-            Ok(Reply::Projects(projects)) => Event {
+            Ok(Reply::Projects(projects, recovered)) => Event {
                 kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
                     projects,
+                    recovered,
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -682,7 +702,9 @@ impl Engine {
                 let file = match self.library.clone() {
                     Some(dir) => {
                         self.save_current()?;
-                        let id = crate::library::new_id(self.store()?, &dir)?;
+                        let store = self.store()?;
+                        let id = crate::library::new_id(store, &dir)?;
+                        crate::library::mark_open(store, &dir, &id);
                         crate::library::path(&dir, &id)
                     }
                     None => None,
@@ -705,7 +727,16 @@ impl Engine {
                 let dir = self.library.clone().ok_or("no library")?;
                 // A failed save was reported by autosave; the list still shows the last save.
                 let _ = self.autosave();
-                crate::library::list(self.store()?, &dir).map(Reply::Projects)
+                let store = self.store()?;
+                // Home shows: no project is open in the editor now.
+                crate::library::clear_open(store, &dir);
+                let projects = crate::library::list(store, &dir)?;
+                let recovered = self
+                    .recovered
+                    .take()
+                    .filter(|id| projects.iter().any(|p| p.id == *id))
+                    .unwrap_or_default();
+                Ok(Reply::Projects(projects, recovered))
             }
             command::Kind::SaveProject(save) => self.save(&save.path).map(|()| Reply::Saved),
             command::Kind::RemoveClip(op) => {
@@ -1047,6 +1078,10 @@ impl Engine {
             Some(_) => Err("the library is already open on another folder".into()),
             None if self.autosave.is_some() => Err("autosave is on for a single file".into()),
             None => {
+                self.recovered = self
+                    .store
+                    .as_deref()
+                    .and_then(|store| crate::library::take_open(store, &dir));
                 self.library = Some(dir);
                 Ok(())
             }
@@ -1072,8 +1107,8 @@ impl Engine {
 
     /// Opens library project `id` and autosaves there; the current project is saved first.
     fn open_from_library(&mut self, id: &str) -> Result<(), String> {
-        let dir = self.library.as_deref().ok_or("no library")?;
-        let file = crate::library::path(dir, id).ok_or("malformed project id")?;
+        let dir = self.library.clone().ok_or("no library")?;
+        let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
         // Save first: reading first would load stale bytes when `id` is the open project.
         self.save_current()?;
         let store = self.store()?;
@@ -1087,10 +1122,19 @@ impl Engine {
         } else {
             timeline.clone()
         };
+        crate::library::mark_open(store, &dir, id);
         self.history = History::new(timeline);
         self.autosave_to(Some(file), saved);
         self.start_project();
         Ok(())
+    }
+
+    /// The engine stops normally (after its last autosave): the open project was closed, so
+    /// the next OpenLibrary reports no recovery.
+    pub fn close(&mut self) {
+        if let (Some(store), Some(dir)) = (self.store.as_deref(), &self.library) {
+            crate::library::clear_open(store, dir);
+        }
     }
 
     /// Recovers the project at `path` if there is one, then autosaves there. A damaged file is
@@ -1318,8 +1362,8 @@ enum Reply {
     Saved,
     /// Work started; its result comes later as its own event.
     Accepted,
-    /// The library's projects (ListProjects).
-    Projects(Vec<proto::ProjectSummary>),
+    /// The library's projects and the one recovered after a crash, if any (ListProjects).
+    Projects(Vec<proto::ProjectSummary>, String),
     /// Where the playhead is now, and whether the seek snapped.
     Playhead(bool),
     /// An export was refused before it started: it needs about `needed` bytes, `free` are free.

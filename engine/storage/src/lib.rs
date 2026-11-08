@@ -66,6 +66,18 @@ impl ProjectStore for FileStore {
         (1..=BACKUPS).map(|n| backup(path, n)).collect()
     }
 
+    /// Plain write: a marker lost or torn by a crash only goes unreported.
+    fn put(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
+        fs::write(path, bytes)
+    }
+
+    fn remove(&self, path: &Path) -> io::Result<()> {
+        match fs::remove_file(path) {
+            Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(()),
+            done => done,
+        }
+    }
+
     /// Renames the file to `<file>.broken`, over an earlier one.
     // ponytail: one slot; a second damaged file replaces the first. Keep numbered slots if a
     // validator change could ever refuse good files.

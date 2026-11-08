@@ -101,5 +101,9 @@
   "projectsEmptyTitle": "Your first video starts here",
   "selectMore": "Select more",
   "selectedClipCount": "{count, plural, other{{count} selected}}",
-  "@selectedClipCount": {"placeholders": {"count": {"type": "int"}}}
+  "@selectedClipCount": {"placeholders": {"count": {"type": "int"}}},
+  "workRecovered": "Saved up to your last edit",
+  "@workRecovered": {
+    "description": "Home notice after the app closed unexpectedly (crash, or the system ended it) with a project open: its work is saved up to the last edit."
+  }
 }

@@ -55,7 +55,11 @@ class _HomeView extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       body: SafeArea(
-        child: BlocBuilder<HomeCubit, HomeState>(
+        child: BlocConsumer<HomeCubit, HomeState>(
+          listenWhen: (_, state) => state is HomeProjects && state.recovered,
+          listener: (context, _) => ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(l10n.workRecovered))),
           builder: (context, state) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

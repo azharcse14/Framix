@@ -234,8 +234,8 @@ message OpenLibrary {
   string dir = 1;
 }
 
-// Saves the current project if it changed, then answers ProjectList. Refused without a
-// library.
+// Saves the current project if it changed, then answers ProjectList. Home is showing, so no
+// project counts as open for ProjectList.recovered. Refused without a library.
 message ListProjects {}
 
 // Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
@@ -611,6 +611,11 @@ message ProjectSaved {}
 // Answers ListProjects: the library's readable projects, most recently saved first.
 message ProjectList {
   repeated ProjectSummary projects = 1;
+  // The project that was open when the engine last stopped without closing (a crash, or the
+  // OS ended the app); it holds the work autosaved up to then. Set on the first ProjectList
+  // after OpenLibrary only, and only for a listed project whose last autosave worked; empty
+  // otherwise.
+  string recovered = 2;
 }
 
 // One library project as Home lists it.

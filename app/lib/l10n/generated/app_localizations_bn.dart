@@ -328,4 +328,7 @@ class AppLocalizationsBn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get workRecovered => 'শেষ কাজ পর্যন্ত সেভ আছে';
 }

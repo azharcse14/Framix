@@ -331,4 +331,7 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get workRecovered => 'Saved up to your last edit';
 }

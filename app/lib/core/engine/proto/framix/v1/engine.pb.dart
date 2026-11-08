@@ -2338,8 +2338,8 @@ class OpenLibrary extends $pb.GeneratedMessage {
   void clearDir() => $_clearField(1);
 }
 
-/// Saves the current project if it changed, then answers ProjectList. Refused without a
-/// library.
+/// Saves the current project if it changed, then answers ProjectList. Home is showing, so no
+/// project counts as open for ProjectList.recovered. Refused without a library.
 class ListProjects extends $pb.GeneratedMessage {
   factory ListProjects() => ListProjects._();
 
@@ -5740,9 +5740,11 @@ class ProjectSaved extends $pb.GeneratedMessage {
 class ProjectList extends $pb.GeneratedMessage {
   factory ProjectList({
     $core.Iterable<ProjectSummary>? projects,
+    $core.String? recovered,
   }) {
     final result = ProjectList._();
     if (projects != null) result.projects.addAll(projects);
+    if (recovered != null) result.recovered = recovered;
     return result;
   }
 
@@ -5761,6 +5763,7 @@ class ProjectList extends $pb.GeneratedMessage {
       createEmptyInstance: ProjectList.$_createMessage)
     ..pPM<ProjectSummary>(1, _omitFieldNames ? '' : 'projects',
         subBuilder: ProjectSummary.$_createMessage)
+    ..aOS(2, _omitFieldNames ? '' : 'recovered')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5787,6 +5790,19 @@ class ProjectList extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $pb.PbList<ProjectSummary> get projects => $_getList(0);
+
+  /// The project that was open when the engine last stopped without closing (a crash, or the
+  /// OS ended the app); it holds the work autosaved up to then. Set on the first ProjectList
+  /// after OpenLibrary only, and only for a listed project whose last autosave worked; empty
+  /// otherwise.
+  @$pb.TagNumber(2)
+  $core.String get recovered => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set recovered($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRecovered() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRecovered() => $_clearField(2);
 }
 
 /// One library project as Home lists it.
