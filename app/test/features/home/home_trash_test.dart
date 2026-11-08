@@ -19,8 +19,10 @@ void main() {
     engine = FramixEngine.create();
     dir = Directory.systemTemp.createTempSync('framix-home-trash');
   });
-  tearDown(() {
+  tearDown(() async {
     engine.dispose();
+    // The engine finishes queued writes before its event stream closes.
+    await engine.events.drain<void>();
     dir.deleteSync(recursive: true);
   });
 

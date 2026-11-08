@@ -236,7 +236,7 @@ fn a_deleted_project_is_removed_for_good_after_30_days() {
 
     assert!(accepted(delete(&mut engine, &id)));
     store.advance(29 * DAY);
-    assert_eq!(ids(&mut engine, true), [id.clone()], "29 days: still there");
+    assert_eq!(ids(&mut engine, true), [id.as_str()], "29 days: still there");
     assert!(store.has(&file(&id)));
 
     store.advance(DAY);
