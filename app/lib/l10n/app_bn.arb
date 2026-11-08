@@ -79,5 +79,7 @@
   "editedMinutesAgo": "{count, plural, other{{count} মিনিট আগে সম্পাদিত}}",
   "editedHoursAgo": "{count, plural, other{{count} ঘণ্টা আগে সম্পাদিত}}",
   "editedYesterday": "গতকাল সম্পাদিত",
-  "projectsEmptyTitle": "আপনার প্রথম ভিডিও এখান থেকে শুরু"
+  "projectsEmptyTitle": "আপনার প্রথম ভিডিও এখান থেকে শুরু",
+  "selectMore": "আরও বাছুন",
+  "selectedClipCount": "{count, plural, other{{count}টি বাছাই করা}}"
 }

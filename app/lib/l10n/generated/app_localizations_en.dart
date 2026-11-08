@@ -318,4 +318,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'Your first video starts here';
+
+  @override
+  String get selectMore => 'Select more';
+
+  @override
+  String selectedClipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+    );
+    return '$_temp0';
+  }
 }

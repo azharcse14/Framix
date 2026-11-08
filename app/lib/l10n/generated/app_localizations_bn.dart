@@ -315,4 +315,17 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'আপনার প্রথম ভিডিও এখান থেকে শুরু';
+
+  @override
+  String get selectMore => 'আরও বাছুন';
+
+  @override
+  String selectedClipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি বাছাই করা',
+    );
+    return '$_temp0';
+  }
 }
