@@ -151,4 +151,32 @@ void main() {
       await tester.pump();
     },
   );
+
+  // P1-103: ids of clips the timeline lost (here, by undo) are dropped, so a tap on the one
+  // selected clip clears the selection.
+  testWidgets('a clip undone away leaves the selection', (tester) async {
+    final l10n = await threeClips(tester, const Locale('en'));
+    await selectMore(tester, l10n, [1, 2]);
+    await tester.tap(find.byTooltip(l10n.duplicateClip));
+    await pumpUntil(tester, find.text(l10n.clipCount(5)));
+    // Select the first copy alone (its start is on screen), then undo it away.
+    await tester.tapAt(tester.getRect(clip(3)).centerLeft + const Offset(8, 0));
+    await tester.pump();
+    await tester.tap(clip(1));
+    await tester.pump();
+    await tester.tap(clip(2));
+    await tester.pump();
+    expect(find.text(l10n.selectedClipCount(2)), findsNothing);
+    await tester.tap(find.byTooltip(l10n.undo));
+    await pumpUntil(tester, find.text(l10n.clipCount(3)));
+
+    // Select more is still on: this adds clip 0; off again, a tap on it clears it.
+    await tester.tap(clip(0));
+    await tester.pump();
+    await tester.tap(find.byTooltip(l10n.selectMore));
+    await tester.pump();
+    await tester.tap(clip(0));
+    await tester.pump();
+    expect(find.byTooltip(l10n.splitClip), findsNothing);
+  });
 }
