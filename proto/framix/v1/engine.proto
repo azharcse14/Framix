@@ -20,10 +20,12 @@ message Command {
     RemoveClip remove_clip = 10;
     SplitClip split_clip = 11;
     MergeClips merge_clips = 12;
-    TrimClip trim_clip = 13;
+    // Retired (ADR 0008): the app sends SnapTrim; kept for the frozen engine test.
+    TrimClip trim_clip = 13 [deprecated = true];
     DuplicateClip duplicate_clip = 14;
     SetTrackFlags set_track_flags = 15;
-    MoveClip move_clip = 16;
+    // Retired (ADR 0008): the app sends SnapMove; kept for the frozen engine test.
+    MoveClip move_clip = 16 [deprecated = true];
     ImportMedia import_media = 17;
     CreatePreview create_preview = 18;
     Seek seek = 19;
@@ -261,7 +263,9 @@ message MergeClips {
 }
 
 // Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+// Retired (ADR 0008): the app sends SnapTrim.
 message TrimClip {
+  option deprecated = true;
   uint64 clip_id = 1;
   int64 start = 2;
   int64 end = 3;
@@ -346,7 +350,9 @@ message DuplicateClips {
 
 // Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
 // if either track is locked or the spot is taken.
+// Retired (ADR 0008): the app sends SnapMove.
 message MoveClip {
+  option deprecated = true;
   uint64 clip_id = 1;
   uint64 track_id = 2;
   int64 start = 3;
