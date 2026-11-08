@@ -741,7 +741,8 @@ impl Engine {
                     .as_deref()
                     .map(|c| crate::cache::sizes(store, c))
                     .unwrap_or_default();
-                let projects = crate::library::list(store, &dir, &cache)?;
+                let projects =
+                    crate::library::list(store, &dir, &cache, self.cache_dir.as_deref())?;
                 let recovered = self
                     .recovered
                     .take()
@@ -1133,8 +1134,15 @@ impl Engine {
         let dir = self.library.clone().ok_or("no library")?;
         let cache = self.cache_dir.clone().ok_or("no cache folder")?;
         let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
-        // The open project may hold media its file doesn't have yet.
-        let _ = self.autosave();
+        // The open project may hold media its file doesn't have yet. A failure is answered
+        // here, as autosave reports it only once; nothing is cleaned and a retry cleans what
+        // the file holds (cleaning frees space, so a full disk must not block it).
+        if let Some(Event {
+            kind: Some(proto::event::Kind::CommandFailed(failed)),
+        }) = self.autosave()
+        {
+            return Err(failed.reason);
+        }
         let store = self.store()?;
         let (timeline, _) =
             crate::store::load_or_backup(store, &file).map_err(|e| e.to_string())?;

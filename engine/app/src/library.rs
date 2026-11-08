@@ -87,15 +87,17 @@ pub fn take_open(store: &dyn ProjectStore, dir: &Path) -> Option<String> {
 /// with no backup that does, are skipped.
 // ponytail: decodes every project for its duration; keep a summary cache when lists grow
 // long (OVL-015).
-/// `cache` gives each project's [`ProjectSummary::cache_bytes`].
+/// `cache` gives each project's [`ProjectSummary::cache_bytes`]; `cache_dir` is the cache
+/// folder, cleaned of the media of projects purged for good.
 pub fn list(
     store: &dyn ProjectStore,
     dir: &Path,
     cache: &CacheSizes,
+    cache_dir: Option<&Path>,
 ) -> Result<Vec<ProjectSummary>, String> {
     // A newer app's index can't be read here; its projects are still listed.
     let index = match read_index(store, dir) {
-        Ok(index) => purge(store, dir, index),
+        Ok(index) => purge(store, dir, index, cache_dir),
         Err(_) => HashMap::new(),
     };
     let files = store.list(dir).map_err(|e| e.kind().to_string())?;
@@ -120,12 +122,14 @@ pub fn list(
 /// How long Recently deleted keeps a project: 30 days.
 const KEEP_DELETED_MS: i64 = 30 * 24 * 60 * 60 * 1000;
 
-/// Removes for good, with their backups, the projects deleted [`KEEP_DELETED_MS`] ago or
-/// more, and returns the index without them. Best effort: what fails is tried next time.
+/// Removes for good, with their backups and the cache files of their media (in `cache_dir`),
+/// the projects deleted [`KEEP_DELETED_MS`] ago or more, and returns the index without them.
+/// Best effort: what fails is tried next time; caches of a project that won't load stay.
 fn purge(
     store: &dyn ProjectStore,
     dir: &Path,
     mut index: HashMap<String, LibraryEntry>,
+    cache_dir: Option<&Path>,
 ) -> HashMap<String, LibraryEntry> {
     let now = unix_ms(store.now());
     let expired: Vec<String> = index
@@ -136,6 +140,12 @@ fn purge(
     let mut removed = false;
     for id in expired {
         let Some(file) = path(dir, &id) else { continue };
+        // Read before the file goes: its media uris name the cache files.
+        if let (Some(cache_dir), Ok((timeline, _))) =
+            (cache_dir, crate::store::load_or_backup(store, &file))
+        {
+            let _ = crate::cache::clean(store, cache_dir, &timeline);
+        }
         if store.remove_all(&file).is_ok() {
             index.remove(&id);
             removed = true;
