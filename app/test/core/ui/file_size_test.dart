@@ -19,6 +19,31 @@ void main() {
     expect(size(2500000001), '2.5 GB');
   });
 
+  test('a rounding that reaches 1000 steps up a unit', () {
+    String size(int bytes) => fileSize(en, 'en', bytes);
+    expect(size(999499), '999 KB');
+    expect(size(999500), '1 MB');
+    expect(size(999999), '1 MB');
+    expect(size(999999999), '1 GB');
+    expect(fileSize(en, 'en', 999001, rounding: SizeRounding.up), '1 MB');
+  });
+
+  test('up and down round at the shown precision', () {
+    String up(int bytes) =>
+        fileSize(en, 'en', bytes, rounding: SizeRounding.up);
+    String down(int bytes) =>
+        fileSize(en, 'en', bytes, rounding: SizeRounding.down);
+    expect(up(400600000), '401 MB');
+    expect(down(400500000), '400 MB');
+    expect(down(400999999), '400 MB');
+    expect(up(400000000), '400 MB');
+    expect(up(1410000), '1.5 MB');
+    expect(down(1490000), '1.4 MB');
+    expect(down(999999), '999 KB');
+    expect(up(1001), '1.1 KB');
+    expect(down(2300000), '2.3 MB');
+  });
+
   test('bn uses its own digits', () {
     expect(fileSize(bn, 'bn', 1500000), '১.৫ MB');
     expect(fileSize(bn, 'bn', 5), '৫ বাইট');

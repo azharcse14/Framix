@@ -33,45 +33,62 @@ void main() {
     expect(ExportCubit.fromEvent(event), const ExportFailed('encoder'));
   });
 
+  // Needed rounds up and free rounds down at the shown precision, so needed always reads as
+  // more than free (the engine refuses only when needed > free). P1-110.
+  const cases = [
+    (2500000001, 400999999, '2.6 GB', '400 MB'),
+    (400600000, 400500000, '401 MB', '400 MB'),
+  ];
   for (final locale in const [Locale('en'), Locale('bn')]) {
-    testWidgets('the message says how much is needed and free ($locale)', (
-      tester,
-    ) async {
-      final engine = FramixEngine.create();
-      final cubit = SeededExport(engine);
-      addTearDown(() async {
-        await cubit.close();
-        engine.dispose();
-      });
-      final l10n = lookupAppLocalizations(locale);
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: locale,
-          // As in FramixApp: material_ui's delegates know bn.
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            ...GlobalMaterialLocalizations.delegates,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: BlocProvider<ExportCubit>.value(
-            value: cubit,
-            child: Scaffold(appBar: AppBar(actions: const [ExportButtons()])),
+    for (final (needed, free, enNeeded, enFree) in cases) {
+      testWidgets('the message says how much is needed and free '
+          '($locale, $needed > $free)', (tester) async {
+        final engine = FramixEngine.create();
+        final cubit = SeededExport(engine);
+        addTearDown(() async {
+          await cubit.close();
+          engine.dispose();
+        });
+        final l10n = lookupAppLocalizations(locale);
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: locale,
+            // As in FramixApp: material_ui's delegates know bn.
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              ...GlobalMaterialLocalizations.delegates,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BlocProvider<ExportCubit>.value(
+              value: cubit,
+              child: Scaffold(appBar: AppBar(actions: const [ExportButtons()])),
+            ),
           ),
-        ),
-      );
-      cubit.seed(const ExportNoSpace(2500000001, 400999999));
-      await tester.pump();
-      // P1-110: sizes in the shared format, as Home shows them.
-      String size(int bytes) => fileSize(l10n, '$locale', bytes);
-      expect(
-        find.text(l10n.exportNoSpace(size(2500000001), size(400999999))),
-        findsOneWidget,
-      );
-      if (locale.languageCode == 'en') {
-        expect(find.textContaining('2.5 GB'), findsOneWidget);
-        expect(find.textContaining('401 MB'), findsOneWidget);
-      }
-      expect(find.text(l10n.exportFailed), findsNothing);
-    });
+        );
+        cubit.seed(ExportNoSpace(needed, free));
+        await tester.pump();
+        final neededText = fileSize(
+          l10n,
+          '$locale',
+          needed,
+          rounding: SizeRounding.up,
+        );
+        final freeText = fileSize(
+          l10n,
+          '$locale',
+          free,
+          rounding: SizeRounding.down,
+        );
+        expect(neededText, isNot(freeText));
+        if (locale.languageCode == 'en') {
+          expect((neededText, freeText), (enNeeded, enFree));
+        }
+        expect(
+          find.text(l10n.exportNoSpace(neededText, freeText)),
+          findsOneWidget,
+        );
+        expect(find.text(l10n.exportFailed), findsNothing);
+      });
+    }
   }
 }
