@@ -638,6 +638,7 @@ impl Engine {
             Ok(Reply::Projects(projects)) => Event {
                 kind: Some(proto::event::Kind::ProjectList(proto::ProjectList {
                     projects,
+                    folders: Vec::new(),
                 })),
             },
             Ok(Reply::Accepted) => Event {
@@ -939,6 +940,9 @@ impl Engine {
             command::Kind::SetLoop(op) => {
                 self.loop_range = (op.end > op.start).then_some((Time(op.start), Time(op.end)));
                 Ok(Reply::Timeline)
+            }
+            command::Kind::RenameProject(_) | command::Kind::MoveProject(_) => {
+                Err("not implemented".into())
             }
             command::Kind::Pause(_) => {
                 self.pause();

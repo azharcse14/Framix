@@ -88,5 +88,6 @@ fn summary(store: &dyn ProjectStore, file: &Path, modified: SystemTime) -> Optio
         modified_ms,
         // Timeline caps clips far below u32::MAX (project::MAX_CLIPS).
         clips: u32::try_from(clips).unwrap_or(u32::MAX),
+        ..ProjectSummary::default()
     })
 }

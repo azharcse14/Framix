@@ -47,6 +47,8 @@ message Command {
     Play play = 38;
     Pause pause = 39;
     SetLoop set_loop = 40;
+    RenameProject rename_project = 41;
+    MoveProject move_project = 42;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -231,7 +233,39 @@ message OpenLibrary {
 
 // Saves the current project if it changed, then answers ProjectList. Refused without a
 // library.
-message ListProjects {}
+message ListProjects {
+  // Order of the list; unspecified is newest saved first.
+  ProjectSort sort = 1;
+  // Only projects whose name contains this (ignoring case and surrounding spaces); empty: all.
+  string query = 2;
+  // Only projects in this folder (MoveProject); empty: every project.
+  string folder = 3;
+}
+
+// How ListProjects orders projects. Ties go newest saved first.
+enum ProjectSort {
+  // Newest saved first.
+  PROJECT_SORT_UNSPECIFIED = 0;
+  // By name, A to Z ignoring case; unnamed projects last.
+  PROJECT_SORT_NAME = 1;
+  // Largest first (ProjectSummary.bytes).
+  PROJECT_SORT_SIZE = 2;
+}
+
+// Names library project `id` (ProjectSummary.id). The name is trimmed; empty clears it, more
+// than 80 characters or a control character is refused. Answered CommandAccepted.
+message RenameProject {
+  string id = 1;
+  string name = 2;
+}
+
+// Puts library project `id` in `folder`, a single-level label like a name (trimmed, at most
+// 40 characters, no control characters); empty takes it out of its folder. A folder exists
+// while a project is in it. Answered CommandAccepted.
+message MoveProject {
+  string id = 1;
+  string folder = 2;
+}
 
 // Sets the canvas aspect ratio (undoable). Refused unless both sides are 1..=100 and the
 // ratio lies between 1:3 and 3:1. Stored reduced (18:32 becomes 9:16).
@@ -581,6 +615,8 @@ message ProjectSaved {}
 // Answers ListProjects: the library's readable projects, most recently saved first.
 message ProjectList {
   repeated ProjectSummary projects = 1;
+  // Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
+  repeated string folders = 2;
 }
 
 // One library project as Home lists it.
@@ -594,6 +630,12 @@ message ProjectSummary {
   int64 modified_ms = 4;
   // Clips on every track.
   uint32 clips = 5;
+  // RenameProject's name; empty: unnamed (the UI shows a placeholder).
+  string name = 6;
+  // MoveProject's folder; empty: none.
+  string folder = 7;
+  // Size of the project file.
+  uint64 bytes = 8;
 }
 
 // A command was rejected; the timeline is unchanged. `reason` is developer text for logs,

@@ -81,6 +81,21 @@ final $typed_data.Uint8List trackKindDescriptor = $convert.base64Decode(
     'CglUcmFja0tpbmQSGgoWVFJBQ0tfS0lORF9VTlNQRUNJRklFRBAAEhQKEFRSQUNLX0tJTkRfVk'
     'lERU8QARIUChBUUkFDS19LSU5EX0FVRElPEAI=');
 
+@$core.Deprecated('Use projectSortDescriptor instead')
+const ProjectSort$json = {
+  '1': 'ProjectSort',
+  '2': [
+    {'1': 'PROJECT_SORT_UNSPECIFIED', '2': 0},
+    {'1': 'PROJECT_SORT_NAME', '2': 1},
+    {'1': 'PROJECT_SORT_SIZE', '2': 2},
+  ],
+};
+
+/// Descriptor for `ProjectSort`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List projectSortDescriptor = $convert.base64Decode(
+    'CgtQcm9qZWN0U29ydBIcChhQUk9KRUNUX1NPUlRfVU5TUEVDSUZJRUQQABIVChFQUk9KRUNUX1'
+    'NPUlRfTkFNRRABEhUKEVBST0pFQ1RfU09SVF9TSVpFEAI=');
+
 @$core.Deprecated('Use clipEdgeDescriptor instead')
 const ClipEdge$json = {
   '1': 'ClipEdge',
@@ -467,6 +482,24 @@ const Command$json = {
       '9': 0,
       '10': 'setLoop'
     },
+    {
+      '1': 'rename_project',
+      '3': 41,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.RenameProject',
+      '9': 0,
+      '10': 'renameProject'
+    },
+    {
+      '1': 'move_project',
+      '3': 42,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.MoveProject',
+      '9': 0,
+      '10': 'moveProject'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -518,8 +551,10 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
     'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSJQoEcGxheRgmIAEoCzIPLmZyYW1peC52MS5QbGF5SA'
     'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USLwoIc2V0'
-    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEg4KAmlkGBsgASgEUg'
-    'JpZEIGCgRraW5k');
+    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEkEKDnJlbmFtZV9wcm'
+    '9qZWN0GCkgASgLMhguZnJhbWl4LnYxLlJlbmFtZVByb2plY3RIAFINcmVuYW1lUHJvamVjdBI7'
+    'Cgxtb3ZlX3Byb2plY3QYKiABKAsyFi5mcmFtaXgudjEuTW92ZVByb2plY3RIAFILbW92ZVByb2'
+    'plY3QSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -852,11 +887,50 @@ final $typed_data.Uint8List openLibraryDescriptor =
 @$core.Deprecated('Use listProjectsDescriptor instead')
 const ListProjects$json = {
   '1': 'ListProjects',
+  '2': [
+    {
+      '1': 'sort',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.ProjectSort',
+      '10': 'sort'
+    },
+    {'1': 'query', '3': 2, '4': 1, '5': 9, '10': 'query'},
+    {'1': 'folder', '3': 3, '4': 1, '5': 9, '10': 'folder'},
+  ],
 };
 
 /// Descriptor for `ListProjects`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listProjectsDescriptor =
-    $convert.base64Decode('CgxMaXN0UHJvamVjdHM=');
+final $typed_data.Uint8List listProjectsDescriptor = $convert.base64Decode(
+    'CgxMaXN0UHJvamVjdHMSKgoEc29ydBgBIAEoDjIWLmZyYW1peC52MS5Qcm9qZWN0U29ydFIEc2'
+    '9ydBIUCgVxdWVyeRgCIAEoCVIFcXVlcnkSFgoGZm9sZGVyGAMgASgJUgZmb2xkZXI=');
+
+@$core.Deprecated('Use renameProjectDescriptor instead')
+const RenameProject$json = {
+  '1': 'RenameProject',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
+  ],
+};
+
+/// Descriptor for `RenameProject`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List renameProjectDescriptor = $convert.base64Decode(
+    'Cg1SZW5hbWVQcm9qZWN0Eg4KAmlkGAEgASgJUgJpZBISCgRuYW1lGAIgASgJUgRuYW1l');
+
+@$core.Deprecated('Use moveProjectDescriptor instead')
+const MoveProject$json = {
+  '1': 'MoveProject',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'folder', '3': 2, '4': 1, '5': 9, '10': 'folder'},
+  ],
+};
+
+/// Descriptor for `MoveProject`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List moveProjectDescriptor = $convert.base64Decode(
+    'CgtNb3ZlUHJvamVjdBIOCgJpZBgBIAEoCVICaWQSFgoGZm9sZGVyGAIgASgJUgZmb2xkZXI=');
 
 @$core.Deprecated('Use setAspectRatioDescriptor instead')
 const SetAspectRatio$json = {
@@ -1591,13 +1665,14 @@ const ProjectList$json = {
       '6': '.framix.v1.ProjectSummary',
       '10': 'projects'
     },
+    {'1': 'folders', '3': 2, '4': 3, '5': 9, '10': 'folders'},
   ],
 };
 
 /// Descriptor for `ProjectList`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List projectListDescriptor = $convert.base64Decode(
     'CgtQcm9qZWN0TGlzdBI1Cghwcm9qZWN0cxgBIAMoCzIZLmZyYW1peC52MS5Qcm9qZWN0U3VtbW'
-    'FyeVIIcHJvamVjdHM=');
+    'FyeVIIcHJvamVjdHMSGAoHZm9sZGVycxgCIAMoCVIHZm9sZGVycw==');
 
 @$core.Deprecated('Use projectSummaryDescriptor instead')
 const ProjectSummary$json = {
@@ -1608,6 +1683,9 @@ const ProjectSummary$json = {
     {'1': 'ticks_per_second', '3': 3, '4': 1, '5': 3, '10': 'ticksPerSecond'},
     {'1': 'modified_ms', '3': 4, '4': 1, '5': 3, '10': 'modifiedMs'},
     {'1': 'clips', '3': 5, '4': 1, '5': 13, '10': 'clips'},
+    {'1': 'name', '3': 6, '4': 1, '5': 9, '10': 'name'},
+    {'1': 'folder', '3': 7, '4': 1, '5': 9, '10': 'folder'},
+    {'1': 'bytes', '3': 8, '4': 1, '5': 4, '10': 'bytes'},
   ],
 };
 
@@ -1615,7 +1693,9 @@ const ProjectSummary$json = {
 final $typed_data.Uint8List projectSummaryDescriptor = $convert.base64Decode(
     'Cg5Qcm9qZWN0U3VtbWFyeRIOCgJpZBgBIAEoCVICaWQSGgoIZHVyYXRpb24YAiABKANSCGR1cm'
     'F0aW9uEigKEHRpY2tzX3Blcl9zZWNvbmQYAyABKANSDnRpY2tzUGVyU2Vjb25kEh8KC21vZGlm'
-    'aWVkX21zGAQgASgDUgptb2RpZmllZE1zEhQKBWNsaXBzGAUgASgNUgVjbGlwcw==');
+    'aWVkX21zGAQgASgDUgptb2RpZmllZE1zEhQKBWNsaXBzGAUgASgNUgVjbGlwcxISCgRuYW1lGA'
+    'YgASgJUgRuYW1lEhYKBmZvbGRlchgHIAEoCVIGZm9sZGVyEhQKBWJ5dGVzGAggASgEUgVieXRl'
+    'cw==');
 
 @$core.Deprecated('Use commandFailedDescriptor instead')
 const CommandFailed$json = {

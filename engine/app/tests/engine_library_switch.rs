@@ -80,7 +80,7 @@ fn add_track(engine: &mut Engine) -> usize {
 }
 
 fn list(engine: &mut Engine) -> Vec<ProjectSummary> {
-    match run(engine, command::Kind::ListProjects(ListProjects {})) {
+    match run(engine, command::Kind::ListProjects(ListProjects::default())) {
         Some(event::Kind::ProjectList(l)) => l.projects,
         other => panic!("expected ProjectList, got {other:?}"),
     }

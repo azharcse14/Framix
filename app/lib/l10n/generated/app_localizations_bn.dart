@@ -312,4 +312,49 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'আপনার প্রথম ভিডিও এখান থেকে শুরু';
+
+  @override
+  String get untitledProject => 'নামহীন প্রজেক্ট';
+
+  @override
+  String get projectActions => 'প্রজেক্টের অপশন';
+
+  @override
+  String get renameProject => 'নাম বদলান';
+
+  @override
+  String get projectName => 'প্রজেক্টের নাম';
+
+  @override
+  String get moveToFolder => 'ফোল্ডারে সরান';
+
+  @override
+  String get folderName => 'ফোল্ডারের নাম';
+
+  @override
+  String get save => 'সেভ করুন';
+
+  @override
+  String get cancel => 'বাতিল';
+
+  @override
+  String get searchProjects => 'প্রজেক্ট খুঁজুন';
+
+  @override
+  String get sortProjects => 'প্রজেক্ট সাজান';
+
+  @override
+  String get sortByDate => 'সম্পাদনার তারিখ';
+
+  @override
+  String get sortByName => 'নাম';
+
+  @override
+  String get sortBySize => 'সাইজ';
+
+  @override
+  String get allProjects => 'সব';
+
+  @override
+  String get noMatchingProjects => 'কোনো প্রজেক্ট মেলেনি।';
 }

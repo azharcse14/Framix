@@ -315,4 +315,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'Your first video starts here';
+
+  @override
+  String get untitledProject => 'Untitled project';
+
+  @override
+  String get projectActions => 'Project options';
+
+  @override
+  String get renameProject => 'Rename';
+
+  @override
+  String get projectName => 'Project name';
+
+  @override
+  String get moveToFolder => 'Move to folder';
+
+  @override
+  String get folderName => 'Folder name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get searchProjects => 'Search projects';
+
+  @override
+  String get sortProjects => 'Sort projects';
+
+  @override
+  String get sortByDate => 'Date edited';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortBySize => 'Size';
+
+  @override
+  String get allProjects => 'All';
+
+  @override
+  String get noMatchingProjects => 'No projects match.';
 }
