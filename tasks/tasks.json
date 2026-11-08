@@ -14876,6 +14876,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "P1-108",
+   "section": "P1",
+   "group": null,
+   "title": "Flaky under CPU load: home_trash_test 'a deleted project waits in Recently deleted' fails in pumpUntilGone (2 s poll budget) during full flutter test while another build runs; passes alone and on an idle machine. Find why the delete reply is slow or give the poll helpers a load-safe budget",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

@@ -485,6 +485,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-105` Proto docs of SnapMove/SnapTrim/TrimToPlayhead/MoveClips describe their rules via retired MoveClip/TrimClip; spell the rule out (ADR 0008 review nit) \[Rust\]
 - [ ] `P1-106` Widget tests: Clear loop shows with two clips selected and with another clip selected, hides on the looped clip (P1-100 review); pass looping into _ClipActions \[Dart\]
 - [ ] `P1-107` Library index follow-ups: LibraryIndex format-1 fixture; tests for the write-side MAX_INDEX_BYTES refusal and for retry() clearing the Home search \[Rust\] \[Dart\]
+- [ ] `P1-108` Flaky under CPU load: home_trash_test 'a deleted project waits in Recently deleted' fails in pumpUntilGone (2 s poll budget) during full flutter test while another build runs; passes alone and on an idle machine. Find why the delete reply is slow or give the poll helpers a load-safe budget \[Dart\]
 
 ## Phase 2: Audio
 
