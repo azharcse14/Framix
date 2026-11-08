@@ -61,6 +61,9 @@ enum Command_Kind {
   play,
   pause,
   setLoop,
+  removeClips,
+  moveClips,
+  duplicateClips,
   notSet
 }
 
@@ -107,6 +110,9 @@ class Command extends $pb.GeneratedMessage {
     Play? play,
     Pause? pause,
     SetLoop? setLoop,
+    RemoveClips? removeClips,
+    MoveClips? moveClips,
+    DuplicateClips? duplicateClips,
   }) {
     final result = Command._();
     if (addTrack != null) result.addTrack = addTrack;
@@ -150,6 +156,9 @@ class Command extends $pb.GeneratedMessage {
     if (play != null) result.play = play;
     if (pause != null) result.pause = pause;
     if (setLoop != null) result.setLoop = setLoop;
+    if (removeClips != null) result.removeClips = removeClips;
+    if (moveClips != null) result.moveClips = moveClips;
+    if (duplicateClips != null) result.duplicateClips = duplicateClips;
     return result;
   }
 
@@ -202,6 +211,9 @@ class Command extends $pb.GeneratedMessage {
     38: Command_Kind.play,
     39: Command_Kind.pause,
     40: Command_Kind.setLoop,
+    41: Command_Kind.removeClips,
+    42: Command_Kind.moveClips,
+    43: Command_Kind.duplicateClips,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -247,7 +259,10 @@ class Command extends $pb.GeneratedMessage {
       37,
       38,
       39,
-      40
+      40,
+      41,
+      42,
+      43
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -330,6 +345,12 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Pause.$_createMessage)
     ..aOM<SetLoop>(40, _omitFieldNames ? '' : 'setLoop',
         subBuilder: SetLoop.$_createMessage)
+    ..aOM<RemoveClips>(41, _omitFieldNames ? '' : 'removeClips',
+        subBuilder: RemoveClips.$_createMessage)
+    ..aOM<MoveClips>(42, _omitFieldNames ? '' : 'moveClips',
+        subBuilder: MoveClips.$_createMessage)
+    ..aOM<DuplicateClips>(43, _omitFieldNames ? '' : 'duplicateClips',
+        subBuilder: DuplicateClips.$_createMessage)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -391,6 +412,9 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(38)
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
+  @$pb.TagNumber(43)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -431,6 +455,9 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(38)
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
+  @$pb.TagNumber(43)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -871,6 +898,39 @@ class Command extends $pb.GeneratedMessage {
   void clearSetLoop() => $_clearField(40);
   @$pb.TagNumber(40)
   SetLoop ensureSetLoop() => $_ensure(39);
+
+  @$pb.TagNumber(41)
+  RemoveClips get removeClips => $_getN(40);
+  @$pb.TagNumber(41)
+  set removeClips(RemoveClips value) => $_setField(41, value);
+  @$pb.TagNumber(41)
+  $core.bool hasRemoveClips() => $_has(40);
+  @$pb.TagNumber(41)
+  void clearRemoveClips() => $_clearField(41);
+  @$pb.TagNumber(41)
+  RemoveClips ensureRemoveClips() => $_ensure(40);
+
+  @$pb.TagNumber(42)
+  MoveClips get moveClips => $_getN(41);
+  @$pb.TagNumber(42)
+  set moveClips(MoveClips value) => $_setField(42, value);
+  @$pb.TagNumber(42)
+  $core.bool hasMoveClips() => $_has(41);
+  @$pb.TagNumber(42)
+  void clearMoveClips() => $_clearField(42);
+  @$pb.TagNumber(42)
+  MoveClips ensureMoveClips() => $_ensure(41);
+
+  @$pb.TagNumber(43)
+  DuplicateClips get duplicateClips => $_getN(42);
+  @$pb.TagNumber(43)
+  set duplicateClips(DuplicateClips value) => $_setField(43, value);
+  @$pb.TagNumber(43)
+  $core.bool hasDuplicateClips() => $_has(42);
+  @$pb.TagNumber(43)
+  void clearDuplicateClips() => $_clearField(43);
+  @$pb.TagNumber(43)
+  DuplicateClips ensureDuplicateClips() => $_ensure(42);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -3135,6 +3195,177 @@ class SetTrackFlags extends $pb.GeneratedMessage {
   $core.bool hasLocked() => $_has(3);
   @$pb.TagNumber(4)
   void clearLocked() => $_clearField(4);
+}
+
+/// Removes several clips as one undo step; all or nothing. Refused when the list is empty,
+/// names a clip twice, or is longer than the timeline's clip count.
+class RemoveClips extends $pb.GeneratedMessage {
+  factory RemoveClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+  }) {
+    final result = RemoveClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    return result;
+  }
+
+  RemoveClips._();
+
+  factory RemoveClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClips()..mergeFromBuffer(data, registry);
+  factory RemoveClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RemoveClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RemoveClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClips copyWith(void Function(RemoveClips) updates) =>
+      super.copyWith((message) => updates(message as RemoveClips))
+          as RemoveClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RemoveClips() / RemoveClips.new instead')
+  static RemoveClips create() => RemoveClips._();
+  static $pb.GeneratedMessage $_createMessage() => RemoveClips._();
+  @$core.override
+  RemoveClips createEmptyInstance() => RemoveClips._();
+  @$core.pragma('dart2js:noInline')
+  static RemoveClips getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RemoveClips>(
+          RemoveClips.$_createMessage);
+  static RemoveClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+}
+
+/// Shifts several clips by `by` ticks, each on its own track, as one undo step; all or nothing
+/// (refused like MoveClip for any clip, and like RemoveClips for the list). Selected clips may
+/// take each other's old spots.
+class MoveClips extends $pb.GeneratedMessage {
+  factory MoveClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+    $fixnum.Int64? by,
+  }) {
+    final result = MoveClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    if (by != null) result.by = by;
+    return result;
+  }
+
+  MoveClips._();
+
+  factory MoveClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClips()..mergeFromBuffer(data, registry);
+  factory MoveClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MoveClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MoveClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..aInt64(2, _omitFieldNames ? '' : 'by')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClips copyWith(void Function(MoveClips) updates) =>
+      super.copyWith((message) => updates(message as MoveClips)) as MoveClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MoveClips() / MoveClips.new instead')
+  static MoveClips create() => MoveClips._();
+  static $pb.GeneratedMessage $_createMessage() => MoveClips._();
+  @$core.override
+  MoveClips createEmptyInstance() => MoveClips._();
+  @$core.pragma('dart2js:noInline')
+  static MoveClips getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MoveClips>(MoveClips.$_createMessage);
+  static MoveClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get by => $_getI64(1);
+  @$pb.TagNumber(2)
+  set by($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBy() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBy() => $_clearField(2);
+}
+
+/// Copies several clips as one block right after the selection (each copy starts later by the
+/// selection's span: last end - first start), each on its own track; one undo step, all or
+/// nothing. Refused if a copy's space is taken, and like RemoveClips for the list.
+class DuplicateClips extends $pb.GeneratedMessage {
+  factory DuplicateClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+  }) {
+    final result = DuplicateClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    return result;
+  }
+
+  DuplicateClips._();
+
+  factory DuplicateClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClips()..mergeFromBuffer(data, registry);
+  factory DuplicateClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DuplicateClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: DuplicateClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClips copyWith(void Function(DuplicateClips) updates) =>
+      super.copyWith((message) => updates(message as DuplicateClips))
+          as DuplicateClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DuplicateClips() / DuplicateClips.new instead')
+  static DuplicateClips create() => DuplicateClips._();
+  static $pb.GeneratedMessage $_createMessage() => DuplicateClips._();
+  @$core.override
+  DuplicateClips createEmptyInstance() => DuplicateClips._();
+  @$core.pragma('dart2js:noInline')
+  static DuplicateClips getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DuplicateClips>(
+          DuplicateClips.$_createMessage);
+  static DuplicateClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
 }
 
 /// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused

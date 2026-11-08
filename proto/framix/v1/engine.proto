@@ -47,6 +47,9 @@ message Command {
     Play play = 38;
     Pause pause = 39;
     SetLoop set_loop = 40;
+    RemoveClips remove_clips = 41;
+    MoveClips move_clips = 42;
+    DuplicateClips duplicate_clips = 43;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -318,6 +321,27 @@ message SetTrackFlags {
   optional bool muted = 2;
   optional bool hidden = 3;
   optional bool locked = 4;
+}
+
+// Removes several clips as one undo step; all or nothing. Refused when the list is empty,
+// names a clip twice, or is longer than the timeline's clip count.
+message RemoveClips {
+  repeated uint64 clip_ids = 1;
+}
+
+// Shifts several clips by `by` ticks, each on its own track, as one undo step; all or nothing
+// (refused like MoveClip for any clip, and like RemoveClips for the list). Selected clips may
+// take each other's old spots.
+message MoveClips {
+  repeated uint64 clip_ids = 1;
+  int64 by = 2;
+}
+
+// Copies several clips as one block right after the selection (each copy starts later by the
+// selection's span: last end - first start), each on its own track; one undo step, all or
+// nothing. Refused if a copy's space is taken, and like RemoveClips for the list.
+message DuplicateClips {
+  repeated uint64 clip_ids = 1;
 }
 
 // Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused

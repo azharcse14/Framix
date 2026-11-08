@@ -91,10 +91,20 @@ class _TimelineViewState extends State<TimelineView> {
     Clip clip,
     Track from,
     Offset by,
+    ClipSelection selection,
     double laneHeight,
     int Function(double px) ticks,
   ) {
     final tracks = widget.timeline.tracks;
+    // A clip of a multi-selection takes the others along, each on its own track.
+    final selected = _selectedClips(tracks, selection.ids);
+    if (selected.length > 1 && selection.contains(clip.id.toInt())) {
+      context.read<TimelineCubit>().moveClips(
+        selected.map((s) => s.$2),
+        ticks(by.dx),
+      );
+      return;
+    }
     final index = tracks.indexWhere((t) => t.id == from.id);
     // The track went away during the drag.
     if (index < 0) return;
@@ -238,14 +248,22 @@ class _TimelineViewState extends State<TimelineView> {
                                                       _Lane(
                                                         key: ValueKey(track.id),
                                                         track: track,
+                                                        tracks: widget
+                                                            .timeline
+                                                            .tracks,
                                                         height: laneHeight,
                                                         px: px,
                                                         ticks: ticks,
-                                                        onMove: (clip, by) =>
-                                                            _move(
+                                                        onMove:
+                                                            (
+                                                              clip,
+                                                              by,
+                                                              selection,
+                                                            ) => _move(
                                                               clip,
                                                               track,
                                                               by,
+                                                              selection,
                                                               laneHeight,
                                                               ticks,
                                                             ),
@@ -415,97 +433,123 @@ class _ClipActions extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final cubit = context.read<TimelineCubit>();
     final selection = context.watch<ClipSelectionCubit>();
-    final found = _find(selection.state);
+    final selected = _selectedClips(timeline.tracks, selection.state.ids);
     // The row's height stays reserved, so selecting never moves the lanes under the finger.
-    if (found == null) return const SizedBox(height: _rowHeight);
-    final (track, clip) = found;
+    if (selected.isEmpty) return const SizedBox(height: _rowHeight);
+    final more = IconButton(
+      tooltip: l10n.selectMore,
+      icon: const Icon(Icons.library_add_check_outlined),
+      selectedIcon: const Icon(Icons.library_add_check),
+      isSelected: selection.state.more,
+      onPressed: selection.toggleMore,
+    );
+    if (selected.length > 1) {
+      final clips = selected.map((s) => s.$2);
+      return _row([
+        more,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
+          child: Text(l10n.selectedClipCount(selected.length)),
+        ),
+        IconButton(
+          tooltip: l10n.duplicateClip,
+          icon: const Icon(Icons.control_point_duplicate),
+          onPressed: () => cubit.duplicateClips(clips),
+        ),
+        IconButton(
+          tooltip: l10n.deleteClip,
+          icon: const Icon(Icons.delete_outline),
+          onPressed: () {
+            cubit.removeClips(clips);
+            selection.clear();
+          },
+        ),
+      ]);
+    }
+    final (track, clip) = selected.single;
     final end = clip.start + clip.duration;
     // The neighbour that starts where this clip ends, if any.
     final next = track.clips.where((c) => c.start == end).firstOrNull;
     // Playback repeats exactly this clip.
     final looping = timeline.loopStart == clip.start && timeline.loopEnd == end;
-    // One row that scrolls sideways on a narrow phone, so its height never changes.
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: l10n.splitClip,
-            icon: const Icon(Icons.content_cut),
-            onPressed: () =>
-                cubit.splitClip(clip, context.read<PlayheadCubit>().state),
-          ),
-          IconButton(
-            tooltip: l10n.trimStartToPlayhead,
-            icon: const Icon(Icons.first_page),
-            onPressed: () =>
-                cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_START),
-          ),
-          IconButton(
-            tooltip: l10n.trimEndToPlayhead,
-            icon: const Icon(Icons.last_page),
-            onPressed: () => cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_END),
-          ),
-          IconButton(
-            tooltip: l10n.loopClip,
-            icon: const Icon(Icons.repeat),
-            selectedIcon: const Icon(Icons.repeat_on),
-            isSelected: looping,
-            onPressed: () =>
-                looping ? cubit.clearLoop() : cubit.setLoop(clip.start, end),
-          ),
-          IconButton(
-            tooltip: l10n.replaceClip,
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: () => cubit.replaceClip(
-              clip,
-              context.read<MediaImporter>().pickFromGallery,
-            ),
-          ),
-          IconButton(
-            tooltip: l10n.duplicateClip,
-            icon: const Icon(Icons.control_point_duplicate),
-            onPressed: () => cubit.duplicateClip(clip),
-          ),
-          // A locked track's photos keep their length, so tapping there would look dead.
-          if (clip.mediaKind == MediaKind.MEDIA_KIND_IMAGE && !track.locked)
-            IconButton(
-              tooltip: l10n.applyDurationToAllPhotos,
-              icon: const Icon(Icons.timer_outlined),
-              onPressed: () => cubit.applyDurationToAllPhotos(clip),
-            ),
-          IconButton(
-            tooltip: l10n.mergeClip,
-            icon: const Icon(Icons.call_merge),
-            onPressed: next == null || !clip.mergeableWithNext
-                ? null
-                : () => cubit.mergeClips(clip, next),
-          ),
-          IconButton(
-            tooltip: l10n.deleteClip,
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () {
-              cubit.removeClip(clip);
-              selection.clear();
-            },
-          ),
-        ],
+    return _row([
+      more,
+      IconButton(
+        tooltip: l10n.splitClip,
+        icon: const Icon(Icons.content_cut),
+        onPressed: () =>
+            cubit.splitClip(clip, context.read<PlayheadCubit>().state),
       ),
-    );
+      IconButton(
+        tooltip: l10n.trimStartToPlayhead,
+        icon: const Icon(Icons.first_page),
+        onPressed: () => cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_START),
+      ),
+      IconButton(
+        tooltip: l10n.trimEndToPlayhead,
+        icon: const Icon(Icons.last_page),
+        onPressed: () => cubit.trimToPlayhead(clip, ClipEdge.CLIP_EDGE_END),
+      ),
+      IconButton(
+        tooltip: l10n.loopClip,
+        icon: const Icon(Icons.repeat),
+        selectedIcon: const Icon(Icons.repeat_on),
+        isSelected: looping,
+        onPressed: () =>
+            looping ? cubit.clearLoop() : cubit.setLoop(clip.start, end),
+      ),
+      IconButton(
+        tooltip: l10n.replaceClip,
+        icon: const Icon(Icons.swap_horiz),
+        onPressed: () => cubit.replaceClip(
+          clip,
+          context.read<MediaImporter>().pickFromGallery,
+        ),
+      ),
+      IconButton(
+        tooltip: l10n.duplicateClip,
+        icon: const Icon(Icons.control_point_duplicate),
+        onPressed: () => cubit.duplicateClip(clip),
+      ),
+      // A locked track's photos keep their length, so tapping there would look dead.
+      if (clip.mediaKind == MediaKind.MEDIA_KIND_IMAGE && !track.locked)
+        IconButton(
+          tooltip: l10n.applyDurationToAllPhotos,
+          icon: const Icon(Icons.timer_outlined),
+          onPressed: () => cubit.applyDurationToAllPhotos(clip),
+        ),
+      IconButton(
+        tooltip: l10n.mergeClip,
+        icon: const Icon(Icons.call_merge),
+        onPressed: next == null || !clip.mergeableWithNext
+            ? null
+            : () => cubit.mergeClips(clip, next),
+      ),
+      IconButton(
+        tooltip: l10n.deleteClip,
+        icon: const Icon(Icons.delete_outline),
+        onPressed: () {
+          cubit.removeClip(clip);
+          selection.clear();
+        },
+      ),
+    ]);
   }
 
-  /// The selected clip and its track; null if none is selected or it is gone.
-  (Track, Clip)? _find(int id) {
-    if (id == 0) return null;
-    for (final track in timeline.tracks) {
-      for (final clip in track.clips) {
-        if (clip.id.toInt() == id) return (track, clip);
-      }
-    }
-    return null;
-  }
+  /// One row that scrolls sideways on a narrow phone, so its height never changes.
+  static Widget _row(List<Widget> children) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
+    child: Row(children: children),
+  );
 }
+
+/// The selected clips the timeline still has, with their tracks, in track then time order.
+List<(Track, Clip)> _selectedClips(Iterable<Track> tracks, Set<int> ids) => [
+  for (final track in tracks)
+    for (final clip in track.clips)
+      if (ids.contains(clip.id.toInt())) (track, clip),
+];
 
 /// The engine's 0xRRGGBBAA as an opaque Flutter color, as the renderer draws it.
 Color _rgba(int rgba) => Color(0xff000000 | (rgba >> 8));
@@ -630,6 +674,7 @@ class _Lane extends StatelessWidget {
   const _Lane({
     super.key,
     required this.track,
+    required this.tracks,
     required this.height,
     required this.px,
     required this.ticks,
@@ -638,12 +683,15 @@ class _Lane extends StatelessWidget {
   });
 
   final Track track;
+
+  /// Every track, to see what of the selection the timeline still has.
+  final List<Track> tracks;
   final double height;
   final double Function(int ticks) px;
   final int Function(double px) ticks;
 
-  /// A clip was long-pressed and dragged by an offset in pixels.
-  final void Function(Clip clip, Offset by) onMove;
+  /// A clip was long-pressed and dragged by an offset in pixels, with what was selected.
+  final void Function(Clip clip, Offset by, ClipSelection selection) onMove;
 
   /// Smallest touch target (docs/design-system.md).
   static const _minTarget = 48.0;
@@ -654,10 +702,13 @@ class _Lane extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final selection = context.watch<ClipSelectionCubit>();
     final cubit = context.read<TimelineCubit>();
+    // Trim handles belong to a single selected clip the timeline still has (any track).
+    final live = _selectedClips(tracks, selection.state.ids);
+    final single = live.length == 1 ? live.single.$2.id.toInt() : 0;
     ClipBox box(Clip clip) => ClipBox(
       width: px(clip.duration.toInt()),
       audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
-      selected: selection.state == clip.id.toInt(),
+      selected: selection.state.contains(clip.id.toInt()),
       fill: clip.mediaKind == MediaKind.MEDIA_KIND_COLOR
           ? _rgba(clip.color)
           : null,
@@ -680,11 +731,11 @@ class _Lane extends StatelessWidget {
               bottom: FramixSpace.s,
               child: Semantics(
                 button: true,
-                selected: selection.state == clip.id.toInt(),
+                selected: selection.state.contains(clip.id.toInt()),
                 label: l10n.clip,
                 child: _MovableClip(
-                  onTap: () => selection.toggle(clip.id.toInt()),
-                  onMove: (by) => onMove(clip, by),
+                  onTap: () => selection.tap(clip.id.toInt()),
+                  onMove: (by) => onMove(clip, by, selection.state),
                   child: box(clip),
                 ),
               ),
@@ -701,8 +752,8 @@ class _Lane extends StatelessWidget {
                 width: _minTarget,
                 child: ExcludeSemantics(
                   child: _MovableClip(
-                    onTap: () => selection.toggle(clip.id.toInt()),
-                    onMove: (by) => onMove(clip, by),
+                    onTap: () => selection.tap(clip.id.toInt()),
+                    onMove: (by) => onMove(clip, by, selection.state),
                     // The clip itself follows the finger, set in the lane as above.
                     ghost: Padding(
                       padding: const EdgeInsets.only(top: FramixSpace.s),
@@ -717,7 +768,8 @@ class _Lane extends StatelessWidget {
               ),
           // Drawn after the clips so they take touches at the edges.
           for (final clip in track.clips)
-            if (selection.state == clip.id.toInt()) ...[
+            // Trim handles belong to a single selected clip.
+            if (single == clip.id.toInt()) ...[
               _TrimHandle(
                 // Left of the clip, clamped into the lane for a clip at 0.
                 left: math.max(0, px(clip.start.toInt()) - _TrimHandle.size),

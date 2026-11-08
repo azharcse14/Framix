@@ -1369,11 +1369,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": "1b",
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "fe7c54e",
+   "branch": "p1-024-multi-select",
    "notes": [],
    "source": "plan"
   },
@@ -14694,6 +14694,44 @@
    "section": "P1",
    "group": null,
    "title": "Widget test: trimming a looped clip keeps the ruler band on the engine's loop range",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-102",
+   "section": "P1",
+   "group": null,
+   "title": "Multi-select drag: the ghost follows the finger vertically but the drop ignores dy; lock it to the horizontal axis (or move tracks)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-103",
+   "section": "P1",
+   "group": null,
+   "title": "ClipSelectionCubit keeps ids of clips the timeline no longer has; drop them on TimelineChanged so tap/selection logic matches what is shown",
    "tags": [
     "Dart"
    ],

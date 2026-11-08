@@ -392,7 +392,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-021` Lazy thumbnail strip generation (background thread) \[Rust\]
 - [x] `P1-022` Snapping ar haptic feedback \[Dart\]
 - [x] `P1-023` Undo/redo (command pattern) \[Rust\]
-- [ ] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
+- [x] `P1-024` **1b:** Multi-select clip (ekshathe move, delete, copy) \[Dart\]\[Rust\]
 - [x] `P1-025` **1b:** Frame-by-frame nudge (ek frame shamne/pichhe), precise trim \[Dart\]\[Rust\]
 - [x] `P1-026` **1b:** Track mute, hide, lock \[Rust\]\[Dart\]
 - [x] `P1-027` **1b:** Selection loop playback (ekta ongsho bar bar chalano) \[Rust\]
@@ -479,6 +479,8 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-099` Show the loop on the ruler with a clear control; a loop left on an edited/deleted clip is invisible \[Dart\] \[Rust\]
 - [ ] `P1-100` Clear loop toolbar icon squeezes the timecode on 360 dp (side pane, portrait phone); move the control to the ruler band or test the timecode size \[Dart\]
 - [ ] `P1-101` Widget test: trimming a looped clip keeps the ruler band on the engine's loop range \[Dart\]
+- [ ] `P1-102` Multi-select drag: the ghost follows the finger vertically but the drop ignores dy; lock it to the horizontal axis (or move tracks) \[Dart\]
+- [ ] `P1-103` ClipSelectionCubit keeps ids of clips the timeline no longer has; drop them on TimelineChanged so tap/selection logic matches what is shown \[Dart\]
 
 ## Phase 2: Audio
 

@@ -577,6 +577,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your first video starts here'**
   String get projectsEmptyTitle;
+
+  /// No description provided for @selectMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Select more'**
+  String get selectMore;
+
+  /// No description provided for @selectedClipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} selected}}'**
+  String selectedClipCount(int count);
 }
 
 class _AppLocalizationsDelegate
