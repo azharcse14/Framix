@@ -82,10 +82,10 @@ class Command extends $pb.GeneratedMessage {
     RemoveClip? removeClip,
     SplitClip? splitClip,
     MergeClips? mergeClips,
-    TrimClip? trimClip,
+    @$core.Deprecated('This field is deprecated.') TrimClip? trimClip,
     DuplicateClip? duplicateClip,
     SetTrackFlags? setTrackFlags,
-    MoveClip? moveClip,
+    @$core.Deprecated('This field is deprecated.') MoveClip? moveClip,
     ImportMedia? importMedia,
     CreatePreview? createPreview,
     Seek? seek,
@@ -592,14 +592,20 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   MergeClips ensureMergeClips() => $_ensure(11);
 
+  /// Retired (ADR 0008): the app sends SnapTrim; kept for the frozen engine test.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   TrimClip get trimClip => $_getN(12);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   set trimClip(TrimClip value) => $_setField(13, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   $core.bool hasTrimClip() => $_has(12);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   void clearTrimClip() => $_clearField(13);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   TrimClip ensureTrimClip() => $_ensure(12);
 
@@ -625,14 +631,20 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   SetTrackFlags ensureSetTrackFlags() => $_ensure(14);
 
+  /// Retired (ADR 0008): the app sends SnapMove; kept for the frozen engine test.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   MoveClip get moveClip => $_getN(15);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   set moveClip(MoveClip value) => $_setField(16, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   $core.bool hasMoveClip() => $_has(15);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   void clearMoveClip() => $_clearField(16);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   MoveClip ensureMoveClip() => $_ensure(15);
 
@@ -2637,6 +2649,8 @@ class MergeClips extends $pb.GeneratedMessage {
 }
 
 /// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+/// Retired (ADR 0008): the app sends SnapTrim.
+@$core.Deprecated('This message is deprecated')
 class TrimClip extends $pb.GeneratedMessage {
   factory TrimClip({
     $fixnum.Int64? clipId,
@@ -3370,6 +3384,8 @@ class DuplicateClips extends $pb.GeneratedMessage {
 
 /// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
 /// if either track is locked or the spot is taken.
+/// Retired (ADR 0008): the app sends SnapMove.
+@$core.Deprecated('This message is deprecated')
 class MoveClip extends $pb.GeneratedMessage {
   factory MoveClip({
     $fixnum.Int64? clipId,
