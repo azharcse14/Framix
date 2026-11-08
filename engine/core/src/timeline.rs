@@ -236,6 +236,19 @@ impl Track {
     }
 }
 
+/// A multi-clip edit needs at least one clip and no clip twice.
+fn check_selection(clips: &[ClipId]) -> Result<(), TimelineError> {
+    let mut sorted = clips.to_vec();
+    sorted.sort_unstable();
+    if let Some(w) = sorted.windows(2).find(|w| w[0] == w[1]) {
+        return Err(TimelineError::RepeatedClip(w[0]));
+    }
+    match clips.is_empty() {
+        true => Err(TimelineError::EmptySelection),
+        false => Ok(()),
+    }
+}
+
 /// Why a timeline edit was rejected.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum TimelineError {
@@ -689,19 +702,89 @@ impl Timeline {
         self.insert_clip_with(self.tracks[t].id, copy, c.transform)
     }
 
-    /// Removes every clip in `clips`; all or nothing.
-    pub fn remove_clips(&mut self, _clips: &[ClipId]) -> Result<(), TimelineError> {
-        Err(TimelineError::EmptySelection)
+    /// Removes every clip in `clips`; all or nothing. Refused like [`Timeline::remove_clip`]
+    /// for any clip, and when the list is empty or names a clip twice.
+    pub fn remove_clips(&mut self, clips: &[ClipId]) -> Result<(), TimelineError> {
+        self.each_clip(clips, |tl, clip| tl.remove_clip(clip))
     }
 
-    /// Shifts every clip in `clips` by `by` on its own track; all or nothing.
-    pub fn move_clips(&mut self, _clips: &[ClipId], _by: Time) -> Result<(), TimelineError> {
-        Err(TimelineError::EmptySelection)
+    /// Shifts every clip in `clips` by `by` on its own track; all or nothing. Refused like
+    /// [`Timeline::move_clip`] for any clip, and like [`Timeline::remove_clips`] for the list.
+    /// Selected clips may take each other's old spots.
+    pub fn move_clips(&mut self, clips: &[ClipId], by: Time) -> Result<(), TimelineError> {
+        let mut order: Vec<ClipId> = self.by_start(clips)?.iter().map(|c| c.id).collect();
+        // Move the leading clip first, so the others only ever enter vacated spots.
+        if by.0 > 0 {
+            order.reverse();
+        }
+        self.each_clip(&order, |tl, clip| {
+            let (t, i) = tl.locate(clip)?;
+            let c = tl.tracks[t].clips[i];
+            let start = c
+                .start
+                .0
+                .checked_add(by.0)
+                .ok_or(TimelineError::TimeOverflow)?;
+            tl.move_clip(clip, tl.tracks[t].id, Time(start))
+        })
     }
 
-    /// Copies `clips` as a block right after the selection; all or nothing.
-    pub fn duplicate_clips(&mut self, _clips: &[ClipId]) -> Result<Vec<ClipId>, TimelineError> {
-        Err(TimelineError::EmptySelection)
+    /// Copies `clips` as one block right after the selection: each copy starts later by the
+    /// selection's span (last end - first start), on its own track. All or nothing; refused like
+    /// [`Timeline::duplicate_clip`] for any clip, and like [`Timeline::remove_clips`] for the
+    /// list. Returns the copies' ids in the order of `clips`.
+    pub fn duplicate_clips(&mut self, clips: &[ClipId]) -> Result<Vec<ClipId>, TimelineError> {
+        let order = self.by_start(clips)?;
+        let first = order.first().map_or(0, |c| c.start.0);
+        let last = order.iter().map(|c| c.end().0).max().unwrap_or(first);
+        // Both are clip edges in [0, i64::MAX], so the span fits.
+        let span = last - first;
+        let mut copies = Vec::with_capacity(clips.len());
+        self.each_clip(clips, |tl, clip| {
+            let (t, i) = tl.locate(clip)?;
+            let c = tl.tracks[t].clips[i];
+            let start = c
+                .start
+                .0
+                .checked_add(span)
+                .ok_or(TimelineError::TimeOverflow)?;
+            let copy = ClipPlacement {
+                media: c.media,
+                source_start: c.source_start,
+                start: Time(start),
+                duration: c.duration,
+            };
+            copies.push(tl.insert_clip_with(tl.tracks[t].id, copy, c.transform)?);
+            Ok(())
+        })?;
+        Ok(copies)
+    }
+
+    /// Runs `edit` on each clip of a non-empty list without repeats, on a copy that replaces
+    /// `self` only if every edit succeeds.
+    fn each_clip(
+        &mut self,
+        clips: &[ClipId],
+        mut edit: impl FnMut(&mut Timeline, ClipId) -> Result<(), TimelineError>,
+    ) -> Result<(), TimelineError> {
+        check_selection(clips)?;
+        let mut next = self.clone();
+        for &clip in clips {
+            edit(&mut next, clip)?;
+        }
+        *self = next;
+        Ok(())
+    }
+
+    /// The clips of `clips` (checked as a selection, each unlocked) sorted by start.
+    fn by_start(&self, clips: &[ClipId]) -> Result<Vec<Clip>, TimelineError> {
+        check_selection(clips)?;
+        let mut order = clips
+            .iter()
+            .map(|&clip| self.locate(clip).map(|(t, i)| self.tracks[t].clips[i]))
+            .collect::<Result<Vec<_>, _>>()?;
+        order.sort_unstable_by_key(|c| (c.start, c.id));
+        Ok(order)
     }
 
     /// Sets a clip's crop, turns and flips. The crop must leave at least one pixel each way of
