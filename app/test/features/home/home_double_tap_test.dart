@@ -8,7 +8,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'home_open_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-091: a double tap on New project opens one editor, not two.
 void main() {

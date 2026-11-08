@@ -8,7 +8,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-106: with a loop set, Clear loop leads the clip actions row unless the selected clip is
 /// the looped one (its own Loop toggle clears it).

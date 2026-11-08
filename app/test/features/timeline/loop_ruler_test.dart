@@ -11,7 +11,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// The loop on the ruler (P1-099): the looped range shows on the ruler even after its clip is
 /// deleted, and a Clear loop control ends it.

@@ -12,7 +12,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-025: step the playhead one frame at a time, and trim a clip's edge to it.
 void main() {

@@ -20,7 +20,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// A preview cubit the test can hand a texture id, as the engine's PreviewReady would.
 class SeededPreview extends PreviewCubit {

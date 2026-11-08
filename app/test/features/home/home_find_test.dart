@@ -8,19 +8,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'home_page_test.dart' show pumpUntil;
-
-/// Like [pumpUntil], until [finder] finds nothing.
-Future<void> pumpUntilGone(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 100; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
-    await tester.pump();
-    if (finder.evaluate().isEmpty) return;
-  }
-  throw TestFailure('still found: $finder');
-}
+import '../../pump_until.dart';
 
 void main() {
   late FramixEngine engine;
@@ -125,13 +113,11 @@ void main() {
     await tester.tap(find.text(l10n.sortByName));
     await tester.pumpAndSettle();
     // The reply's state change schedules its frame on one pump and draws on the next.
-    for (var i = 0; i < 100 && !before(tester, 'Beach', 'Party'); i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-    }
-    expect(before(tester, 'Beach', 'Party'), isTrue);
+    await pumpUntilTrue(
+      tester,
+      () => before(tester, 'Beach', 'Party'),
+      () => 'never sorted by name',
+    );
 
     // Folders.
     await act(tester, find.text('Party'), l10n.moveToFolder, 'Trips');

@@ -7,8 +7,8 @@ import 'package:framix/features/export/view/export_buttons.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../timeline/timeline_page_test.dart' show pumpUntil;
 import 'export_cubit_start_test.dart' show SeededExport;
+import '../../pump_until.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
