@@ -1,3 +1,5 @@
+// Frozen test of a retired command (ADR 0008); the command is deprecated on purpose.
+#![allow(deprecated)]
 use framix_app::engine::Engine;
 use framix_app::proto::{
     AddTrack, Command, InsertClip, MoveClip, TimelineChanged, TrackKind, Undo, command, event,

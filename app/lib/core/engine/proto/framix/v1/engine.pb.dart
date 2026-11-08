@@ -61,6 +61,9 @@ enum Command_Kind {
   play,
   pause,
   setLoop,
+  removeClips,
+  moveClips,
+  duplicateClips,
   renameProject,
   moveProject,
   notSet
@@ -81,10 +84,10 @@ class Command extends $pb.GeneratedMessage {
     RemoveClip? removeClip,
     SplitClip? splitClip,
     MergeClips? mergeClips,
-    TrimClip? trimClip,
+    @$core.Deprecated('This field is deprecated.') TrimClip? trimClip,
     DuplicateClip? duplicateClip,
     SetTrackFlags? setTrackFlags,
-    MoveClip? moveClip,
+    @$core.Deprecated('This field is deprecated.') MoveClip? moveClip,
     ImportMedia? importMedia,
     CreatePreview? createPreview,
     Seek? seek,
@@ -109,6 +112,9 @@ class Command extends $pb.GeneratedMessage {
     Play? play,
     Pause? pause,
     SetLoop? setLoop,
+    RemoveClips? removeClips,
+    MoveClips? moveClips,
+    DuplicateClips? duplicateClips,
     RenameProject? renameProject,
     MoveProject? moveProject,
   }) {
@@ -154,6 +160,9 @@ class Command extends $pb.GeneratedMessage {
     if (play != null) result.play = play;
     if (pause != null) result.pause = pause;
     if (setLoop != null) result.setLoop = setLoop;
+    if (removeClips != null) result.removeClips = removeClips;
+    if (moveClips != null) result.moveClips = moveClips;
+    if (duplicateClips != null) result.duplicateClips = duplicateClips;
     if (renameProject != null) result.renameProject = renameProject;
     if (moveProject != null) result.moveProject = moveProject;
     return result;
@@ -208,8 +217,11 @@ class Command extends $pb.GeneratedMessage {
     38: Command_Kind.play,
     39: Command_Kind.pause,
     40: Command_Kind.setLoop,
-    41: Command_Kind.renameProject,
-    42: Command_Kind.moveProject,
+    41: Command_Kind.removeClips,
+    42: Command_Kind.moveClips,
+    43: Command_Kind.duplicateClips,
+    44: Command_Kind.renameProject,
+    45: Command_Kind.moveProject,
     0: Command_Kind.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -257,7 +269,10 @@ class Command extends $pb.GeneratedMessage {
       39,
       40,
       41,
-      42
+      42,
+      43,
+      44,
+      45
     ])
     ..aOM<AddTrack>(1, _omitFieldNames ? '' : 'addTrack',
         subBuilder: AddTrack.$_createMessage)
@@ -340,9 +355,15 @@ class Command extends $pb.GeneratedMessage {
         subBuilder: Pause.$_createMessage)
     ..aOM<SetLoop>(40, _omitFieldNames ? '' : 'setLoop',
         subBuilder: SetLoop.$_createMessage)
-    ..aOM<RenameProject>(41, _omitFieldNames ? '' : 'renameProject',
+    ..aOM<RemoveClips>(41, _omitFieldNames ? '' : 'removeClips',
+        subBuilder: RemoveClips.$_createMessage)
+    ..aOM<MoveClips>(42, _omitFieldNames ? '' : 'moveClips',
+        subBuilder: MoveClips.$_createMessage)
+    ..aOM<DuplicateClips>(43, _omitFieldNames ? '' : 'duplicateClips',
+        subBuilder: DuplicateClips.$_createMessage)
+    ..aOM<RenameProject>(44, _omitFieldNames ? '' : 'renameProject',
         subBuilder: RenameProject.$_createMessage)
-    ..aOM<MoveProject>(42, _omitFieldNames ? '' : 'moveProject',
+    ..aOM<MoveProject>(45, _omitFieldNames ? '' : 'moveProject',
         subBuilder: MoveProject.$_createMessage)
     ..hasRequiredFields = false;
 
@@ -407,6 +428,9 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
   @$pb.TagNumber(42)
+  @$pb.TagNumber(43)
+  @$pb.TagNumber(44)
+  @$pb.TagNumber(45)
   Command_Kind whichKind() => _Command_KindByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -449,6 +473,9 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
   @$pb.TagNumber(42)
+  @$pb.TagNumber(43)
+  @$pb.TagNumber(44)
+  @$pb.TagNumber(45)
   void clearKind() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -583,14 +610,20 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   MergeClips ensureMergeClips() => $_ensure(11);
 
+  /// Retired (ADR 0008): the app sends SnapTrim; kept for the frozen engine test.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   TrimClip get trimClip => $_getN(12);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   set trimClip(TrimClip value) => $_setField(13, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   $core.bool hasTrimClip() => $_has(12);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   void clearTrimClip() => $_clearField(13);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(13)
   TrimClip ensureTrimClip() => $_ensure(12);
 
@@ -616,14 +649,20 @@ class Command extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   SetTrackFlags ensureSetTrackFlags() => $_ensure(14);
 
+  /// Retired (ADR 0008): the app sends SnapMove; kept for the frozen engine test.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   MoveClip get moveClip => $_getN(15);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   set moveClip(MoveClip value) => $_setField(16, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   $core.bool hasMoveClip() => $_has(15);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   void clearMoveClip() => $_clearField(16);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(16)
   MoveClip ensureMoveClip() => $_ensure(15);
 
@@ -891,26 +930,59 @@ class Command extends $pb.GeneratedMessage {
   SetLoop ensureSetLoop() => $_ensure(39);
 
   @$pb.TagNumber(41)
-  RenameProject get renameProject => $_getN(40);
+  RemoveClips get removeClips => $_getN(40);
   @$pb.TagNumber(41)
-  set renameProject(RenameProject value) => $_setField(41, value);
+  set removeClips(RemoveClips value) => $_setField(41, value);
   @$pb.TagNumber(41)
-  $core.bool hasRenameProject() => $_has(40);
+  $core.bool hasRemoveClips() => $_has(40);
   @$pb.TagNumber(41)
-  void clearRenameProject() => $_clearField(41);
+  void clearRemoveClips() => $_clearField(41);
   @$pb.TagNumber(41)
-  RenameProject ensureRenameProject() => $_ensure(40);
+  RemoveClips ensureRemoveClips() => $_ensure(40);
 
   @$pb.TagNumber(42)
-  MoveProject get moveProject => $_getN(41);
+  MoveClips get moveClips => $_getN(41);
   @$pb.TagNumber(42)
-  set moveProject(MoveProject value) => $_setField(42, value);
+  set moveClips(MoveClips value) => $_setField(42, value);
   @$pb.TagNumber(42)
-  $core.bool hasMoveProject() => $_has(41);
+  $core.bool hasMoveClips() => $_has(41);
   @$pb.TagNumber(42)
-  void clearMoveProject() => $_clearField(42);
+  void clearMoveClips() => $_clearField(42);
   @$pb.TagNumber(42)
-  MoveProject ensureMoveProject() => $_ensure(41);
+  MoveClips ensureMoveClips() => $_ensure(41);
+
+  @$pb.TagNumber(43)
+  DuplicateClips get duplicateClips => $_getN(42);
+  @$pb.TagNumber(43)
+  set duplicateClips(DuplicateClips value) => $_setField(43, value);
+  @$pb.TagNumber(43)
+  $core.bool hasDuplicateClips() => $_has(42);
+  @$pb.TagNumber(43)
+  void clearDuplicateClips() => $_clearField(43);
+  @$pb.TagNumber(43)
+  DuplicateClips ensureDuplicateClips() => $_ensure(42);
+
+  @$pb.TagNumber(44)
+  RenameProject get renameProject => $_getN(43);
+  @$pb.TagNumber(44)
+  set renameProject(RenameProject value) => $_setField(44, value);
+  @$pb.TagNumber(44)
+  $core.bool hasRenameProject() => $_has(43);
+  @$pb.TagNumber(44)
+  void clearRenameProject() => $_clearField(44);
+  @$pb.TagNumber(44)
+  RenameProject ensureRenameProject() => $_ensure(43);
+
+  @$pb.TagNumber(45)
+  MoveProject get moveProject => $_getN(44);
+  @$pb.TagNumber(45)
+  set moveProject(MoveProject value) => $_setField(45, value);
+  @$pb.TagNumber(45)
+  $core.bool hasMoveProject() => $_has(44);
+  @$pb.TagNumber(45)
+  void clearMoveProject() => $_clearField(45);
+  @$pb.TagNumber(45)
+  MoveProject ensureMoveProject() => $_ensure(44);
 }
 
 /// Stops the running export at its next frame: CommandAccepted, then ExportFinished with
@@ -2306,8 +2378,8 @@ class OpenLibrary extends $pb.GeneratedMessage {
   void clearDir() => $_clearField(1);
 }
 
-/// Saves the current project if it changed, then answers ProjectList. Refused without a
-/// library.
+/// Saves the current project if it changed, then answers ProjectList. Home is showing, so no
+/// project counts as open for ProjectList.recovered. Refused without a library.
 class ListProjects extends $pb.GeneratedMessage {
   factory ListProjects({
     ProjectSort? sort,
@@ -2804,6 +2876,8 @@ class MergeClips extends $pb.GeneratedMessage {
 }
 
 /// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+/// Retired (ADR 0008): the app sends SnapTrim.
+@$core.Deprecated('This message is deprecated')
 class TrimClip extends $pb.GeneratedMessage {
   factory TrimClip({
     $fixnum.Int64? clipId,
@@ -3364,8 +3438,181 @@ class SetTrackFlags extends $pb.GeneratedMessage {
   void clearLocked() => $_clearField(4);
 }
 
+/// Removes several clips as one undo step; all or nothing. Refused when the list is empty,
+/// names a clip twice, or is longer than the timeline's clip count.
+class RemoveClips extends $pb.GeneratedMessage {
+  factory RemoveClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+  }) {
+    final result = RemoveClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    return result;
+  }
+
+  RemoveClips._();
+
+  factory RemoveClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClips()..mergeFromBuffer(data, registry);
+  factory RemoveClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      RemoveClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RemoveClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: RemoveClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  RemoveClips copyWith(void Function(RemoveClips) updates) =>
+      super.copyWith((message) => updates(message as RemoveClips))
+          as RemoveClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use RemoveClips() / RemoveClips.new instead')
+  static RemoveClips create() => RemoveClips._();
+  static $pb.GeneratedMessage $_createMessage() => RemoveClips._();
+  @$core.override
+  RemoveClips createEmptyInstance() => RemoveClips._();
+  @$core.pragma('dart2js:noInline')
+  static RemoveClips getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RemoveClips>(
+          RemoveClips.$_createMessage);
+  static RemoveClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+}
+
+/// Shifts several clips by `by` ticks, each on its own track, as one undo step; all or nothing
+/// (refused like MoveClip for any clip, and like RemoveClips for the list). Selected clips may
+/// take each other's old spots.
+class MoveClips extends $pb.GeneratedMessage {
+  factory MoveClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+    $fixnum.Int64? by,
+  }) {
+    final result = MoveClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    if (by != null) result.by = by;
+    return result;
+  }
+
+  MoveClips._();
+
+  factory MoveClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClips()..mergeFromBuffer(data, registry);
+  factory MoveClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      MoveClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MoveClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: MoveClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..aInt64(2, _omitFieldNames ? '' : 'by')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MoveClips copyWith(void Function(MoveClips) updates) =>
+      super.copyWith((message) => updates(message as MoveClips)) as MoveClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use MoveClips() / MoveClips.new instead')
+  static MoveClips create() => MoveClips._();
+  static $pb.GeneratedMessage $_createMessage() => MoveClips._();
+  @$core.override
+  MoveClips createEmptyInstance() => MoveClips._();
+  @$core.pragma('dart2js:noInline')
+  static MoveClips getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MoveClips>(MoveClips.$_createMessage);
+  static MoveClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get by => $_getI64(1);
+  @$pb.TagNumber(2)
+  set by($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBy() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBy() => $_clearField(2);
+}
+
+/// Copies several clips as one block right after the selection (each copy starts later by the
+/// selection's span: last end - first start), each on its own track; one undo step, all or
+/// nothing. Refused if a copy's space is taken, and like RemoveClips for the list.
+class DuplicateClips extends $pb.GeneratedMessage {
+  factory DuplicateClips({
+    $core.Iterable<$fixnum.Int64>? clipIds,
+  }) {
+    final result = DuplicateClips._();
+    if (clipIds != null) result.clipIds.addAll(clipIds);
+    return result;
+  }
+
+  DuplicateClips._();
+
+  factory DuplicateClips.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClips()..mergeFromBuffer(data, registry);
+  factory DuplicateClips.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      DuplicateClips()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DuplicateClips',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'framix.v1'),
+      createEmptyInstance: DuplicateClips.$_createMessage)
+    ..p<$fixnum.Int64>(1, _omitFieldNames ? '' : 'clipIds', $pb.PbFieldType.KU6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClips clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DuplicateClips copyWith(void Function(DuplicateClips) updates) =>
+      super.copyWith((message) => updates(message as DuplicateClips))
+          as DuplicateClips;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  @$core.Deprecated('Use DuplicateClips() / DuplicateClips.new instead')
+  static DuplicateClips create() => DuplicateClips._();
+  static $pb.GeneratedMessage $_createMessage() => DuplicateClips._();
+  @$core.override
+  DuplicateClips createEmptyInstance() => DuplicateClips._();
+  @$core.pragma('dart2js:noInline')
+  static DuplicateClips getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DuplicateClips>(
+          DuplicateClips.$_createMessage);
+  static DuplicateClips? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$fixnum.Int64> get clipIds => $_getList(0);
+}
+
 /// Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
 /// if either track is locked or the spot is taken.
+/// Retired (ADR 0008): the app sends SnapMove.
+@$core.Deprecated('This message is deprecated')
 class MoveClip extends $pb.GeneratedMessage {
   factory MoveClip({
     $fixnum.Int64? clipId,
@@ -5720,10 +5967,12 @@ class ProjectSaved extends $pb.GeneratedMessage {
 class ProjectList extends $pb.GeneratedMessage {
   factory ProjectList({
     $core.Iterable<ProjectSummary>? projects,
+    $core.String? recovered,
     $core.Iterable<$core.String>? folders,
   }) {
     final result = ProjectList._();
     if (projects != null) result.projects.addAll(projects);
+    if (recovered != null) result.recovered = recovered;
     if (folders != null) result.folders.addAll(folders);
     return result;
   }
@@ -5743,7 +5992,8 @@ class ProjectList extends $pb.GeneratedMessage {
       createEmptyInstance: ProjectList.$_createMessage)
     ..pPM<ProjectSummary>(1, _omitFieldNames ? '' : 'projects',
         subBuilder: ProjectSummary.$_createMessage)
-    ..pPS(2, _omitFieldNames ? '' : 'folders')
+    ..aOS(2, _omitFieldNames ? '' : 'recovered')
+    ..pPS(3, _omitFieldNames ? '' : 'folders')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5771,9 +6021,22 @@ class ProjectList extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $pb.PbList<ProjectSummary> get projects => $_getList(0);
 
-  /// Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
+  /// The project that was open when the engine last stopped without closing (a crash, or the
+  /// OS ended the app); it holds the work autosaved up to then. Set on the first ProjectList
+  /// after OpenLibrary only, and only for a listed project whose last autosave worked; empty
+  /// otherwise.
   @$pb.TagNumber(2)
-  $pb.PbList<$core.String> get folders => $_getList(1);
+  $core.String get recovered => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set recovered($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRecovered() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRecovered() => $_clearField(2);
+
+  /// Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
+  @$pb.TagNumber(3)
+  $pb.PbList<$core.String> get folders => $_getList(2);
 }
 
 /// One library project as Home lists it.

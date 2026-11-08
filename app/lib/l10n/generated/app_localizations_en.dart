@@ -110,6 +110,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loopClip => 'Loop clip';
 
   @override
+  String get clearLoop => 'Clear loop';
+
+  @override
   String get timelineRuler => 'Timeline';
 
   @override
@@ -315,6 +318,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'Your first video starts here';
+
+  @override
+  String get selectMore => 'Select more';
+
+  @override
+  String selectedClipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workRecovered => 'Saved up to your last edit';
 
   @override
   String get untitledProject => 'Untitled project';

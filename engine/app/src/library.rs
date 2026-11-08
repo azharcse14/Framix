@@ -50,6 +50,33 @@ pub fn new_id(store: &dyn ProjectStore, dir: &Path) -> Result<String, String> {
     Err("no free project id".into())
 }
 
+/// The file in the library folder naming the project open in the editor. It stays when the
+/// engine stops without closing (a crash, or the OS ending the app), so the next launch knows.
+/// Not a project file (no `.framix`), so [`list`] skips it.
+const OPEN_MARKER: &str = "open-project";
+
+/// Notes that project `id` is open in the editor. Best effort: without the marker a crash
+/// only goes unreported.
+pub fn mark_open(store: &dyn ProjectStore, dir: &Path, id: &str) {
+    let _ = store.put(&dir.join(OPEN_MARKER), id.as_bytes());
+}
+
+/// Notes that no project is open (Home shows, or the engine stops normally). Best effort.
+pub fn clear_open(store: &dyn ProjectStore, dir: &Path) {
+    let _ = store.remove(&dir.join(OPEN_MARKER));
+}
+
+/// The project that was open when the last engine stopped without closing, if the marker
+/// names a valid id; the marker is cleared.
+// ponytail: the engine clears the marker while autosave fails, but edits of the last
+// AUTOSAVE_DELAY before a crash are still not in the file; "saved up to your last edit" is
+// that close. Save on every edit if it must be exact.
+pub fn take_open(store: &dyn ProjectStore, dir: &Path) -> Option<String> {
+    let bytes = store.load(&dir.join(OPEN_MARKER)).ok()?;
+    clear_open(store, dir);
+    String::from_utf8(bytes).ok().filter(|id| valid_id(id))
+}
+
 /// The readable projects in `dir`, most recently saved first. Files that are not projects
 /// (other names, backups, temp files) or don't decode, with no backup that does, are skipped.
 // ponytail: decodes every project for its duration; keep a summary cache when lists grow

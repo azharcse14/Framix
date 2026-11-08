@@ -20,10 +20,12 @@ message Command {
     RemoveClip remove_clip = 10;
     SplitClip split_clip = 11;
     MergeClips merge_clips = 12;
-    TrimClip trim_clip = 13;
+    // Retired (ADR 0008): the app sends SnapTrim; kept for the frozen engine test.
+    TrimClip trim_clip = 13 [deprecated = true];
     DuplicateClip duplicate_clip = 14;
     SetTrackFlags set_track_flags = 15;
-    MoveClip move_clip = 16;
+    // Retired (ADR 0008): the app sends SnapMove; kept for the frozen engine test.
+    MoveClip move_clip = 16 [deprecated = true];
     ImportMedia import_media = 17;
     CreatePreview create_preview = 18;
     Seek seek = 19;
@@ -47,8 +49,11 @@ message Command {
     Play play = 38;
     Pause pause = 39;
     SetLoop set_loop = 40;
-    RenameProject rename_project = 41;
-    MoveProject move_project = 42;
+    RemoveClips remove_clips = 41;
+    MoveClips move_clips = 42;
+    DuplicateClips duplicate_clips = 43;
+    RenameProject rename_project = 44;
+    MoveProject move_project = 45;
   }
   // Set by the UI (any value; 0 = none); CommandAccepted and CommandFailed echo it.
   uint64 id = 27;
@@ -231,8 +236,8 @@ message OpenLibrary {
   string dir = 1;
 }
 
-// Saves the current project if it changed, then answers ProjectList. Refused without a
-// library.
+// Saves the current project if it changed, then answers ProjectList. Home is showing, so no
+// project counts as open for ProjectList.recovered. Refused without a library.
 message ListProjects {
   // Order of the list; unspecified is newest saved first.
   ProjectSort sort = 1;
@@ -292,7 +297,9 @@ message MergeClips {
 }
 
 // Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+// Retired (ADR 0008): the app sends SnapTrim.
 message TrimClip {
+  option deprecated = true;
   uint64 clip_id = 1;
   int64 start = 2;
   int64 end = 3;
@@ -354,9 +361,32 @@ message SetTrackFlags {
   optional bool locked = 4;
 }
 
+// Removes several clips as one undo step; all or nothing. Refused when the list is empty,
+// names a clip twice, or is longer than the timeline's clip count.
+message RemoveClips {
+  repeated uint64 clip_ids = 1;
+}
+
+// Shifts several clips by `by` ticks, each on its own track, as one undo step; all or nothing
+// (refused like MoveClip for any clip, and like RemoveClips for the list). Selected clips may
+// take each other's old spots.
+message MoveClips {
+  repeated uint64 clip_ids = 1;
+  int64 by = 2;
+}
+
+// Copies several clips as one block right after the selection (each copy starts later by the
+// selection's span: last end - first start), each on its own track; one undo step, all or
+// nothing. Refused if a copy's space is taken, and like RemoveClips for the list.
+message DuplicateClips {
+  repeated uint64 clip_ids = 1;
+}
+
 // Moves a clip to `start` on `track_id` (its own or another track of the same kind); refused
 // if either track is locked or the spot is taken.
+// Retired (ADR 0008): the app sends SnapMove.
 message MoveClip {
+  option deprecated = true;
   uint64 clip_id = 1;
   uint64 track_id = 2;
   int64 start = 3;
@@ -615,8 +645,13 @@ message ProjectSaved {}
 // Answers ListProjects: the library's readable projects, most recently saved first.
 message ProjectList {
   repeated ProjectSummary projects = 1;
+  // The project that was open when the engine last stopped without closing (a crash, or the
+  // OS ended the app); it holds the work autosaved up to then. Set on the first ProjectList
+  // after OpenLibrary only, and only for a listed project whose last autosave worked; empty
+  // otherwise.
+  string recovered = 2;
   // Every folder that holds a project, A to Z ignoring case (whatever ListProjects filtered).
-  repeated string folders = 2;
+  repeated string folders = 3;
 }
 
 // One library project as Home lists it.

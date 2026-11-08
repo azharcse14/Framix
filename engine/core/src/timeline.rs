@@ -236,6 +236,19 @@ impl Track {
     }
 }
 
+/// A multi-clip edit needs at least one clip and no clip twice.
+fn check_selection(clips: &[ClipId]) -> Result<(), TimelineError> {
+    let mut sorted = clips.to_vec();
+    sorted.sort_unstable();
+    if let Some(w) = sorted.windows(2).find(|w| w[0] == w[1]) {
+        return Err(TimelineError::RepeatedClip(w[0]));
+    }
+    match clips.is_empty() {
+        true => Err(TimelineError::EmptySelection),
+        false => Ok(()),
+    }
+}
+
 /// Why a timeline edit was rejected.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum TimelineError {
@@ -287,6 +300,12 @@ pub enum TimelineError {
     /// The replacement video is shorter than the clip.
     #[error("replacement media is shorter than the clip")]
     MediaTooShort,
+    /// A multi-clip edit got no clips.
+    #[error("no clips selected")]
+    EmptySelection,
+    /// A multi-clip edit names this clip more than once.
+    #[error("clip {0:?} is selected twice")]
+    RepeatedClip(ClipId),
 }
 
 /// The editable timeline of a video project.
@@ -672,15 +691,97 @@ impl Timeline {
     /// Copies a clip to right after itself on the same track (no ripple: refused with
     /// [`TimelineError::Overlap`] if that space is taken).
     pub fn duplicate_clip(&mut self, clip: ClipId) -> Result<ClipId, TimelineError> {
-        let (t, i) = self.locate(clip)?;
-        let c = self.tracks[t].clips[i];
-        let copy = ClipPlacement {
-            media: c.media,
-            source_start: c.source_start,
-            start: c.end(),
-            duration: c.duration,
-        };
-        self.insert_clip_with(self.tracks[t].id, copy, c.transform)
+        let copies = self.duplicate_clips(&[clip])?;
+        // One clip in, one copy out.
+        copies
+            .first()
+            .copied()
+            .ok_or(TimelineError::UnknownClip(clip))
+    }
+
+    /// Removes every clip in `clips`; all or nothing. Refused like [`Timeline::remove_clip`]
+    /// for any clip, and when the list is empty or names a clip twice.
+    pub fn remove_clips(&mut self, clips: &[ClipId]) -> Result<(), TimelineError> {
+        self.each_clip(clips, |tl, clip| tl.remove_clip(clip))
+    }
+
+    /// Shifts every clip in `clips` by `by` on its own track; all or nothing. Refused like
+    /// [`Timeline::move_clip`] for any clip, and like [`Timeline::remove_clips`] for the list.
+    /// Selected clips may take each other's old spots.
+    pub fn move_clips(&mut self, clips: &[ClipId], by: Time) -> Result<(), TimelineError> {
+        let mut order: Vec<ClipId> = self.by_start(clips)?.iter().map(|c| c.id).collect();
+        // Move the leading clip first, so the others only ever enter vacated spots.
+        if by.0 > 0 {
+            order.reverse();
+        }
+        self.each_clip(&order, |tl, clip| {
+            let (t, i) = tl.locate(clip)?;
+            let c = tl.tracks[t].clips[i];
+            let start = c
+                .start
+                .0
+                .checked_add(by.0)
+                .ok_or(TimelineError::TimeOverflow)?;
+            tl.move_clip(clip, tl.tracks[t].id, Time(start))
+        })
+    }
+
+    /// Copies `clips` as one block right after the selection: each copy starts later by the
+    /// selection's span (last end - first start), on its own track. All or nothing; refused like
+    /// [`Timeline::duplicate_clip`] for any clip, and like [`Timeline::remove_clips`] for the
+    /// list. Returns the copies' ids in the order of `clips`.
+    pub fn duplicate_clips(&mut self, clips: &[ClipId]) -> Result<Vec<ClipId>, TimelineError> {
+        let order = self.by_start(clips)?;
+        let first = order.first().map_or(0, |c| c.start.0);
+        let last = order.iter().map(|c| c.end().0).max().unwrap_or(first);
+        // Both are clip edges in [0, i64::MAX], so the span fits.
+        let span = last - first;
+        let mut copies = Vec::with_capacity(clips.len());
+        self.each_clip(clips, |tl, clip| {
+            let (t, i) = tl.locate(clip)?;
+            let c = tl.tracks[t].clips[i];
+            let start = c
+                .start
+                .0
+                .checked_add(span)
+                .ok_or(TimelineError::TimeOverflow)?;
+            let copy = ClipPlacement {
+                media: c.media,
+                source_start: c.source_start,
+                start: Time(start),
+                duration: c.duration,
+            };
+            copies.push(tl.insert_clip_with(tl.tracks[t].id, copy, c.transform)?);
+            Ok(())
+        })?;
+        Ok(copies)
+    }
+
+    /// Runs `edit` on each clip of a non-empty list without repeats, on a copy that replaces
+    /// `self` only if every edit succeeds.
+    fn each_clip(
+        &mut self,
+        clips: &[ClipId],
+        mut edit: impl FnMut(&mut Timeline, ClipId) -> Result<(), TimelineError>,
+    ) -> Result<(), TimelineError> {
+        check_selection(clips)?;
+        let mut next = self.clone();
+        for &clip in clips {
+            edit(&mut next, clip)?;
+        }
+        *self = next;
+        Ok(())
+    }
+
+    /// The clips of `clips` (checked as a selection, each unlocked) sorted by start.
+    fn by_start(&self, clips: &[ClipId]) -> Result<Vec<Clip>, TimelineError> {
+        check_selection(clips)?;
+        let mut order = clips
+            .iter()
+            .map(|&clip| self.locate(clip).map(|(t, i)| self.tracks[t].clips[i]))
+            .collect::<Result<Vec<_>, _>>()?;
+        order.sort_unstable_by_key(|c| (c.start, c.id));
+        Ok(order)
     }
 
     /// Sets a clip's crop, turns and flips. The crop must leave at least one pixel each way of
@@ -804,7 +905,8 @@ impl Timeline {
     }
 
     /// Track and clip index of `clip`, refusing clips on a locked track.
-    // ponytail: linear scan over all clips, once per command; index by id if profiles show it.
+    // ponytail: linear scan over all clips, per clip edited (O(k·n) for a k-clip edit, k capped
+    // at n by the engine); index by id if profiles show it.
     fn locate(&self, clip: ClipId) -> Result<(usize, usize), TimelineError> {
         let (t, i) = self
             .tracks

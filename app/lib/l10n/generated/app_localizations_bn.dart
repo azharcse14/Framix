@@ -109,6 +109,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get loopClip => 'ক্লিপ বারবার চালান';
 
   @override
+  String get clearLoop => 'লুপ বন্ধ করুন';
+
+  @override
   String get timelineRuler => 'টাইমলাইন';
 
   @override
@@ -312,6 +315,22 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get projectsEmptyTitle => 'আপনার প্রথম ভিডিও এখান থেকে শুরু';
+
+  @override
+  String get selectMore => 'আরও বাছুন';
+
+  @override
+  String selectedClipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি বাছাই করা',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workRecovered => 'শেষ কাজ পর্যন্ত সেভ আছে';
 
   @override
   String get untitledProject => 'নামহীন প্রজেক্ট';

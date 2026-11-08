@@ -23,9 +23,13 @@ final class HomeUnavailable extends HomeState {
 
 /// The library's projects, most recently saved first (the engine's order).
 final class HomeProjects extends HomeState {
-  const HomeProjects(this.projects, {this.opening});
+  const HomeProjects(this.projects, {this.opening, this.recovered = false});
 
   final List<ProjectSummary> projects;
+
+  /// The engine recovered a project left open by a crash (ProjectList.recovered); set on
+  /// that one list only, so Home says once that the work is saved.
+  final bool recovered;
 
   /// What the engine is saving and loading for the editor: [newProjectKey] or a project id.
   final String? opening;
@@ -73,7 +77,13 @@ class HomeCubit extends Cubit<HomeState> {
     }
     if (e.hasProjectList()) {
       if (_lists.isNotEmpty) _lists.removeAt(0);
-      emit(HomeProjects(e.projectList.projects, opening: _opening));
+      emit(
+        HomeProjects(
+          e.projectList.projects,
+          opening: _opening,
+          recovered: e.projectList.recovered.isNotEmpty,
+        ),
+      );
     }
     if (e.hasCommandAccepted() &&
         e.commandAccepted.commandId.toInt() == _library) {

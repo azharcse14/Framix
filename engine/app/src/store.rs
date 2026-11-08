@@ -25,6 +25,16 @@ pub trait ProjectStore: Send {
         let _ = path;
         Vec::new()
     }
+    /// Writes a small file in place: no temp file, no backups (a marker that may be lost).
+    fn put(&self, path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+        let _ = (path, bytes);
+        Err(std::io::ErrorKind::Unsupported.into())
+    }
+    /// Removes the file at `path`; a missing file is not an error.
+    fn remove(&self, path: &Path) -> std::io::Result<()> {
+        let _ = path;
+        Err(std::io::ErrorKind::Unsupported.into())
+    }
     /// Moves the file at `path` aside (replacing an earlier one set aside), so a new save
     /// can't overwrite or rotate it away.
     fn set_aside(&self, path: &Path) -> std::io::Result<()> {
