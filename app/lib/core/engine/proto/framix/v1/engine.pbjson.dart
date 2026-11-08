@@ -467,6 +467,33 @@ const Command$json = {
       '9': 0,
       '10': 'setLoop'
     },
+    {
+      '1': 'remove_clips',
+      '3': 41,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.RemoveClips',
+      '9': 0,
+      '10': 'removeClips'
+    },
+    {
+      '1': 'move_clips',
+      '3': 42,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.MoveClips',
+      '9': 0,
+      '10': 'moveClips'
+    },
+    {
+      '1': 'duplicate_clips',
+      '3': 43,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.DuplicateClips',
+      '9': 0,
+      '10': 'duplicateClips'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -518,8 +545,11 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
     'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSJQoEcGxheRgmIAEoCzIPLmZyYW1peC52MS5QbGF5SA'
     'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USLwoIc2V0'
-    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEg4KAmlkGBsgASgEUg'
-    'JpZEIGCgRraW5k');
+    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEjsKDHJlbW92ZV9jbG'
+    'lwcxgpIAEoCzIWLmZyYW1peC52MS5SZW1vdmVDbGlwc0gAUgtyZW1vdmVDbGlwcxI1Cgptb3Zl'
+    'X2NsaXBzGCogASgLMhQuZnJhbWl4LnYxLk1vdmVDbGlwc0gAUgltb3ZlQ2xpcHMSRAoPZHVwbG'
+    'ljYXRlX2NsaXBzGCsgASgLMhkuZnJhbWl4LnYxLkR1cGxpY2F0ZUNsaXBzSABSDmR1cGxpY2F0'
+    'ZUNsaXBzEg4KAmlkGBsgASgEUgJpZEIGCgRraW5k');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -1025,6 +1055,43 @@ final $typed_data.Uint8List setTrackFlagsDescriptor = $convert.base64Decode(
     'Cg1TZXRUcmFja0ZsYWdzEhkKCHRyYWNrX2lkGAEgASgEUgd0cmFja0lkEhkKBW11dGVkGAIgAS'
     'gISABSBW11dGVkiAEBEhsKBmhpZGRlbhgDIAEoCEgBUgZoaWRkZW6IAQESGwoGbG9ja2VkGAQg'
     'ASgISAJSBmxvY2tlZIgBAUIICgZfbXV0ZWRCCQoHX2hpZGRlbkIJCgdfbG9ja2Vk');
+
+@$core.Deprecated('Use removeClipsDescriptor instead')
+const RemoveClips$json = {
+  '1': 'RemoveClips',
+  '2': [
+    {'1': 'clip_ids', '3': 1, '4': 3, '5': 4, '10': 'clipIds'},
+  ],
+};
+
+/// Descriptor for `RemoveClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List removeClipsDescriptor = $convert
+    .base64Decode('CgtSZW1vdmVDbGlwcxIZCghjbGlwX2lkcxgBIAMoBFIHY2xpcElkcw==');
+
+@$core.Deprecated('Use moveClipsDescriptor instead')
+const MoveClips$json = {
+  '1': 'MoveClips',
+  '2': [
+    {'1': 'clip_ids', '3': 1, '4': 3, '5': 4, '10': 'clipIds'},
+    {'1': 'by', '3': 2, '4': 1, '5': 3, '10': 'by'},
+  ],
+};
+
+/// Descriptor for `MoveClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List moveClipsDescriptor = $convert.base64Decode(
+    'CglNb3ZlQ2xpcHMSGQoIY2xpcF9pZHMYASADKARSB2NsaXBJZHMSDgoCYnkYAiABKANSAmJ5');
+
+@$core.Deprecated('Use duplicateClipsDescriptor instead')
+const DuplicateClips$json = {
+  '1': 'DuplicateClips',
+  '2': [
+    {'1': 'clip_ids', '3': 1, '4': 3, '5': 4, '10': 'clipIds'},
+  ],
+};
+
+/// Descriptor for `DuplicateClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List duplicateClipsDescriptor = $convert.base64Decode(
+    'Cg5EdXBsaWNhdGVDbGlwcxIZCghjbGlwX2lkcxgBIAMoBFIHY2xpcElkcw==');
 
 @$core.Deprecated('Use moveClipDescriptor instead')
 const MoveClip$json = {

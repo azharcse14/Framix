@@ -287,6 +287,12 @@ pub enum TimelineError {
     /// The replacement video is shorter than the clip.
     #[error("replacement media is shorter than the clip")]
     MediaTooShort,
+    /// A multi-clip edit got no clips.
+    #[error("no clips selected")]
+    EmptySelection,
+    /// A multi-clip edit names this clip more than once.
+    #[error("clip {0:?} is selected twice")]
+    RepeatedClip(ClipId),
 }
 
 /// The editable timeline of a video project.
@@ -681,6 +687,21 @@ impl Timeline {
             duration: c.duration,
         };
         self.insert_clip_with(self.tracks[t].id, copy, c.transform)
+    }
+
+    /// Removes every clip in `clips`; all or nothing.
+    pub fn remove_clips(&mut self, _clips: &[ClipId]) -> Result<(), TimelineError> {
+        Err(TimelineError::EmptySelection)
+    }
+
+    /// Shifts every clip in `clips` by `by` on its own track; all or nothing.
+    pub fn move_clips(&mut self, _clips: &[ClipId], _by: Time) -> Result<(), TimelineError> {
+        Err(TimelineError::EmptySelection)
+    }
+
+    /// Copies `clips` as a block right after the selection; all or nothing.
+    pub fn duplicate_clips(&mut self, _clips: &[ClipId]) -> Result<Vec<ClipId>, TimelineError> {
+        Err(TimelineError::EmptySelection)
     }
 
     /// Sets a clip's crop, turns and flips. The crop must leave at least one pixel each way of

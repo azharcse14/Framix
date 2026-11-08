@@ -726,6 +726,9 @@ impl Engine {
             command::Kind::DuplicateClip(op) => {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
             }
+            command::Kind::RemoveClips(_)
+            | command::Kind::MoveClips(_)
+            | command::Kind::DuplicateClips(_) => Err("not yet".to_string()),
             command::Kind::SetTrackFlags(op) => {
                 let track = TrackId(op.track_id);
                 timeline(self.edit(|tl| {
