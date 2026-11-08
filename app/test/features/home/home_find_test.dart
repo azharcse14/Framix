@@ -124,10 +124,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.sortByName));
     await tester.pumpAndSettle();
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 200)),
-    );
-    await tester.pump();
+    // The reply's state change schedules its frame on one pump and draws on the next.
+    for (var i = 0; i < 100 && !before(tester, 'Beach', 'Party'); i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
     expect(before(tester, 'Beach', 'Party'), isTrue);
 
     // Folders.
