@@ -101,13 +101,19 @@ fn accepted(e: Option<event::Kind>) -> bool {
     matches!(e, Some(event::Kind::CommandAccepted(_)))
 }
 
+/// Starts a project and returns its id: the one not listed before (all files share a time).
 fn project(engine: &mut Engine) -> String {
+    let before: Vec<String> = list(engine).into_iter().map(|p| p.id).collect();
     run(engine, command::Kind::NewProject(NewProject {}));
     let add = AddTrack {
         kind: TrackKind::Video as i32,
     };
     run(engine, command::Kind::AddTrack(add));
-    list(engine)[0].id.clone()
+    list(engine)
+        .into_iter()
+        .map(|p| p.id)
+        .find(|id| !before.contains(id))
+        .unwrap()
 }
 
 #[test]
