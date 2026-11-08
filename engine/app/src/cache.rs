@@ -81,9 +81,15 @@ fn media_keys(timeline: &Timeline) -> BTreeSet<String> {
         .collect()
 }
 
-/// Which media a cache file belongs to: the part of its name before the first `-`.
+/// Which media a cache file belongs to: the part of its name before the first `-`. None for
+/// a file the platform is still writing (`.part`: Android `<name><random>.part`, iOS
+/// `<name>.part` and `<UUID>.part.mov`), so it is neither counted nor removed mid-write.
 fn key_of(file: &Path) -> Option<&str> {
-    let (key, _) = file.file_name()?.to_str()?.split_once('-')?;
+    let name = file.file_name()?.to_str()?;
+    if name.contains(".part") {
+        return None;
+    }
+    let (key, _) = name.split_once('-')?;
     Some(key)
 }
 
