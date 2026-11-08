@@ -31,6 +31,12 @@ final class MediaPicker: NSObject {
     if call.method == "exportDir" {
       return result(FileManager.default.temporaryDirectory.path)
     }
+    if call.method == "cacheDir" {
+      // Thumbnails and proxies (CacheFiles) live in Caches/thumbs and Caches/proxies (P1-017).
+      let dir = try? FileManager.default.url(
+        for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+      return result(dir?.path)
+    }
     if call.method == "projectsDir" {
       // The user's projects (P1-089), backed up like other documents.
       let dir = try? FileManager.default.url(

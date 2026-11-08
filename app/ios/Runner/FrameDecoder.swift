@@ -147,6 +147,7 @@ enum MediaFiles {
 
 /// Cache files (thumbnails, proxies) in Caches/<dir>, named by the SHA-256 of the media
 /// reference plus `suffix`, so each is made once and reused.
+/// The engine finds a media's cache files by this name (engine/app/src/cache.rs); change both.
 enum CacheFiles {
   static func url(_ dir: String, _ reference: String, _ suffix: String) throws -> URL {
     let manager = FileManager.default

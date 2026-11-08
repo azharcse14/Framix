@@ -52,14 +52,13 @@ impl ProjectStore for FileStore {
     /// Regular files directly in `dir` (no folders, no recursion); an entry that vanishes or
     /// can't be read while listing is skipped.
     fn list(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
-        Ok(fs::read_dir(dir)?
-            .filter_map(|entry| {
-                let entry = entry.ok()?;
-                let meta = entry.metadata().ok()?;
-                meta.is_file()
-                    .then(|| Some((entry.path(), meta.modified().ok()?)))?
-            })
-            .collect())
+        files(dir, |meta| meta.modified().ok())
+    }
+
+    /// Like [`FileStore::list`]; a link is not a regular file, so what it points to is never
+    /// counted (or removed by a caller cleaning what this lists).
+    fn sizes(&self, dir: &Path) -> io::Result<Vec<(PathBuf, u64)>> {
+        files(dir, |meta| Some(meta.len()))
     }
 
     fn backups(&self, path: &Path) -> Vec<PathBuf> {
@@ -93,6 +92,21 @@ impl ProjectStore for FileStore {
         fs::rename(path, sibling(path, ".broken"))?;
         sync_parent(path)
     }
+}
+
+/// Regular files directly in `dir` with `info` of each; an entry that vanishes or can't be
+/// read while listing is skipped. The entry's own metadata: links are not followed.
+fn files<T>(
+    dir: &Path,
+    info: impl Fn(&fs::Metadata) -> Option<T>,
+) -> io::Result<Vec<(PathBuf, T)>> {
+    Ok(fs::read_dir(dir)?
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let meta = entry.metadata().ok()?;
+            meta.is_file().then(|| Some((entry.path(), info(&meta)?)))?
+        })
+        .collect())
 }
 
 fn write_synced(path: &Path, bytes: &[u8]) -> io::Result<()> {

@@ -21,7 +21,14 @@ Future<String?> projectsDir() async {
 }
 
 /// The platform's cache folder, where thumbnails and proxies go; null when there is none.
-Future<String?> cacheDir() async => null;
+Future<String?> cacheDir() async {
+  try {
+    return await mediaChannel.invokeMethod<String>('cacheDir');
+  } on Exception catch (e) {
+    debugPrint('cache folder unavailable: ${e.runtimeType}');
+    return null;
+  }
+}
 
 /// [MediaImporter] over the `framix/media` method channel (app/ios/Runner/MediaPicker.swift,
 /// app/android/.../MediaPicker.kt). Missing fields stay at their defaults, so the engine
