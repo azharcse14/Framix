@@ -13557,15 +13557,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "7b522af",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-05",
      "text": "Since P1-089 the app runs in library mode (per-project autosave); EnableAutosave has no app caller. What's left: recovery notice after a crash and clean-exit vs crash; the app-support dir part is covered by OpenLibrary."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer approved; review fixes (no 'saved' claim after a failed autosave, catch_unwind around close) in 5e27725. Decision: the app never calls engine_destroy (GetIt is never reset), so in practice a clean exit = back on Home; a swipe-away or OS kill with the editor open shows the notice on next launch. Intended on mobile."
     }
    ],
    "source": "added"
