@@ -705,6 +705,10 @@ class _Lane extends StatelessWidget {
     // Trim handles belong to a single selected clip the timeline still has (any track).
     final live = _selectedClips(tracks, selection.state.ids);
     final single = live.length == 1 ? live.single.$2.id.toInt() : 0;
+    // A multi-clip move only shifts time (each clip stays on its track), so its clip
+    // follows the finger sideways only.
+    bool sideways(Clip clip) =>
+        live.length > 1 && selection.state.contains(clip.id.toInt());
     ClipBox box(Clip clip) => ClipBox(
       width: px(clip.duration.toInt()),
       audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
@@ -736,6 +740,7 @@ class _Lane extends StatelessWidget {
                 child: _MovableClip(
                   onTap: () => selection.tap(clip.id.toInt()),
                   onMove: (by) => onMove(clip, by, selection.state),
+                  sideways: sideways(clip),
                   child: box(clip),
                 ),
               ),
@@ -754,6 +759,7 @@ class _Lane extends StatelessWidget {
                   child: _MovableClip(
                     onTap: () => selection.tap(clip.id.toInt()),
                     onMove: (by) => onMove(clip, by, selection.state),
+                    sideways: sideways(clip),
                     // The clip itself follows the finger, set in the lane as above.
                     ghost: Padding(
                       padding: const EdgeInsets.only(top: FramixSpace.s),
@@ -883,11 +889,15 @@ class _MovableClip extends StatefulWidget {
     required this.onMove,
     required this.child,
     this.ghost,
+    this.sideways = false,
   });
 
   final VoidCallback onTap;
   final void Function(Offset by) onMove;
   final Widget child;
+
+  /// It follows the finger along the time axis only, and reports no vertical offset.
+  final bool sideways;
 
   /// What follows the finger, when not [child] itself (a touch target over a narrow clip).
   final Widget? ghost;
@@ -928,7 +938,8 @@ class _MovableClipState extends State<_MovableClip>
   }
 
   /// Where the clip is drawn and what a release reports: the finger plus the scroll.
-  Offset get _offset => _by + Offset(_scrolled, 0);
+  Offset get _offset =>
+      Offset(_by.dx + _scrolled, widget.sideways ? 0 : _by.dy);
 
   @override
   void dispose() {
