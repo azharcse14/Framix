@@ -161,182 +161,197 @@ class _TimelineViewState extends State<TimelineView> {
         ],
         child: BlocProvider(
           create: (_) => ClipSelectionCubit(),
-          child: Column(
-            children: [
-              _Toolbar(ticksPerSecond: ticksPerSecond, looping: looping),
-              _ClipActions(timeline: timeline),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: TimelineView._headerWidth,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: rulerHeight),
-                            for (final track in timeline.tracks)
-                              SizedBox(
-                                height: laneHeight,
-                                child: _TrackHeader(track: track),
-                              ),
-                          ],
+          child: BlocListener<TimelineCubit, TimelineChanged>(
+            listener: (context, timeline) =>
+                context.read<ClipSelectionCubit>().keepOnly({
+                  for (final track in timeline.tracks)
+                    for (final clip in track.clips) clip.id.toInt(),
+                }),
+            child: Column(
+              children: [
+                _Toolbar(ticksPerSecond: ticksPerSecond, looping: looping),
+                _ClipActions(timeline: timeline),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: TimelineView._headerWidth,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: rulerHeight),
+                              for (final track in timeline.tracks)
+                                SizedBox(
+                                  height: laneHeight,
+                                  child: _TrackHeader(track: track),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, box) {
-                            // A loop left past the last clip (its clip deleted) stays in reach.
-                            final end = px(
-                              math.max(
-                                timeline.duration.toInt(),
-                                timeline.loopEnd.toInt(),
-                              ),
-                            );
-                            // Room to scroll past the end, so the last clip can reach the middle.
-                            final width = math.max(
-                              box.maxWidth,
-                              end + box.maxWidth / 2,
-                            );
-                            final viewport = box.maxWidth;
-                            _viewport = math.max(viewport, 1);
-                            // A scroll the user starts ends following until the next play.
-                            return NotificationListener<UserScrollNotification>(
-                              onNotification: (n) {
-                                if (n.direction != ScrollDirection.idle) {
-                                  _following = false;
-                                }
-                                return false;
-                              },
-                              child: SingleChildScrollView(
-                                controller: _scroll,
-                                scrollDirection: Axis.horizontal,
-                                child: SizedBox(
-                                  width: width,
-                                  height:
-                                      rulerHeight +
-                                      laneHeight * timeline.tracks.length,
-                                  child: Stack(
-                                    children: [
-                                      // Scrubbing repaints only the playhead line, not marks and clips.
-                                      RepaintBoundary(
-                                        child: Column(
-                                          children: [
-                                            _Ruler(
-                                              pps: pps,
-                                              ticksPerSecond: ticksPerSecond,
-                                              height: rulerHeight,
-                                            ),
-                                            // Thumbnails only for one screen either side of the view.
-                                            ValueListenableBuilder(
-                                              valueListenable: _window,
-                                              builder: (context, window, _) {
-                                                // The scroll may be clamped (zoom out)
-                                                // without a notification; read it here.
-                                                final at = _scroll.hasClients
-                                                    ? (_scroll.offset /
-                                                                  (viewport /
-                                                                      2))
-                                                              .floor() *
-                                                          viewport /
-                                                          2
-                                                    : window * viewport / 2;
-                                                return Column(
-                                                  children: [
-                                                    for (final track
-                                                        in timeline.tracks)
-                                                      _Lane(
-                                                        key: ValueKey(track.id),
-                                                        track: track,
-                                                        tracks: widget
-                                                            .timeline
-                                                            .tracks,
-                                                        height: laneHeight,
-                                                        px: px,
-                                                        ticks: ticks,
-                                                        onMove:
-                                                            (
-                                                              clip,
-                                                              by,
-                                                              selection,
-                                                            ) => _move(
-                                                              clip,
-                                                              track,
-                                                              by,
-                                                              selection,
-                                                              laneHeight,
-                                                              ticks,
-                                                            ),
-                                                        tiles: _Tiles(
-                                                          project: widget
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, box) {
+                              // A loop left past the last clip (its clip deleted) stays in reach.
+                              final end = px(
+                                math.max(
+                                  timeline.duration.toInt(),
+                                  timeline.loopEnd.toInt(),
+                                ),
+                              );
+                              // Room to scroll past the end, so the last clip can reach the middle.
+                              final width = math.max(
+                                box.maxWidth,
+                                end + box.maxWidth / 2,
+                              );
+                              final viewport = box.maxWidth;
+                              _viewport = math.max(viewport, 1);
+                              // A scroll the user starts ends following until the next play.
+                              return NotificationListener<
+                                UserScrollNotification
+                              >(
+                                onNotification: (n) {
+                                  if (n.direction != ScrollDirection.idle) {
+                                    _following = false;
+                                  }
+                                  return false;
+                                },
+                                child: SingleChildScrollView(
+                                  controller: _scroll,
+                                  scrollDirection: Axis.horizontal,
+                                  child: SizedBox(
+                                    width: width,
+                                    height:
+                                        rulerHeight +
+                                        laneHeight * timeline.tracks.length,
+                                    child: Stack(
+                                      children: [
+                                        // Scrubbing repaints only the playhead line, not marks and clips.
+                                        RepaintBoundary(
+                                          child: Column(
+                                            children: [
+                                              _Ruler(
+                                                pps: pps,
+                                                ticksPerSecond: ticksPerSecond,
+                                                height: rulerHeight,
+                                              ),
+                                              // Thumbnails only for one screen either side of the view.
+                                              ValueListenableBuilder(
+                                                valueListenable: _window,
+                                                builder: (context, window, _) {
+                                                  // The scroll may be clamped (zoom out)
+                                                  // without a notification; read it here.
+                                                  final at = _scroll.hasClients
+                                                      ? (_scroll.offset /
+                                                                    (viewport /
+                                                                        2))
+                                                                .floor() *
+                                                            viewport /
+                                                            2
+                                                      : window * viewport / 2;
+                                                  return Column(
+                                                    children: [
+                                                      for (final track
+                                                          in timeline.tracks)
+                                                        _Lane(
+                                                          key: ValueKey(
+                                                            track.id,
+                                                          ),
+                                                          track: track,
+                                                          tracks: widget
                                                               .timeline
-                                                              .project
-                                                              .toInt(),
-                                                          pps: pps,
-                                                          ticksPerSecond:
-                                                              ticksPerSecond,
-                                                          step: step,
-                                                          from: at - viewport,
-                                                          to: at + 2 * viewport,
+                                                              .tracks,
+                                                          height: laneHeight,
+                                                          px: px,
+                                                          ticks: ticks,
+                                                          onMove:
+                                                              (
+                                                                clip,
+                                                                by,
+                                                                selection,
+                                                              ) => _move(
+                                                                clip,
+                                                                track,
+                                                                by,
+                                                                selection,
+                                                                laneHeight,
+                                                                ticks,
+                                                              ),
+                                                          tiles: _Tiles(
+                                                            project: widget
+                                                                .timeline
+                                                                .project
+                                                                .toInt(),
+                                                            pps: pps,
+                                                            ticksPerSecond:
+                                                                ticksPerSecond,
+                                                            step: step,
+                                                            from: at - viewport,
+                                                            to:
+                                                                at +
+                                                                2 * viewport,
+                                                          ),
                                                         ),
-                                                      ),
-                                                  ],
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      // The loop as the engine reports it, even if its clip is gone.
-                                      if (looping)
-                                        Positioned(
-                                          key: TimelineView.loopKey,
-                                          left: px(timeline.loopStart.toInt()),
-                                          width: px(
-                                            (timeline.loopEnd -
-                                                    timeline.loopStart)
-                                                .toInt(),
-                                          ),
-                                          top: 0,
-                                          height: FramixSpace.s,
-                                          child: IgnorePointer(
-                                            child: ColoredBox(
-                                              color: FramixColors.of(context)
-                                                  .accentFill,
-                                            ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      // The playhead changes often; only this line rebuilds.
-                                      BlocBuilder<PlayheadCubit, int>(
-                                        builder: (context, playhead) =>
-                                            Positioned(
-                                              key: TimelineView.playheadKey,
-                                              left: px(playhead) - 1,
-                                              top: 0,
-                                              bottom: 0,
-                                              width: 2,
-                                              child: IgnorePointer(
-                                                child: ColoredBox(
-                                                  color: FramixColors.of(
-                                                    context,
-                                                  ).accentText,
-                                                ),
+                                        // The loop as the engine reports it, even if its clip is gone.
+                                        if (looping)
+                                          Positioned(
+                                            key: TimelineView.loopKey,
+                                            left: px(
+                                              timeline.loopStart.toInt(),
+                                            ),
+                                            width: px(
+                                              (timeline.loopEnd -
+                                                      timeline.loopStart)
+                                                  .toInt(),
+                                            ),
+                                            top: 0,
+                                            height: FramixSpace.s,
+                                            child: IgnorePointer(
+                                              child: ColoredBox(
+                                                color: FramixColors.of(context)
+                                                    .accentFill,
                                               ),
                                             ),
-                                      ),
-                                    ],
+                                          ),
+                                        // The playhead changes often; only this line rebuilds.
+                                        BlocBuilder<PlayheadCubit, int>(
+                                          builder: (context, playhead) =>
+                                              Positioned(
+                                                key: TimelineView.playheadKey,
+                                                left: px(playhead) - 1,
+                                                top: 0,
+                                                bottom: 0,
+                                                width: 2,
+                                                child: IgnorePointer(
+                                                  child: ColoredBox(
+                                                    color: FramixColors.of(
+                                                      context,
+                                                    ).accentText,
+                                                  ),
+                                                ),
+                                              ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

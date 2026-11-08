@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show immutable, setEquals;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The clips the user picked on the timeline, by engine clip id. View state only: the clip
-/// actions act on them, and ids the timeline no longer has are ignored.
+/// actions act on them. Ids the timeline no longer has are dropped when it changes.
 @immutable
 class ClipSelection {
   const ClipSelection({this.ids = const {}, this.more = false});
@@ -42,4 +42,12 @@ class ClipSelectionCubit extends Cubit<ClipSelection> {
   void toggleMore() => emit(ClipSelection(ids: state.ids, more: !state.more));
 
   void clear() => emit(const ClipSelection());
+
+  /// Drops the ids of clips the timeline no longer has ([clips]: the ids it has).
+  void keepOnly(Set<int> clips) {
+    final ids = state.ids.intersection(clips);
+    if (ids.length != state.ids.length) {
+      emit(ClipSelection(ids: ids, more: state.more));
+    }
+  }
 }
