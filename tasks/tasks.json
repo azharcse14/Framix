@@ -14835,12 +14835,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "65abd18",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time; reviewer approved. SnapMove snap-target wording fixed after review (9bb4f9c)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14854,12 +14859,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "2e4a8bf",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time; reviewer approved."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14946,6 +14956,44 @@
    "title": "Cache clean: SHA-256 padding-boundary tests (55/56/64 bytes), skip in-progress .part files, log a failed autosave before clean, clean caches of projects purged from Recently deleted (P1-017 review)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-112",
+   "section": "P1",
+   "group": null,
+   "title": "Widget test: with no loop set, Clear loop stays hidden when one or two clips are selected (guards the _ClipActions looping wiring; P1-106 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-113",
+   "section": "P1",
+   "group": null,
+   "title": "Trim handles of a selected narrow clip cover the next narrow clip's tap target, so it can't be tapped into the selection (found in P1-104)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
