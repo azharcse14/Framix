@@ -98,7 +98,7 @@ class _TimelineViewState extends State<TimelineView> {
     final tracks = widget.timeline.tracks;
     // A clip of a multi-selection takes the others along, each on its own track.
     final selected = _selectedClips(tracks, selection.ids);
-    if (selected.length > 1 && selection.contains(clip.id.toInt())) {
+    if (_movesSelection(selected, selection.ids, clip)) {
       context.read<TimelineCubit>().moveClips(
         selected.map((s) => s.$2),
         ticks(by.dx),
@@ -566,6 +566,10 @@ List<(Track, Clip)> _selectedClips(Iterable<Track> tracks, Set<int> ids) => [
       if (ids.contains(clip.id.toInt())) (track, clip),
 ];
 
+/// Whether dragging [clip] moves the whole selection ([selected] is [_selectedClips] of [ids]).
+bool _movesSelection(List<(Track, Clip)> selected, Set<int> ids, Clip clip) =>
+    selected.length > 1 && ids.contains(clip.id.toInt());
+
 /// The engine's 0xRRGGBBAA as an opaque Flutter color, as the renderer draws it.
 Color _rgba(int rgba) => Color(0xff000000 | (rgba >> 8));
 
@@ -723,7 +727,7 @@ class _Lane extends StatelessWidget {
     // A multi-clip move only shifts time (each clip stays on its track), so its clip
     // follows the finger sideways only.
     bool sideways(Clip clip) =>
-        live.length > 1 && selection.state.contains(clip.id.toInt());
+        _movesSelection(live, selection.state.ids, clip);
     ClipBox box(Clip clip) => ClipBox(
       width: px(clip.duration.toInt()),
       audio: track.kind == TrackKind.TRACK_KIND_AUDIO,
