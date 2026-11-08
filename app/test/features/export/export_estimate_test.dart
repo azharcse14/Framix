@@ -9,7 +9,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../timeline/timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-110: the settings sheet shows the engine's size estimate formatted as Home shows sizes.
 void main() {
@@ -41,12 +41,11 @@ void main() {
           ),
         ),
       );
-      for (var i = 0; i < 100 && export().estimatedBytes == 0; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump();
-      }
+      await pumpUntilTrue(
+        tester,
+        () => export().estimatedBytes > 0,
+        () => 'no estimate',
+      );
       final bytes = export().estimatedBytes.toInt();
       expect(bytes, greaterThan(0));
 
