@@ -8,7 +8,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../timeline/timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-082: quick edits in the export settings sheet don't undo each other; a slider drag is one
 /// step; auto back on is kbps 0.

@@ -7,18 +7,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Like home_page_test's pumpUntil with a longer real-time budget (10 s): this test makes
-/// many engine round trips and ran out of the 2 s budget while other builds loaded the CPU.
-Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 500; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
-    await tester.pump();
-    if (finder.evaluate().isNotEmpty) return;
-  }
-  throw TestFailure('never found: $finder');
-}
+import '../../pump_until.dart';
 
 /// Tapping a project that is not the open one opens it (P1-089 review).
 void main() {

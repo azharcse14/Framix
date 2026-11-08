@@ -7,7 +7,7 @@ import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'home_open_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// P1-092: Home without a projects folder offers Try again instead of a dead end.
 void main() {

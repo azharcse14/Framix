@@ -9,7 +9,7 @@ import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'import_test.dart' show FakeImporter;
-import 'timeline_page_test.dart' show pumpUntil;
+import '../../pump_until.dart';
 
 /// Multi-select (P1-024): "Select more" picks several clips; Delete, Duplicate and a long-press
 /// drag act on all of them as one edit.
@@ -19,26 +19,29 @@ void main() {
   setUp(() => engine = FramixEngine.create());
   tearDown(() => engine.dispose());
 
-  MediaItem video(int i) => MediaItem(
+  MediaItem video(int i, {int ms = 2000}) => MediaItem(
     uri: 'content://media/external/video/$i',
     kind: MediaKind.MEDIA_KIND_VIDEO,
-    durationValue: Int64(2000),
+    durationValue: Int64(ms),
     durationTimescale: 1000,
     width: 1080,
     height: 1920,
     codec: 'avc1',
   );
 
-  /// Three 2 s clips back to back on one track.
+  /// Three clips of [ms] (2 s by default) back to back on one track.
   Future<AppLocalizations> threeClips(
     WidgetTester tester,
-    Locale locale,
-  ) async {
+    Locale locale, {
+    int ms = 2000,
+  }) async {
     final l10n = lookupAppLocalizations(locale);
     await tester.pumpWidget(
       FramixApp(
         engine: engine,
-        mediaImporter: FakeImporter([video(1), video(2), video(3)]),
+        mediaImporter: FakeImporter([
+          for (final i in [1, 2, 3]) video(i, ms: ms),
+        ]),
         locale: locale,
       ),
     );
@@ -148,6 +151,42 @@ void main() {
         );
       }
       await gesture.up();
+      await tester.pump();
+    },
+  );
+
+  // P1-104: the same holds for a clip narrower than a touch target, dragged by the 48 dp
+  // target laid over it.
+  testWidgets(
+    'a lifted narrow clip of a multi-selection follows the finger sideways only',
+    (tester) async {
+      // 0.3 s clips: 30 px wide at the initial zoom, under the 48 dp target.
+      final l10n = await threeClips(tester, const Locale('en'), ms: 300);
+      final third = tester.getRect(clip(2));
+      expect(third.width, lessThan(48));
+      // Clips 0 and 2, each tapped through its 48 dp target; clip 2 off its centre, which
+      // clip 0's end trim handle covers while clip 0 is selected alone.
+      await tester.tap(clip(0), warnIfMissed: false);
+      await tester.pump();
+      await tester.tap(find.byTooltip(l10n.selectMore));
+      await tester.pump();
+      await tester.tapAt(third.centerRight - const Offset(4, 0));
+      await tester.pump();
+      expect(find.text(l10n.selectedClipCount(2)), findsOneWidget);
+
+      final gesture = await tester.startGesture(third.center);
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+      await gesture.moveBy(const Offset(50, 40));
+      await tester.pump();
+      for (final box in find.byType(ClipBox).evaluate()) {
+        expect(
+          tester.getRect(find.byWidget(box.widget)).top,
+          closeTo(third.top, 1),
+        );
+      }
+      // Cancel, not drop: a drop would send a move that overlaps clip 1 and is refused after
+      // the test body ends.
+      await gesture.cancel();
       await tester.pump();
     },
   );

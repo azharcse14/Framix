@@ -3285,9 +3285,13 @@ class SetPhotoDuration extends $pb.GeneratedMessage {
   void clearDuration() => $_clearField(1);
 }
 
-/// MoveClip that lands the clip with its start or end (whichever is nearer) on the nearest
-/// edge within snap_within ticks, as SnapTrim does (the clip's own edges are no targets); a
-/// start before 0 becomes 0. 0 = no snapping, more than 10 s is capped, negative is refused.
+/// Moves a clip to `start` on `track_id` (its own or another track of the same kind), keeping
+/// its media, source offset and duration; refused if either track is locked or the new spot
+/// overlaps another clip (its own old spot is free). Before that, the clip lands with its start
+/// or end (whichever is nearer) on the nearest edge within snap_within ticks, as SnapTrim does;
+/// on its own track the clip's current edges are no targets, on another track they are. A
+/// start before 0 becomes 0 and does not snap. 0 = no snapping, more than 10 s is capped,
+/// negative is refused.
 class SnapMove extends $pb.GeneratedMessage {
   factory SnapMove({
     $fixnum.Int64? clipId,
@@ -3381,10 +3385,13 @@ class SnapMove extends $pb.GeneratedMessage {
   void clearSnapWithin() => $_clearField(4);
 }
 
-/// TrimClip whose edges snap to the nearest edge (0, a clip start or end, the timeline end)
-/// within snap_within ticks, as Seek does. Only a moved edge snaps, the clip's own edges are no
-/// targets, and an edge snapped onto or past the other stays where dropped. 0 = no snapping,
-/// more than 10 s is capped, negative is refused.
+/// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+/// Refused on a locked track, for a start before 0 or before the media's first frame, when
+/// end <= start, or when an edge crosses a neighbouring clip. Edges first snap to the nearest
+/// edge (0, a clip start or end, the timeline end) within snap_within ticks, as Seek does.
+/// Only a moved edge snaps, the clip's own edges are no targets, and an edge snapped onto or
+/// past the other stays where dropped. 0 = no snapping, more than 10 s is capped, negative is
+/// refused.
 class SnapTrim extends $pb.GeneratedMessage {
   factory SnapTrim({
     $fixnum.Int64? clipId,
@@ -3478,7 +3485,10 @@ class SnapTrim extends $pb.GeneratedMessage {
 }
 
 /// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
-/// checked like TrimClip. The engine uses its own playhead and clip, never the UI's copy.
+/// moving the start moves the source offset with it, and nothing snaps. Refused on a locked
+/// track, when the playhead is at or beyond the other edge, for a start before 0 or before the media's first
+/// frame, or when the edge crosses a neighbouring clip. The engine uses its own playhead and
+/// clip, never the UI's copy.
 class TrimToPlayhead extends $pb.GeneratedMessage {
   factory TrimToPlayhead({
     $fixnum.Int64? clipId,
@@ -3760,8 +3770,8 @@ class RemoveClips extends $pb.GeneratedMessage {
 }
 
 /// Shifts several clips by `by` ticks, each on its own track, as one undo step; all or nothing
-/// (refused like MoveClip for any clip, and like RemoveClips for the list). Selected clips may
-/// take each other's old spots.
+/// (refused if any clip is on a locked track or would start before 0 or overlap a clip not in
+/// the list, and like RemoveClips for the list). Selected clips may take each other's old spots.
 class MoveClips extends $pb.GeneratedMessage {
   factory MoveClips({
     $core.Iterable<$fixnum.Int64>? clipIds,

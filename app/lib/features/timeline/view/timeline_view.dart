@@ -170,7 +170,7 @@ class _TimelineViewState extends State<TimelineView> {
             child: Column(
               children: [
                 _Toolbar(ticksPerSecond: ticksPerSecond),
-                _ClipActions(timeline: timeline),
+                _ClipActions(timeline: timeline, looping: looping),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Row(
@@ -428,9 +428,12 @@ class _Toolbar extends StatelessWidget {
 /// toolbar, so the timecode keeps its size on a 360 dp phone). The engine checks every edit
 /// (e.g. a split needs the playhead inside the clip).
 class _ClipActions extends StatelessWidget {
-  const _ClipActions({required this.timeline});
+  const _ClipActions({required this.timeline, required this.looping});
 
   final TimelineChanged timeline;
+
+  /// Whether a loop is set.
+  final bool looping;
 
   /// One row of icon buttons.
   static const _rowHeight = 48.0;
@@ -446,10 +449,9 @@ class _ClipActions extends StatelessWidget {
       icon: const Icon(Icons.repeat_on),
       onPressed: cubit.clearLoop,
     );
-    final loopSet = timeline.loopEnd > timeline.loopStart;
     // The row's height stays reserved, so selecting never moves the lanes under the finger.
     if (selected.isEmpty) {
-      return loopSet ? _row([clearLoop]) : const SizedBox(height: _rowHeight);
+      return looping ? _row([clearLoop]) : const SizedBox(height: _rowHeight);
     }
     final more = IconButton(
       tooltip: l10n.selectMore,
@@ -461,7 +463,7 @@ class _ClipActions extends StatelessWidget {
     if (selected.length > 1) {
       final clips = selected.map((s) => s.$2);
       return _row([
-        if (loopSet) clearLoop,
+        if (looping) clearLoop,
         more,
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: FramixSpace.s),
@@ -487,10 +489,11 @@ class _ClipActions extends StatelessWidget {
     // The neighbour that starts where this clip ends, if any.
     final next = track.clips.where((c) => c.start == end).firstOrNull;
     // Playback repeats exactly this clip.
-    final looping = timeline.loopStart == clip.start && timeline.loopEnd == end;
+    final loopsThisClip =
+        timeline.loopStart == clip.start && timeline.loopEnd == end;
     return _row([
       // The Loop toggle below already clears a loop on this clip.
-      if (loopSet && !looping) clearLoop,
+      if (looping && !loopsThisClip) clearLoop,
       more,
       IconButton(
         tooltip: l10n.splitClip,
@@ -512,9 +515,9 @@ class _ClipActions extends StatelessWidget {
         tooltip: l10n.loopClip,
         icon: const Icon(Icons.repeat),
         selectedIcon: const Icon(Icons.repeat_on),
-        isSelected: looping,
+        isSelected: loopsThisClip,
         onPressed: () =>
-            looping ? cubit.clearLoop() : cubit.setLoop(clip.start, end),
+            loopsThisClip ? cubit.clearLoop() : cubit.setLoop(clip.start, end),
       ),
       IconButton(
         tooltip: l10n.replaceClip,
