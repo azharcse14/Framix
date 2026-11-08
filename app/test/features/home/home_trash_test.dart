@@ -93,4 +93,25 @@ void main() {
     expect(find.text(bn.restoreProject), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'deleting the only project shows the empty Home, not "no match"',
+    (tester) async {
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      seed();
+      await pumpHome(tester, const Locale('en'));
+      final card = find.text(l10n.untitledProject);
+      await pumpUntil(tester, card);
+      await tester.longPress(card);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.deleteProject));
+      await tester.pumpAndSettle();
+      await pumpUntil(tester, find.text(l10n.projectsEmpty));
+      expect(find.text(l10n.noMatchingProjects), findsNothing);
+      expect(
+        find.widgetWithText(ChoiceChip, l10n.recentlyDeleted),
+        findsOneWidget,
+      );
+    },
+  );
 }
