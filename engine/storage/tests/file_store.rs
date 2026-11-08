@@ -98,3 +98,23 @@ fn a_save_with_no_current_file_keeps_the_backups() {
     assert_eq!(fs::read(dir.join("p.framix.bak1")).unwrap(), b"A");
     assert_eq!(fs::read(dir.join("p.framix.bak2")).unwrap(), b"B");
 }
+
+#[test]
+fn remove_all_leaves_no_copy_of_the_file() {
+    let dir = temp_dir("remove-all");
+    let path = dir.join("p.framix");
+    for bytes in [b"v1", b"v2", b"v3", b"v4"] {
+        FileStore.save(&path, bytes).unwrap();
+    }
+    FileStore.set_aside(&path).unwrap();
+    FileStore.save(&path, b"v5").unwrap();
+    fs::write(dir.join("other.framix"), b"kept").unwrap();
+
+    FileStore.remove_all(&path).unwrap();
+    let left: Vec<_> = fs::read_dir(&dir)
+        .unwrap()
+        .map(|e| e.unwrap().file_name())
+        .collect();
+    assert_eq!(left, ["other.framix"], "no backup or set-aside copy left");
+    FileStore.remove_all(&path).unwrap();
+}

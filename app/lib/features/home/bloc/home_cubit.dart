@@ -21,11 +21,38 @@ final class HomeUnavailable extends HomeState {
   const HomeUnavailable();
 }
 
-/// The library's projects, most recently saved first (the engine's order).
+/// The library's projects that the search and folder pick, in the engine's order.
 final class HomeProjects extends HomeState {
-  const HomeProjects(this.projects, {this.opening, this.recovered = false});
+  const HomeProjects(
+    this.projects, {
+    this.opening,
+    this.recovered = false,
+    this.folders = const [],
+    this.folder = '',
+    this.sort = ProjectSort.PROJECT_SORT_UNSPECIFIED,
+    this.filtered = false,
+    this.showingDeleted = false,
+    this.deletedCount = 0,
+  });
+
+  /// [projects] are Recently deleted ones (ProjectSummary.purgeMs set).
+  final bool showingDeleted;
+
+  /// How many projects are in Recently deleted (ProjectList.deleted).
+  final int deletedCount;
 
   final List<ProjectSummary> projects;
+
+  /// Every folder that holds a project (ProjectList.folders).
+  final List<String> folders;
+
+  /// The folder shown; empty: every project.
+  final String folder;
+
+  final ProjectSort sort;
+
+  /// A search or folder narrows [projects], so an empty list means no match.
+  final bool filtered;
 
   /// The engine recovered a project left open by a crash (ProjectList.recovered); set on
   /// that one list only, so Home says once that the work is saved.
@@ -77,13 +104,14 @@ class HomeCubit extends Cubit<HomeState> {
     }
     if (e.hasProjectList()) {
       if (_lists.isNotEmpty) _lists.removeAt(0);
-      emit(
-        HomeProjects(
-          e.projectList.projects,
-          opening: _opening,
-          recovered: e.projectList.recovered.isNotEmpty,
-        ),
-      );
+      _list = e.projectList;
+      // The shown folder's last project left it: list every project instead.
+      if (_folder.isNotEmpty && !_list!.folders.contains(_folder)) {
+        _folder = '';
+        // Its answer replaces this stale, empty list.
+        return _listProjects();
+      }
+      _emitList(recovered: e.projectList.recovered.isNotEmpty);
     }
     if (e.hasCommandAccepted() &&
         e.commandAccepted.commandId.toInt() == _library) {
@@ -113,6 +141,8 @@ class HomeCubit extends Cubit<HomeState> {
   void retry() {
     if (state is! HomeUnavailable) return;
     emit(const HomeLoading());
+    // The search box comes back empty.
+    _query = '';
     _open();
   }
 
@@ -132,8 +162,84 @@ class HomeCubit extends Cubit<HomeState> {
   /// A refused list also shows the generic failure message.
   void refresh() {
     _busy = false;
+    _listProjects();
+  }
+
+  // ponytail: one ListProjects per keystroke, each decoding every project; debounce once
+  // lists grow long (OVL-015).
+  void _listProjects() {
     if (!_opened) return;
-    _lists.add(_engine.send(Command(listProjects: ListProjects())));
+    final op = ListProjects(
+      sort: _sort,
+      query: _query,
+      folder: _folder,
+      deleted: _deleted,
+    );
+    _lists.add(_engine.send(Command(listProjects: op)));
+  }
+
+  String _query = '';
+  String _folder = '';
+  ProjectSort _sort = ProjectSort.PROJECT_SORT_UNSPECIFIED;
+
+  /// Lists only projects whose name holds [query] (the engine matches).
+  void search(String query) {
+    _query = query;
+    _listProjects();
+  }
+
+  /// Lists the projects in [sort] order.
+  void sortBy(ProjectSort sort) {
+    _sort = sort;
+    _listProjects();
+  }
+
+  /// Lists only the projects in [folder]; empty: every project.
+  void showFolder(String folder) {
+    _folder = folder;
+    _deleted = false;
+    _listProjects();
+  }
+
+  /// Lists Recently deleted.
+  void showDeleted() {
+    _folder = '';
+    _deleted = true;
+    _listProjects();
+  }
+
+  bool _deleted = false;
+
+  /// Moves project [id] to Recently deleted, like [rename].
+  void delete(String id) {
+    _engine.send(Command(deleteProject: DeleteProject(id: id)));
+    _listProjects();
+  }
+
+  /// Takes project [id] out of Recently deleted, like [rename].
+  void restore(String id) {
+    _engine.send(Command(restoreProject: RestoreProject(id: id)));
+    _listProjects();
+  }
+
+  /// Names project [id]; the list follows. A refusal shows the generic failure message.
+  void rename(String id, String name) {
+    _engine.send(
+      Command(
+        renameProject: RenameProject(id: id, name: name),
+      ),
+    );
+    _listProjects();
+  }
+
+  /// Puts project [id] in [folder] (empty: none), like [rename].
+  void moveTo(String id, String folder) {
+    _engine.send(
+      Command(
+        moveProject: MoveProject(id: id, folder: folder),
+      ),
+    );
+    _listProjects();
   }
 
   /// Starts an empty project; true once the engine switched to it, false if it refused
@@ -157,11 +263,30 @@ class HomeCubit extends Cubit<HomeState> {
 
   String? _opening;
 
+  /// The latest ProjectList.
+  ProjectList? _list;
+
   void _showOpening(String? opening) {
     _opening = opening;
-    if (state case HomeProjects(:final projects) when !isClosed) {
-      emit(HomeProjects(projects, opening: opening));
-    }
+    if (state is HomeProjects && !isClosed) _emitList();
+  }
+
+  void _emitList({bool recovered = false}) {
+    final list = _list;
+    if (list == null) return;
+    emit(
+      HomeProjects(
+        list.projects,
+        opening: _opening,
+        recovered: recovered,
+        folders: list.folders,
+        folder: _folder,
+        sort: _sort,
+        filtered: _query.trim().isNotEmpty || _folder.isNotEmpty || _deleted,
+        showingDeleted: _deleted,
+        deletedCount: list.deleted,
+      ),
+    );
   }
 
   @override

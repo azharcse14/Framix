@@ -73,7 +73,7 @@ fn a_normal_stop_with_a_project_open_reports_no_recovery() {
     let library = command::Kind::OpenLibrary(OpenLibrary {
         dir: dir.to_str().unwrap().into(),
     });
-    let list = command::Kind::ListProjects(ListProjects {});
+    let list = command::Kind::ListProjects(ListProjects::default());
 
     session(&[
         library.clone(),

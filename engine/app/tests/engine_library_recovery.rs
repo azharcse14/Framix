@@ -77,7 +77,7 @@ fn launch(store: &MemStore) -> Engine {
 
 /// ListProjects: the listed ids and the recovered one.
 fn list(engine: &mut Engine) -> (Vec<String>, String) {
-    match run(engine, command::Kind::ListProjects(ListProjects {})) {
+    match run(engine, command::Kind::ListProjects(ListProjects::default())) {
         Some(event::Kind::ProjectList(list)) => (
             list.projects.into_iter().map(|p| p.id).collect(),
             list.recovered,

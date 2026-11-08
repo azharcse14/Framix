@@ -188,7 +188,12 @@ fn home_lists_and_opens_a_project_from_its_backup() {
     store.put(&file, BROKEN);
     store.put(format!("{file}.bak1"), &project(2));
     let mut engine = library(&store);
-    let listed = match run(&mut engine, command::Kind::ListProjects(ListProjects {})).kind {
+    let listed = match run(
+        &mut engine,
+        command::Kind::ListProjects(ListProjects::default()),
+    )
+    .kind
+    {
         Some(event::Kind::ProjectList(l)) => l.projects,
         other => panic!("expected ProjectList, got {other:?}"),
     };

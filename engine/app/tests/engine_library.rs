@@ -86,7 +86,7 @@ fn library(store: &MemStore) -> Engine {
 }
 
 fn list(engine: &mut Engine) -> Vec<ProjectSummary> {
-    match run(engine, command::Kind::ListProjects(ListProjects {})) {
+    match run(engine, command::Kind::ListProjects(ListProjects::default())) {
         Some(event::Kind::ProjectList(list)) => list.projects,
         other => panic!("expected ProjectList, got {other:?}"),
     }
@@ -131,7 +131,7 @@ fn listing_needs_a_library() {
     let mut engine = Engine::with_store(Box::new(MemStore::default()));
     assert!(refused(run(
         &mut engine,
-        command::Kind::ListProjects(ListProjects {})
+        command::Kind::ListProjects(ListProjects::default())
     )));
 }
 

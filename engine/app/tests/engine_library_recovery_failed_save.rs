@@ -88,7 +88,7 @@ fn add_track(engine: &mut Engine) {
 }
 
 fn recovered(engine: &mut Engine) -> String {
-    match run(engine, command::Kind::ListProjects(ListProjects {})) {
+    match run(engine, command::Kind::ListProjects(ListProjects::default())) {
         Some(event::Kind::ProjectList(list)) => list.recovered,
         other => panic!("expected ProjectList, got {other:?}"),
     }

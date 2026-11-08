@@ -1,9 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/engine/framix_engine.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart'
-    show ProjectSummary;
+    show ProjectSort, ProjectSummary;
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/small_spinner.dart';
@@ -91,16 +93,44 @@ class _HomeView extends StatelessWidget {
                       onPressed: context.read<HomeCubit>().retry,
                     ),
                   ),
-                  HomeProjects(projects: []) => _Message(
-                    icon: Icons.movie_creation_outlined,
-                    title: l10n.projectsEmptyTitle,
-                    body: l10n.projectsEmpty,
-                  ),
-                  HomeProjects(:final projects, :final opening) => _ProjectGrid(
-                    projects: projects,
-                    opening: opening,
-                    onOpen: (id) =>
-                        _editAfter(context, context.read<HomeCubit>().open(id)),
+                  HomeProjects(
+                    projects: [],
+                    filtered: false,
+                    deletedCount: 0,
+                  ) =>
+                    _Message(
+                      icon: Icons.movie_creation_outlined,
+                      title: l10n.projectsEmptyTitle,
+                      body: l10n.projectsEmpty,
+                    ),
+                  HomeProjects(:final projects, :final opening) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _FindBar(state: state),
+                      Expanded(
+                        child: projects.isEmpty
+                            ? _Message(
+                                icon: state.showingDeleted
+                                    ? Icons.delete_outline
+                                    : state.filtered
+                                    ? Icons.search_off
+                                    : Icons.movie_creation_outlined,
+                                body: state.showingDeleted
+                                    ? l10n.recentlyDeletedEmpty
+                                    : state.filtered
+                                    ? l10n.noMatchingProjects
+                                    : l10n.projectsEmpty,
+                              )
+                            : _ProjectGrid(
+                                projects: projects,
+                                opening: opening,
+                                onOpen: (id) => _editAfter(
+                                  context,
+                                  context.read<HomeCubit>().open(id),
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
                 },
               ),
@@ -128,6 +158,93 @@ class _HomeView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Search, sort and the folder chips above the projects (P1-015).
+class _FindBar extends StatelessWidget {
+  const _FindBar({required this.state});
+
+  final HomeProjects state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cubit = context.read<HomeCubit>();
+    final sorts = {
+      ProjectSort.PROJECT_SORT_UNSPECIFIED: l10n.sortByDate,
+      ProjectSort.PROJECT_SORT_NAME: l10n.sortByName,
+      ProjectSort.PROJECT_SORT_SIZE: l10n.sortBySize,
+    };
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        FramixSpace.m,
+        0,
+        FramixSpace.s,
+        FramixSpace.s,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: l10n.searchProjects,
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                  textInputAction: TextInputAction.search,
+                  onChanged: cubit.search,
+                ),
+              ),
+              PopupMenuButton<ProjectSort>(
+                icon: const Icon(Icons.sort),
+                tooltip: l10n.sortProjects,
+                initialValue: state.sort,
+                onSelected: cubit.sortBy,
+                itemBuilder: (_) => [
+                  for (final MapEntry(:key, :value) in sorts.entries)
+                    CheckedPopupMenuItem(
+                      value: key,
+                      checked: key == state.sort,
+                      child: Text(value),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          if (state.folders.isNotEmpty ||
+              state.deletedCount > 0 ||
+              state.showingDeleted)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(top: FramixSpace.s),
+              child: Row(
+                spacing: FramixSpace.s,
+                children: [
+                  for (final (folder, label) in [
+                    ('', l10n.allProjects),
+                    for (final f in state.folders) (f, f),
+                  ])
+                    ChoiceChip(
+                      label: Text(label),
+                      selected: !state.showingDeleted && state.folder == folder,
+                      onSelected: (_) => cubit.showFolder(folder),
+                    ),
+                  if (state.deletedCount > 0 || state.showingDeleted)
+                    ChoiceChip(
+                      avatar: const Icon(Icons.delete_outline),
+                      label: Text(l10n.recentlyDeleted),
+                      selected: state.showingDeleted,
+                      onSelected: (_) => cubit.showDeleted(),
+                    ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -296,12 +413,25 @@ class _ProjectCard extends StatelessWidget {
       project.duration.toInt(),
       project.ticksPerSecond.toInt(),
     );
-    final edited = editedLabel(
-      l10n,
-      locale,
-      DateTime.now(),
-      DateTime.fromMillisecondsSinceEpoch(project.modifiedMs.toInt()),
-    );
+    final deleted = project.purgeMs != 0;
+    final now = DateTime.now();
+    final edited = deleted
+        ? l10n.daysLeft(
+            max(
+              1,
+              (DateTime.fromMillisecondsSinceEpoch(project.purgeMs.toInt())
+                          .difference(now)
+                          .inMinutes /
+                      Duration.minutesPerDay)
+                  .ceil(),
+            ),
+          )
+        : editedLabel(
+            l10n,
+            locale,
+            now,
+            DateTime.fromMillisecondsSinceEpoch(project.modifiedMs.toInt()),
+          );
     return MergeSemantics(
       child: Semantics(
         button: true,
@@ -313,7 +443,9 @@ class _ProjectCard extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: onTap,
+            // A deleted project doesn't open; its menu offers Restore.
+            onTap: deleted ? () => _projectActions(context, project) : onTap,
+            onLongPress: () => _projectActions(context, project),
             child: Padding(
               padding: const EdgeInsets.all(FramixSpace.s),
               child: Column(
@@ -381,9 +513,19 @@ class _ProjectCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        edited,
+                        project.name.isEmpty
+                            ? l10n.untitledProject
+                            : project.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: text.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        edited,
+                        style: text.bodySmall?.copyWith(
+                          color: colors.textMuted,
                         ),
                       ),
                       Text(
@@ -400,6 +542,123 @@ class _ProjectCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// What the project menu does.
+enum _Action { rename, move, delete, restore }
+
+/// The menu of [project]: rename, move to a folder or delete it; Restore once deleted.
+Future<void> _projectActions(
+  BuildContext context,
+  ProjectSummary project,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final cubit = context.read<HomeCubit>();
+  final actions = project.purgeMs != 0
+      ? {_Action.restore: (Icons.restore, l10n.restoreProject)}
+      : {
+          _Action.rename: (Icons.edit_outlined, l10n.renameProject),
+          _Action.move: (Icons.drive_file_move_outlined, l10n.moveToFolder),
+          _Action.delete: (Icons.delete_outline, l10n.deleteProject),
+        };
+  final action = await showModalBottomSheet<_Action>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(
+              l10n.projectActions,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          for (final MapEntry(key: action, value: (icon, label))
+              in actions.entries)
+            ListTile(
+              leading: Icon(icon),
+              title: Text(label),
+              onTap: () => Navigator.pop(context, action),
+            ),
+        ],
+      ),
+    ),
+  );
+  if (action == null || !context.mounted) return;
+  switch (action) {
+    case _Action.delete:
+      return cubit.delete(project.id);
+    case _Action.restore:
+      return cubit.restore(project.id);
+    case _Action.rename || _Action.move:
+  }
+  final rename = action == _Action.rename;
+  final text = await showDialog<String>(
+    context: context,
+    builder: (_) => rename
+        ? _TextDialog(
+            title: l10n.renameProject,
+            label: l10n.projectName,
+            initial: project.name,
+          )
+        : _TextDialog(
+            title: l10n.moveToFolder,
+            label: l10n.folderName,
+            initial: project.folder,
+          ),
+  );
+  if (text == null) return;
+  rename ? cubit.rename(project.id, text) : cubit.moveTo(project.id, text);
+}
+
+/// A dialog asking for one line of text; pops it on Save, null on Cancel.
+class _TextDialog extends StatefulWidget {
+  const _TextDialog({
+    required this.title,
+    required this.label,
+    required this.initial,
+  });
+
+  final String title;
+  final String label;
+  final String initial;
+
+  @override
+  State<_TextDialog> createState() => _TextDialogState();
+}
+
+class _TextDialogState extends State<_TextDialog> {
+  late final _text = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(widget.title),
+      content: TextField(
+        controller: _text,
+        autofocus: true,
+        decoration: InputDecoration(labelText: widget.label),
+        onSubmitted: (text) => Navigator.pop(context, text),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _text.text),
+          child: Text(l10n.save),
+        ),
+      ],
     );
   }
 }
