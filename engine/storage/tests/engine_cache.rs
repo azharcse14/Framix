@@ -5,10 +5,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use framix_app::engine::Engine;
+use std::io;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, SystemTime};
+
 use framix_app::proto::{
-    CleanProjectCache, Command, ImportMedia, ListProjects, MediaItem, MediaKind, NewProject,
-    OpenLibrary, ProjectSummary, command, event,
+    AddTrack, CleanProjectCache, Command, DeleteProject, ImportMedia, ListProjects, MediaItem,
+    MediaKind, NewProject, OpenLibrary, ProjectSummary, TrackKind, command, event,
 };
+use framix_app::store::ProjectStore;
 use framix_storage::FileStore;
 
 /// SHA-256 hex of the media uris (as the platform names cache files), from `shasum -a 256`.
@@ -40,7 +46,11 @@ fn run(engine: &mut Engine, kind: command::Kind) -> Option<event::Kind> {
 }
 
 fn library(dir: &Path, cache: &str) -> Engine {
-    let mut engine = Engine::with_store(Box::new(FileStore));
+    library_on(Box::new(FileStore), dir, cache)
+}
+
+fn library_on(store: Box<dyn ProjectStore>, dir: &Path, cache: &str) -> Engine {
+    let mut engine = Engine::with_store(store);
     let e = run(
         &mut engine,
         command::Kind::OpenLibrary(OpenLibrary {
@@ -234,6 +244,8 @@ fn cleaning_removes_only_that_projects_cache_files() {
     assert_eq!(row(&first.id).bytes, first.bytes);
 
     let mut left = vec![
+        // A platform write in progress (P1-111).
+        format!("thumbs/{A_HASH}-0-128.jpg1234.part"),
         format!("thumbs/{B_HASH}-0-128.jpg"),
         "thumbs/unrelated.jpg".to_owned(),
         format!("thumbs/{A_HASH}-dir/inner.jpg"),
@@ -287,4 +299,145 @@ fn cleaning_needs_a_library() {
         clean(&mut engine, "abc"),
         Some(event::Kind::CommandFailed(_))
     ));
+}
+
+/// FileStore whose project saves fail while `fail` is set and whose clock runs `later` ahead.
+#[derive(Clone, Default)]
+struct Shifted {
+    fail: Arc<AtomicBool>,
+    later: Duration,
+}
+
+impl ProjectStore for Shifted {
+    fn save(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
+        if self.fail.load(Ordering::SeqCst) {
+            return Err(io::ErrorKind::StorageFull.into());
+        }
+        FileStore.save(path, bytes)
+    }
+    fn load(&self, path: &Path) -> io::Result<Vec<u8>> {
+        FileStore.load(path)
+    }
+    fn list(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
+        FileStore.list(dir)
+    }
+    fn sizes(&self, dir: &Path) -> io::Result<Vec<(PathBuf, u64)>> {
+        FileStore.sizes(dir)
+    }
+    fn backups(&self, path: &Path) -> Vec<PathBuf> {
+        FileStore.backups(path)
+    }
+    fn put(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
+        FileStore.put(path, bytes)
+    }
+    fn remove(&self, path: &Path) -> io::Result<()> {
+        FileStore.remove(path)
+    }
+    fn remove_all(&self, path: &Path) -> io::Result<()> {
+        FileStore.remove_all(path)
+    }
+    fn now(&self) -> SystemTime {
+        SystemTime::now() + self.later
+    }
+    fn set_aside(&self, path: &Path) -> io::Result<()> {
+        FileStore.set_aside(path)
+    }
+}
+
+#[test]
+fn files_the_platform_is_still_writing_are_not_counted_or_removed() {
+    let root = temp_dir("partial");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    // Android: File.createTempFile(name, ".part"); iOS thumbs: `<name>.part`.
+    let partials = [
+        format!("thumbs/{A_HASH}-0-128.jpg5551234.part"),
+        format!("thumbs/{A_HASH}-1-128.jpg.part"),
+    ];
+    for p in &partials {
+        write(&cache.join(p), 50);
+    }
+    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
+    let mut engine = library(&lib, cache.to_str().unwrap());
+    project_with(&mut engine, &[A]);
+    let p = list(&mut engine).remove(0);
+    assert_eq!(p.cache_bytes, 100);
+
+    assert_eq!(cleaned(&mut engine, &p.id)[0].cache_bytes, 0);
+    let mut left = partials.to_vec();
+    left.sort();
+    assert_eq!(tree(&cache), left);
+}
+
+#[test]
+fn a_failed_autosave_before_cleaning_is_reported_once_then_cleaning_works() {
+    let root = temp_dir("autosavefail");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
+    let store = Shifted::default();
+    let mut engine = library_on(Box::new(store.clone()), &lib, cache.to_str().unwrap());
+    project_with(&mut engine, &[A]);
+    let id = list(&mut engine)[0].id.clone();
+    run(
+        &mut engine,
+        command::Kind::OpenProject(framix_app::proto::OpenProject {
+            id: id.clone(),
+            ..Default::default()
+        }),
+    );
+    run(
+        &mut engine,
+        command::Kind::AddTrack(AddTrack {
+            kind: TrackKind::Video as i32,
+        }),
+    );
+    store.fail.store(true, Ordering::SeqCst);
+
+    match clean(&mut engine, &id) {
+        Some(event::Kind::CommandFailed(f)) => {
+            assert!(f.reason.contains("autosave failed"), "{}", f.reason);
+        }
+        other => panic!("expected the autosave failure, got {other:?}"),
+    }
+    assert_eq!(tree(&cache), [format!("thumbs/{A_HASH}-0-128.jpg")]);
+    // Reported; the retry cleans and the timer stays quiet about the same failure.
+    assert!(matches!(
+        clean(&mut engine, &id),
+        Some(event::Kind::CommandAccepted(_))
+    ));
+    assert!(tree(&cache).is_empty());
+    assert_eq!(engine.autosave(), None);
+}
+
+#[test]
+fn a_project_purged_from_recently_deleted_takes_its_caches_along() {
+    let root = temp_dir("purge");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
+    write(&cache.join(format!("proxies/{LONG_HASH}-1280.mov")), 1000);
+    write(&cache.join(format!("thumbs/{B_HASH}-0-128.jpg")), 7);
+    let mut engine = library(&lib, cache.to_str().unwrap());
+    let (first, second) = two_projects(&mut engine);
+    let e = run(
+        &mut engine,
+        command::Kind::DeleteProject(DeleteProject {
+            id: first.id.clone(),
+        }),
+    );
+    assert!(matches!(e, Some(event::Kind::CommandAccepted(_))), "{e:?}");
+    // Still in Recently deleted: its caches stay.
+    list(&mut engine);
+    assert_eq!(tree(&cache).len(), 3);
+    drop(engine);
+
+    let later = Shifted {
+        later: Duration::from_secs(31 * 24 * 60 * 60),
+        ..Shifted::default()
+    };
+    let mut engine = library_on(Box::new(later), &lib, cache.to_str().unwrap());
+    let ids: Vec<String> = list(&mut engine).into_iter().map(|p| p.id).collect();
+    assert_eq!(ids, [second.id]);
+    assert_eq!(tree(&cache), [format!("thumbs/{B_HASH}-0-128.jpg")]);
 }
