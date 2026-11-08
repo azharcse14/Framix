@@ -221,6 +221,23 @@ class TimelineCubit extends Cubit<TimelineChanged> {
   void removeClip(Clip clip) =>
       _engine.send(Command(removeClip: RemoveClip(clipId: clip.id)));
 
+  /// Removes [clips] as one undo step; the engine refuses all if it refuses one.
+  void removeClips(Iterable<Clip> clips) => _engine.send(
+    Command(removeClips: RemoveClips(clipIds: clips.map((c) => c.id))),
+  );
+
+  /// Shifts [clips] by [by] ticks, each on its own track, as one undo step.
+  void moveClips(Iterable<Clip> clips, int by) => _engine.send(
+    Command(
+      moveClips: MoveClips(clipIds: clips.map((c) => c.id), by: Int64(by)),
+    ),
+  );
+
+  /// Copies [clips] as one block right after them; the engine refuses a taken space.
+  void duplicateClips(Iterable<Clip> clips) => _engine.send(
+    Command(duplicateClips: DuplicateClips(clipIds: clips.map((c) => c.id))),
+  );
+
   /// Copies [clip] to right after itself; the engine refuses it if that space is taken.
   void duplicateClip(Clip clip) =>
       _engine.send(Command(duplicateClip: DuplicateClip(clipId: clip.id)));

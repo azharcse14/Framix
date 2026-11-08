@@ -732,6 +732,8 @@ impl Engine {
             command::Kind::MergeClips(op) => {
                 timeline(self.edit(|tl| tl.merge_clips(ClipId(op.left_id), ClipId(op.right_id))))
             }
+            // Retired command (ADR 0008), kept for its frozen test.
+            #[allow(deprecated)]
             command::Kind::TrimClip(op) => timeline(
                 self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), Time(op.start), Time(op.end))),
             ),
@@ -740,6 +742,18 @@ impl Engine {
             }
             command::Kind::DuplicateClip(op) => {
                 timeline(self.edit(|tl| tl.duplicate_clip(ClipId(op.clip_id))))
+            }
+            command::Kind::RemoveClips(op) => {
+                let ids = self.selection(&op.clip_ids)?;
+                timeline(self.edit(|tl| tl.remove_clips(&ids)))
+            }
+            command::Kind::MoveClips(op) => {
+                let ids = self.selection(&op.clip_ids)?;
+                timeline(self.edit(|tl| tl.move_clips(&ids, Time(op.by))))
+            }
+            command::Kind::DuplicateClips(op) => {
+                let ids = self.selection(&op.clip_ids)?;
+                timeline(self.edit(|tl| tl.duplicate_clips(&ids)))
             }
             command::Kind::SetTrackFlags(op) => {
                 let track = TrackId(op.track_id);
@@ -756,6 +770,8 @@ impl Engine {
                     tl.set_track_flags(track, flags)
                 }))
             }
+            // Retired command (ADR 0008), kept for its frozen test.
+            #[allow(deprecated)]
             command::Kind::MoveClip(op) => {
                 timeline(self.edit(|tl| {
                     tl.move_clip(ClipId(op.clip_id), TrackId(op.track_id), Time(op.start))
@@ -1159,6 +1175,22 @@ impl Engine {
         let timeline = project::decode(&bytes).map_err(|e| e.to_string())?;
         self.history = History::new(timeline);
         Ok(())
+    }
+
+    /// The clip ids of a multi-clip command; a list longer than the timeline's clip count
+    /// is refused before any work.
+    fn selection(&self, ids: &[u64]) -> Result<Vec<ClipId>, String> {
+        let count: usize = self
+            .history
+            .timeline()
+            .tracks()
+            .iter()
+            .map(|t| t.clips().len())
+            .sum();
+        if ids.len() > count {
+            return Err("more clips selected than the timeline has".to_string());
+        }
+        Ok(ids.iter().map(|&id| ClipId(id)).collect())
     }
 
     fn edit<T>(

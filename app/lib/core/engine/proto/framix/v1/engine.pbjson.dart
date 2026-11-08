@@ -230,8 +230,9 @@ const Command$json = {
       '4': 1,
       '5': 11,
       '6': '.framix.v1.TrimClip',
+      '8': {'3': true},
       '9': 0,
-      '10': 'trimClip'
+      '10': 'trimClip',
     },
     {
       '1': 'duplicate_clip',
@@ -257,8 +258,9 @@ const Command$json = {
       '4': 1,
       '5': 11,
       '6': '.framix.v1.MoveClip',
+      '8': {'3': true},
       '9': 0,
-      '10': 'moveClip'
+      '10': 'moveClip',
     },
     {
       '1': 'import_media',
@@ -467,6 +469,33 @@ const Command$json = {
       '9': 0,
       '10': 'setLoop'
     },
+    {
+      '1': 'remove_clips',
+      '3': 41,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.RemoveClips',
+      '9': 0,
+      '10': 'removeClips'
+    },
+    {
+      '1': 'move_clips',
+      '3': 42,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.MoveClips',
+      '9': 0,
+      '10': 'moveClips'
+    },
+    {
+      '1': 'duplicate_clips',
+      '3': 43,
+      '4': 1,
+      '5': 11,
+      '6': '.framix.v1.DuplicateClips',
+      '9': 0,
+      '10': 'duplicateClips'
+    },
     {'1': 'id', '3': 27, '4': 1, '5': 4, '10': 'id'},
   ],
   '8': [
@@ -488,38 +517,41 @@ final $typed_data.Uint8List commandDescriptor = $convert.base64Decode(
     'NwZWN0UmF0aW8SOAoLcmVtb3ZlX2NsaXAYCiABKAsyFS5mcmFtaXgudjEuUmVtb3ZlQ2xpcEgA'
     'UgpyZW1vdmVDbGlwEjUKCnNwbGl0X2NsaXAYCyABKAsyFC5mcmFtaXgudjEuU3BsaXRDbGlwSA'
     'BSCXNwbGl0Q2xpcBI4CgttZXJnZV9jbGlwcxgMIAEoCzIVLmZyYW1peC52MS5NZXJnZUNsaXBz'
-    'SABSCm1lcmdlQ2xpcHMSMgoJdHJpbV9jbGlwGA0gASgLMhMuZnJhbWl4LnYxLlRyaW1DbGlwSA'
-    'BSCHRyaW1DbGlwEkEKDmR1cGxpY2F0ZV9jbGlwGA4gASgLMhguZnJhbWl4LnYxLkR1cGxpY2F0'
-    'ZUNsaXBIAFINZHVwbGljYXRlQ2xpcBJCCg9zZXRfdHJhY2tfZmxhZ3MYDyABKAsyGC5mcmFtaX'
-    'gudjEuU2V0VHJhY2tGbGFnc0gAUg1zZXRUcmFja0ZsYWdzEjIKCW1vdmVfY2xpcBgQIAEoCzIT'
-    'LmZyYW1peC52MS5Nb3ZlQ2xpcEgAUghtb3ZlQ2xpcBI7CgxpbXBvcnRfbWVkaWEYESABKAsyFi'
-    '5mcmFtaXgudjEuSW1wb3J0TWVkaWFIAFILaW1wb3J0TWVkaWESQQoOY3JlYXRlX3ByZXZpZXcY'
-    'EiABKAsyGC5mcmFtaXgudjEuQ3JlYXRlUHJldmlld0gAUg1jcmVhdGVQcmV2aWV3EiUKBHNlZW'
-    'sYEyABKAsyDy5mcmFtaXgudjEuU2Vla0gAUgRzZWVrEk0KEnJlcXVlc3RfdGh1bWJuYWlscxgU'
-    'IAEoCzIcLmZyYW1peC52MS5SZXF1ZXN0VGh1bWJuYWlsc0gAUhFyZXF1ZXN0VGh1bWJuYWlscx'
-    'JLChJzZXRfY2xpcF90cmFuc2Zvcm0YFSABKAsyGy5mcmFtaXgudjEuU2V0Q2xpcFRyYW5zZm9y'
-    'bUgAUhBzZXRDbGlwVHJhbnNmb3JtEjsKDHJlcGxhY2VfY2xpcBgWIAEoCzIWLmZyYW1peC52MS'
-    '5SZXBsYWNlQ2xpcEgAUgtyZXBsYWNlQ2xpcBJOChNzZXRfZXhwb3J0X3NldHRpbmdzGBcgASgL'
-    'MhwuZnJhbWl4LnYxLlNldEV4cG9ydFNldHRpbmdzSABSEXNldEV4cG9ydFNldHRpbmdzEkQKD2'
-    'VuYWJsZV9hdXRvc2F2ZRgYIAEoCzIZLmZyYW1peC52MS5FbmFibGVBdXRvc2F2ZUgAUg5lbmFi'
-    'bGVBdXRvc2F2ZRJBCg5leHBvcnRfcHJvamVjdBgZIAEoCzIYLmZyYW1peC52MS5FeHBvcnRQcm'
-    '9qZWN0SABSDWV4cG9ydFByb2plY3QSPgoNY2FuY2VsX2V4cG9ydBgaIAEoCzIXLmZyYW1peC52'
-    'MS5DYW5jZWxFeHBvcnRIAFIMY2FuY2VsRXhwb3J0EksKEnNldF9waG90b19kdXJhdGlvbhgcIA'
-    'EoCzIbLmZyYW1peC52MS5TZXRQaG90b0R1cmF0aW9uSABSEHNldFBob3RvRHVyYXRpb24SNQoK'
-    'c3RlcF9mcmFtZRgdIAEoCzIULmZyYW1peC52MS5TdGVwRnJhbWVIAFIJc3RlcEZyYW1lEkUKEH'
-    'RyaW1fdG9fcGxheWhlYWQYHiABKAsyGS5mcmFtaXgudjEuVHJpbVRvUGxheWhlYWRIAFIOdHJp'
-    'bVRvUGxheWhlYWQSTgoTYXBwbHlfZXhwb3J0X3ByZXNldBgfIAEoCzIcLmZyYW1peC52MS5BcH'
-    'BseUV4cG9ydFByZXNldEgAUhFhcHBseUV4cG9ydFByZXNldBJXChZjaGFuZ2VfZXhwb3J0X3Nl'
-    'dHRpbmdzGCAgASgLMh8uZnJhbWl4LnYxLkNoYW5nZUV4cG9ydFNldHRpbmdzSABSFGNoYW5nZU'
-    'V4cG9ydFNldHRpbmdzEjgKC2ZpeF9iaXRyYXRlGCEgASgLMhUuZnJhbWl4LnYxLkZpeEJpdHJh'
-    'dGVIAFIKZml4Qml0cmF0ZRIyCglzbmFwX3RyaW0YIiABKAsyEy5mcmFtaXgudjEuU25hcFRyaW'
-    '1IAFIIc25hcFRyaW0SMgoJc25hcF9tb3ZlGCMgASgLMhMuZnJhbWl4LnYxLlNuYXBNb3ZlSABS'
-    'CHNuYXBNb3ZlEjsKDG9wZW5fbGlicmFyeRgkIAEoCzIWLmZyYW1peC52MS5PcGVuTGlicmFyeU'
-    'gAUgtvcGVuTGlicmFyeRI+Cg1saXN0X3Byb2plY3RzGCUgASgLMhcuZnJhbWl4LnYxLkxpc3RQ'
-    'cm9qZWN0c0gAUgxsaXN0UHJvamVjdHMSJQoEcGxheRgmIAEoCzIPLmZyYW1peC52MS5QbGF5SA'
-    'BSBHBsYXkSKAoFcGF1c2UYJyABKAsyEC5mcmFtaXgudjEuUGF1c2VIAFIFcGF1c2USLwoIc2V0'
-    'X2xvb3AYKCABKAsyEi5mcmFtaXgudjEuU2V0TG9vcEgAUgdzZXRMb29wEg4KAmlkGBsgASgEUg'
-    'JpZEIGCgRraW5k');
+    'SABSCm1lcmdlQ2xpcHMSNgoJdHJpbV9jbGlwGA0gASgLMhMuZnJhbWl4LnYxLlRyaW1DbGlwQg'
+    'IYAUgAUgh0cmltQ2xpcBJBCg5kdXBsaWNhdGVfY2xpcBgOIAEoCzIYLmZyYW1peC52MS5EdXBs'
+    'aWNhdGVDbGlwSABSDWR1cGxpY2F0ZUNsaXASQgoPc2V0X3RyYWNrX2ZsYWdzGA8gASgLMhguZn'
+    'JhbWl4LnYxLlNldFRyYWNrRmxhZ3NIAFINc2V0VHJhY2tGbGFncxI2Cgltb3ZlX2NsaXAYECAB'
+    'KAsyEy5mcmFtaXgudjEuTW92ZUNsaXBCAhgBSABSCG1vdmVDbGlwEjsKDGltcG9ydF9tZWRpYR'
+    'gRIAEoCzIWLmZyYW1peC52MS5JbXBvcnRNZWRpYUgAUgtpbXBvcnRNZWRpYRJBCg5jcmVhdGVf'
+    'cHJldmlldxgSIAEoCzIYLmZyYW1peC52MS5DcmVhdGVQcmV2aWV3SABSDWNyZWF0ZVByZXZpZX'
+    'cSJQoEc2VlaxgTIAEoCzIPLmZyYW1peC52MS5TZWVrSABSBHNlZWsSTQoScmVxdWVzdF90aHVt'
+    'Ym5haWxzGBQgASgLMhwuZnJhbWl4LnYxLlJlcXVlc3RUaHVtYm5haWxzSABSEXJlcXVlc3RUaH'
+    'VtYm5haWxzEksKEnNldF9jbGlwX3RyYW5zZm9ybRgVIAEoCzIbLmZyYW1peC52MS5TZXRDbGlw'
+    'VHJhbnNmb3JtSABSEHNldENsaXBUcmFuc2Zvcm0SOwoMcmVwbGFjZV9jbGlwGBYgASgLMhYuZn'
+    'JhbWl4LnYxLlJlcGxhY2VDbGlwSABSC3JlcGxhY2VDbGlwEk4KE3NldF9leHBvcnRfc2V0dGlu'
+    'Z3MYFyABKAsyHC5mcmFtaXgudjEuU2V0RXhwb3J0U2V0dGluZ3NIAFIRc2V0RXhwb3J0U2V0dG'
+    'luZ3MSRAoPZW5hYmxlX2F1dG9zYXZlGBggASgLMhkuZnJhbWl4LnYxLkVuYWJsZUF1dG9zYXZl'
+    'SABSDmVuYWJsZUF1dG9zYXZlEkEKDmV4cG9ydF9wcm9qZWN0GBkgASgLMhguZnJhbWl4LnYxLk'
+    'V4cG9ydFByb2plY3RIAFINZXhwb3J0UHJvamVjdBI+Cg1jYW5jZWxfZXhwb3J0GBogASgLMhcu'
+    'ZnJhbWl4LnYxLkNhbmNlbEV4cG9ydEgAUgxjYW5jZWxFeHBvcnQSSwoSc2V0X3Bob3RvX2R1cm'
+    'F0aW9uGBwgASgLMhsuZnJhbWl4LnYxLlNldFBob3RvRHVyYXRpb25IAFIQc2V0UGhvdG9EdXJh'
+    'dGlvbhI1CgpzdGVwX2ZyYW1lGB0gASgLMhQuZnJhbWl4LnYxLlN0ZXBGcmFtZUgAUglzdGVwRn'
+    'JhbWUSRQoQdHJpbV90b19wbGF5aGVhZBgeIAEoCzIZLmZyYW1peC52MS5UcmltVG9QbGF5aGVh'
+    'ZEgAUg50cmltVG9QbGF5aGVhZBJOChNhcHBseV9leHBvcnRfcHJlc2V0GB8gASgLMhwuZnJhbW'
+    'l4LnYxLkFwcGx5RXhwb3J0UHJlc2V0SABSEWFwcGx5RXhwb3J0UHJlc2V0ElcKFmNoYW5nZV9l'
+    'eHBvcnRfc2V0dGluZ3MYICABKAsyHy5mcmFtaXgudjEuQ2hhbmdlRXhwb3J0U2V0dGluZ3NIAF'
+    'IUY2hhbmdlRXhwb3J0U2V0dGluZ3MSOAoLZml4X2JpdHJhdGUYISABKAsyFS5mcmFtaXgudjEu'
+    'Rml4Qml0cmF0ZUgAUgpmaXhCaXRyYXRlEjIKCXNuYXBfdHJpbRgiIAEoCzITLmZyYW1peC52MS'
+    '5TbmFwVHJpbUgAUghzbmFwVHJpbRIyCglzbmFwX21vdmUYIyABKAsyEy5mcmFtaXgudjEuU25h'
+    'cE1vdmVIAFIIc25hcE1vdmUSOwoMb3Blbl9saWJyYXJ5GCQgASgLMhYuZnJhbWl4LnYxLk9wZW'
+    '5MaWJyYXJ5SABSC29wZW5MaWJyYXJ5Ej4KDWxpc3RfcHJvamVjdHMYJSABKAsyFy5mcmFtaXgu'
+    'djEuTGlzdFByb2plY3RzSABSDGxpc3RQcm9qZWN0cxIlCgRwbGF5GCYgASgLMg8uZnJhbWl4Ln'
+    'YxLlBsYXlIAFIEcGxheRIoCgVwYXVzZRgnIAEoCzIQLmZyYW1peC52MS5QYXVzZUgAUgVwYXVz'
+    'ZRIvCghzZXRfbG9vcBgoIAEoCzISLmZyYW1peC52MS5TZXRMb29wSABSB3NldExvb3ASOwoMcm'
+    'Vtb3ZlX2NsaXBzGCkgASgLMhYuZnJhbWl4LnYxLlJlbW92ZUNsaXBzSABSC3JlbW92ZUNsaXBz'
+    'EjUKCm1vdmVfY2xpcHMYKiABKAsyFC5mcmFtaXgudjEuTW92ZUNsaXBzSABSCW1vdmVDbGlwcx'
+    'JECg9kdXBsaWNhdGVfY2xpcHMYKyABKAsyGS5mcmFtaXgudjEuRHVwbGljYXRlQ2xpcHNIAFIO'
+    'ZHVwbGljYXRlQ2xpcHMSDgoCaWQYGyABKARSAmlkQgYKBGtpbmQ=');
 
 @$core.Deprecated('Use cancelExportDescriptor instead')
 const CancelExport$json = {
@@ -919,12 +951,13 @@ const TrimClip$json = {
     {'1': 'start', '3': 2, '4': 1, '5': 3, '10': 'start'},
     {'1': 'end', '3': 3, '4': 1, '5': 3, '10': 'end'},
   ],
+  '7': {'3': true},
 };
 
 /// Descriptor for `TrimClip`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trimClipDescriptor = $convert.base64Decode(
     'CghUcmltQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSFAoFc3RhcnQYAiABKANSBXN0YX'
-    'J0EhAKA2VuZBgDIAEoA1IDZW5k');
+    'J0EhAKA2VuZBgDIAEoA1IDZW5kOgIYAQ==');
 
 @$core.Deprecated('Use setPhotoDurationDescriptor instead')
 const SetPhotoDuration$json = {
@@ -1026,6 +1059,43 @@ final $typed_data.Uint8List setTrackFlagsDescriptor = $convert.base64Decode(
     'gISABSBW11dGVkiAEBEhsKBmhpZGRlbhgDIAEoCEgBUgZoaWRkZW6IAQESGwoGbG9ja2VkGAQg'
     'ASgISAJSBmxvY2tlZIgBAUIICgZfbXV0ZWRCCQoHX2hpZGRlbkIJCgdfbG9ja2Vk');
 
+@$core.Deprecated('Use removeClipsDescriptor instead')
+const RemoveClips$json = {
+  '1': 'RemoveClips',
+  '2': [
+    {'1': 'clip_ids', '3': 1, '4': 3, '5': 4, '10': 'clipIds'},
+  ],
+};
+
+/// Descriptor for `RemoveClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List removeClipsDescriptor = $convert
+    .base64Decode('CgtSZW1vdmVDbGlwcxIZCghjbGlwX2lkcxgBIAMoBFIHY2xpcElkcw==');
+
+@$core.Deprecated('Use moveClipsDescriptor instead')
+const MoveClips$json = {
+  '1': 'MoveClips',
+  '2': [
+    {'1': 'clip_ids', '3': 1, '4': 3, '5': 4, '10': 'clipIds'},
+    {'1': 'by', '3': 2, '4': 1, '5': 3, '10': 'by'},
+  ],
+};
+
+/// Descriptor for `MoveClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List moveClipsDescriptor = $convert.base64Decode(
+    'CglNb3ZlQ2xpcHMSGQoIY2xpcF9pZHMYASADKARSB2NsaXBJZHMSDgoCYnkYAiABKANSAmJ5');
+
+@$core.Deprecated('Use duplicateClipsDescriptor instead')
+const DuplicateClips$json = {
+  '1': 'DuplicateClips',
+  '2': [
+    {'1': 'clip_ids', '3': 1, '4': 3, '5': 4, '10': 'clipIds'},
+  ],
+};
+
+/// Descriptor for `DuplicateClips`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List duplicateClipsDescriptor = $convert.base64Decode(
+    'Cg5EdXBsaWNhdGVDbGlwcxIZCghjbGlwX2lkcxgBIAMoBFIHY2xpcElkcw==');
+
 @$core.Deprecated('Use moveClipDescriptor instead')
 const MoveClip$json = {
   '1': 'MoveClip',
@@ -1034,12 +1104,13 @@ const MoveClip$json = {
     {'1': 'track_id', '3': 2, '4': 1, '5': 4, '10': 'trackId'},
     {'1': 'start', '3': 3, '4': 1, '5': 3, '10': 'start'},
   ],
+  '7': {'3': true},
 };
 
 /// Descriptor for `MoveClip`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List moveClipDescriptor = $convert.base64Decode(
     'CghNb3ZlQ2xpcBIXCgdjbGlwX2lkGAEgASgEUgZjbGlwSWQSGQoIdHJhY2tfaWQYAiABKARSB3'
-    'RyYWNrSWQSFAoFc3RhcnQYAyABKANSBXN0YXJ0');
+    'RyYWNrSWQSFAoFc3RhcnQYAyABKANSBXN0YXJ0OgIYAQ==');
 
 @$core.Deprecated('Use importMediaDescriptor instead')
 const ImportMedia$json = {

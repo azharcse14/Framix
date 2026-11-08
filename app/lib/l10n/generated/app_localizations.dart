@@ -266,6 +266,12 @@ abstract class AppLocalizations {
   /// **'Loop clip'**
   String get loopClip;
 
+  /// No description provided for @clearLoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear loop'**
+  String get clearLoop;
+
   /// No description provided for @timelineRuler.
   ///
   /// In en, this message translates to:
@@ -571,6 +577,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your first video starts here'**
   String get projectsEmptyTitle;
+
+  /// No description provided for @selectMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Select more'**
+  String get selectMore;
+
+  /// No description provided for @selectedClipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} selected}}'**
+  String selectedClipCount(int count);
 
   /// Home notice after the app closed unexpectedly (crash, or the system ended it) with a project open: its work is saved up to the last edit.
   ///

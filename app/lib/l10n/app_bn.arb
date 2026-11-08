@@ -28,6 +28,7 @@
   "play": "চালান",
   "pause": "বিরতি দিন",
   "loopClip": "ক্লিপ বারবার চালান",
+  "clearLoop": "লুপ বন্ধ করুন",
   "timelineRuler": "টাইমলাইন",
   "canvasPlaceClip": "ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন",
   "export": "এক্সপোর্ট",
@@ -79,5 +80,7 @@
   "editedHoursAgo": "{count, plural, other{{count} ঘণ্টা আগে সম্পাদিত}}",
   "editedYesterday": "গতকাল সম্পাদিত",
   "projectsEmptyTitle": "আপনার প্রথম ভিডিও এখান থেকে শুরু",
+  "selectMore": "আরও বাছুন",
+  "selectedClipCount": "{count, plural, other{{count}টি বাছাই করা}}",
   "workRecovered": "শেষ কাজ পর্যন্ত সেভ আছে"
 }

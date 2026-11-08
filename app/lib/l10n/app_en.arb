@@ -32,6 +32,7 @@
   "play": "Play",
   "pause": "Pause",
   "loopClip": "Loop clip",
+  "clearLoop": "Clear loop",
   "timelineRuler": "Timeline",
   "canvasPlaceClip": "Move and resize the clip on the canvas",
   "export": "Export",
@@ -98,6 +99,9 @@
   "@editedHoursAgo": {"placeholders": {"count": {"type": "int"}}},
   "editedYesterday": "Edited yesterday",
   "projectsEmptyTitle": "Your first video starts here",
+  "selectMore": "Select more",
+  "selectedClipCount": "{count, plural, other{{count} selected}}",
+  "@selectedClipCount": {"placeholders": {"count": {"type": "int"}}},
   "workRecovered": "Saved up to your last edit",
   "@workRecovered": {
     "description": "Home notice after the app closed unexpectedly (crash, or the system ended it) with a project open: its work is saved up to the last edit."
