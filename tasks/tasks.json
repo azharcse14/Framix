@@ -14816,12 +14816,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "62bfacd",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time; reviewer approved. Test cancels the drag instead of dropping a colliding move (review nit, cb66df5)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -14992,6 +14997,44 @@
    "section": "P1",
    "group": null,
    "title": "Trim handles of a selected narrow clip cover the next narrow clip's tap target, so it can't be tapped into the selection (found in P1-104)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-114",
+   "section": "P1",
+   "group": null,
+   "title": "Library DeleteProject/RestoreProject/Rename/Move each do two full disk flushes (F_FULLFSYNC on macOS/iOS) on the command thread; Home can stall 1-2 s under disk load. Consider cheaper durability for library.index (found in P1-108)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-115",
+   "section": "P1",
+   "group": null,
+   "title": "Move the ~15 hand-written 100x20 ms wait loops in timeline/export tests to app/test/pump_until.dart's load-safe pumpUntilTrue (P1-108 follow-up)",
    "tags": [
     "Dart"
    ],
