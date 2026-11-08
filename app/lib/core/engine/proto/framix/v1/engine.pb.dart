@@ -5793,7 +5793,8 @@ class ProjectList extends $pb.GeneratedMessage {
 
   /// The project that was open when the engine last stopped without closing (a crash, or the
   /// OS ended the app); it holds the work autosaved up to then. Set on the first ProjectList
-  /// after OpenLibrary only, and only for a listed project; empty otherwise.
+  /// after OpenLibrary only, and only for a listed project whose last autosave worked; empty
+  /// otherwise.
   @$pb.TagNumber(2)
   $core.String get recovered => $_getSZ(1);
   @$pb.TagNumber(2)

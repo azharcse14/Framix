@@ -68,9 +68,9 @@ pub fn clear_open(store: &dyn ProjectStore, dir: &Path) {
 
 /// The project that was open when the last engine stopped without closing, if the marker
 /// names a valid id; the marker is cleared.
-// ponytail: assumes the last autosave before the crash succeeded; edits of the last
-// AUTOSAVE_DELAY, or after an autosave failure (full disk), are not in the file. Record the
-// failure in the marker if the notice must never overstate.
+// ponytail: the engine clears the marker while autosave fails, but edits of the last
+// AUTOSAVE_DELAY before a crash are still not in the file; "saved up to your last edit" is
+// that close. Save on every edit if it must be exact.
 pub fn take_open(store: &dyn ProjectStore, dir: &Path) -> Option<String> {
     let bytes = store.load(&dir.join(OPEN_MARKER)).ok()?;
     clear_open(store, dir);

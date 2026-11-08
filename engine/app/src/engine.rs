@@ -157,6 +157,9 @@ impl Engine {
         match saved {
             Ok(()) => {
                 self.autosaved = self.history.timeline().clone();
+                if self.autosave_failed {
+                    self.mark_saved_work(&path, true);
+                }
                 self.autosave_failed = false;
                 None
             }
@@ -164,8 +167,21 @@ impl Engine {
             Err(_) if self.autosave_failed => None,
             Err(reason) => {
                 self.autosave_failed = true;
+                self.mark_saved_work(&path, false);
                 Some(command_failed(format!("autosave failed: {reason}")))
             }
+        }
+    }
+
+    /// In a library, whether a crash now would find the open project's work saved: the
+    /// crash marker names the project only while its autosaves succeed.
+    fn mark_saved_work(&self, file: &Path, saved: bool) {
+        let (Some(store), Some(dir)) = (self.store.as_deref(), self.library.as_deref()) else {
+            return;
+        };
+        match file.file_stem().and_then(|id| id.to_str()) {
+            Some(id) if saved => crate::library::mark_open(store, dir, id),
+            _ => crate::library::clear_open(store, dir),
         }
     }
 

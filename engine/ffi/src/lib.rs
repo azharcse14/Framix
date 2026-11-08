@@ -348,8 +348,9 @@ fn serve(
                 engine.cancel_running_export();
                 // The last save happens before EngineStopped.
                 let _ = autosave(&mut engine, *callback);
-                // A normal stop: the next launch reports no crash recovery.
-                engine.close();
+                // A normal stop: the next launch reports no crash recovery. A panic here
+                // only leaves the marker, so the next launch shows the notice.
+                let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.close()));
                 break;
             }
             EngineMessage::Command(bytes) => {
