@@ -14140,15 +14140,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "3fdd3ab",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-05",
      "text": "Blocked on policy: buf breaking uses FILE, which refuses deleting the oneof field or message even when reserved; retiring needs an ADR to move to WIRE_JSON/WIRE or a deprecation-only approach."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer Critical (Dart same-package deprecation not linted) fixed in the follow-up commit; analyze probe confirms the guard."
     }
    ],
    "source": "added"
@@ -14217,15 +14221,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-08",
+   "done": "2026-11-08",
+   "commit": "3fdd3ab",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-05",
      "text": "Same buf FILE limit as P1-084: retire needs an ADR first."
+    },
+    {
+     "date": "2026-11-08",
+     "text": "Done by a parallel agent; tracker started at merge time. Reviewer Critical (Dart same-package deprecation not linted) fixed in the follow-up commit; analyze probe confirms the guard."
     }
    ],
    "source": "added"
@@ -14763,6 +14771,25 @@
    "title": "Widget test: multi-select vertical drag on a narrow clip (48 dp drag target) keeps to the lane",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-105",
+   "section": "P1",
+   "group": null,
+   "title": "Proto docs of SnapMove/SnapTrim/TrimToPlayhead/MoveClips describe their rules via retired MoveClip/TrimClip; spell the rule out (ADR 0008 review nit)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
