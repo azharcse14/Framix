@@ -153,15 +153,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get somethingWentWrong => 'Something went wrong. Try again.';
 
   @override
-  String exportNoSpace(int neededMb, int freeMb) {
-    final intl.NumberFormat neededMbNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String neededMbString = neededMbNumberFormat.format(neededMb);
-    final intl.NumberFormat freeMbNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String freeMbString = freeMbNumberFormat.format(freeMb);
-
-    return 'Not enough storage: the export needs about $neededMbString MB and $freeMbString MB is free.';
+  String exportNoSpace(String needed, String free) {
+    return 'Not enough storage: the export needs about $needed and $free is free.';
   }
 
   @override
@@ -248,13 +241,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String exportEstimate(int mb) {
-    final intl.NumberFormat mbNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String mbString = mbNumberFormat.format(mb);
-
-    return 'About $mbString MB (estimate)';
+  String exportEstimate(String size) {
+    return 'About $size (estimate)';
   }
 
   @override

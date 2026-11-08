@@ -8,6 +8,7 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart'
     show ProjectSort, ProjectSummary;
 
 import '../../../core/media/channel_media_importer.dart' as media;
+import '../../../core/ui/file_size.dart';
 import '../../../core/ui/framix_theme.dart';
 import '../../../core/ui/small_spinner.dart';
 import '../../../core/ui/timecode.dart';
@@ -15,7 +16,6 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../timeline/view/timeline_page.dart';
 import '../bloc/home_cubit.dart';
 import 'edited_label.dart';
-import 'file_size.dart';
 
 /// Home: the user's projects and New project (P1-089, P1-090). The editor opens on top.
 class HomePage extends StatelessWidget {

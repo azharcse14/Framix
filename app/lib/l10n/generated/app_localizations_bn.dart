@@ -152,15 +152,8 @@ class AppLocalizationsBn extends AppLocalizations {
   String get somethingWentWrong => 'কিছু ভুল হয়েছে। আবার চেষ্টা করুন।';
 
   @override
-  String exportNoSpace(int neededMb, int freeMb) {
-    final intl.NumberFormat neededMbNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String neededMbString = neededMbNumberFormat.format(neededMb);
-    final intl.NumberFormat freeMbNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String freeMbString = freeMbNumberFormat.format(freeMb);
-
-    return 'জায়গা কম: এক্সপোর্টে প্রায় $neededMbString MB লাগবে, খালি আছে $freeMbString MB।';
+  String exportNoSpace(String needed, String free) {
+    return 'জায়গা কম: এক্সপোর্টে প্রায় $needed লাগবে, খালি আছে $free।';
   }
 
   @override
@@ -247,13 +240,8 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String exportEstimate(int mb) {
-    final intl.NumberFormat mbNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String mbString = mbNumberFormat.format(mb);
-
-    return 'প্রায় $mbString MB (আনুমানিক)';
+  String exportEstimate(String size) {
+    return 'প্রায় $size (আনুমানিক)';
   }
 
   @override
