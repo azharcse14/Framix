@@ -234,6 +234,34 @@ void main() {
     );
   });
 
+  // P1-113 review: a held handle that the finger moves no more than the touch slop trims
+  // nothing. A real trim follows, and the engine answers in order, so its result shows whether
+  // the jitter trimmed too.
+  testWidgets('a held trim handle moved within the slop trims nothing', (
+    tester,
+  ) async {
+    final l10n = await threeClips(tester, const Locale('en'));
+    await tester.tap(clip(1));
+    await tester.pump();
+    final before = tester.getRect(clip(1));
+    final handle = find.bySemanticsLabel(l10n.trimStart);
+
+    final jitter = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    await jitter.moveBy(const Offset(2, 0));
+    await tester.pump();
+    await jitter.up();
+    await tester.pump();
+
+    await tester.drag(handle, const Offset(50, 0));
+    await pumpUntilTrue(
+      tester,
+      () => tester.getRect(clip(1)).width < before.width - 1,
+      () => 'clip 1 never trimmed: ${tester.getRect(clip(1))}',
+    );
+    expect(tester.getRect(clip(1)).width, closeTo(before.width - 50, 1));
+  });
+
   // P1-113: a tap on a trim handle acts on what lies under it: here it selects the clip that
   // ends where the selected one starts.
   testWidgets('a tap on a trim handle selects the clip under it', (
