@@ -15154,12 +15154,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "390c6ca",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "Bench (release, criterion, queued draw, 3 layers): before 5.45 us [5.05, 5.86], after 2.07 us [2.00, 2.16], -64%. Mostly thread wake time; compare only against each other. Alloc test: 5032 allocations per 1000 draws before; < DRAWS/10 after (mpsc allocates one block per 31 sends)."
+    }
+   ],
    "source": "added"
   },
   {

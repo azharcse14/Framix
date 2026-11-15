@@ -496,7 +496,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-116` ListProjects drops the one-time autosave failure (let _ = self.autosave()), so a failed autosave is never shown once Home lists first; carry the failure on ProjectList or don't consume it (P1-111 review) \[Rust\]
 - [x] `P1-117` Partial cache writes (.part) left by a crash are never cleaned now; remove .part files older than ~1 h during clean/purge (P1-111 review) \[Rust\]
 - [x] `P1-118` Test: purge of an expired project whose main file is damaged reads its backup for the media caches (P1-111 review nit) \[Rust\]
-- [ ] `P1-119` Preview render thread: no per-draw allocation (recycle the layer Vecs or share Media via Arc) and a criterion bench for the queued draw (P1-053 review) \[Rust\]
+- [x] `P1-119` Preview render thread: no per-draw allocation (recycle the layer Vecs or share Media via Arc) and a criterion bench for the queued draw (P1-053 review) \[Rust\]
 - [ ] `P1-120` Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review) \[Rust\]
 
 ## Phase 2: Audio
