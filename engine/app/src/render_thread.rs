@@ -11,8 +11,12 @@ use framix_core::timeline::{Layer, LayerKey};
 
 use crate::preview::{DrawError, PlatformTexture, PreviewHost, PreviewRenderer};
 
+/// How a draw went, for a caller that waits on it.
+type Reply = Sender<Result<(), DrawError>>;
+
 enum Job {
-    Draw(PlatformTexture, Time, Vec<(Media, LayerKey)>),
+    /// Draw; with a reply the caller waits for the result, and the draw is never skipped.
+    Draw(PlatformTexture, Time, Vec<(Media, LayerKey)>, Option<Reply>),
     /// Tell Flutter that texture `id` holds a new frame; queued after its draw.
     Signal(i64),
     /// Drop what the renderer keeps for the texture, then answer.
@@ -25,6 +29,8 @@ enum Job {
 pub struct RenderThread {
     jobs: Sender<Job>,
     thread: Option<JoinHandle<()>>,
+    /// Textures drawn once; until then a draw waits for its result.
+    drawn: Vec<i64>,
 }
 
 impl RenderThread {
@@ -43,6 +49,7 @@ impl RenderThread {
         Ok(Self {
             jobs,
             thread: Some(thread),
+            drawn: Vec::new(),
         })
     }
 
@@ -56,7 +63,9 @@ impl RenderThread {
 }
 
 impl PreviewRenderer for RenderThread {
-    /// Queues the draw and returns at once.
+    /// The first draw into a texture waits for its result, so a GPU that can't draw fails
+    /// CreatePreview instead of a PreviewReady that is lost right after (P1-053 review); later
+    /// draws are queued and return at once, a failure reaching `lost`.
     fn draw(
         &mut self,
         target: PlatformTexture,
@@ -66,13 +75,27 @@ impl PreviewRenderer for RenderThread {
         // ponytail: one Vec and a Media clone per draw (~30/s while playing); pool them if a
         // profile shows it.
         let layers = layers.map(|l| (l.media.clone(), l.key())).collect();
+        let stopped = || DrawError::Gpu("render thread stopped".into());
+        if self.drawn.contains(&target.id) {
+            return self
+                .jobs
+                .send(Job::Draw(target, time, layers, None))
+                .map_err(|_| stopped());
+        }
+        let (reply, result) = channel();
         self.jobs
-            .send(Job::Draw(target, time, layers))
-            .map_err(|_| DrawError::Gpu("render thread stopped".into()))
+            .send(Job::Draw(target, time, layers, Some(reply)))
+            .map_err(|_| stopped())?;
+        let drawn = result.recv().map_err(|_| stopped())?;
+        if !matches!(drawn, Err(DrawError::Gpu(_))) {
+            self.drawn.push(target.id);
+        }
+        drawn
     }
 
     /// Returns once the render thread has dropped what it kept for `target`.
     fn forget(&mut self, target: PlatformTexture) {
+        self.drawn.retain(|id| *id != target.id);
         let (done, wait) = channel();
         if self.jobs.send(Job::Forget(target, done)).is_ok() {
             // An error means the thread is gone, and with it everything it kept.
@@ -125,14 +148,18 @@ fn serve(
         for (i, job) in batch.iter().enumerate() {
             let later = &batch[i + 1..];
             match job {
-                Job::Draw(target, time, layers) => {
+                Job::Draw(target, time, layers, Some(reply)) => {
+                    let _ = reply.send(draw(renderer.as_mut(), *target, *time, layers));
+                }
+                Job::Draw(target, time, layers, None) => {
                     let replaced = later
                         .iter()
                         .any(|j| matches!(j, Job::Draw(t, ..) if t.id == target.id));
                     if replaced || gone.contains(&target.id) {
                         continue;
                     }
-                    if draw(renderer.as_mut(), *target, *time, layers) {
+                    if let Err(DrawError::Gpu(_)) = draw(renderer.as_mut(), *target, *time, layers)
+                    {
                         gone.push(target.id);
                         lost(target.id);
                     }
@@ -157,13 +184,13 @@ fn serve(
     }
 }
 
-/// Draws one job; returns whether the target was lost (a GPU failure or a panic).
+/// Draws one job; a panic counts as a GPU failure (the target is lost).
 fn draw(
     renderer: &mut dyn PreviewRenderer,
     target: PlatformTexture,
     time: Time,
     layers: &[(Media, LayerKey)],
-) -> bool {
+) -> Result<(), DrawError> {
     let mut layers = layers.iter().map(|(media, key)| Layer {
         media_id: key.media,
         media,
@@ -172,9 +199,8 @@ fn draw(
         canvas: key.canvas,
         proxy_side: key.proxy_side,
     });
-    let drawn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         renderer.draw(target, time, &mut layers)
-    }));
-    // A frame that can't be decoded shows black; the preview itself works.
-    matches!(drawn, Err(_) | Ok(Err(DrawError::Gpu(_))))
+    }))
+    .unwrap_or_else(|_| Err(DrawError::Gpu("draw panicked".into())))
 }
