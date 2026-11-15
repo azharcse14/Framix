@@ -1134,11 +1134,12 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-037` Notification e tap korle sorasori result screen ba project e (deep link) \[Dart\]
 - [ ] `SYS-038` Push notification (FCM/APNs) backend hole pore \[Backend\]
 - [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
-- [ ] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
+- [x] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
 - [x] `SYS-041` Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review) \[Rust\]
 - [x] `SYS-042` rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review) \[Rust\]
 - [ ] `SYS-043` Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review) \[Rust\]
 - [ ] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
+- [ ] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
 
 ## Engine ar platform er gobhir details
 

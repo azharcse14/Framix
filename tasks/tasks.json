@@ -15372,10 +15372,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "82531a7",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15612,6 +15612,25 @@
    "done": null,
    "commit": null,
    "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-045",
+   "section": "SYS",
+   "group": null,
+   "title": "Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
