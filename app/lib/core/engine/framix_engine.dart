@@ -1,12 +1,42 @@
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart';
 
 import 'engine_bindings.g.dart';
 import 'proto/framix/v1/engine.pb.dart';
+
+/// The bundled engine library refused these bindings' protocol [version]: the app and the
+/// library were built from different contracts.
+class EngineProtocolMismatch extends Error {
+  EngineProtocolMismatch(this.version);
+
+  /// The version these bindings asked for.
+  final int version;
+
+  @override
+  String toString() => 'Engine refused protocol version $version';
+}
+
+/// Starts the engine (ENG-045). On a protocol mismatch a debug build fails fast
+/// ([failFast]); a release build reports it through [FlutterError.reportError] (Sentry)
+/// and returns null, so the app shows an error screen instead of nothing.
+FramixEngine? startEngine({
+  bool failFast = kDebugMode,
+  FramixEngine Function() create = FramixEngine.create,
+}) {
+  try {
+    return create();
+  } on EngineProtocolMismatch catch (error, stack) {
+    if (failFast) rethrow;
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: error, stack: stack, library: 'framix'),
+    );
+    return null;
+  }
+}
 
 /// The Rust engine: send [Command]s, listen to [events]. Owns one native engine instance.
 class FramixEngine {
@@ -21,12 +51,18 @@ class FramixEngine {
   int _lastId = 0;
   bool _disposed = false;
 
-  /// Starts the engine. Throws [StateError] if the native side refuses (for example a
-  /// protocol version mismatch between these bindings and the bundled library).
-  factory FramixEngine.create() {
+  /// Starts the engine. Throws [EngineProtocolMismatch] if the bundled library speaks
+  /// another protocol than these bindings, [StateError] if it refuses for another reason.
+  /// [protocolVersion] is only overridden by tests.
+  factory FramixEngine.create({
+    @visibleForTesting int protocolVersion = ENGINE_PROTOCOL_VERSION,
+  }) {
     final out = calloc<Pointer<Engine>>();
     try {
-      final code = engine_create(ENGINE_PROTOCOL_VERSION, out);
+      final code = engine_create(protocolVersion, out);
+      if (code == ENGINE_ERR_PROTOCOL) {
+        throw EngineProtocolMismatch(protocolVersion);
+      }
       if (code != ENGINE_OK) throw StateError('engine_create failed: $code');
       final engine = out.value;
       final events = StreamController<Event>.broadcast();
