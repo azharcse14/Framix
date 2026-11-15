@@ -30,20 +30,32 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String videoTrackName(int number) {
-    return 'ভিডিও ট্র্যাক $number';
+    final intl.NumberFormat numberNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String numberString = numberNumberFormat.format(number);
+
+    return 'ভিডিও ট্র্যাক $numberString';
   }
 
   @override
   String audioTrackName(int number) {
-    return 'অডিও ট্র্যাক $number';
+    final intl.NumberFormat numberNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String numberString = numberNumberFormat.format(number);
+
+    return 'অডিও ট্র্যাক $numberString';
   }
 
   @override
   String clipCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countটি ক্লিপ',
+      other: '$countStringটি ক্লিপ',
       zero: 'কোনো ক্লিপ নেই',
     );
     return '$_temp0';
@@ -54,7 +66,14 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String aspectRatioLabel(int width, int height) {
-    return '$width:$height';
+    final intl.NumberFormat widthNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String widthString = widthNumberFormat.format(width);
+    final intl.NumberFormat heightNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String heightString = heightNumberFormat.format(height);
+
+    return '$widthString:$heightString';
   }
 
   @override
@@ -222,7 +241,12 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String framesPerSecond(int fps) {
-    return '$fps fps';
+    final intl.NumberFormat fpsNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String fpsString = fpsNumberFormat.format(fps);
+
+    return '$fpsString fps';
   }
 
   @override
@@ -240,7 +264,14 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String exportFrameSize(int width, int height) {
-    return '$width × $height';
+    final intl.NumberFormat widthNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String widthString = widthNumberFormat.format(width);
+    final intl.NumberFormat heightNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String heightString = heightNumberFormat.format(height);
+
+    return '$widthString × $heightString';
   }
 
   @override
@@ -271,10 +302,14 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String recentProjects(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'সাম্প্রতিক · $countটি প্রজেক্ট',
+      other: 'সাম্প্রতিক · $countStringটি প্রজেক্ট',
     );
     return '$_temp0';
   }
@@ -284,20 +319,28 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String editedMinutesAgo(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count মিনিট আগে সম্পাদিত',
+      other: '$countString মিনিট আগে সম্পাদিত',
     );
     return '$_temp0';
   }
 
   @override
   String editedHoursAgo(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ঘণ্টা আগে সম্পাদিত',
+      other: '$countString ঘণ্টা আগে সম্পাদিত',
     );
     return '$_temp0';
   }
@@ -313,10 +356,14 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String selectedClipCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countটি বাছাই করা',
+      other: '$countStringটি বাছাই করা',
     );
     return '$_temp0';
   }
@@ -388,10 +435,14 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String daysLeft(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'আর $count দিন',
+      other: 'আর $countString দিন',
     );
     return '$_temp0';
   }
