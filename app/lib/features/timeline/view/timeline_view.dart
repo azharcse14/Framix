@@ -866,6 +866,10 @@ class _TrimHandle extends StatefulWidget {
 class _TrimHandleState extends State<_TrimHandle> {
   double _dx = 0;
 
+  /// A held handle follows the finger only once it has moved past the slop (it stays set
+  /// until the release), so a still finger's jitter trims nothing.
+  bool _moved = false;
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -886,8 +890,10 @@ class _TrimHandleState extends State<_TrimHandle> {
           onHorizontalDragUpdate: (d) => setState(() => _dx += d.delta.dx),
           onHorizontalDragEnd: (_) => _release(),
           onHorizontalDragCancel: _release,
-          onLongPressMoveUpdate: (d) =>
-              setState(() => _dx = d.offsetFromOrigin.dx),
+          onLongPressMoveUpdate: (d) => setState(() {
+            _moved |= d.offsetFromOrigin.distance > kTouchSlop;
+            if (_moved) _dx = d.offsetFromOrigin.dx;
+          }),
           onLongPressEnd: (_) => _release(),
           onLongPressCancel: _release,
           child: IgnorePointer(
@@ -908,7 +914,10 @@ class _TrimHandleState extends State<_TrimHandle> {
 
   void _release() {
     final dx = _dx;
-    setState(() => _dx = 0);
+    setState(() {
+      _dx = 0;
+      _moved = false;
+    });
     if (dx != 0) widget.onTrim(dx);
   }
 }
