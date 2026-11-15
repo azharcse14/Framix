@@ -80,6 +80,7 @@ class _HomeView extends StatelessWidget {
             (state as HomeProjects).openedFromBackup
                 ? l10n.openedFromBackup
                 : l10n.workRecovered,
+            important: true,
           ),
           builder: (context, state) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
