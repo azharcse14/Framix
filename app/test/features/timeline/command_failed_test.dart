@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/export/bloc/export_cubit.dart';
+import 'package:framix/features/preview/bloc/preview_cubit.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:framix/main.dart';
 import 'package:material_ui/material_ui.dart';
@@ -92,6 +93,25 @@ void main() {
     }
     await sub.cancel();
     await cubit.close();
+    expect(failures, [last]);
+  });
+
+  test('a platform without a preview stays quiet: the user never asked for one (UX-034)', () async {
+    final failures = <int>[];
+    final sub = engine.failures.listen(
+      (f) => failures.add(f.commandId.toInt()),
+    );
+    // The test host registers no preview: the engine refuses CreatePreview.
+    final cubit = PreviewCubit(engine);
+    final last = engine.send(
+      Command(removeClip: RemoveClip(clipId: Int64(997))),
+    );
+    while (!failures.contains(last)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    await sub.cancel();
+    await cubit.close();
+    expect(cubit.state, isNull);
     expect(failures, [last]);
   });
 }
