@@ -35,6 +35,7 @@
   "clearLoop": "Clear loop",
   "timelineRuler": "Timeline",
   "canvasPlaceClip": "Move and resize the clip on the canvas",
+  "previewUnavailable": "Preview unavailable",
   "export": "Export",
   "exporting": "Exporting video",
   "cancelExport": "Cancel export",

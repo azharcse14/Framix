@@ -6,6 +6,7 @@ import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../export/view/export_buttons.dart';
 import '../../export/view/export_settings_button.dart';
+import '../../preview/bloc/preview_cubit.dart';
 import '../bloc/timeline_cubit.dart';
 
 /// Ratios offered to the user; the engine validates and stores them reduced.
@@ -140,10 +141,68 @@ class CanvasOutline extends StatelessWidget {
                 color: scheme.surface,
                 border: Border.all(color: scheme.outline),
               ),
+              child: const _PreviewUnavailable(),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Says so inside the canvas when the engine has no preview to show (UX-035); nothing otherwise.
+/// The text keeps its size (and the user's text scale); a canvas too small for it gets an icon
+/// labelled with the message instead.
+class _PreviewUnavailable extends StatelessWidget {
+  const _PreviewUnavailable();
+
+  @override
+  Widget build(BuildContext context) {
+    if (!context.select((PreviewCubit c) => c.state is PreviewUnavailable)) {
+      return const SizedBox.shrink();
+    }
+    final theme = Theme.of(context);
+    final message = AppLocalizations.of(context).previewUnavailable;
+    final style = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    return Padding(
+      padding: const EdgeInsets.all(FramixSpace.s),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final painter = TextPainter(
+            text: TextSpan(
+              text: message,
+              style: DefaultTextStyle.of(context).style.merge(style),
+            ),
+            textAlign: TextAlign.center,
+            textDirection: Directionality.of(context),
+            locale: Localizations.localeOf(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout(maxWidth: box.maxWidth);
+          // The longest word must fit unbroken, and all lines in the height.
+          final fits =
+              painter.minIntrinsicWidth <= box.maxWidth &&
+              painter.height <= box.maxHeight;
+          painter.dispose();
+          return Center(
+            child: fits
+                ? Text(message, textAlign: TextAlign.center, style: style)
+                // The label is read; the tooltip is for sight only, not read twice.
+                : Tooltip(
+                    message: message,
+                    excludeFromSemantics: true,
+                    child: Semantics(
+                      label: message,
+                      child: Icon(
+                        Icons.videocam_off_outlined,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+          );
+        },
+      ),
     );
   }
 }

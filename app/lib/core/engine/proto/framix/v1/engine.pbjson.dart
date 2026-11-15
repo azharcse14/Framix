@@ -133,13 +133,14 @@ const FailureKind$json = {
   '2': [
     {'1': 'FAILURE_KIND_UNSPECIFIED', '2': 0},
     {'1': 'FAILURE_KIND_AUTOSAVE', '2': 1},
+    {'1': 'FAILURE_KIND_PREVIEW', '2': 2},
   ],
 };
 
 /// Descriptor for `FailureKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List failureKindDescriptor = $convert.base64Decode(
     'CgtGYWlsdXJlS2luZBIcChhGQUlMVVJFX0tJTkRfVU5TUEVDSUZJRUQQABIZChVGQUlMVVJFX0'
-    'tJTkRfQVVUT1NBVkUQAQ==');
+    'tJTkRfQVVUT1NBVkUQARIYChRGQUlMVVJFX0tJTkRfUFJFVklFVxAC');
 
 @$core.Deprecated('Use commandDescriptor instead')
 const Command$json = {

@@ -27,7 +27,7 @@ import '../../pump_until.dart';
 class SeededPreview extends PreviewCubit {
   SeededPreview(super.engine);
 
-  void seed(int textureId) => emit(textureId);
+  void seed(int textureId) => emit(PreviewShown(textureId));
 }
 
 /// SC-006 review: real phones in landscape (status bar, notch insets, short screens) fit

@@ -114,13 +114,14 @@ class _TimelinePageState extends State<TimelinePage> {
   }
 }
 
-/// The engine's preview once it reports a texture; the canvas outline until then.
+/// The engine's preview once it reports a texture; the canvas outline until then, or when the
+/// preview is unavailable.
 class _Stage extends StatelessWidget {
   const _Stage();
 
   @override
   Widget build(BuildContext context) =>
-      context.select((PreviewCubit c) => c.state == null)
+      context.select((PreviewCubit c) => c.state is! PreviewShown)
       ? const CanvasOutline()
       : const Center(child: PreviewView());
 }
