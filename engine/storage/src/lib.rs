@@ -23,16 +23,24 @@ impl ProjectStore for FileStore {
     /// the project. The project file exists at every point: the newest backup is a hard link
     /// to the old file, and the rename replaces it atomically.
     fn save(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
-        let tmp = sibling(path, ".tmp");
-        let written = write_synced(&tmp, bytes)
-            .and_then(|()| rotate_backups(path))
-            .and_then(|()| fs::rename(&tmp, path));
-        if written.is_err() {
-            // Don't leave a large orphan behind (e.g. after a disk-full failure).
-            let _ = fs::remove_file(&tmp);
-        }
-        written?;
-        sync_parent(path)
+        replace(path, bytes, true)
+    }
+
+    /// [`FileStore::save`] with its file and directory syncs (each an F_FULLFSYNC on Apple, a
+    /// flush of the whole drive cache) on a thread of their own, so the caller doesn't wait.
+    fn save_unsynced(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
+        replace(path, bytes, false)?;
+        let path = path.to_path_buf();
+        // Best effort: if the thread doesn't start or the sync fails, the OS writes the file
+        // back on its own schedule. A later save's thread syncs its own newer file.
+        let _ = std::thread::Builder::new()
+            .name("framix-flush".into())
+            .spawn(move || {
+                let _ = File::open(&path)
+                    .and_then(|f| f.sync_all())
+                    .and_then(|()| sync_parent(&path));
+            });
+        Ok(())
     }
 
     fn load(&self, path: &Path) -> io::Result<Vec<u8>> {
@@ -109,10 +117,25 @@ fn files<T>(
         .collect())
 }
 
-fn write_synced(path: &Path, bytes: &[u8]) -> io::Result<()> {
+/// Writes `<file>.tmp`, rotates the backups, then renames the temp file over `path`; with
+/// `sync`, the temp file is synced before and the directory after.
+fn replace(path: &Path, bytes: &[u8], sync: bool) -> io::Result<()> {
+    let tmp = sibling(path, ".tmp");
+    let written = write(&tmp, bytes, sync)
+        .and_then(|()| rotate_backups(path))
+        .and_then(|()| fs::rename(&tmp, path));
+    if written.is_err() {
+        // Don't leave a large orphan behind (e.g. after a disk-full failure).
+        let _ = fs::remove_file(&tmp);
+    }
+    written?;
+    if sync { sync_parent(path) } else { Ok(()) }
+}
+
+fn write(path: &Path, bytes: &[u8], sync: bool) -> io::Result<()> {
     let mut file = File::create(path)?;
     file.write_all(bytes)?;
-    file.sync_all()
+    if sync { file.sync_all() } else { Ok(()) }
 }
 
 /// `path` with `suffix` appended to its file name (`p.framix` -> `p.framix.bak1`).
