@@ -441,3 +441,37 @@ fn a_project_purged_from_recently_deleted_takes_its_caches_along() {
     assert_eq!(ids, [second.id]);
     assert_eq!(tree(&cache), [format!("thumbs/{B_HASH}-0-128.jpg")]);
 }
+
+#[test]
+fn a_purged_project_with_a_damaged_file_takes_the_caches_its_backup_names() {
+    let root = temp_dir("purgebackup");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
+    write(&cache.join(format!("thumbs/{B_HASH}-0-128.jpg")), 7);
+    let mut engine = library(&lib, cache.to_str().unwrap());
+    let (first, second) = two_projects(&mut engine);
+    let e = run(
+        &mut engine,
+        command::Kind::DeleteProject(DeleteProject {
+            id: first.id.clone(),
+        }),
+    );
+    assert!(matches!(e, Some(event::Kind::CommandAccepted(_))), "{e:?}");
+    drop(engine);
+    // The project file is damaged; its newest backup still holds the media.
+    let file = lib.join(format!("{}.framix", first.id));
+    fs::copy(&file, &FileStore.backups(&file)[0]).unwrap();
+    fs::write(&file, b"not a project").unwrap();
+
+    let later = Shifted {
+        later: Duration::from_secs(31 * 24 * 60 * 60),
+        ..Shifted::default()
+    };
+    let mut engine = library_on(Box::new(later), &lib, cache.to_str().unwrap());
+    let ids: Vec<String> = list(&mut engine).into_iter().map(|p| p.id).collect();
+    assert_eq!(ids, [second.id]);
+    assert_eq!(tree(&cache), [format!("thumbs/{B_HASH}-0-128.jpg")]);
+    let left = tree(&lib);
+    assert!(!left.iter().any(|f| f.starts_with(&first.id)), "{left:?}");
+}
