@@ -225,7 +225,10 @@ fn a_gpu_loss_is_reported_once_and_the_lost_texture_is_not_drawn_again() {
     settle(&mut f);
     assert_eq!(
         steps(&f),
-        vec![Step::Draw(7, Time(1), vec!["media/a.mp4".into()]), Step::Lost(7)]
+        vec![
+            Step::Draw(7, Time(1), vec!["media/a.mp4".into()]),
+            Step::Lost(7)
+        ]
     );
     assert!(f.lost.try_recv().is_err(), "reported once");
 }

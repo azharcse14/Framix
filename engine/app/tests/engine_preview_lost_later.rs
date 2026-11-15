@@ -101,7 +101,11 @@ fn a_loss_reported_after_the_draw_releases_the_texture_and_reports_preview_lost_
     assert_eq!(engine.flush_preview(), None, "reported once");
     let before = *draws.lock().unwrap();
     seek(&mut engine, 2);
-    assert_eq!(*draws.lock().unwrap(), before, "a lost preview is not drawn");
+    assert_eq!(
+        *draws.lock().unwrap(),
+        before,
+        "a lost preview is not drawn"
+    );
     drop(engine);
     assert_eq!(*released.lock().unwrap(), vec![1], "released once");
 }

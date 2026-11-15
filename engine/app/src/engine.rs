@@ -413,6 +413,21 @@ impl Engine {
         }
     }
 
+    /// A draw into texture `texture_id` failed on the GPU after it returned (a renderer on its
+    /// own thread, [`crate::render_thread::RenderThread`]): the shown texture goes back and
+    /// [`Engine::flush_preview`] reports PreviewLost. A texture no longer shown is ignored.
+    pub fn preview_draw_lost(&mut self, texture_id: i64) {
+        let Some(preview) = self.preview.as_mut() else {
+            return;
+        };
+        if let Some(texture) = preview.shown.filter(|t| t.id == texture_id) {
+            preview.shown = None;
+            preview.stale = false;
+            preview.lost = Some(texture_id);
+            preview.release(texture);
+        }
+    }
+
     /// Draws the preview once if a command since the last draw moved the playhead or changed
     /// the picture, and returns PreviewLost once if a draw lost the shown texture.
     pub fn flush_preview(&mut self) -> Option<Event> {
