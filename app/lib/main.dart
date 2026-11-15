@@ -28,13 +28,39 @@ Future<void> main() => SentryFlutter.init(
     // reports through FlutterError.onError, which Sentry wraps. Run earlier, Sentry would
     // chain this handler and report every async error twice.
     installErrorBoundary();
+    final engine = startEngine();
+    if (engine == null) return runApp(const EngineFailedApp());
     GetIt.I.registerSingleton<FramixEngine>(
-      FramixEngine.create(),
+      engine,
       dispose: (engine) => engine.dispose(),
     );
-    runApp(FramixApp(engine: GetIt.I<FramixEngine>(), home: const HomePage()));
+    runApp(FramixApp(engine: engine, home: const HomePage()));
   },
 );
+
+/// Root widget when the engine could not start (a release build with a protocol
+/// mismatch, ENG-045): only says something went wrong.
+class EngineFailedApp extends StatelessWidget {
+  const EngineFailedApp({super.key, this.locale});
+
+  /// Forces a locale (tests); null follows the device.
+  final Locale? locale;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      theme: framixDarkTheme(),
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const ErrorPanel(),
+    );
+  }
+}
 
 /// Root widget.
 class FramixApp extends StatelessWidget {
