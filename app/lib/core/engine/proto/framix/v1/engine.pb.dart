@@ -5528,6 +5528,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     $core.bool? playing,
     $fixnum.Int64? loopStart,
     $fixnum.Int64? loopEnd,
+    $core.bool? fromBackup,
   }) {
     final result = TimelineChanged._();
     if (tracks != null) result.tracks.addAll(tracks);
@@ -5546,6 +5547,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     if (playing != null) result.playing = playing;
     if (loopStart != null) result.loopStart = loopStart;
     if (loopEnd != null) result.loopEnd = loopEnd;
+    if (fromBackup != null) result.fromBackup = fromBackup;
     return result;
   }
 
@@ -5586,6 +5588,7 @@ class TimelineChanged extends $pb.GeneratedMessage {
     ..aOB(14, _omitFieldNames ? '' : 'playing')
     ..aInt64(15, _omitFieldNames ? '' : 'loopStart')
     ..aInt64(16, _omitFieldNames ? '' : 'loopEnd')
+    ..aOB(17, _omitFieldNames ? '' : 'fromBackup')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5760,6 +5763,17 @@ class TimelineChanged extends $pb.GeneratedMessage {
   $core.bool hasLoopEnd() => $_has(15);
   @$pb.TagNumber(16)
   void clearLoopEnd() => $_clearField(16);
+
+  /// This answers an OpenProject whose last save was damaged: the project opened from its
+  /// newest good backup (tell the user once). False for every other change.
+  @$pb.TagNumber(17)
+  $core.bool get fromBackup => $_getBF(16);
+  @$pb.TagNumber(17)
+  set fromBackup($core.bool value) => $_setBool(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasFromBackup() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearFromBackup() => $_clearField(17);
 }
 
 /// A track and its clips, sorted by start.

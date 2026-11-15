@@ -1383,6 +1383,8 @@ impl Engine {
                 playing: self.is_playing(),
                 loop_start: self.loop_range.map_or(0, |(start, _)| start.0),
                 loop_end: self.loop_range.map_or(0, |(_, end)| end.0),
+                // `reply` sets it for the answer to an OpenProject restored from a backup.
+                from_backup: false,
             })),
         }
     }
