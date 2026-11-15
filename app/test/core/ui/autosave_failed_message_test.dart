@@ -120,7 +120,10 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text(l10n.autosaveFailed), findsOneWidget);
     // It waits its turn instead of being dropped.
-    await tester.pumpAndSettle(const Duration(seconds: 1));
+    for (var i = 0; i < 11; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(find.text(l10n.autosaveFailed), findsNothing);
     expect(find.text(l10n.commandFailed), findsOneWidget);
   });
 }
