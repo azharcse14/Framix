@@ -291,9 +291,6 @@ fn serve(
     // Changes are saved at most AUTOSAVE_DELAY after they happen, even while commands keep
     // coming (a long scrub or drag). With nothing to save the thread sleeps until a message.
     let mut due: Option<Instant> = None;
-    // A panicking autosave was reported; like Engine's own failure latch, later panics stay
-    // quiet until the work is saved (or another project is open with nothing unsaved).
-    let mut autosave_panicked = false;
     // While playing: when the playhead moves next.
     let mut tick: Option<Instant> = None;
     loop {
@@ -305,9 +302,7 @@ fn serve(
         // Armed only when something is unsaved, so reads (Seek, GetTimeline) never wake it.
         // ponytail: a lasting save failure or panic (full disk) retries every AUTOSAVE_DELAY;
         // back off if that shows up in battery or flash wear.
-        if !engine.autosave_pending() {
-            autosave_panicked = false;
-        } else if due.is_none() {
+        if engine.autosave_pending() && due.is_none() {
             due = Some(Instant::now() + AUTOSAVE_DELAY);
         }
         // Commands are applied as they come but the preview is drawn only once the queue is
@@ -340,7 +335,7 @@ fn serve(
         };
         if due.is_some_and(|due| Instant::now() >= due) {
             // A failed save stays pending and is re-armed at the top of the loop.
-            autosave(&mut engine, *callback, &mut autosave_panicked);
+            autosave(&mut engine, *callback);
             due = None;
         }
         // Checked after every message too, so a stream of commands can't hold playback up.
@@ -371,7 +366,7 @@ fn serve(
                 // for it (destroy stays non-blocking).
                 engine.cancel_running_export();
                 // The last save happens before EngineStopped.
-                autosave(&mut engine, *callback, &mut autosave_panicked);
+                autosave(&mut engine, *callback);
                 // A normal stop: the next launch reports no crash recovery. A panic here
                 // only leaves the marker, so the next launch shows the notice.
                 let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.close()));
@@ -477,21 +472,13 @@ fn start_export(job: framix_app::export::ExportJob, engine: Sender<EngineMessage
     }
 }
 
-/// Autosaves, reporting a failure or the first panic of a streak (`panicked`) as an event.
-fn autosave(
-    engine: &mut framix_app::engine::Engine,
-    callback: EngineEventCallback,
-    panicked: &mut bool,
-) {
+/// Autosaves, reporting a failure as an event. Engine::autosave turns a panicking save into
+/// its own once-per-streak failure; a panic outside the save (a bug) is reported as well.
+fn autosave(engine: &mut framix_app::engine::Engine, callback: EngineEventCallback) {
     match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.autosave())) {
         Ok(None) => {}
         Ok(Some(failed)) => deliver(callback, &failed),
-        Err(_) if *panicked => {}
-        Err(_) => {
-            *panicked = true;
-            // The edits may be unsaved, so the UI says so like any failed autosave.
-            deliver(callback, &autosave_failed("internal error"));
-        }
+        Err(_) => deliver(callback, &autosave_failed("internal error")),
     }
 }
 
