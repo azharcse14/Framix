@@ -43,8 +43,9 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// A save or share is reading the file; a new export would overwrite it underneath.
   bool _busy = false;
 
-  /// The newest message replaces one still showing (except a failed-autosave message).
-  void _tell(String text) => showMessage(context, text);
+  /// A one-time result: it replaces a message still showing (except a failed-autosave
+  /// message) and outranks a generic one waiting behind that.
+  void _tell(String text) => showMessage(context, text, important: true);
 
   Future<void> _whileBusy(Future<void> Function() work) async {
     setState(() => _busy = true);

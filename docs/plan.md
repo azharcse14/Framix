@@ -1021,7 +1021,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 
 - [ ] `DS-001` Dark (default), Light, System option; themeMode user choice save (hydrated\_bloc) \[Dart\]
 - [ ] `DS-002` Accent preset picker (6-8 ta) \[Dart\]
-- [ ] `DS-003` ColorScheme token theke hate banano (fromSeed na, karon fromSeed surface e accent er tint dey ar neutral gray er niyom bhange) + ThemeExtension (FramixColors: accentFill, accentText, onAccent, track colour, playhead, preview background) \[Dart\]
+- [x] `DS-003` ColorScheme token theke hate banano (fromSeed na, karon fromSeed surface e accent er tint dey ar neutral gray er niyom bhange) + ThemeExtension (FramixColors: accentFill, accentText, onAccent, track colour, playhead, preview background) \[Dart\]
 - [x] `DS-004` Widget e kokhono hardcoded hex na, shudhu semantic token \[Dart\]
 - [ ] `DS-005` Editor shob theme e dark; Light shudhu Home, Settings, Templates er moto screen e \[Dart\]
 - [ ] `DS-006` Material You (dynamic color), Android 12+ (optional): shudhu accent preset hishebe, surface e na, Editor e kokhono na; contrast check fail korle fallback \[Dart\]
@@ -1031,6 +1031,9 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [x] `DS-010` border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule) \[Dart\]
 - [x] `DS-011` design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette \[Dart\]
 - [x] `DS-012` Shared small spinner in app/lib/core/ui (SizedBox.square + CircularProgressIndicator strokeWidth 2 + semanticsLabel, icon color): Home, export_buttons.dart, import_buttons.dart repeat it \[Dart\]
+- [ ] `DS-013` Define track category colour tokens (audio green, text amber, sticker pink, effect teal, overlay blue: hex + contrast) in design-system.md and add them to FramixColors (DS-003 split) \[Dart\]
+- [ ] `DS-014` Define playhead and preview background tokens in design-system.md and add them to FramixColors (DS-003 split) \[Dart\]
+- [ ] `DS-015` Add error/onError token to design-system.md (currently #FF6B6B / #0E0E11 only in code, 5.7:1 on elevated) (DS-003 split) \[Dart\]
 
 **Font**
 
@@ -1075,6 +1078,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
 - [x] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
 - [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
+- [ ] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
 
 ## Invisible system features
 
@@ -1142,7 +1146,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-043` Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review) \[Rust\]
 - [x] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
 - [x] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
-- [ ] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
+- [x] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
 
 ## Engine ar platform er gobhir details
 

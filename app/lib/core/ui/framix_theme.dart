@@ -30,7 +30,7 @@ class FramixColors extends ThemeExtension<FramixColors> {
     accentFill: Color(0xFF6E4CF5),
     accentText: Color(0xFFA271FF),
     onAccent: Color(0xFFFFFFFF),
-    // Provisional: the plan only says "red". 5.7:1 on elevated; finalize in DS-003.
+    // Not in design-system.md (the plan only says "red"); 5.7:1 on elevated, onError 6.9:1.
     error: Color(0xFFFF6B6B),
     onError: Color(0xFF0E0E11),
   );
@@ -57,11 +57,53 @@ class FramixColors extends ThemeExtension<FramixColors> {
       Theme.of(context).extension<FramixColors>()!;
 
   @override
-  FramixColors copyWith() => this;
+  FramixColors copyWith({
+    Color? background,
+    Color? surface,
+    Color? elevated,
+    Color? border,
+    Color? outline,
+    Color? textMuted,
+    Color? text,
+    Color? accentFill,
+    Color? accentText,
+    Color? onAccent,
+    Color? error,
+    Color? onError,
+  }) => FramixColors(
+    background: background ?? this.background,
+    surface: surface ?? this.surface,
+    elevated: elevated ?? this.elevated,
+    border: border ?? this.border,
+    outline: outline ?? this.outline,
+    textMuted: textMuted ?? this.textMuted,
+    text: text ?? this.text,
+    accentFill: accentFill ?? this.accentFill,
+    accentText: accentText ?? this.accentText,
+    onAccent: onAccent ?? this.onAccent,
+    error: error ?? this.error,
+    onError: onError ?? this.onError,
+  );
 
   @override
-  FramixColors lerp(FramixColors? other, double t) =>
-      t < 0.5 ? this : other ?? this;
+  FramixColors lerp(FramixColors? other, double t) {
+    if (other == null) return this;
+    // Color.lerp returns null only when both inputs are null; these are non-null.
+    return FramixColors(
+      background: Color.lerp(background, other.background, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      elevated: Color.lerp(elevated, other.elevated, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      outline: Color.lerp(outline, other.outline, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      text: Color.lerp(text, other.text, t)!,
+      accentFill: Color.lerp(accentFill, other.accentFill, t)!,
+      accentText: Color.lerp(accentText, other.accentText, t)!,
+      onAccent: Color.lerp(onAccent, other.onAccent, t)!,
+      error: Color.lerp(error, other.error, t)!,
+      onError: Color.lerp(onError, other.onError, t)!,
+    );
+  }
 }
 
 /// Spacing tokens.
