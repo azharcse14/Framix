@@ -411,7 +411,8 @@ fn write_index(
 }
 
 /// Folder of the media the app copied in, next to the library folder: a `media/<name>` uri
-/// is relative to the library's parent (the platform's app folder, P1-011).
+/// is relative to the library's parent (the platform's app folder, P1-011). iOS sets this layout
+/// in app/ios/Runner/MediaPicker.swift (projectsDir, store()); change both together.
 const MEDIA: &str = "media";
 
 /// The app's media copies by uri (`media/<name>`), from one listing of the media folder; a

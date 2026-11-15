@@ -39,6 +39,8 @@ final class MediaPicker: NSObject {
     }
     if call.method == "projectsDir" {
       // The user's projects (P1-089), backed up like other documents.
+      // The engine counts media copies at <parent of this folder>/media (engine/app/src/library.rs
+      // media_sizes); move both together.
       let dir = try? FileManager.default.url(
         for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true
       ).appendingPathComponent("projects", isDirectory: true)
@@ -155,6 +157,8 @@ final class MediaPicker: NSObject {
   }
 
   /// Copies (or moves) `source` into Application Support/media under a fresh name.
+  /// The engine finds this folder next to projectsDir (engine/app/src/library.rs media_sizes);
+  /// change both together.
   nonisolated static func store(_ source: URL, isVideo: Bool, move: Bool) throws -> Stored {
     let manager = FileManager.default
     let dir = try manager.url(
