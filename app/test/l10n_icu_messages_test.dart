@@ -10,8 +10,17 @@ Map<String, dynamic> _arb(String locale) =>
     jsonDecode(File('lib/l10n/app_$locale.arb').readAsStringSync())
         as Map<String, dynamic>;
 
-/// int placeholders that label or measure something, never a count to pluralize.
-const _notCounts = {'number', 'width', 'height', 'fps', 'kbps'};
+/// `message.placeholder` ints that label or measure something, never a count to pluralize.
+const _notCounts = {
+  'videoTrackName.number',
+  'audioTrackName.number',
+  'aspectRatioLabel.width',
+  'aspectRatioLabel.height',
+  'framesPerSecond.fps',
+  'bitrateKbps.kbps',
+  'exportFrameSize.width',
+  'exportFrameSize.height',
+};
 
 void main() {
   test('every int/num placeholder heads an ICU plural in en and bn', () {
@@ -29,8 +38,8 @@ void main() {
       for (final MapEntry(key: name, value: meta) in placeholders.entries) {
         final type = (meta as Map<String, dynamic>)['type'];
         if (type != 'int' && type != 'num') continue;
-        if (_notCounts.contains(name)) {
-          used.add(name);
+        if (_notCounts.contains('$message.$name')) {
+          used.add('$message.$name');
           continue;
         }
         for (final (locale, arb) in [('en', en), ('bn', bn)]) {
@@ -57,7 +66,7 @@ void main() {
     // (e.g. `final t = AppLocalizations.of(context)`), `[...].join()`, StringBuffer,
     // and adjacent-literal or `'$a$b'` glue of values that were read earlier.
     final building = RegExp(
-      r'(l10n|AppLocalizations\.of\(\w+\))(\s*\.\s*\w+(\([^()]*\))?)+\s*\+'
+      r'(l10n|AppLocalizations\.of\(\w+\))(\s*\.\s*\w+(\((?:[^()]|\([^()]*\))*\))?)+\s*\+'
       r'|\+=?\s*(l10n|AppLocalizations)\b'
       r'|\$\{\s*(l10n|AppLocalizations)\b',
     );
