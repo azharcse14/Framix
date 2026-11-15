@@ -83,4 +83,30 @@ void main() {
 
     expect(find.byTooltip(l10n.clearLoop), findsNothing);
   });
+
+  /// P1-112: guards the `looping` wiring into the clip actions row.
+  testWidgets('no loop set: Clear loop stays hidden for one or two clips', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      FramixApp(
+        engine: engine,
+        mediaImporter: FakeImporter([video(1), video(2)]),
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.tap(find.byTooltip(l10n.importFromGallery));
+    await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    await tester.tap(clip(0));
+    await tester.pump();
+    expect(find.byTooltip(l10n.loopClip), findsOneWidget);
+    expect(find.byTooltip(l10n.clearLoop), findsNothing, reason: 'one clip');
+
+    await tester.tap(find.byTooltip(l10n.selectMore));
+    await tester.pump();
+    await tester.tap(clip(1));
+    await tester.pump();
+    expect(find.text(l10n.selectedClipCount(2)), findsOneWidget);
+    expect(find.byTooltip(l10n.clearLoop), findsNothing, reason: 'two clips');
+  });
 }
