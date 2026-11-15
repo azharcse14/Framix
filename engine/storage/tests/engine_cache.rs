@@ -120,11 +120,16 @@ fn write(path: &Path, len: usize) {
     fs::write(path, vec![7u8; len]).unwrap();
 }
 
-/// Bytes of the project file, read straight from the folder.
+/// Bytes of the project file and its backups (P1-109), read straight from the folder.
 fn project_bytes(dir: &Path, id: &str) -> u64 {
-    fs::metadata(dir.join(format!("{id}.framix")))
+    let file = fs::metadata(dir.join(format!("{id}.framix")))
         .unwrap()
-        .len()
+        .len();
+    let backups: u64 = (1..=2)
+        .filter_map(|n| fs::metadata(dir.join(format!("{id}.framix.bak{n}"))).ok())
+        .map(|m| m.len())
+        .sum();
+    file + backups
 }
 
 /// Every file under `dir`, relative, sorted.
@@ -440,4 +445,46 @@ fn a_project_purged_from_recently_deleted_takes_its_caches_along() {
     let ids: Vec<String> = list(&mut engine).into_iter().map(|p| p.id).collect();
     assert_eq!(ids, [second.id]);
     assert_eq!(tree(&cache), [format!("thumbs/{B_HASH}-0-128.jpg")]);
+}
+
+#[test]
+fn project_storage_counts_backups_and_the_media_copies_the_app_made() {
+    // The platform keeps projects in `<app>/projects` and the media it copied in `<app>/media`.
+    let root = temp_dir("projectbytes");
+    let lib = root.join("projects");
+    fs::create_dir_all(&lib).unwrap();
+    write(&root.join(A), 500);
+    write(&root.join(B), 70);
+    // Not any project's.
+    write(&root.join("media/c.jpg"), 3);
+    let mut engine = library(&lib, "");
+    // A twice: counted once. A content:// original is the user's file, never counted.
+    project_with(&mut engine, &[A, A, "content://media/external/images/1"]);
+    let id = list(&mut engine)[0].id.clone();
+    // Edited and saved again, so the project has a backup.
+    run(
+        &mut engine,
+        command::Kind::OpenProject(framix_app::proto::OpenProject {
+            id: id.clone(),
+            ..Default::default()
+        }),
+    );
+    run(
+        &mut engine,
+        command::Kind::AddTrack(AddTrack {
+            kind: TrackKind::Video as i32,
+        }),
+    );
+    project_with(&mut engine, &[B]);
+    let all = list(&mut engine);
+    let p = all.iter().find(|p| p.id == id).unwrap();
+
+    assert!(
+        lib.join(format!("{id}.framix.bak1")).exists(),
+        "{:?}",
+        tree(&lib)
+    );
+    assert_eq!(p.bytes, project_bytes(&lib, &id) + 500);
+    let other = all.iter().find(|p| p.id != id).unwrap();
+    assert_eq!(other.bytes, project_bytes(&lib, &other.id) + 70);
 }
