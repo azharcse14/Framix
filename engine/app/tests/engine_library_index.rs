@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 
 use framix_app::engine::Engine;
+use framix_app::library::MAX_INDEX_BYTES;
 use framix_app::project_proto::{LibraryEntry, LibraryIndex};
 use framix_app::proto::{
     AddTrack, Command, ListProjects, NewProject, OpenLibrary, ProjectSummary, RenameProject,
@@ -239,7 +240,6 @@ fn the_v1_index_fixture_keeps_names_folders_and_recently_deleted() {
 /// so no later read drops it as too large (P1-107).
 #[test]
 fn a_write_past_the_index_size_limit_is_refused_and_keeps_the_index() {
-    const MAX_INDEX_BYTES: usize = 1024 * 1024;
     let store = MemStore::default();
     let mut engine = library(&store);
     let id = project(&mut engine);

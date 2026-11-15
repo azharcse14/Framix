@@ -48,8 +48,8 @@ void main() {
     Directory(away).renameSync(dir.path);
     await tester.tap(find.text(l10n.retry));
     await pumpUntil(tester, find.text(l10n.untitledProject));
-    final box = tester.widget<TextField>(find.byType(TextField));
-    expect(box.controller?.text ?? '', isEmpty);
+    final box = tester.widget<EditableText>(find.byType(EditableText));
+    expect(box.controller.text, isEmpty);
     expect(find.text('zzzz'), findsNothing);
     expect(find.text(l10n.noMatchingProjects), findsNothing);
     expect(tester.takeException(), isNull);

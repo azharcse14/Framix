@@ -74,8 +74,9 @@ pub fn clean(
     failed.map_or(Ok(()), |kind| Err(format!("cache not cleaned: {kind}")))
 }
 
-/// How long after its last write a partial file is taken as left by a crash: the platform
-/// writes a thumbnail or proxy in far less, so one this old is not being written any more.
+/// How long after its last write a partial file is taken as left by a crash. A live writer
+/// keeps the file fresh; one paused longer (a suspended app, a clock jump) loses its partial,
+/// so its rename fails, no torn file is left, and the item is made again later.
 const STALE_PARTIAL: Duration = Duration::from_secs(60 * 60);
 
 /// Removes the partial writes ([`is_partial`]) in `folder` last written [`STALE_PARTIAL`] or

@@ -344,8 +344,8 @@ fn update_entry(
 const INDEX: &str = "library.index";
 /// Index format this engine writes and the newest it reads.
 const INDEX_FORMAT_VERSION: u32 = 1;
-/// Largest index read; far above 80-character names for thousands of projects.
-const MAX_INDEX_BYTES: usize = 1024 * 1024;
+/// Largest index read or written; far above 80-character names for thousands of projects.
+pub const MAX_INDEX_BYTES: usize = 1024 * 1024;
 
 /// The index by project id. Missing: empty. Damaged: its newest backup that decodes, else
 /// empty (only names and folders are lost). Refused when a newer app wrote it, so a write
