@@ -208,6 +208,47 @@ void main() {
     expect(selected(0), isFalse);
   });
 
+  // P1-113 review: the handle passes taps through, but a hold on it still trims, rather than
+  // lifting the clip it lies over (here clip 0, which ends where clip 1 starts).
+  testWidgets('holding then dragging a trim handle trims the clip', (
+    tester,
+  ) async {
+    final l10n = await threeClips(tester, const Locale('en'));
+    await tester.tap(clip(1));
+    await tester.pump();
+    final before = tester.getRect(clip(1));
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.bySemanticsLabel(l10n.trimStart)),
+    );
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    for (var i = 0; i < 5; i++) {
+      await gesture.moveBy(const Offset(10, 0));
+      await tester.pump();
+    }
+    await gesture.up();
+    await pumpUntilTrue(
+      tester,
+      () => (tester.getRect(clip(1)).width - (before.width - 50)).abs() < 1,
+      () => 'clip 1 is ${tester.getRect(clip(1))}, was $before',
+    );
+  });
+
+  // P1-113: a tap on a trim handle acts on what lies under it: here it selects the clip that
+  // ends where the selected one starts.
+  testWidgets('a tap on a trim handle selects the clip under it', (
+    tester,
+  ) async {
+    final l10n = await threeClips(tester, const Locale('en'));
+    bool selected(int i) => tester.widget<ClipBox>(clip(i)).selected;
+    await tester.tap(clip(1));
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel(l10n.trimStart));
+    await tester.pump();
+    expect(selected(0), isTrue);
+    expect(selected(1), isFalse);
+  });
+
   // P1-103: ids of clips the timeline lost (here, by undo) are dropped, so a tap on the one
   // selected clip clears the selection.
   testWidgets('a clip undone away leaves the selection', (tester) async {
