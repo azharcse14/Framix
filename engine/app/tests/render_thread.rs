@@ -28,12 +28,13 @@ enum Step {
 
 type Log = Arc<Mutex<Vec<Step>>>;
 
-/// Records every draw and the thread it ran on; the first draw waits for `gate`, failing draws
-/// are those whose time is in `fail`.
+/// Records every draw and the thread it ran on; the draw at time 1 says `started`, then waits
+/// for `gate`; failing draws are those whose time is in `fail`.
 struct Recorder {
     log: Log,
     threads: Arc<Mutex<Vec<ThreadId>>>,
-    gate: Option<Receiver<()>>,
+    gate: Receiver<()>,
+    started: Sender<()>,
     fail: Vec<Time>,
 }
 
@@ -44,8 +45,9 @@ impl PreviewRenderer for Recorder {
         time: Time,
         layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
-        if let Some(gate) = self.gate.take() {
-            gate.recv_timeout(WAIT).unwrap();
+        if time == Time(1) {
+            self.started.send(()).unwrap();
+            self.gate.recv_timeout(WAIT).unwrap();
         }
         self.threads
             .lock()
@@ -92,6 +94,7 @@ struct Fixture {
     threads: Arc<Mutex<Vec<ThreadId>>>,
     released: Arc<Mutex<Vec<i64>>>,
     gate: Sender<()>,
+    started: Receiver<()>,
     lost: Receiver<i64>,
 }
 
@@ -100,11 +103,13 @@ fn fixture(fail: Vec<Time>) -> Fixture {
     let threads = Arc::new(Mutex::new(Vec::new()));
     let released = Arc::new(Mutex::new(Vec::new()));
     let (gate, gate_rx) = channel();
+    let (started_tx, started) = channel();
     let (lost_tx, lost) = channel();
     let recorder = Recorder {
         log: log.clone(),
         threads: threads.clone(),
-        gate: Some(gate_rx),
+        gate: gate_rx,
+        started: started_tx,
         fail,
     };
     let signals = log.clone();
@@ -121,15 +126,23 @@ fn fixture(fail: Vec<Time>) -> Fixture {
     let host = renderer.host(Box::new(Host {
         released: released.clone(),
     }));
-    Fixture {
+    let mut f = Fixture {
         renderer,
         host,
         log,
         threads,
         released,
         gate,
+        started,
         lost,
-    }
+    };
+    // The first draw into a texture waits for its result (P1-053 review); later ones queue.
+    f.renderer
+        .draw(TEXTURE, Time(0), &mut std::iter::empty())
+        .unwrap();
+    f.log.lock().unwrap().clear();
+    f.threads.lock().unwrap().clear();
+    f
 }
 
 fn media(name: &str) -> Media {
@@ -196,8 +209,8 @@ fn draws_queued_behind_a_slow_draw_draw_only_the_latest() {
     let mut f = fixture(vec![]);
     let m = media("a");
     draw(&mut f, 1, &m);
-    // Let the first draw start and block on the gate before the burst.
-    std::thread::sleep(Duration::from_millis(50));
+    // The first draw has started and blocks on the gate before the burst.
+    f.started.recv_timeout(WAIT).unwrap();
     for time in 2..=5 {
         draw(&mut f, time, &m);
     }
