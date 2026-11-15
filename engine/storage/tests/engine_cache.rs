@@ -332,6 +332,9 @@ impl ProjectStore for Shifted {
     fn backups(&self, path: &Path) -> Vec<PathBuf> {
         FileStore.backups(path)
     }
+    fn copies(&self, path: &Path) -> Vec<PathBuf> {
+        FileStore.copies(path)
+    }
     fn put(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
         FileStore.put(path, bytes)
     }
