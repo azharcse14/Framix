@@ -1021,7 +1021,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 
 - [ ] `DS-001` Dark (default), Light, System option; themeMode user choice save (hydrated\_bloc) \[Dart\]
 - [ ] `DS-002` Accent preset picker (6-8 ta) \[Dart\]
-- [ ] `DS-003` ColorScheme token theke hate banano (fromSeed na, karon fromSeed surface e accent er tint dey ar neutral gray er niyom bhange) + ThemeExtension (FramixColors: accentFill, accentText, onAccent, track colour, playhead, preview background) \[Dart\]
+- [x] `DS-003` ColorScheme token theke hate banano (fromSeed na, karon fromSeed surface e accent er tint dey ar neutral gray er niyom bhange) + ThemeExtension (FramixColors: accentFill, accentText, onAccent, track colour, playhead, preview background) \[Dart\]
 - [x] `DS-004` Widget e kokhono hardcoded hex na, shudhu semantic token \[Dart\]
 - [ ] `DS-005` Editor shob theme e dark; Light shudhu Home, Settings, Templates er moto screen e \[Dart\]
 - [ ] `DS-006` Material You (dynamic color), Android 12+ (optional): shudhu accent preset hishebe, surface e na, Editor e kokhono na; contrast check fail korle fallback \[Dart\]
@@ -1078,6 +1078,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
 - [x] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
 - [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
+- [ ] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
 
 ## Invisible system features
 

@@ -5820,10 +5820,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "8f220cb",
    "branch": "main",
    "notes": [
     {
@@ -8021,6 +8021,10 @@
     {
      "date": "2026-11-05",
      "text": "P1-027: a loop (SetLoop) makes playback never end by itself; background playback must stop or pause on its own."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "on resume, re-send CreatePreview when PreviewCubit is PreviewUnavailable (a background GPU failure on iOS can leave 'Preview unavailable' until restart) (UX-035 review)"
     }
    ],
    "source": "plan"
@@ -15487,7 +15491,12 @@
    "done": null,
    "commit": null,
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "older preview tests (preview_cubit_lost, preview_cubit_stale_lost, landscape_fit, command_failed) were migrated to the sealed PreviewState in the fix commit 4bdec86 — forced (types didn't exist at the test commit), no assertion removed; command_failed isNull -> PreviewUnavailable() is stricter"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15774,6 +15783,25 @@
      "text": "color_tokens_test.dart:37 compares the doc table key set to a hand list of 10; update it in this task's test commit"
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "L10N-018",
+   "section": "L10N",
+   "group": null,
+   "title": "Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
