@@ -6734,6 +6734,10 @@
     {
      "date": "2026-11-04",
      "text": "The Rust side must use the same path scrub rules as app/lib/core/crash_reporting.dart (one spec or a shared test corpus)."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "rate-limit repeated identical panics: a lasting autosave panic now retries once a second (P1-126)"
     }
    ],
    "source": "plan"
@@ -10960,7 +10964,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "rate-limit repeated identical panics: a lasting autosave panic now retries once a second (P1-126)"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -15531,10 +15540,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "997fdc8",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15593,7 +15602,12 @@
    "done": null,
    "commit": null,
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "10db4fd changed the just-committed test before the fix: the final pumpAndSettle assertion could never pass (snackbar timeout is a Timer, not a frame); replaced with explicit 1 s pumps and an extra 'autosave gone' assertion (reviewer: stricter)"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15622,6 +15636,44 @@
    "title": "Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-127",
+   "section": "P1",
+   "group": null,
+   "title": "Caught autosave panic should go through Engine's Err path: one 'report once until saved' latch (not autosave_failed + ffi autosave_panicked) and mark_saved_work(false) so the crash marker knows work is unsaved (P1-126 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-046",
+   "section": "SYS",
+   "group": null,
+   "title": "flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
