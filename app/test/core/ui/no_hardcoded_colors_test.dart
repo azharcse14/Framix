@@ -16,7 +16,7 @@ const _allowed = {
 };
 
 final _literal = RegExp(
-  r'Color\(0x|Color\.from(ARGB|RGBO)\(|\b(Cupertino)?Colors\.',
+  r'\bColor(\.from\w*)?\(|\bHS[VL]Color\.|\b(Cupertino)?Colors\.',
 );
 
 void main() {
@@ -31,7 +31,13 @@ void main() {
           (f) => !f.path.contains('/proto/') && !f.path.endsWith('.g.dart'),
         )
         .where((f) => !f.path.contains('/l10n/'))
-        .where((f) => f.path != _tokenFile);
+        .where((f) => f.path != _tokenFile)
+        .toList();
+    // A path-filter slip must not make this pass by scanning nothing.
+    expect(
+      files.map((f) => f.path),
+      contains('lib/features/timeline/view/timeline_view.dart'),
+    );
     for (final file in files) {
       final lines = file.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
