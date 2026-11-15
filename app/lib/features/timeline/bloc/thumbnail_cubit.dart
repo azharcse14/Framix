@@ -87,6 +87,9 @@ class ThumbnailCubit extends Cubit<Map<ThumbnailKey, String>> {
               maxSide: target.maxSide,
             ),
           ),
+          // A refused ask leaves the slot empty, which is how the lane shows it; the user
+          // never asked, so no generic message (UX-034).
+          reportsFailure: true,
         );
       }
     }
