@@ -432,6 +432,7 @@ class _ProjectCard extends StatelessWidget {
     final length = timecode(
       project.duration.toInt(),
       project.ticksPerSecond.toInt(),
+      locale,
     );
     final deleted = project.purgeMs != 0;
     final now = DateTime.now();

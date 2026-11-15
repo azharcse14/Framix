@@ -79,9 +79,6 @@ const _notUiText = <String, Map<String, String>>{
     'timeline-playhead': 'widget key',
     'timeline-loop': 'widget key',
     'target': 'widget key',
-    // Ruler tick label m:ss.t; its nested quotes split the literal for this scanner.
-    r"${whole ~/ 60}:${(whole % 60).toString().padLeft(2, ": 'number format',
-    r'${tenth == 0 ? ': 'number format',
   },
 };
 
