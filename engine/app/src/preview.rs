@@ -41,7 +41,9 @@ pub enum DrawError {
 /// The GPU side of the preview (and of export: one render path).
 pub trait PreviewRenderer: Send {
     /// Draws `layers`, the pictures at `time` bottom to top (none: an empty canvas), into
-    /// `target` and returns once the GPU is done with it.
+    /// `target` and returns once the GPU is done with it, or, for a renderer on its own thread
+    /// ([`crate::render_thread::RenderThread`]), once the draw is queued; a later GPU failure
+    /// then reaches [`crate::engine::Engine::preview_draw_lost`].
     fn draw(
         &mut self,
         target: PlatformTexture,

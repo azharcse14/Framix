@@ -9,6 +9,7 @@ pub mod library;
 pub mod preview;
 pub mod project;
 pub mod proxy;
+pub mod render_thread;
 pub mod store;
 pub mod thumbnail;
 

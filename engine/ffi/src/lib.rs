@@ -4,7 +4,7 @@ use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel}
 use std::time::Instant;
 
 use framix_app::engine::{AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, command_failed};
-use framix_app::preview::PlatformTexture;
+use framix_app::preview::{PlatformTexture, PreviewHost as _};
 use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
 
@@ -62,6 +62,8 @@ enum EngineMessage {
     SetCallback(EngineEventCallback),
     /// The platform's answer to a preview texture request.
     PreviewTexture(Result<PlatformTexture, String>),
+    /// The render thread lost this preview texture on the GPU.
+    PreviewLost(i64),
     /// The platform's answer to a thumbnail request: the image file's path, or why not.
     Thumbnail(framix_app::thumbnail::ThumbnailKey, Result<String, String>),
     /// The platform's answer to a proxy request: made, or why not.
@@ -205,6 +207,7 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
                 }
                 EngineMessage::PreviewTexture(texture) => platform::release_unused(texture),
                 EngineMessage::Thumbnail(..)
+                | EngineMessage::PreviewLost(_)
                 | EngineMessage::Proxy(..)
                 | EngineMessage::ExportProgress(..)
                 | EngineMessage::Export(_) => {}
@@ -246,25 +249,40 @@ fn serve(
         engine: host.engine.clone(),
     };
     let exports = host.engine.clone();
-    let mut engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
+    let losses = host.engine.clone();
+    let engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
         .with_export()
         .with_thumbnails(Box::new(thumbnails))
         .with_proxies(Box::new(proxies))
         .with_free_space(Box::new(space))
-        .with_clock(Box::new(framix_app::clock::SystemClock::new()))
-        .with_preview(
-            Box::new(host),
+        .with_clock(Box::new(framix_app::clock::SystemClock::new()));
+    let signals = platform::PlatformHost {
+        engine: host.engine.clone(),
+    };
+    let render = framix_app::render_thread::RenderThread::spawn(
+        || {
             Box::new(
-                // SAFETY: app::Engine draws only textures from preview_texture_done, which passes
-                // on only non-null handles the platform reported as made (EnginePreviewTextureDone);
-                // the decoder's frames follow decoder_frame's contract.
+                // SAFETY: app::Engine draws only textures from preview_texture_done, which
+                // passes on only non-null handles the platform reported as made
+                // (EnginePreviewTextureDone); the decoder's frames follow decoder_frame's
+                // contract. The render thread keeps each texture until forget returns.
                 unsafe {
                     framix_render::GpuRenderer::new(Some(Box::new(
                         platform::PlatformDecoder::default(),
                     )))
                 },
-            ),
-        );
+            )
+        },
+        move |id| signals.frame_available(id),
+        move |id| {
+            let _ = losses.send(EngineMessage::PreviewLost(id));
+        },
+    );
+    // Without a render thread CreatePreview is refused ("no preview on this platform").
+    let mut engine = match render {
+        Ok(render) => engine.with_preview(render.host(Box::new(host)), Box::new(render)),
+        Err(_) => engine,
+    };
     // Changes are saved at most AUTOSAVE_DELAY after they happen, even while commands keep
     // coming (a long scrub or drag). With nothing to save the thread sleeps until a message.
     let mut due: Option<Instant> = None;
@@ -376,6 +394,15 @@ fn serve(
             EngineMessage::Export(result) => guarded(|| engine.export_result(result)),
             EngineMessage::PreviewTexture(texture) => {
                 guarded(|| engine.preview_texture_ready(texture))
+            }
+            EngineMessage::PreviewLost(id) => {
+                // Reported as PreviewLost by the next flush_preview.
+                match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    engine.preview_draw_lost(id)
+                })) {
+                    Ok(()) => continue,
+                    Err(_) => command_failed("internal error"),
+                }
             }
             EngineMessage::Thumbnail(key, path) => {
                 // A failed thumbnail has no event; a panic still reports one.
