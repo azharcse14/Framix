@@ -57,9 +57,18 @@ fi
 # Protobuf contract
 if [ -f proto/buf.yaml ] && touched proto/; then
   run_in proto buf lint
-  # Compare with main only once main has a contract to break.
-  if git cat-file -e main:proto/buf.yaml 2>/dev/null; then
-    run buf breaking proto --against '.git#branch=main,subdir=proto'
+  # Compare with where this work started: the merge-base with main. On main itself (or a
+  # branch with no commits yet) that is HEAD, so a clean tree compares with HEAD~1, the
+  # previous main; otherwise a proto change committed on main would be checked against itself.
+  proto_base=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null)
+  if [ "$proto_base" = "$(git rev-parse HEAD)" ] && git diff --quiet HEAD -- proto/; then
+    proto_base=$(git rev-parse --verify --quiet HEAD~1)
+  fi
+  if [ -n "$proto_base" ] && git cat-file -e "$proto_base:proto/buf.yaml" 2>/dev/null; then
+    proto_snap=$(mktemp -d)
+    git archive "$proto_base" proto | tar -x -C "$proto_snap"
+    run buf breaking proto --against "$proto_snap/proto"
+    rm -rf "$proto_snap"
   fi
 fi
 
