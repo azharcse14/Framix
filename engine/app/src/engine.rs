@@ -328,7 +328,7 @@ impl Engine {
                     texture_id,
                 })),
             },
-            Err(reason) if requested => failed(reason, proto::FailureKind::Preview),
+            Err(reason) if requested => preview_failed(reason),
             Err(reason) => command_failed(reason),
         }
     }
@@ -1496,6 +1496,12 @@ pub fn command_failed(reason: impl Into<String>) -> Event {
 /// The event for an autosave that did not reach the file; the UI says the edits are unsaved.
 pub fn autosave_failed(reason: impl Into<String>) -> Event {
     failed(reason, proto::FailureKind::Autosave)
+}
+
+/// The event for an accepted CreatePreview that could not make its preview; the UI says the
+/// preview is unavailable (UX-035).
+pub fn preview_failed(reason: impl Into<String>) -> Event {
+    failed(reason, proto::FailureKind::Preview)
 }
 
 fn failed(reason: impl Into<String>, kind: proto::FailureKind) -> Event {

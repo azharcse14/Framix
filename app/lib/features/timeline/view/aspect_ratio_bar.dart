@@ -151,11 +151,10 @@ class CanvasOutline extends StatelessWidget {
 }
 
 /// Says so inside the canvas when the engine has no preview to show (UX-035); nothing otherwise.
+/// The text keeps its size (and the user's text scale); a canvas too small for it gets an icon
+/// labelled with the message instead.
 class _PreviewUnavailable extends StatelessWidget {
   const _PreviewUnavailable();
-
-  /// Width the message wraps at before it is scaled down into a narrow canvas.
-  static const _wrapWidth = 160.0;
 
   @override
   Widget build(BuildContext context) {
@@ -163,20 +162,40 @@ class _PreviewUnavailable extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final theme = Theme.of(context);
+    final message = AppLocalizations.of(context).previewUnavailable;
+    final style = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
     return Padding(
       padding: const EdgeInsets.all(FramixSpace.s),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: _wrapWidth),
-          child: Text(
-            AppLocalizations.of(context).previewUnavailable,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final painter = TextPainter(
+            text: TextSpan(text: message, style: style),
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout(maxWidth: box.maxWidth);
+          // The longest word must fit unbroken, and all lines in the height.
+          final fits =
+              painter.minIntrinsicWidth <= box.maxWidth &&
+              painter.height <= box.maxHeight;
+          painter.dispose();
+          return Center(
+            child: fits
+                ? Text(message, textAlign: TextAlign.center, style: style)
+                : Tooltip(
+                    message: message,
+                    child: Semantics(
+                      label: message,
+                      child: Icon(
+                        Icons.videocam_off_outlined,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+          );
+        },
       ),
     );
   }

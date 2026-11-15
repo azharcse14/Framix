@@ -731,7 +731,8 @@ message ProjectSummary {
 // never shown to users; `kind` says what failed when the UI explains it.
 message CommandFailed {
   string reason = 1;
-  // The id of the command this answers; 0 for failures no command caused (autosave).
+  // The id of the command this answers; 0 for failures no command caused (autosave) and
+  // for a late failure of an accepted CreatePreview (kind FAILURE_KIND_PREVIEW).
   uint64 command_id = 2;
   FailureKind kind = 3;
 }

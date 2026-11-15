@@ -65,16 +65,19 @@ void main() {
     testWidgets('a refused preview says so in the canvas ($locale, $size)', (
       tester,
     ) async {
+      // Text, or in a canvas too narrow for it an icon labelled with it (UX-035 review).
+      final semantics = tester.ensureSemantics();
       await pumpPage(tester, locale, size);
       final message = lookupAppLocalizations(locale).previewUnavailable;
       await pumpUntil(
         tester,
         find.descendant(
           of: find.byType(CanvasOutline),
-          matching: find.text(message),
+          matching: find.bySemanticsLabel(message),
         ),
       );
       expect(tester.takeException(), isNull);
+      semantics.dispose();
     });
   }
 }
