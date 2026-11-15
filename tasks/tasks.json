@@ -15480,7 +15480,12 @@
    "done": null,
    "commit": null,
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "test makes the backup build step fail (now before the shift) on purpose; the only step after the shift is the final rename"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15494,11 +15499,49 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
+   "done": "2026-11-15",
+   "commit": "a894ece",
+   "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-043",
+   "section": "SYS",
+   "group": null,
+   "title": "Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "main",
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-036",
+   "section": "UX",
+   "group": null,
+   "title": "home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
