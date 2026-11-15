@@ -1078,7 +1078,8 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [x] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
 - [x] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
 - [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
-- [ ] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
+- [x] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
+- [ ] `L10N-019` Rename app/lib/core/ui/file_size.dart to a locale-number home (it now holds localeDigits, frameSize, the NumberFormat cache) and take the locale one way (l10n.localeName vs Localizations.localeOf in home_page.dart:431) (L10N-015/018 review) \[Dart\]
 
 ## Invisible system features
 
@@ -1147,6 +1148,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
 - [x] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
 - [x] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
+- [ ] `SYS-047` check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up) \[Dart\]
 
 ## Engine ar platform er gobhir details
 

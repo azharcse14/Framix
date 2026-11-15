@@ -6287,7 +6287,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "SYS-039 'missing' media = empty-uri video = never known; relink needs 'offline but known uri' — add an explicit marker (new kind or field), don't overload empty uri again"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -15269,7 +15274,12 @@
    "done": null,
    "commit": null,
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "format unchanged (5/5): empty-uri video = missing; pre-SYS-039 readers refuse it as bad uri, no data loss (P1-048 precedent); conditional min_reader_version later if a 'needs newer app' message is wanted"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15796,11 +15806,49 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
+   "done": "2026-11-15",
+   "commit": "0b50ed4",
+   "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "L10N-019",
+   "section": "L10N",
+   "group": null,
+   "title": "Rename app/lib/core/ui/file_size.dart to a locale-number home (it now holds localeDigits, frameSize, the NumberFormat cache) and take the locale one way (l10n.localeName vs Localizations.localeOf in home_page.dart:431) (L10N-015/018 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "main",
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-047",
+   "section": "SYS",
+   "group": null,
+   "title": "check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
