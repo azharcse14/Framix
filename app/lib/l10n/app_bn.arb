@@ -55,6 +55,7 @@
   "trimEndToPlayhead": "প্লেহেড পর্যন্ত শেষ ছাঁটুন",
   "replaceClip": "ক্লিপ বদলান",
   "commandFailed": "কাজটি হয়নি। আবার চেষ্টা করুন।",
+  "autosaveFailed": "আপনার পরিবর্তন সেভ হয়নি। Framix আবার চেষ্টা করছে।",
   "addColorClip": "ফাঁকা ক্লিপ যোগ করুন",
   "exportSettings": "এক্সপোর্ট সেটিংস",
   "exportResolution": "রেজোলিউশন",

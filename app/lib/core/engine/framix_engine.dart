@@ -79,9 +79,13 @@ class FramixEngine {
           reported.remove(event.commandAccepted.commandId.toInt());
         }
         if (event.hasCommandFailed()) {
-          final id = event.commandFailed.commandId.toInt();
-          // Id 0 answers no command (autosave); it is not shown.
-          if (id != 0 && !reported.remove(id)) {
+          final failed = event.commandFailed;
+          final id = failed.commandId.toInt();
+          // Id 0 answers no command (a late preview failure); only a failed autosave is
+          // shown, as the edits are unsaved.
+          final shown =
+              id != 0 || failed.kind == FailureKind.FAILURE_KIND_AUTOSAVE;
+          if (shown && !reported.remove(id)) {
             failures.add(event.commandFailed);
           }
         }
@@ -102,8 +106,8 @@ class FramixEngine {
   /// work (PreviewReady, or CommandFailed) arrive later on their own.
   Stream<Event> get events => _events.stream;
 
-  /// Refused commands that no feature reports itself (see [send]'s `reportsFailure`); the UI
-  /// shows a generic message for them.
+  /// Refused commands that no feature reports itself (see [send]'s `reportsFailure`), and
+  /// failed autosaves (id 0, FAILURE_KIND_AUTOSAVE); the UI shows a message for them.
   Stream<CommandFailed> get failures => _failures.stream;
 
   /// Queues [command] under a new id and returns the id at once; the command's
