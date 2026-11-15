@@ -1010,7 +1010,7 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [ ] `DS-001` Dark (default), Light, System option; themeMode user choice save (hydrated\_bloc) \[Dart\]
 - [ ] `DS-002` Accent preset picker (6-8 ta) \[Dart\]
 - [ ] `DS-003` ColorScheme token theke hate banano (fromSeed na, karon fromSeed surface e accent er tint dey ar neutral gray er niyom bhange) + ThemeExtension (FramixColors: accentFill, accentText, onAccent, track colour, playhead, preview background) \[Dart\]
-- [ ] `DS-004` Widget e kokhono hardcoded hex na, shudhu semantic token \[Dart\]
+- [x] `DS-004` Widget e kokhono hardcoded hex na, shudhu semantic token \[Dart\]
 - [ ] `DS-005` Editor shob theme e dark; Light shudhu Home, Settings, Templates er moto screen e \[Dart\]
 - [ ] `DS-006` Material You (dynamic color), Android 12+ (optional): shudhu accent preset hishebe, surface e na, Editor e kokhono na; contrast check fail korle fallback \[Dart\]
 - [ ] `DS-007` Notun theme mane screenshot test, contrast check, icon duita version, tai pura custom background theme pore \[—\]
@@ -1044,7 +1044,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 **Setup**
 
 - [ ] `L10N-001` flutter\_localizations + intl, ARB file (app\_en.arb, app\_bn.arb), flutter gen-l10n; material\_ui/cupertino\_ui use korle Material ar Cupertino er localization delegate oi package theke \[Dart\]
-- [ ] `L10N-002` Kono UI text hardcode na; shob AppLocalizations theke \[Dart\]
+- [x] `L10N-002` Kono UI text hardcode na; shob AppLocalizations theke \[Dart\]
 - [ ] `L10N-003` Plural ar variable text ARB e \[Dart\]
 - [ ] `L10N-004` Bhasha choice save (SettingsCubit + hydrated\_bloc) \[Dart\]
 
@@ -1059,6 +1059,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-011` Auto caption, TTS, auto lyrics kon bhasha support kore check (Bangla support model e ache kina) \[ML\]
 - [ ] `L10N-012` Store listing (naam, description, screenshot) protita bhashay \[—\]
 - [ ] `L10N-013` Region onujayi template, music, sticker (pore, backend) \[Backend\]
+- [ ] `L10N-014` iOS Info.plist permission text (NSPhotoLibraryAddUsageDescription) localized en + bn via InfoPlist.strings/xcstrings (L10N-002 review) \[Native\]
 
 ## Invisible system features
 
@@ -1119,6 +1120,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-036` Permission na dile o export kaj korbe; Android e tokhon foreground service er notice notification drawer e na dekhiye task manager e thake \[Native\]
 - [ ] `SYS-037` Notification e tap korle sorasori result screen ba project e (deep link) \[Dart\]
 - [ ] `SYS-038` Push notification (FCM/APNs) backend hole pore \[Backend\]
+- [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
 
 ## Engine ar platform er gobhir details
 

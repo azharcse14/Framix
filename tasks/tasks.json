@@ -5848,10 +5848,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "c05788d",
    "branch": "main",
    "notes": [],
    "source": "plan"
@@ -5972,10 +5972,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "347b4fc",
    "branch": "main",
    "notes": [],
    "source": "plan"
@@ -15183,6 +15183,44 @@
    "done": null,
    "commit": null,
    "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "L10N-014",
+   "section": "L10N",
+   "group": null,
+   "title": "iOS Info.plist permission text (NSPhotoLibraryAddUsageDescription) localized en + bn via InfoPlist.strings/xcstrings (L10N-002 review)",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-039",
+   "section": "SYS",
+   "group": null,
+   "title": "v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
