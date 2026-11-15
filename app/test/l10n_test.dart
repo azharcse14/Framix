@@ -81,18 +81,22 @@ void main() {
   // L10N-016: tests use the app's one delegate list, not the generated
   // AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino
   // delegates) or a hand-copied list.
-  test('tests use the app delegate list', () {
-    const banned = [
-      'AppLocalizations.localizationsDelegates',
-      'AppLocalizations.delegate,',
-    ];
+  test('app and tests use the app delegate list', () {
+    final banned = RegExp(
+      r'AppLocalizations\.(localizationsDelegates|delegate\b)',
+    );
+    bool allowed(String path) =>
+        path == 'lib/l10n/app_delegates.dart' ||
+        path.startsWith('lib/l10n/generated/') ||
+        path == 'test/l10n_test.dart';
     final offenders = [
-      for (final file in Directory('test').listSync(recursive: true))
-        if (file is File &&
-            file.path.endsWith('.dart') &&
-            !file.path.endsWith('l10n_test.dart') &&
-            banned.any(file.readAsStringSync().contains))
-          file.path,
+      for (final dir in const ['lib', 'test'])
+        for (final file in Directory(dir).listSync(recursive: true))
+          if (file is File &&
+              file.path.endsWith('.dart') &&
+              !allowed(file.path) &&
+              banned.hasMatch(file.readAsStringSync()))
+            file.path,
     ];
     expect(offenders, isEmpty);
   });
