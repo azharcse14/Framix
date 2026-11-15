@@ -80,3 +80,13 @@ fn restore_forces_the_index_to_the_disk() {
     assert_eq!(store.flushes(|s| library::restore(s, dir, ID)), 1);
     assert!(!library::is_deleted(&store, dir, ID));
 }
+
+#[test]
+fn renaming_or_moving_a_deleted_project_keeps_it_deleted_without_a_full_flush() {
+    let store = MemStore::with_project();
+    let dir = Path::new(DIR);
+    library::delete(&store, dir, ID).expect("delete");
+    assert_eq!(store.flushes(|s| library::rename(s, dir, ID, "Trip")), 0);
+    assert_eq!(store.flushes(|s| library::move_to(s, dir, ID, "Travel")), 0);
+    assert!(library::is_deleted(&store, dir, ID));
+}
