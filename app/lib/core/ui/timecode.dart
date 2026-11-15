@@ -12,7 +12,8 @@ String timecode(int ticks, int ticksPerSecond, String locale) {
 String rulerLabel(double seconds, String locale) {
   final whole = seconds.floor();
   final tenth = ((seconds - whole) * 10).round();
-  return '${localeDigits(whole ~/ 60, locale)}:'
-      '${localeDigits(whole % 60, locale, width: 2)}'
-      '${tenth == 0 ? '' : '.${localeDigits(tenth, locale)}'}';
+  final label =
+      '${localeDigits(whole ~/ 60, locale)}:'
+      '${localeDigits(whole % 60, locale, width: 2)}';
+  return tenth == 0 ? label : '$label.${localeDigits(tenth, locale)}';
 }
