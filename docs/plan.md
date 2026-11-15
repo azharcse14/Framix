@@ -988,7 +988,8 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [x] `UX-034` Widget tests: a startup 'That didn't work' snackbar (CreatePreview fails without a GPU) covers lower timeline widgets after ~0.5 s; give tests a preview fake or keep the snackbar off the lane (found in P1-113) \[Dart\]
 - [ ] `UX-035` Preview unavailable: show a localized message instead of a bare canvas outline when CreatePreview is refused or fails later (id-0 preview failures may need their own event) (UX-034 review) \[Dart\] \[Rust\]
 - [ ] `UX-036` home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review) \[Dart\]
-- [ ] `UX-037` Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review) \[Dart\]
+- [x] `UX-037` Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review) \[Dart\]
+- [ ] `UX-038` One-time notices (openedFromBackup, workRecovered, export results) can be dropped while the autosave failure message shows and one message already waits (messages.dart:27-30); let one-time notices outrank generic failures in the waiting slot; also test the showing=null reset after the autosave message closes (UX-037 review) \[Dart\]
 
 ## Design system
 
