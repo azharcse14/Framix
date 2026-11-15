@@ -164,31 +164,45 @@ fn backup(path: &Path, n: usize) -> PathBuf {
     sibling(path, &format!(".bak{n}"))
 }
 
-/// Shifts `.bak1`.. up by one (dropping the oldest) and makes `.bak1` the current file.
-/// Where hard links fail `.bak1` is a copy, a new inode: with `sync` it is synced here,
-/// otherwise it is returned for the caller to sync.
+/// Builds the new backup of the current file as `<file>.bak.tmp`, then shifts `.bak1`.. up
+/// by one (dropping the oldest) and renames the temp to `.bak1`; a failure while building
+/// leaves the backups as they were. Where hard links fail the backup is a copy, a new inode:
+/// with `sync` it is synced here, otherwise it is returned for the caller to sync.
 fn rotate_backups(path: &Path, sync: bool) -> io::Result<Option<File>> {
     // No current file (new, or set aside): nothing to keep, so the backups stay as they are.
     if !path.exists() {
         return Ok(None);
     }
-    for n in (1..BACKUPS).rev() {
-        match fs::rename(backup(path, n), backup(path, n + 1)) {
-            Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
-            _ => {}
+    let tmp = sibling(path, ".bak.tmp");
+    let rotated = build_backup(path, &tmp, sync).and_then(|copy| {
+        for n in (1..BACKUPS).rev() {
+            match fs::rename(backup(path, n), backup(path, n + 1)) {
+                Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
+                _ => {}
+            }
         }
+        fs::rename(&tmp, backup(path, 1)).map(|()| copy)
+    });
+    if rotated.is_err() {
+        let _ = fs::remove_file(&tmp);
     }
-    let newest = backup(path, 1);
-    match fs::remove_file(&newest) {
+    rotated
+}
+
+/// Makes `tmp` a copy of `path`: a hard link, which keeps the old file in place until the
+/// rename, or a real copy where links fail (synced with `sync`, else returned to sync).
+fn build_backup(path: &Path, tmp: &Path, sync: bool) -> io::Result<Option<File>> {
+    // A crash may have left a temp that shares an inode with a kept version: unlink it, as
+    // copying over it would overwrite that version.
+    match fs::remove_file(tmp) {
         Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
         _ => {}
     }
-    // A hard link keeps the old file in place until the rename; copy where links fail.
-    if fs::hard_link(path, &newest).is_ok() {
+    if fs::hard_link(path, tmp).is_ok() {
         return Ok(None);
     }
-    fs::copy(path, &newest)?;
-    let copy = File::open(&newest)?;
+    fs::copy(path, tmp)?;
+    let copy = File::open(tmp)?;
     if !sync {
         return Ok(Some(copy));
     }
