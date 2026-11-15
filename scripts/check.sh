@@ -45,7 +45,17 @@ if [ -f app/pubspec.yaml ] && touched app/; then
   run_in app "${FLUTTER[@]}" gen-l10n
   run git diff --exit-code -- app/lib/l10n/generated
   run_in app "${FLUTTER[@]}" analyze
-  run_in app "${FLUTTER[@]}" test
+  # Every `flutter test` empties app/build/native_assets/macos, then copies, install_name_tools
+  # and codesigns libframix_ffi.dylib there, with no lock. Two runs in one checkout (e.g. the
+  # Stop hook's check.sh next to a manual one) race: one deletes the dylib while the other
+  # signs it ("Failed to code sign" / "install_name_tool: can't open file"). After a Rust change
+  # both wait on the same hook build and then install at the same moment, so it shows up most
+  # then. Hold a per-checkout lock around the test run (lockf on macOS, flock on Linux).
+  # -k keeps the lock file; without it lockf deletes the file on exit.
+  mkdir -p app/.dart_tool; lock_file="$PWD/app/.dart_tool/flutter_test.lock"
+  if command -v lockf >/dev/null 2>&1; then test_lock=(lockf -k "$lock_file")
+  else test_lock=(flock "$lock_file"); fi
+  run_in app "${test_lock[@]}" "${FLUTTER[@]}" test
 fi
 
 # Generated FFI code must match its sources (header from engine/ffi, Dart from the header).
