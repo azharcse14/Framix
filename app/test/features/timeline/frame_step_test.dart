@@ -52,13 +52,7 @@ void main() {
       Clip clip() => page().read<TimelineCubit>().state.tracks[0].clips[0];
 
       Future<void> until(bool Function() done) async {
-        for (var i = 0; i < 100 && !done(); i++) {
-          await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 20)),
-          );
-          await tester.pump();
-        }
-        expect(done(), isTrue);
+        await pumpUntilTrue(tester, done, () => 'never held');
       }
 
       int playhead() => page().read<PlayheadCubit>().state;

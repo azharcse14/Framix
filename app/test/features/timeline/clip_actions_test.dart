@@ -60,14 +60,11 @@ void main() {
     final tps = page(tester).read<TimelineCubit>().state.ticksPerSecond.toInt();
     final ticks = (seconds * tps).round();
     page(tester).read<PlayheadCubit>().seek(ticks);
-    for (var i = 0; i < 100; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-      if (page(tester).read<PlayheadCubit>().state == ticks) return;
-    }
-    throw TestFailure('the playhead never reached $seconds s');
+    await pumpUntilTrue(
+      tester,
+      () => page(tester).read<PlayheadCubit>().state == ticks,
+      () => 'the playhead never reached $seconds s',
+    );
   }
 
   bool selected(WidgetTester tester, int index) =>
@@ -288,18 +285,13 @@ void main() {
     await tester.tap(find.byType(ClipBox));
     await tester.pump();
     await tester.tap(find.byTooltip(l10n.replaceClip));
-    for (var i = 0; i < 100; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-      final now = page(tester).read<TimelineCubit>().state.tracks[0].clips[0];
-      if (now.mediaId != before.mediaId) {
-        expect(now.id, before.id, reason: 'same clip');
-        return;
-      }
-    }
-    throw TestFailure('the clip never got the new media');
+    Clip now() => page(tester).read<TimelineCubit>().state.tracks[0].clips[0];
+    await pumpUntilTrue(
+      tester,
+      () => now().mediaId != before.mediaId,
+      () => 'the clip never got the new media',
+    );
+    expect(now().id, before.id, reason: 'same clip');
   });
 
   // P1-074: a dragged trim edge snaps to a near clip edge (12 dp, decided by the engine).

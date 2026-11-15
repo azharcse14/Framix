@@ -70,21 +70,19 @@ void main() {
       await tester.pump();
 
       cubit().trimClip(clips()[0], 0, tps);
-      for (var i = 0; i < 100 && clips()[0].duration.toInt() != tps; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump();
-      }
+      await pumpUntilTrue(
+        tester,
+        () => clips()[0].duration.toInt() == tps,
+        () => 'photo 0 never became 1 s',
+      );
       await tester.tap(find.byType(ClipBox).first);
       await tester.pump();
       await tester.tap(find.byTooltip(l10n.applyDurationToAllPhotos));
-      for (var i = 0; i < 100 && clips()[2].duration.toInt() != tps; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump();
-      }
+      await pumpUntilTrue(
+        tester,
+        () => clips()[2].duration.toInt() == tps,
+        () => 'photo 2 never became 1 s',
+      );
       expect(
         clips().map((c) => (c.start.toInt() ~/ tps, c.duration.toInt() ~/ tps)),
         // The trim left a 2 s gap after the first photo; gaps are kept.

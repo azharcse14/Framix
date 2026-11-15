@@ -5,6 +5,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 
+import '../../pump_until.dart';
+
 const second = 705600000;
 
 MediaItem _video(int n) => MediaItem(
@@ -42,13 +44,15 @@ void main() {
         .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
-  /// Sends [send] and waits until [done] holds for the cubit's state (at most 2 s).
+  /// Sends [send] and waits until [done] holds for the cubit's state (at most
+  /// [replyBudget]; a plain test has no WidgetTester for pumpUntilTrue).
   Future<void> until(
     void Function() send,
     bool Function(TimelineChanged) done,
   ) async {
     send();
-    for (var i = 0; i < 100 && !done(cubit.state); i++) {
+    final clock = Stopwatch()..start();
+    while (!done(cubit.state) && clock.elapsed < replyBudget) {
       await Future<void>.delayed(const Duration(milliseconds: 20));
     }
     expect(done(cubit.state), isTrue);

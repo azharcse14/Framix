@@ -30,13 +30,11 @@ void main() {
         ..send(Command(openLibrary: OpenLibrary(dir: dir.path)))
         ..send(Command(newProject: NewProject()))
         ..send(Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_VIDEO)));
-      await tester.runAsync(() async {
-        for (var i = 0; i < 250; i++) {
-          if (dir.listSync().any((f) => f.path.endsWith('.framix'))) return;
-          await Future<void>.delayed(const Duration(milliseconds: 20));
-        }
-        throw TestFailure('the crashed launch never autosaved');
-      });
+      await pumpUntilTrue(
+        tester,
+        () => dir.listSync().any((f) => f.path.endsWith('.framix')),
+        () => 'the crashed launch never autosaved',
+      );
 
       final l10n = lookupAppLocalizations(locale);
       await tester.pumpWidget(

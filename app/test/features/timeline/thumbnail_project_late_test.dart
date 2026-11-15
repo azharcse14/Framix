@@ -101,9 +101,7 @@ void main() {
     await settle();
     engine.send(Command(openProject: OpenProject(path: path)));
     // Wait for the new ask with a deadline: a loaded machine answers late.
-    for (var i = 0; i < 100 && asks <= first; i++) {
-      await settle();
-    }
+    await pumpUntilTrue(tester, () => asks > first, () => 'never asked again');
     await tester.runAsync(() => dir.delete(recursive: true));
     expect(
       asks,

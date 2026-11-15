@@ -23,13 +23,7 @@ void main() {
       tester.element(find.byType(TimelinePage)).read<TimelineCubit>();
 
   Future<void> until(WidgetTester tester, bool Function() done) async {
-    for (var i = 0; i < 100 && !done(); i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-    }
-    expect(done(), isTrue);
+    await pumpUntilTrue(tester, done, () => 'never held');
   }
 
   Future<void> openSheet(WidgetTester tester) async {

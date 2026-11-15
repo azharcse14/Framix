@@ -55,12 +55,11 @@ void main() {
         .element(find.byType(TimelinePage))
         .read<PlaybackCubit>();
     await tester.tap(find.byType(BackButton));
-    for (var i = 0; i < 100 && playback.state; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-    }
+    await pumpUntilTrue(
+      tester,
+      () => !playback.state,
+      () => 'playback never stopped',
+    );
     expect(playback.state, isFalse);
   });
 }
