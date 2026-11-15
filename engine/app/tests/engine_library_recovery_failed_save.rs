@@ -130,3 +130,22 @@ fn a_crash_after_autosave_works_again_is_reported() {
     let mut next = launch(&store);
     assert_ne!(recovered(&mut next), "");
 }
+
+/// P1-116: Home lists before the timer autosaves; ListProjects answers with the list, so the
+/// failure its save hit must still reach the next autosave.
+#[test]
+fn a_save_that_first_fails_under_list_projects_is_still_reported() {
+    let store = MemStore::default();
+    let mut engine = launch(&store);
+    run(&mut engine, command::Kind::NewProject(NewProject {}));
+    add_track(&mut engine);
+    assert_eq!(engine.autosave(), None);
+    store.fail.store(true, Ordering::SeqCst);
+    add_track(&mut engine);
+    recovered(&mut engine);
+    assert!(
+        engine.autosave().is_some(),
+        "the failure is reported once Home has listed"
+    );
+    assert_eq!(engine.autosave(), None, "and only once");
+}
