@@ -503,7 +503,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
 - [x] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
 - [x] `P1-125` App test MemStores that implement set_aside (engine_autosave_restore.rs, engine_autosave_broken.rs) must override copies, per the ProjectStore::copies rule (P1-123 review) \[Rust\]
-- [ ] `P1-126` Autosave panic: report once per failure streak and keep retrying while idle (ffi lib.rs stalled path; P1-121 review) \[Rust\]
+- [x] `P1-126` Autosave panic: report once per failure streak and keep retrying while idle (ffi lib.rs stalled path; P1-121 review) \[Rust\]
 - [ ] `P1-127` Caught autosave panic should go through Engine's Err path: one 'report once until saved' latch (not autosave_failed + ffi autosave_panicked) and mark_saved_work(false) so the crash marker knows work is unsaved (P1-126 review) \[Rust\]
 
 ## Phase 2: Audio
@@ -1139,7 +1139,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-041` Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review) \[Rust\]
 - [x] `SYS-042` rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review) \[Rust\]
 - [x] `SYS-043` Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review) \[Rust\]
-- [ ] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
+- [x] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
 - [ ] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
 - [ ] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
 
