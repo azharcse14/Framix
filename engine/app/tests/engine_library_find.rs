@@ -260,8 +260,10 @@ fn sort_by_date_name_or_size() {
     assert_eq!(sorted(&mut engine, ProjectSort::Size)[0], big);
 }
 
+/// MemStore can't list sizes (the port's default `sizes` is Unsupported), so bytes falls back
+/// to the length of the file the library loaded (P1-120).
 #[test]
-fn bytes_is_the_project_file_size() {
+fn without_size_listings_bytes_is_the_loaded_file_size() {
     let store = MemStore::default();
     let mut engine = library(&store);
     let id = project(&mut engine, 2);
