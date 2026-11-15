@@ -6478,7 +6478,9 @@ class ProjectSummary extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearFolder() => $_clearField(7);
 
-  /// Size of the project file.
+  /// Size of the project file, its backups and the media copies the app made for it
+  /// (`media/<name>` uris, in `media/` next to OpenLibrary.dir); `content://` originals never
+  /// count. A media copy used by more than one project counts in each.
   @$pb.TagNumber(8)
   $fixnum.Int64 get bytes => $_getI64(7);
   @$pb.TagNumber(8)
