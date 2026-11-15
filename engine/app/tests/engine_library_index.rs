@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 use framix_app::engine::Engine;
 use framix_app::project_proto::{LibraryEntry, LibraryIndex};
@@ -17,6 +17,8 @@ use framix_app::store::ProjectStore;
 use prost::Message as _;
 
 const DIR: &str = "/data/projects";
+/// The store's clock, in milliseconds since the Unix epoch (September 2026).
+const NOW_MS: u64 = 1_790_000_000_000;
 
 /// In-memory files with one backup each; reading the index can be made to fail.
 #[derive(Clone, Default)]
@@ -62,6 +64,10 @@ impl ProjectStore for MemStore {
 
     fn backups(&self, path: &Path) -> Vec<PathBuf> {
         vec![backup(path)]
+    }
+
+    fn now(&self) -> SystemTime {
+        SystemTime::UNIX_EPOCH + Duration::from_millis(NOW_MS)
     }
 }
 
@@ -188,4 +194,81 @@ fn an_unchanged_name_does_not_rotate_the_backup() {
         .unwrap()
         .insert(index(), b"garbage".to_vec());
     assert_eq!(list(&mut engine)[0].name, "a");
+}
+
+/// Every index format has a fixture that keeps opening (testing.md). `library_v1.index` was
+/// encoded by hand, field by field, so it does not depend on this engine's encoder: project
+/// `a1` named "Holiday 🌴" in folder "Trips", and project `b2` deleted a day before [`NOW_MS`].
+#[test]
+fn the_v1_index_fixture_keeps_names_folders_and_recently_deleted() {
+    let store = MemStore::default();
+    {
+        let mut files = store.files.lock().unwrap();
+        let project = include_bytes!("fixtures/project_v5.framix");
+        for id in ["a1", "b2"] {
+            files.insert(format!("{DIR}/{id}.framix").into(), project.to_vec());
+        }
+        let fixture = include_bytes!("fixtures/library_v1.index");
+        files.insert(index(), fixture.to_vec());
+    }
+    let mut engine = library(&store);
+    let projects = list(&mut engine);
+    let a1 = projects.iter().find(|p| p.id == "a1").unwrap();
+    assert_eq!(
+        (a1.name.as_str(), a1.folder.as_str(), a1.purge_ms),
+        ("Holiday 🌴", "Trips", 0)
+    );
+    let deleted_ms = NOW_MS as i64 - 24 * 60 * 60 * 1000;
+    let op = ListProjects {
+        deleted: true,
+        ..ListProjects::default()
+    };
+    let Some(event::Kind::ProjectList(deleted)) = run(&mut engine, command::Kind::ListProjects(op))
+    else {
+        panic!("expected ProjectList");
+    };
+    let ids: Vec<(&str, i64)> = deleted
+        .projects
+        .iter()
+        .map(|p| (p.id.as_str(), p.purge_ms))
+        .collect();
+    assert_eq!(ids, [("b2", deleted_ms + 30 * 24 * 60 * 60 * 1000)]);
+}
+
+/// One more entry past the 1 MiB the reader accepts is refused, and the index stays as it was,
+/// so no later read drops it as too large (P1-107).
+#[test]
+fn a_write_past_the_index_size_limit_is_refused_and_keeps_the_index() {
+    const MAX_INDEX_BYTES: usize = 1024 * 1024;
+    let store = MemStore::default();
+    let mut engine = library(&store);
+    let id = project(&mut engine);
+    // Small entries until fewer than 115 bytes are left: room for a short name, not a long one.
+    let mut seed = LibraryIndex {
+        format_version: 1,
+        min_reader_version: 1,
+        projects: Vec::new(),
+    };
+    // Each entry takes 15 bytes: an 8-character id, a 1-character name, and their framing.
+    let mut len = seed.encoded_len();
+    while len + 15 + 100 <= MAX_INDEX_BYTES {
+        seed.projects.push(LibraryEntry {
+            id: format!("{:08x}", seed.projects.len()),
+            name: "n".into(),
+            ..LibraryEntry::default()
+        });
+        len += 15;
+    }
+    assert_eq!(seed.encoded_len(), len);
+    store.save(&index(), &seed.encode_to_vec()).unwrap();
+
+    assert!(accepted(rename(&mut engine, &id, "x")), "a short name fits");
+    let full = store.load(&index()).unwrap();
+    assert!(full.len() <= MAX_INDEX_BYTES);
+    // 80 four-byte characters: 320 bytes more than the limit leaves.
+    let long = "\u{1D11E}".repeat(80);
+    assert!(!accepted(rename(&mut engine, &id, &long)));
+    assert_eq!(store.load(&index()).unwrap(), full, "index untouched");
+    let projects = list(&mut engine);
+    assert_eq!(projects.iter().find(|p| p.id == id).unwrap().name, "x");
 }
