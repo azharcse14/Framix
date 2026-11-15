@@ -170,7 +170,7 @@ impl Engine {
             Err(reason) => {
                 self.autosave_failed = true;
                 self.mark_saved_work(&path, false);
-                Some(command_failed(format!("autosave failed: {reason}")))
+                Some(autosave_failed(format!("autosave failed: {reason}")))
             }
         }
     }
@@ -1470,12 +1470,21 @@ pub fn answering(id: u64, mut event: Event) -> Event {
 
 /// The event for a rejected command. `reason` is for logs, not for display.
 pub fn command_failed(reason: impl Into<String>) -> Event {
+    failed(reason, proto::FailureKind::Unspecified)
+}
+
+/// The event for an autosave that did not reach the file; the UI says the edits are unsaved.
+pub fn autosave_failed(reason: impl Into<String>) -> Event {
+    failed(reason, proto::FailureKind::Autosave)
+}
+
+fn failed(reason: impl Into<String>, kind: proto::FailureKind) -> Event {
     Event {
         kind: Some(proto::event::Kind::CommandFailed(CommandFailed {
             reason: reason.into(),
             // `Engine::handle` fills in the command's id.
             command_id: 0,
-            kind: proto::FailureKind::Unspecified as i32,
+            kind: kind as i32,
         })),
     }
 }

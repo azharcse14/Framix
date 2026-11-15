@@ -4,9 +4,11 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../engine/framix_engine.dart';
+import '../engine/proto/framix/v1/engine.pb.dart';
 
 /// Shows a short generic message whenever the engine refuses a command that no feature
-/// reports itself (P1-049). The reason is for logs, never shown.
+/// reports itself (P1-049), or that an autosave failed (P1-121). The reason is for logs,
+/// never shown.
 class CommandFailureMessages extends StatefulWidget {
   const CommandFailureMessages({
     super.key,
@@ -27,13 +29,15 @@ class _CommandFailureMessagesState extends State<CommandFailureMessages> {
   @override
   void initState() {
     super.initState();
-    _failures = widget.engine.failures.listen((_) {
+    _failures = widget.engine.failures.listen((failed) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final text = failed.kind == FailureKind.FAILURE_KIND_AUTOSAVE
+          ? l10n.autosaveFailed
+          : l10n.commandFailed;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).commandFailed)),
-        );
+        ..showSnackBar(SnackBar(content: Text(text)));
     });
   }
 
