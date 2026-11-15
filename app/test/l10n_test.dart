@@ -64,4 +64,36 @@ void main() {
       expect(Localizations.localeOf(context), locale);
     });
   }
+
+  testWidgets('bn Material strings differ from en', (tester) async {
+    Future<String> okLabel(Locale locale) async {
+      await tester.pumpWidget(EngineFailedApp(locale: locale));
+      return MaterialLocalizations.of(tester.element(find.byType(ErrorPanel)))
+          .okButtonLabel;
+    }
+
+    expect(
+      await okLabel(const Locale('bn')),
+      isNot(await okLabel(const Locale('en'))),
+    );
+  });
+
+  // L10N-016: tests use the app's one delegate list, not the generated
+  // AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino
+  // delegates) or a hand-copied list.
+  test('tests use the app delegate list', () {
+    const banned = [
+      'AppLocalizations.localizationsDelegates',
+      'AppLocalizations.delegate,',
+    ];
+    final offenders = [
+      for (final file in Directory('test').listSync(recursive: true))
+        if (file is File &&
+            file.path.endsWith('.dart') &&
+            !file.path.endsWith('l10n_test.dart') &&
+            banned.any(file.readAsStringSync().contains))
+          file.path,
+    ];
+    expect(offenders, isEmpty);
+  });
 }
