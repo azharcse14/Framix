@@ -381,7 +381,7 @@ class _Toolbar extends StatelessWidget {
               alignment: AlignmentDirectional.centerStart,
               child: BlocBuilder<PlayheadCubit, int>(
                 builder: (_, playhead) => Text(
-                  timecode(playhead, ticksPerSecond),
+                  timecode(playhead, ticksPerSecond, l10n.localeName),
                   style: const TextStyle(
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
@@ -608,6 +608,8 @@ class _Ruler extends StatelessWidget {
     }
 
     final colors = FramixColors.of(context);
+    final l10n = AppLocalizations.of(context);
+    final locale = l10n.localeName;
     final ruler = GestureDetector(
       key: TimelineView.rulerKey,
       behavior: HitTestBehavior.opaque,
@@ -623,18 +625,20 @@ class _Ruler extends StatelessWidget {
           pps: pps,
           mark: colors.outline,
           label: colors.textMuted,
+          locale: locale,
         ),
       ),
     );
     // Screen readers seek one second at a time; the value is the playhead timecode.
     return BlocBuilder<PlayheadCubit, int>(
       builder: (context, at) => Semantics(
-        label: AppLocalizations.of(context).timelineRuler,
-        value: timecode(at, ticksPerSecond),
-        increasedValue: timecode(at + ticksPerSecond, ticksPerSecond),
+        label: l10n.timelineRuler,
+        value: timecode(at, ticksPerSecond, locale),
+        increasedValue: timecode(at + ticksPerSecond, ticksPerSecond, locale),
         decreasedValue: timecode(
           math.max(0, at - ticksPerSecond),
           ticksPerSecond,
+          locale,
         ),
         onIncrease: () => playhead.seek(at + ticksPerSecond),
         onDecrease: () => playhead.seek(at - ticksPerSecond),
@@ -645,11 +649,17 @@ class _Ruler extends StatelessWidget {
 }
 
 class _RulerPainter extends CustomPainter {
-  _RulerPainter({required this.pps, required this.mark, required this.label});
+  _RulerPainter({
+    required this.pps,
+    required this.mark,
+    required this.label,
+    required this.locale,
+  });
 
   final double pps;
   final Color mark;
   final Color label;
+  final String locale;
 
   /// Seconds between labelled marks, so labels stay at least ~64px apart.
   static const _steps = [0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0];
@@ -667,7 +677,7 @@ class _RulerPainter extends CustomPainter {
       );
       final text = TextPainter(
         text: TextSpan(
-          text: _secondsLabel(t),
+          text: rulerLabel(t, locale),
           style: TextStyle(
             color: label,
             fontSize: 11,
@@ -682,16 +692,12 @@ class _RulerPainter extends CustomPainter {
     }
   }
 
-  static String _secondsLabel(double seconds) {
-    final whole = seconds.floor();
-    final tenth = ((seconds - whole) * 10).round();
-    return '${whole ~/ 60}:${(whole % 60).toString().padLeft(2, '0')}'
-        '${tenth == 0 ? '' : '.$tenth'}';
-  }
-
   @override
   bool shouldRepaint(_RulerPainter old) =>
-      old.pps != pps || old.mark != mark || old.label != label;
+      old.pps != pps ||
+      old.mark != mark ||
+      old.label != label ||
+      old.locale != locale;
 }
 
 /// One track's clips on the time axis.
