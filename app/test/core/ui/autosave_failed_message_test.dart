@@ -77,4 +77,53 @@ void main() {
       expect(find.textContaining('storage full'), findsNothing);
     });
   }
+
+  // UX-037: the engine reports a failed autosave once per streak, so its message must not
+  // vanish with the default duration or be hidden by a later generic failure.
+  Future<_FakeEngine> pumpMessages(WidgetTester tester) async {
+    final engine = _FakeEngine();
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: appLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: CommandFailureMessages(engine: engine, child: const SizedBox()),
+        ),
+      ),
+    );
+    return engine;
+  }
+
+  final autosave = CommandFailed(kind: FailureKind.FAILURE_KIND_AUTOSAVE);
+  final l10n = lookupAppLocalizations(const Locale('en'));
+
+  testWidgets('the autosave message outlasts the default snackbar duration', (
+    tester,
+  ) async {
+    final engine = await pumpMessages(tester);
+    engine.fail(autosave);
+    await tester.pump();
+    for (var i = 0; i < 7; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(find.text(l10n.autosaveFailed), findsOneWidget);
+  });
+
+  testWidgets('a later generic failure does not hide the autosave message', (
+    tester,
+  ) async {
+    final engine = await pumpMessages(tester);
+    engine.fail(autosave);
+    await tester.pump();
+    engine.fail(CommandFailed(reason: 'bad clip'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text(l10n.autosaveFailed), findsOneWidget);
+    // It waits its turn instead of being dropped.
+    for (var i = 0; i < 11; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(find.text(l10n.autosaveFailed), findsNothing);
+    expect(find.text(l10n.commandFailed), findsOneWidget);
+  });
 }

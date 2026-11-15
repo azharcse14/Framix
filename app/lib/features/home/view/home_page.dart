@@ -10,6 +10,7 @@ import '../../../core/engine/proto/framix/v1/engine.pb.dart'
 import '../../../core/media/channel_media_importer.dart' as media;
 import '../../../core/ui/file_size.dart';
 import '../../../core/ui/framix_theme.dart';
+import '../../../core/ui/messages.dart';
 import '../../../core/ui/small_spinner.dart';
 import '../../../core/ui/timecode.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -74,17 +75,12 @@ class _HomeView extends StatelessWidget {
           listenWhen: (_, state) =>
               state is HomeProjects &&
               (state.recovered || state.openedFromBackup),
-          listener: (context, state) => ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(
-                  (state as HomeProjects).openedFromBackup
-                      ? l10n.openedFromBackup
-                      : l10n.workRecovered,
-                ),
-              ),
-            ),
+          listener: (context, state) => showMessage(
+            context,
+            (state as HomeProjects).openedFromBackup
+                ? l10n.openedFromBackup
+                : l10n.workRecovered,
+          ),
           builder: (context, state) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

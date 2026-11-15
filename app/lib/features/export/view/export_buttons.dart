@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/media/export_sharer.dart';
 import '../../../core/ui/file_size.dart';
+import '../../../core/ui/messages.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../bloc/export_cubit.dart';
 import '../../../core/ui/small_spinner.dart';
@@ -42,10 +43,8 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// A save or share is reading the file; a new export would overwrite it underneath.
   bool _busy = false;
 
-  /// The newest message replaces one still showing, rather than queueing behind it.
-  void _tell(String text) => ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
+  /// The newest message replaces one still showing (except a failed-autosave message).
+  void _tell(String text) => showMessage(context, text);
 
   Future<void> _whileBusy(Future<void> Function() work) async {
     setState(() => _busy = true);
