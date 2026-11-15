@@ -53,11 +53,19 @@ String frameSize(AppLocalizations l10n, int width, int height) {
   return l10n.exportFrameSize(number.format(width), number.format(height));
 }
 
+/// [value] in the locale's digits, zero-padded to [width] ("05", "০৫"), never grouped.
+String localeDigits(int value, String locale, {int width = 1}) =>
+    _number('0' * width, locale).format(value);
+
+/// One format per pattern and locale: timecodes rebuild with the playhead (~30/s).
+final _numbers = <(String, String), NumberFormat>{};
+
 /// The locale's digits; en_US where intl lacks the locale.
-NumberFormat _number(String pattern, String locale) {
-  try {
-    return NumberFormat(pattern, locale);
-  } on ArgumentError {
-    return NumberFormat(pattern, 'en_US');
-  }
-}
+NumberFormat _number(String pattern, String locale) =>
+    _numbers.putIfAbsent((pattern, locale), () {
+      try {
+        return NumberFormat(pattern, locale);
+      } on ArgumentError {
+        return NumberFormat(pattern, 'en_US');
+      }
+    });
