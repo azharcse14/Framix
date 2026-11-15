@@ -68,8 +68,24 @@ impl ProjectStore for FileStore {
     }
 
     /// Like [`FileStore::list`]; a link is not a regular file, so what it points to is never
-    /// counted (or removed by a caller cleaning what this lists).
+    /// counted (or removed by a caller cleaning what this lists). Names that share an inode (a
+    /// hard link, e.g. a crash-left `.bak.tmp` or `.bak1` still linked to the project) hold its
+    /// bytes once: the first listed gets the size, the others 0.
     fn sizes(&self, dir: &Path) -> io::Result<Vec<(PathBuf, u64)>> {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt as _;
+            let mut seen = std::collections::HashSet::new();
+            let mut sizes = files(dir, |meta| Some((meta.dev(), meta.ino(), meta.len())))?;
+            sizes.sort();
+            Ok(sizes
+                .into_iter()
+                .map(|(path, (dev, ino, len))| {
+                    (path, if seen.insert((dev, ino)) { len } else { 0 })
+                })
+                .collect())
+        }
+        #[cfg(not(unix))]
         files(dir, |meta| Some(meta.len()))
     }
 
