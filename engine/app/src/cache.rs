@@ -6,6 +6,7 @@
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
+use std::time::Duration;
 
 use framix_core::timeline::Timeline;
 
@@ -41,9 +42,10 @@ pub fn project_bytes(sizes: &CacheSizes, timeline: &Timeline) -> u64 {
         .sum()
 }
 
-/// Removes every cache file of `timeline`'s media from `cache_dir`. Only names listed in
-/// the fixed subfolders are removed (no links, folders or paths from elsewhere). Tries every
-/// file; fails with the kind of the first error.
+/// Removes every cache file of `timeline`'s media from `cache_dir`, and any media's partial
+/// writes a crash left ([`remove_stale_partials`]). Only names listed in the fixed subfolders
+/// are removed (no links, folders or paths from elsewhere). Tries every file; fails with the
+/// kind of the first error.
 pub fn clean(
     store: &dyn ProjectStore,
     cache_dir: &Path,
@@ -52,6 +54,7 @@ pub fn clean(
     let keys = media_keys(timeline);
     let mut failed = None;
     for folder in FOLDERS {
+        remove_stale_partials(store, &cache_dir.join(folder));
         let files = match store.sizes(&cache_dir.join(folder)) {
             Ok(files) => files,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
@@ -71,6 +74,34 @@ pub fn clean(
     failed.map_or(Ok(()), |kind| Err(format!("cache not cleaned: {kind}")))
 }
 
+/// How long after its last write a partial file is taken as left by a crash: the platform
+/// writes a thumbnail or proxy in far less, so one this old is not being written any more.
+const STALE_PARTIAL: Duration = Duration::from_secs(60 * 60);
+
+/// Removes the partial writes ([`is_partial`]) in `folder` last written [`STALE_PARTIAL`] or
+/// more ago by the store's clock; one stamped ahead of it stays. Housekeeping, best effort:
+/// what fails is tried at the next clean.
+fn remove_stale_partials(store: &dyn ProjectStore, folder: &Path) {
+    let now = store.now();
+    for (file, written) in store.list(folder).unwrap_or_default() {
+        if is_partial(&file)
+            && now
+                .duration_since(written)
+                .is_ok_and(|age| age >= STALE_PARTIAL)
+        {
+            let _ = store.remove(&file);
+        }
+    }
+}
+
+/// A file the platform is (or was, before a crash) still writing: Android
+/// `<name><random>.part`, iOS `<name>.part` and `<UUID>.part.mov`.
+fn is_partial(file: &Path) -> bool {
+    file.file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| n.contains(".part"))
+}
+
 /// The keys of every file-backed media of `timeline`.
 fn media_keys(timeline: &Timeline) -> BTreeSet<String> {
     timeline
@@ -82,14 +113,12 @@ fn media_keys(timeline: &Timeline) -> BTreeSet<String> {
 }
 
 /// Which media a cache file belongs to: the part of its name before the first `-`. None for
-/// a file the platform is still writing (`.part`: Android `<name><random>.part`, iOS
-/// `<name>.part` and `<UUID>.part.mov`), so it is neither counted nor removed mid-write.
+/// a partial write ([`is_partial`]), so it is neither counted nor removed mid-write.
 fn key_of(file: &Path) -> Option<&str> {
-    let name = file.file_name()?.to_str()?;
-    if name.contains(".part") {
+    if is_partial(file) {
         return None;
     }
-    let (key, _) = name.split_once('-')?;
+    let (key, _) = file.file_name()?.to_str()?.split_once('-')?;
     Some(key)
 }
 
