@@ -490,14 +490,17 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-110` One file-size formatter in app/lib/core/ui (Home uses 1024 steps, export uses 1000000 per MB); pick one base (P1-017 review W2) \[Dart\]
 - [x] `P1-111` Cache clean: SHA-256 padding-boundary tests (55/56/64 bytes), skip in-progress .part files, log a failed autosave before clean, clean caches of projects purged from Recently deleted (P1-017 review) \[Rust\]
 - [x] `P1-112` Widget test: with no loop set, Clear loop stays hidden when one or two clips are selected (guards the _ClipActions looping wiring; P1-106 review) \[Dart\]
-- [ ] `P1-113` Trim handles of a selected narrow clip cover the next narrow clip's tap target, so it can't be tapped into the selection (found in P1-104) \[Dart\]
+- [x] `P1-113` Trim handles of a selected narrow clip cover the next narrow clip's tap target, so it can't be tapped into the selection (found in P1-104) \[Dart\]
 - [ ] `P1-114` Library DeleteProject/RestoreProject/Rename/Move each do two full disk flushes (F_FULLFSYNC on macOS/iOS) on the command thread; Home can stall 1-2 s under disk load. Consider cheaper durability for library.index (found in P1-108) \[Rust\]
 - [x] `P1-115` Move the ~15 hand-written 100x20 ms wait loops in timeline/export tests to app/test/pump_until.dart's load-safe pumpUntilTrue (P1-108 follow-up) \[Dart\]
-- [ ] `P1-116` ListProjects drops the one-time autosave failure (let _ = self.autosave()), so a failed autosave is never shown once Home lists first; carry the failure on ProjectList or don't consume it (P1-111 review) \[Rust\]
+- [x] `P1-116` ListProjects drops the one-time autosave failure (let _ = self.autosave()), so a failed autosave is never shown once Home lists first; carry the failure on ProjectList or don't consume it (P1-111 review) \[Rust\]
 - [x] `P1-117` Partial cache writes (.part) left by a crash are never cleaned now; remove .part files older than ~1 h during clean/purge (P1-111 review) \[Rust\]
 - [x] `P1-118` Test: purge of an expired project whose main file is damaged reads its backup for the media caches (P1-111 review nit) \[Rust\]
 - [x] `P1-119` Preview render thread: no per-draw allocation (recycle the layer Vecs or share Media via Arc) and a criterion bench for the queued draw (P1-053 review) \[Rust\]
-- [ ] `P1-120` Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review) \[Rust\]
+- [x] `P1-120` Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review) \[Rust\]
+- [ ] `P1-121` Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review) \[Dart\]
+- [ ] `P1-122` Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review) \[Rust\]
+- [ ] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
 
 ## Phase 2: Audio
 
@@ -978,6 +981,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-031` Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas \[Dart\]
 - [ ] `UX-032` Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons \[Dart\]
 - [x] `UX-033` App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review) \[Dart\]
+- [ ] `UX-034` Widget tests: a startup 'That didn't work' snackbar (CreatePreview fails without a GPU) covers lower timeline widgets after ~0.5 s; give tests a preview fake or keep the snackbar off the lane (found in P1-113) \[Dart\]
 
 ## Design system
 
@@ -1197,10 +1201,10 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 
 **FFI ar project format evolution**
 
-- [ ] `ENG-043` Protobuf field number kokhono reuse ba bodlano na; muche fela field number ar naam `reserved` \[Rust\]\[Dart\]
+- [x] `ENG-043` Protobuf field number kokhono reuse ba bodlano na; muche fela field number ar naam `reserved` \[Rust\]\[Dart\]
 - [ ] `ENG-044` CI te buf lint ar buf breaking: proto/ er protita change main er sathe compare \[—\]
-- [ ] `ENG-045` engine\_create e protocol version handshake; na mile debug e shathe shathe fail, release e error event ar Sentry report \[Rust\]\[Dart\]
-- [ ] `ENG-046` Project file schema o eki niyom: notun field optional ar thik default; protita purono version er fixture project diye migration test \[Rust\]
+- [x] `ENG-045` engine\_create e protocol version handshake; na mile debug e shathe shathe fail, release e error event ar Sentry report \[Rust\]\[Dart\]
+- [x] `ENG-046` Project file schema o eki niyom: notun field optional ar thik default; protita purono version er fixture project diye migration test \[Rust\]
 - [ ] `ENG-047` Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe \[Rust\]
 - [x] `ENG-048` time proptest gula unwrap kore dhore ney je ±1e9 frame shob rate e i64 e fit kore; dhire rate (jemon 1/14 fps) e overflow hoy ar code thik vabe None dey. Test e representable range e prop_assume \[Rust\]
 - [x] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
