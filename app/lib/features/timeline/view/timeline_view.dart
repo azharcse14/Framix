@@ -876,8 +876,9 @@ class _TrimHandleState extends State<_TrimHandle> {
       child: Semantics(
         label: widget.label,
         child: GestureDetector(
-          // Translucent, and its bar ignores the pointer: what lies under it is hit too and
-          // takes taps, while the drag wins the arena.
+          // Translucent, and its bar ignores the pointer: what lies under it is hit too. The
+          // handle claims drags and holds (its long press beats the one of a clip under it,
+          // being first in the hit path); only a tap is left for what lies under it.
           behavior: HitTestBehavior.translucent,
           // Count the distance from the touch, slop included, so the edge lands under the
           // finger.
@@ -885,6 +886,10 @@ class _TrimHandleState extends State<_TrimHandle> {
           onHorizontalDragUpdate: (d) => setState(() => _dx += d.delta.dx),
           onHorizontalDragEnd: (_) => _release(),
           onHorizontalDragCancel: _release,
+          onLongPressMoveUpdate: (d) =>
+              setState(() => _dx = d.offsetFromOrigin.dx),
+          onLongPressEnd: (_) => _release(),
+          onLongPressCancel: _release,
           child: IgnorePointer(
             child: Center(
               child: Container(
