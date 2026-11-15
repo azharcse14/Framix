@@ -5833,6 +5833,10 @@
     {
      "date": "2026-10-21",
      "text": "The playhead line uses accentText (P1-020 timeline_view.dart); swap it for the planned playhead token."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "split: track category colours -> DS-013, playhead + preview background -> DS-014 (move the 2026-10-21 note: playhead line uses accentText, swap for the playhead token), error/onError doc token -> DS-015 (color_tokens_test key-set list must grow in its own test commit)"
     }
    ],
    "source": "plan"
@@ -15703,6 +15707,73 @@
    "commit": null,
    "branch": "main",
    "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "DS-013",
+   "section": "DS",
+   "group": null,
+   "title": "Define track category colour tokens (audio green, text amber, sticker pink, effect teal, overlay blue: hex + contrast) in design-system.md and add them to FramixColors (DS-003 split)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "DS-014",
+   "section": "DS",
+   "group": null,
+   "title": "Define playhead and preview background tokens in design-system.md and add them to FramixColors (DS-003 split)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "from DS-003: playhead line currently uses accentText; swap for the playhead token"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "DS-015",
+   "section": "DS",
+   "group": null,
+   "title": "Add error/onError token to design-system.md (currently #FF6B6B / #0E0E11 only in code, 5.7:1 on elevated) (DS-003 split)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "color_tokens_test.dart:37 compares the doc table key set to a hand list of 10; update it in this task's test commit"
+    }
+   ],
    "source": "added"
   }
  ]

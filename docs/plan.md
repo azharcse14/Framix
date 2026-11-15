@@ -1031,6 +1031,9 @@ Dark neutral base + ekta accent (Electric violet, duita token: fill #6E4CF5, tex
 - [x] `DS-010` border token #2E2E36 is ~1.4:1 on background; outlined control boundaries need a 3:1 token (design-system.md contrast rule) \[Dart\]
 - [x] `DS-011` design-system.md says 'neutral grays with no tint' but every gray carries a slight blue bias (#2E2E36 +8, #6C6C75 +9, #9A9AA5 +11): align the rule or the palette \[Dart\]
 - [x] `DS-012` Shared small spinner in app/lib/core/ui (SizedBox.square + CircularProgressIndicator strokeWidth 2 + semanticsLabel, icon color): Home, export_buttons.dart, import_buttons.dart repeat it \[Dart\]
+- [ ] `DS-013` Define track category colour tokens (audio green, text amber, sticker pink, effect teal, overlay blue: hex + contrast) in design-system.md and add them to FramixColors (DS-003 split) \[Dart\]
+- [ ] `DS-014` Define playhead and preview background tokens in design-system.md and add them to FramixColors (DS-003 split) \[Dart\]
+- [ ] `DS-015` Add error/onError token to design-system.md (currently #FF6B6B / #0E0E11 only in code, 5.7:1 on elevated) (DS-003 split) \[Dart\]
 
 **Font**
 
