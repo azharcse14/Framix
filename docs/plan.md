@@ -504,7 +504,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
 - [x] `P1-125` App test MemStores that implement set_aside (engine_autosave_restore.rs, engine_autosave_broken.rs) must override copies, per the ProjectStore::copies rule (P1-123 review) \[Rust\]
 - [x] `P1-126` Autosave panic: report once per failure streak and keep retrying while idle (ffi lib.rs stalled path; P1-121 review) \[Rust\]
-- [ ] `P1-127` Caught autosave panic should go through Engine's Err path: one 'report once until saved' latch (not autosave_failed + ffi autosave_panicked) and mark_saved_work(false) so the crash marker knows work is unsaved (P1-126 review) \[Rust\]
+- [x] `P1-127` Caught autosave panic should go through Engine's Err path: one 'report once until saved' latch (not autosave_failed + ffi autosave_panicked) and mark_saved_work(false) so the crash marker knows work is unsaved (P1-126 review) \[Rust\]
 
 ## Phase 2: Audio
 
@@ -987,7 +987,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [x] `UX-033` App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review) \[Dart\]
 - [x] `UX-034` Widget tests: a startup 'That didn't work' snackbar (CreatePreview fails without a GPU) covers lower timeline widgets after ~0.5 s; give tests a preview fake or keep the snackbar off the lane (found in P1-113) \[Dart\]
 - [ ] `UX-035` Preview unavailable: show a localized message instead of a bare canvas outline when CreatePreview is refused or fails later (id-0 preview failures may need their own event) (UX-034 review) \[Dart\] \[Rust\]
-- [ ] `UX-036` home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review) \[Dart\]
+- [x] `UX-036` home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review) \[Dart\]
 - [x] `UX-037` Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review) \[Dart\]
 - [ ] `UX-038` One-time notices (openedFromBackup, workRecovered, export results) can be dropped while the autosave failure message shows and one message already waits (messages.dart:27-30); let one-time notices outrank generic failures in the waiting slot; also test the showing=null reset after the autosave message closes (UX-037 review) \[Dart\]
 
@@ -1141,7 +1141,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-042` rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review) \[Rust\]
 - [x] `SYS-043` Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review) \[Rust\]
 - [x] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
-- [ ] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
+- [x] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
 - [ ] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
 
 ## Engine ar platform er gobhir details
