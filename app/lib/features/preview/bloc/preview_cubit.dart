@@ -28,10 +28,13 @@ class PreviewCubit extends Cubit<int?> {
   final FramixEngine _engine;
   late final StreamSubscription<Event> _events;
 
+  /// A refused preview (no GPU, or no preview on this platform) keeps the state null, which
+  /// is how this cubit reports it; the user never asked for it, so no generic message (UX-034).
   void _create() => _engine.send(
     Command(
       createPreview: CreatePreview(width: width, height: height),
     ),
+    reportsFailure: true,
   );
 
   @override
