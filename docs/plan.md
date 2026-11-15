@@ -499,7 +499,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-119` Preview render thread: no per-draw allocation (recycle the layer Vecs or share Media via Arc) and a criterion bench for the queued draw (P1-053 review) \[Rust\]
 - [x] `P1-120` Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review) \[Rust\]
 - [ ] `P1-121` Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review) \[Dart\]
-- [ ] `P1-122` Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review) \[Rust\]
+- [x] `P1-122` Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review) \[Rust\]
 - [ ] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
 - [ ] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
 
@@ -1048,7 +1048,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 
 **Setup**
 
-- [ ] `L10N-001` flutter\_localizations + intl, ARB file (app\_en.arb, app\_bn.arb), flutter gen-l10n; material\_ui/cupertino\_ui use korle Material ar Cupertino er localization delegate oi package theke \[Dart\]
+- [x] `L10N-001` flutter\_localizations + intl, ARB file (app\_en.arb, app\_bn.arb), flutter gen-l10n; material\_ui/cupertino\_ui use korle Material ar Cupertino er localization delegate oi package theke \[Dart\]
 - [x] `L10N-002` Kono UI text hardcode na; shob AppLocalizations theke \[Dart\]
 - [ ] `L10N-003` Plural ar variable text ARB e \[Dart\]
 - [ ] `L10N-004` Bhasha choice save (SettingsCubit + hydrated\_bloc) \[Dart\]
@@ -1065,6 +1065,9 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-012` Store listing (naam, description, screenshot) protita bhashay \[—\]
 - [ ] `L10N-013` Region onujayi template, music, sticker (pore, backend) \[Backend\]
 - [ ] `L10N-014` iOS Info.plist permission text (NSPhotoLibraryAddUsageDescription) localized en + bn via InfoPlist.strings/xcstrings (L10N-002 review) \[Native\]
+- [ ] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
+- [ ] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
+- [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
 
 ## Invisible system features
 
@@ -1074,7 +1077,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 
 - [ ] `SYS-001` Auto save ar crash recovery (Phase 1 e track koro) \[Rust\]
 - [ ] `SYS-002` Project file format ar version migration (purono project notun app e khula) \[Rust\]
-- [ ] `SYS-003` Draft backup: shesh 2-3 ta save rakha (Hang ar crash rodh er atomic save dekho) \[Rust\]
+- [x] `SYS-003` Draft backup: shesh 2-3 ta save rakha (Hang ar crash rodh er atomic save dekho) \[Rust\]
 - [ ] `SYS-004` Missing media handling (original file delete hole relink option) \[Rust\]\[Dart\]
 - [ ] `SYS-005` Cache, proxy, thumbnail storage management \[Rust\]
 
@@ -1127,6 +1130,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-038` Push notification (FCM/APNs) backend hole pore \[Backend\]
 - [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
 - [ ] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
+- [ ] `SYS-041` Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review) \[Rust\]
 
 ## Engine ar platform er gobhir details
 

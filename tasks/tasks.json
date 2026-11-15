@@ -5948,10 +5948,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "7bb29d6",
    "branch": "main",
    "notes": [
     {
@@ -6249,15 +6249,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "4cbcde8",
    "branch": "main",
    "notes": [
     {
      "date": "2026-10-15",
      "text": "Atomic save (temp+fsync+rename+dir fsync) with 2 backups done in P1-009 (framix_storage::FileStore, af9f085)."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "met by P1-009 (af9f085: atomic save + 2 backups + load_or_backup); 5d4cf9c adds a real-FileStore end-to-end test; the user notice is SYS-040"
     }
    ],
    "source": "plan"
@@ -9113,6 +9117,10 @@
     {
      "date": "2026-10-15",
      "text": "Atomic save (temp+fsync+rename+dir fsync) with 2 backups done in P1-009 (framix_storage::FileStore, af9f085)."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "same feature as SYS-003: met by P1-009 af9f085, end-to-end test 5d4cf9c (SYS-003)"
     }
    ],
    "source": "plan"
@@ -15288,10 +15296,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "38c74d2",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15342,6 +15350,83 @@
    "tags": [
     "Rust",
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "L10N-015",
+   "section": "L10N",
+   "group": null,
+   "title": "bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "L10N-016",
+   "section": "L10N",
+   "group": null,
+   "title": "Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "L10N-017",
+   "section": "L10N",
+   "group": null,
+   "title": "recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review)",
+   "tags": [
+    "Dart",
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-041",
+   "section": "SYS",
+   "group": null,
+   "title": "Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
