@@ -26,13 +26,7 @@ void main() {
         .state
         .export;
     Future<void> until(bool Function() done) async {
-      for (var i = 0; i < 100 && !done(); i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump();
-      }
-      expect(done(), isTrue);
+      await pumpUntilTrue(tester, done, () => 'never held');
     }
 
     await until(() => export().width > 0);

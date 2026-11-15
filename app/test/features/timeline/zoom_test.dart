@@ -66,13 +66,11 @@ void main() {
 
     final ruler = tester.getTopLeft(find.byKey(TimelineView.rulerKey));
     await tester.dragFrom(ruler + const Offset(2, 4), const Offset(150, 0));
-    for (var i = 0; i < 100; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-      if (tester.getTopLeft(playhead).dx > start + 100) break;
-    }
+    await pumpUntilTrue(
+      tester,
+      () => tester.getTopLeft(playhead).dx > start + 100,
+      () => 'the playhead never moved past ${start + 100}',
+    );
     expect(tester.getTopLeft(playhead).dx, greaterThan(start + 100));
   });
 
