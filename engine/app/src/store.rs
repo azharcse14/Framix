@@ -27,7 +27,8 @@ pub trait ProjectStore: Send {
         let _ = dir;
         Err(std::io::ErrorKind::Unsupported.into())
     }
-    /// Regular files directly in `dir` (no folders, links or recursion) with their sizes.
+    /// Regular files directly in `dir` (no folders, links or recursion) with their sizes; names
+    /// sharing one file (hard links) count its bytes once.
     fn sizes(&self, dir: &Path) -> std::io::Result<Vec<(PathBuf, u64)>> {
         let _ = dir;
         Err(std::io::ErrorKind::Unsupported.into())
