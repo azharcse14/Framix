@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/core/ui/command_failure_messages.dart';
+import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -54,7 +55,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: locale,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: CommandFailureMessages(
