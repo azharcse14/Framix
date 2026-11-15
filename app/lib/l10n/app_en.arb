@@ -60,6 +60,8 @@
   "trimEndToPlayhead": "Trim end to playhead",
   "replaceClip": "Replace clip",
   "commandFailed": "That didn't work. Try again.",
+  "autosaveFailed": "Couldn't save your changes. Framix keeps trying.",
+  "@autosaveFailed": {"description": "Snackbar when a background autosave fails (often a full storage); the engine retries on its own."},
   "addColorClip": "Add blank clip",
   "exportSettings": "Export settings",
   "exportResolution": "Resolution",

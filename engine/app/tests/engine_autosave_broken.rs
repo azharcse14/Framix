@@ -75,6 +75,12 @@ impl ProjectStore for MemStore {
         vec![suffixed(path, ".bak1"), suffixed(path, ".bak2")]
     }
 
+    fn copies(&self, path: &Path) -> Vec<PathBuf> {
+        let mut copies = self.backups(path);
+        copies.push(suffixed(path, ".broken"));
+        copies
+    }
+
     fn set_aside(&self, path: &Path) -> io::Result<()> {
         let mut files = self.files.lock().unwrap();
         let bytes = files.remove(path).ok_or(io::ErrorKind::NotFound)?;

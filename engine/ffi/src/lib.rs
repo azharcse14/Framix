@@ -3,7 +3,7 @@
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel};
 use std::time::Instant;
 
-use framix_app::engine::{AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, command_failed};
+use framix_app::engine::{AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, autosave_failed, command_failed};
 use framix_app::preview::{PlatformTexture, PreviewHost as _};
 use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
@@ -45,7 +45,7 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 47;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 48;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread. After [`engine_destroy`] the
@@ -480,7 +480,8 @@ fn autosave(engine: &mut framix_app::engine::Engine, callback: EngineEventCallba
             false
         }
         Err(_) => {
-            deliver(callback, &command_failed("internal error"));
+            // The edits may be unsaved, so the UI says so like any failed autosave.
+            deliver(callback, &autosave_failed("internal error"));
             true
         }
     }

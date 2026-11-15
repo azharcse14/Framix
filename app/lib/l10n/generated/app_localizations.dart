@@ -428,6 +428,12 @@ abstract class AppLocalizations {
   /// **'That didn\'t work. Try again.'**
   String get commandFailed;
 
+  /// Snackbar when a background autosave fails (often a full storage); the engine retries on its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your changes. Framix keeps trying.'**
+  String get autosaveFailed;
+
   /// No description provided for @addColorClip.
   ///
   /// In en, this message translates to:

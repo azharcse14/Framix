@@ -128,3 +128,45 @@ fn unsynced_saves_are_atomic_and_keep_backups_too() {
     assert_eq!(fs::read(dir.join("p.framix.bak1")).unwrap(), b"v1");
     assert!(!dir.join("p.framix.tmp").exists());
 }
+
+/// Saves v1..v3, so the file is v3, `.bak1` v2 and `.bak2` v1.
+fn three_saves(name: &str) -> (TempDir, std::path::PathBuf) {
+    let dir = temp_dir(name);
+    let path = dir.join("p.framix");
+    for bytes in [b"v1", b"v2", b"v3"] {
+        FileStore.save(&path, bytes).unwrap();
+    }
+    (dir, path)
+}
+
+fn versions(dir: &TempDir) -> [Vec<u8>; 3] {
+    ["p.framix", "p.framix.bak1", "p.framix.bak2"].map(|n| fs::read(dir.join(n)).unwrap())
+}
+
+#[test]
+fn a_save_that_cannot_build_its_backup_keeps_the_old_backups() {
+    for sync in [true, false] {
+        let (dir, path) = three_saves(&format!("rotate-fail-{sync}"));
+        // A folder where the new backup is built makes building it fail.
+        fs::create_dir(dir.join("p.framix.bak.tmp")).unwrap();
+        for _retry in 0..2 {
+            let saved = if sync {
+                FileStore.save(&path, b"v4")
+            } else {
+                FileStore.save_unsynced(&path, b"v4")
+            };
+            assert_eq!(versions(&dir), [b"v3", b"v2", b"v1"], "sync: {sync}");
+            assert!(saved.is_err(), "sync: {sync}");
+        }
+    }
+}
+
+#[test]
+fn a_stale_backup_temp_from_a_crash_does_not_break_saving() {
+    let (dir, path) = three_saves("stale-backup");
+    // A crash after linking the new backup leaves the temp sharing the project's inode.
+    fs::hard_link(&path, dir.join("p.framix.bak.tmp")).unwrap();
+    FileStore.save(&path, b"v4").unwrap();
+    assert_eq!(versions(&dir), [b"v4", b"v3", b"v2"]);
+    assert!(!dir.join("p.framix.bak.tmp").exists());
+}

@@ -194,6 +194,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commandFailed => 'That didn\'t work. Try again.';
 
   @override
+  String get autosaveFailed =>
+      'Couldn\'t save your changes. Framix keeps trying.';
+
+  @override
   String get addColorClip => 'Add blank clip';
 
   @override

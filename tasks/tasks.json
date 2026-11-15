@@ -14104,6 +14104,10 @@
     {
      "date": "2026-11-03",
      "text": "Root cause (2026-11-03): the timer fires on time (autosave starts 1.0 s after the edit) but FileStore::save takes >1 s now and then: sync_all is F_FULLFSYNC on macOS (plus sync_parent), so the fixed 2 s sleep sometimes checks mid-save. ~1 in 4 runs alone. Fix the test to wait for the saved file with a deadline (or an observable 'saved' signal), keeping the 'starts within AUTOSAVE_DELAY' requirement; don't just lengthen the sleep."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "pattern: fails on the first check.sh after Rust changes merge into main (native asset rebuild); a rerun or a single flutter test afterwards passes"
     }
    ],
    "source": "added"
@@ -15277,12 +15281,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "test commit 4a36cef: swapped setup to appLocalizationsDelegates (L10N-016 guard); assertions unchanged (reviewer accepted)"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15359,11 +15368,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [],
    "source": "added"
   },
@@ -15436,10 +15445,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "c3bd6d3",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15475,12 +15484,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-15",
+   "done": "2026-11-15",
+   "commit": "9552556",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "test makes the backup build step fail (now before the shift) on purpose; the only step after the shift is the final rename"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15490,6 +15504,82 @@
    "title": "App test MemStores that implement set_aside (engine_autosave_restore.rs, engine_autosave_broken.rs) must override copies, per the ProjectStore::copies rule (P1-123 review)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "done",
+   "started": "2026-11-15",
+   "done": "2026-11-15",
+   "commit": "a894ece",
+   "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-043",
+   "section": "SYS",
+   "group": null,
+   "title": "Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-036",
+   "section": "UX",
+   "group": null,
+   "title": "home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-126",
+   "section": "P1",
+   "group": null,
+   "title": "Autosave panic: report once per failure streak and keep retrying while idle (ffi lib.rs stalled path; P1-121 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-037",
+   "section": "UX",
+   "group": null,
+   "title": "Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,

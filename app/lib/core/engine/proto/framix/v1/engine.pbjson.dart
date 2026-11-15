@@ -127,6 +127,20 @@ final $typed_data.Uint8List mediaKindDescriptor = $convert.base64Decode(
     'CglNZWRpYUtpbmQSGgoWTUVESUFfS0lORF9VTlNQRUNJRklFRBAAEhQKEE1FRElBX0tJTkRfVk'
     'lERU8QARIUChBNRURJQV9LSU5EX0lNQUdFEAISFAoQTUVESUFfS0lORF9DT0xPUhAD');
 
+@$core.Deprecated('Use failureKindDescriptor instead')
+const FailureKind$json = {
+  '1': 'FailureKind',
+  '2': [
+    {'1': 'FAILURE_KIND_UNSPECIFIED', '2': 0},
+    {'1': 'FAILURE_KIND_AUTOSAVE', '2': 1},
+  ],
+};
+
+/// Descriptor for `FailureKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List failureKindDescriptor = $convert.base64Decode(
+    'CgtGYWlsdXJlS2luZBIcChhGQUlMVVJFX0tJTkRfVU5TUEVDSUZJRUQQABIZChVGQUlMVVJFX0'
+    'tJTkRfQVVUT1NBVkUQAQ==');
+
 @$core.Deprecated('Use commandDescriptor instead')
 const Command$json = {
   '1': 'Command',
@@ -1853,10 +1867,19 @@ const CommandFailed$json = {
   '2': [
     {'1': 'reason', '3': 1, '4': 1, '5': 9, '10': 'reason'},
     {'1': 'command_id', '3': 2, '4': 1, '5': 4, '10': 'commandId'},
+    {
+      '1': 'kind',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.framix.v1.FailureKind',
+      '10': 'kind'
+    },
   ],
 };
 
 /// Descriptor for `CommandFailed`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List commandFailedDescriptor = $convert.base64Decode(
     'Cg1Db21tYW5kRmFpbGVkEhYKBnJlYXNvbhgBIAEoCVIGcmVhc29uEh0KCmNvbW1hbmRfaWQYAi'
-    'ABKARSCWNvbW1hbmRJZA==');
+    'ABKARSCWNvbW1hbmRJZBIqCgRraW5kGAMgASgOMhYuZnJhbWl4LnYxLkZhaWx1cmVLaW5kUgRr'
+    'aW5k');
