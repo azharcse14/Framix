@@ -149,3 +149,13 @@ fn a_save_that_first_fails_under_list_projects_is_still_reported() {
     );
     assert_eq!(engine.autosave(), None, "and only once");
 }
+
+/// P1-122: a failure autosave already reported stays reported; Home listing must not re-arm
+/// the latch and report it a second time.
+#[test]
+fn list_projects_does_not_re_report_an_already_reported_failure() {
+    let store = MemStore::default();
+    let mut engine = failed_save(&store);
+    recovered(&mut engine);
+    assert_eq!(engine.autosave(), None, "the failure is not reported again");
+}
