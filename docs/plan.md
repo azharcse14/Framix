@@ -982,7 +982,8 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-031` Android preview Texture is drawn larger than the canvas box (fills full width above it) on Vulkan and GLES; size/clip the Texture to the canvas \[Dart\]
 - [ ] `UX-032` Export Result screen: preview, save to gallery/Files, share, Back to edit, Done (plan Screens table); P1-036 has only app bar buttons \[Dart\]
 - [x] `UX-033` App bar actions overflow on phones (import x3, undo, redo, export settings, export, plus save/share after an export: up to 9 x 48 dp > 412 dp); move export settings/export into an export flow or overflow menu, with a 360 dp widget test (P1-064 review) \[Dart\]
-- [ ] `UX-034` Widget tests: a startup 'That didn't work' snackbar (CreatePreview fails without a GPU) covers lower timeline widgets after ~0.5 s; give tests a preview fake or keep the snackbar off the lane (found in P1-113) \[Dart\]
+- [x] `UX-034` Widget tests: a startup 'That didn't work' snackbar (CreatePreview fails without a GPU) covers lower timeline widgets after ~0.5 s; give tests a preview fake or keep the snackbar off the lane (found in P1-113) \[Dart\]
+- [ ] `UX-035` Preview unavailable: show a localized message instead of a bare canvas outline when CreatePreview is refused or fails later (id-0 preview failures may need their own event) (UX-034 review) \[Dart\] \[Rust\]
 
 ## Design system
 
@@ -1050,7 +1051,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 
 - [x] `L10N-001` flutter\_localizations + intl, ARB file (app\_en.arb, app\_bn.arb), flutter gen-l10n; material\_ui/cupertino\_ui use korle Material ar Cupertino er localization delegate oi package theke \[Dart\]
 - [x] `L10N-002` Kono UI text hardcode na; shob AppLocalizations theke \[Dart\]
-- [ ] `L10N-003` Plural ar variable text ARB e \[Dart\]
+- [x] `L10N-003` Plural ar variable text ARB e \[Dart\]
 - [ ] `L10N-004` Bhasha choice save (SettingsCubit + hydrated\_bloc) \[Dart\]
 
 **Video editor specific**
