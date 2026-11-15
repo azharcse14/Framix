@@ -20,8 +20,6 @@ const _notCounts = {
   'aspectRatioLabel.height',
   'framesPerSecond.fps',
   'bitrateKbps.kbps',
-  'exportFrameSize.width',
-  'exportFrameSize.height',
 };
 
 void main() {

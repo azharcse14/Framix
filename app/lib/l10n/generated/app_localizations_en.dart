@@ -264,15 +264,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String exportFrameSize(int width, int height) {
-    final intl.NumberFormat widthNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String widthString = widthNumberFormat.format(width);
-    final intl.NumberFormat heightNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String heightString = heightNumberFormat.format(height);
-
-    return '$widthString × $heightString';
+  String exportFrameSize(String width, String height) {
+    return '$width × $height';
   }
 
   @override

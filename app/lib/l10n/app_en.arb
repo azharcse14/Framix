@@ -76,7 +76,7 @@
   "bitrateKbps": "{kbps} kbps",
   "@bitrateKbps": {"placeholders": {"kbps": {"type": "int", "format": "decimalPattern"}}},
   "exportFrameSize": "{width} × {height}",
-  "@exportFrameSize": {"placeholders": {"width": {"type": "int", "format": "decimalPattern"}, "height": {"type": "int", "format": "decimalPattern"}}},
+  "@exportFrameSize": {"description": "Pixel counts, formatted ungrouped by frameSize (lib/core/ui/file_size.dart).", "placeholders": {"width": {"type": "String"}, "height": {"type": "String"}}},
   "exportEstimate": "About {size} (estimate)",
   "@exportEstimate": {"placeholders": {"size": {"type": "String"}}},
   "newProject": "New project",

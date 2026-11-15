@@ -47,6 +47,12 @@ String fileSize(
   return l10n.fileSize(_number(pattern, locale).format(value), units[unit]);
 }
 
+/// A frame size in pixels: the locale's digits, never grouped ("1920 × 1080", not "1,920").
+String frameSize(AppLocalizations l10n, int width, int height) {
+  final number = _number('0', l10n.localeName);
+  return l10n.exportFrameSize(number.format(width), number.format(height));
+}
+
 /// The locale's digits; en_US where intl lacks the locale.
 NumberFormat _number(String pattern, String locale) {
   try {
