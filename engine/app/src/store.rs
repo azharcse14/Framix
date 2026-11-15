@@ -40,11 +40,16 @@ pub trait ProjectStore: Send {
         let _ = path;
         Err(std::io::ErrorKind::Unsupported.into())
     }
-    /// Removes the file at `path` and every copy this store keeps of it (backups, a file set
-    /// aside); missing ones are not an error.
+    /// Every copy this store keeps of `path`: its backups and a file set aside
+    /// ([`ProjectStore::set_aside`]). They may not exist.
+    fn copies(&self, path: &Path) -> Vec<PathBuf> {
+        self.backups(path)
+    }
+    /// Removes the file at `path` and its [`ProjectStore::copies`]; missing ones are not an
+    /// error.
     fn remove_all(&self, path: &Path) -> std::io::Result<()> {
         self.remove(path)?;
-        self.backups(path).iter().try_for_each(|b| self.remove(b))
+        self.copies(path).iter().try_for_each(|b| self.remove(b))
     }
     /// Now, by the clock that stamps this store's files (see [`ProjectStore::list`]).
     fn now(&self) -> SystemTime {

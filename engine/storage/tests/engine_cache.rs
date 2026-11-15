@@ -601,3 +601,16 @@ fn a_purge_removes_partial_writes_a_crash_left_over_an_hour_ago() {
     assert!(list(&mut engine).is_empty());
     assert_eq!(tree(&cache), Vec::<String>::new());
 }
+
+#[test]
+fn project_storage_counts_the_copy_set_aside_as_broken() {
+    // A broken file moved aside (`<id>.framix.broken`) is deleted with the project, so it counts.
+    let lib = temp_dir("brokenbytes");
+    let mut engine = library(&lib, "");
+    project_with(&mut engine, &[A]);
+    let id = list(&mut engine)[0].id.clone();
+    write(&lib.join(format!("{id}.framix.broken")), 900);
+
+    let p = list(&mut engine).remove(0);
+    assert_eq!(p.bytes, project_bytes(&lib, &id) + 900);
+}
