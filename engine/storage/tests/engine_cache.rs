@@ -4,6 +4,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+mod common;
+use common::TempDir;
+
 use framix_app::engine::Engine;
 use std::io;
 use std::sync::Arc;
@@ -29,11 +32,8 @@ fn long_uri() -> String {
     format!("media/{}.jpg", "x".repeat(100))
 }
 
-fn temp_dir(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("framix-cache-{name}-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    dir
+fn temp_dir(name: &str) -> TempDir {
+    TempDir::new(&format!("framix-cache-{name}"))
 }
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Option<event::Kind> {

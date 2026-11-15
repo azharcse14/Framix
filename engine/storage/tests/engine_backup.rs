@@ -4,6 +4,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+mod common;
+use common::TempDir;
+
 use framix_app::engine::Engine;
 use framix_app::proto::{
     AddTrack, Command, ListProjects, NewProject, OpenLibrary, OpenProject, TrackKind, command,
@@ -12,11 +15,8 @@ use framix_app::proto::{
 use framix_app::store::{ProjectStore, load};
 use framix_storage::FileStore;
 
-fn temp_dir(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("framix-backup-{name}-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    dir
+fn temp_dir(name: &str) -> TempDir {
+    TempDir::new(&format!("framix-backup-{name}"))
 }
 
 fn run(engine: &mut Engine, kind: command::Kind) -> Option<event::Kind> {

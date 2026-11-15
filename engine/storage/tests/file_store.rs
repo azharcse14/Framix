@@ -1,20 +1,19 @@
 use std::fs;
-use std::path::PathBuf;
+
+mod common;
+use common::TempDir;
 
 use framix_app::store::ProjectStore;
 use framix_storage::{BACKUPS, FileStore, MAX_PROJECT_BYTES};
 
-/// A fresh, empty directory under the system temp dir.
-fn temp_dir(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("framix-storage-{name}-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    dir
+fn temp_dir(name: &str) -> TempDir {
+    TempDir::new(&format!("framix-storage-{name}"))
 }
 
 #[test]
 fn save_then_load_round_trips() {
-    let path = temp_dir("round").join("p.framix");
+    let dir = temp_dir("round");
+    let path = dir.join("p.framix");
     FileStore.save(&path, b"one").unwrap();
     assert_eq!(FileStore.load(&path).unwrap(), b"one");
 }
