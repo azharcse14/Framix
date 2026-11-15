@@ -191,6 +191,23 @@ void main() {
     },
   );
 
+  // P1-113: the end trim handle of a selected narrow clip lies over the next narrow clip's
+  // touch target; a tap there still selects that clip, and the handles move to it.
+  testWidgets('a tap on a narrow clip under the trim handle selects it', (
+    tester,
+  ) async {
+    await threeClips(tester, const Locale('en'), ms: 300);
+    bool selected(int i) => tester.widget<ClipBox>(clip(i)).selected;
+    await tester.tap(clip(0), warnIfMissed: false);
+    await tester.pump();
+    expect(selected(0), isTrue);
+
+    await tester.tap(clip(1), warnIfMissed: false);
+    await tester.pump();
+    expect(selected(1), isTrue);
+    expect(selected(0), isFalse);
+  });
+
   // P1-103: ids of clips the timeline lost (here, by undo) are dropped, so a tap on the one
   // selected clip clears the selection.
   testWidgets('a clip undone away leaves the selection', (tester) async {
