@@ -27,11 +27,6 @@ fn every_format_version_has_a_fixture_that_migrates() {
         let file = ProjectFile::decode(bytes.as_slice()).expect("protobuf");
         assert_eq!(file.format_version, version, "{path}");
         let timeline = decode(&bytes).unwrap_or_else(|e| panic!("{path}: {e}"));
-        // Format 1 clips refer to media the file never listed, so a migrated v1 project
-        // cannot be saved yet (encode_for_save: UnknownMedia); SYS-039.
-        if version == 1 {
-            continue;
-        }
         // Migrated to the current format, it saves and reopens with the same contents.
         let saved = encode_for_save(&timeline).unwrap_or_else(|e| panic!("{path}: {e}"));
         assert_eq!(
@@ -52,4 +47,20 @@ fn v1_tracks_open_unmuted_visible_and_unlocked() {
     for track in t.tracks() {
         assert_eq!(track.flags(), TrackFlags::default());
     }
+}
+
+/// Format 1 listed no media: migration keeps every clip and gives its media a missing entry
+/// (nothing to open until relinked), so the project saves and reopens (SYS-039).
+#[test]
+fn v1_clips_open_with_missing_media_and_survive_a_save() {
+    let t = decode(include_bytes!("fixtures/project_v1.framix")).unwrap();
+    let clips: Vec<_> = t.tracks().iter().flat_map(|tr| tr.clips()).collect();
+    assert_eq!(clips.len(), 3);
+    for c in &clips {
+        let media = t.media(c.media).expect("migrated clip has a media entry");
+        assert!(media.is_missing());
+        assert!(media.duration().0 >= c.source_start.0 + c.duration.0);
+    }
+    let reopened = decode(&encode_for_save(&t).unwrap()).unwrap();
+    assert_eq!(contents(&reopened), contents(&t));
 }
