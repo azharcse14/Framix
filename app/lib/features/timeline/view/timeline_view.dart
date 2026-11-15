@@ -840,7 +840,8 @@ class _Lane extends StatelessWidget {
 const _snapRadius = 12.0;
 
 /// A 48 dp drag target just outside a clip edge (inside it only for a clip at 0, where the
-/// lane ends), so it rarely covers the clip; while shown it wins over what lies under it. It follows the
+/// lane ends), so it rarely covers the clip. A drag on it trims; a tap goes through to what
+/// lies under it, such as a narrow neighbour's touch target (P1-113). It follows the
 /// finger and reports the drag distance in pixels once on release; the clip moves when the
 /// engine answers.
 // ponytail: the handle springs back on release and the clip follows on the engine's reply (a
@@ -865,6 +866,10 @@ class _TrimHandle extends StatefulWidget {
 class _TrimHandleState extends State<_TrimHandle> {
   double _dx = 0;
 
+  /// A held handle follows the finger only once it has moved past the slop (it stays set
+  /// until the release), so a still finger's jitter trims nothing.
+  bool _moved = false;
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -875,19 +880,30 @@ class _TrimHandleState extends State<_TrimHandle> {
       child: Semantics(
         label: widget.label,
         child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
+          // Translucent, and its bar ignores the pointer: what lies under it is hit too. The
+          // handle claims drags and holds (its long press beats the one of a clip under it,
+          // being first in the hit path); only a tap is left for what lies under it.
+          behavior: HitTestBehavior.translucent,
           // Count the distance from the touch, slop included, so the edge lands under the
           // finger.
           dragStartBehavior: DragStartBehavior.down,
           onHorizontalDragUpdate: (d) => setState(() => _dx += d.delta.dx),
           onHorizontalDragEnd: (_) => _release(),
           onHorizontalDragCancel: _release,
-          child: Center(
-            child: Container(
-              width: 6,
-              decoration: BoxDecoration(
-                color: FramixColors.of(context).accentText,
-                borderRadius: BorderRadius.circular(3),
+          onLongPressMoveUpdate: (d) => setState(() {
+            _moved |= d.offsetFromOrigin.distance > kTouchSlop;
+            if (_moved) _dx = d.offsetFromOrigin.dx;
+          }),
+          onLongPressEnd: (_) => _release(),
+          onLongPressCancel: _release,
+          child: IgnorePointer(
+            child: Center(
+              child: Container(
+                width: 6,
+                decoration: BoxDecoration(
+                  color: FramixColors.of(context).accentText,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
             ),
           ),
@@ -898,7 +914,10 @@ class _TrimHandleState extends State<_TrimHandle> {
 
   void _release() {
     final dx = _dx;
-    setState(() => _dx = 0);
+    setState(() {
+      _dx = 0;
+      _moved = false;
+    });
     if (dx != 0) widget.onTrim(dx);
   }
 }
