@@ -647,4 +647,85 @@ mod tests {
         assert!(idle_saves >= 3, "retried while idle: {idle_saves} saves");
         assert_eq!(reports, 1, "one report for the whole streak");
     }
+
+    static STREAK_EVENTS: Mutex<Option<Sender<Event>>> = Mutex::new(None);
+
+    unsafe extern "C" fn on_streak_event(ptr: *mut u8, len: usize) {
+        // SAFETY: the engine passes a live buffer of `len` bytes that this callback now owns.
+        let bytes = unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec();
+        // SAFETY: ownership came with the call; freed exactly once here.
+        unsafe { engine_free_buffer(EngineBuffer { ptr, len }) };
+        if let Some(tx) = STREAK_EVENTS.lock().unwrap().as_ref() {
+            let _ = tx.send(Event::decode(bytes.as_slice()).unwrap());
+        }
+    }
+
+    /// Nothing saved yet; the second save succeeds, every other one panics.
+    struct SecondSaveWorks(std::sync::Arc<AtomicUsize>);
+
+    impl framix_app::store::ProjectStore for SecondSaveWorks {
+        fn save(&self, _: &Path, _: &[u8]) -> std::io::Result<()> {
+            match self.0.fetch_add(1, Ordering::SeqCst) {
+                1 => Ok(()),
+                _ => panic!("save panicked (test)"),
+            }
+        }
+        fn load(&self, _: &Path) -> std::io::Result<Vec<u8>> {
+            Err(std::io::ErrorKind::NotFound.into())
+        }
+    }
+
+    /// P1-126 review: a successful save ends the streak, so the next panic is reported again.
+    #[test]
+    fn a_save_between_panics_starts_a_new_streak() {
+        let (tx, events) = channel();
+        *STREAK_EVENTS.lock().unwrap() = Some(tx);
+        let saves = std::sync::Arc::new(AtomicUsize::new(0));
+        let (messages, inbox) = channel();
+        let host = platform::PlatformHost {
+            engine: messages.clone(),
+        };
+        let store = Box::new(SecondSaveWorks(saves.clone()));
+        let engine = std::thread::spawn(move || run_engine(inbox, host, store));
+        messages
+            .send(EngineMessage::SetCallback(Some(on_streak_event)))
+            .unwrap();
+        let enable = command::Kind::EnableAutosave(EnableAutosave {
+            path: "/framix-test/streak.framix".into(),
+        });
+        let bytes = Command {
+            id: 0,
+            kind: Some(enable),
+        }
+        .encode_to_vec();
+        messages.send(EngineMessage::Command(bytes)).unwrap();
+        edit(&messages);
+        // Save 1 panics, save 2 (the idle retry) succeeds.
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while saves.load(Ordering::SeqCst) < 2 && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        assert_eq!(saves.load(Ordering::SeqCst), 2, "the idle retry saved");
+        // A new edit: save 3 panics, a new streak.
+        edit(&messages);
+        while saves.load(Ordering::SeqCst) < 3 && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        messages.send(EngineMessage::Shutdown).unwrap();
+        let mut reports = 0;
+        loop {
+            let event = events.recv_timeout(Duration::from_secs(10)).expect("event");
+            match event.kind {
+                Some(event::Kind::EngineStopped(_)) => break,
+                Some(event::Kind::CommandFailed(f)) => {
+                    assert_eq!(f.kind, FailureKind::Autosave as i32, "{}", f.reason);
+                    reports += 1;
+                }
+                _ => {}
+            }
+        }
+        engine.join().unwrap();
+        assert!(saves.load(Ordering::SeqCst) >= 3, "the new edit was saved");
+        assert_eq!(reports, 2, "one report per streak");
+    }
 }
