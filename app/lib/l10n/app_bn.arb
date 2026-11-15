@@ -84,6 +84,7 @@
   "selectMore": "আরও বাছুন",
   "selectedClipCount": "{count, plural, other{{count}টি বাছাই করা}}",
   "workRecovered": "শেষ কাজ পর্যন্ত সেভ আছে",
+  "openedFromBackup": "শেষ সেভটি নষ্ট ছিল, তাই আগের একটি কপি খোলা হলো",
   "untitledProject": "নামহীন প্রজেক্ট",
   "projectActions": "প্রজেক্টের অপশন",
   "renameProject": "নাম বদলান",

@@ -27,6 +27,7 @@ final class HomeProjects extends HomeState {
     this.projects, {
     this.opening,
     this.recovered = false,
+    this.openedFromBackup = false,
     this.folders = const [],
     this.folder = '',
     this.sort = ProjectSort.PROJECT_SORT_UNSPECIFIED,
@@ -57,6 +58,10 @@ final class HomeProjects extends HomeState {
   /// The engine recovered a project left open by a crash (ProjectList.recovered); set on
   /// that one list only, so Home says once that the work is saved.
   final bool recovered;
+
+  /// The project just opened had a damaged last save and came from its backup
+  /// (TimelineChanged.from_backup); set on that one list only, so Home says it once.
+  final bool openedFromBackup;
 
   /// What the engine is saving and loading for the editor: [newProjectKey] or a project id.
   final String? opening;
@@ -108,7 +113,9 @@ class HomeCubit extends Cubit<HomeState> {
       final project = e.timelineChanged.project;
       // ponytail: replies come in command order, so the first other project after the
       // command is its own; before any TimelineChanged was seen, the first one counts.
-      if (_switching != null && project != _project) _answer(true);
+      if (_switching != null && project != _project) {
+        _answer(true, fromBackup: e.timelineChanged.fromBackup);
+      }
       _project = project;
     }
     if (e.hasProjectList()) {
@@ -138,11 +145,11 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  void _answer(bool ok) {
+  void _answer(bool ok, {bool fromBackup = false}) {
     _switched?.complete(ok);
     _switching = null;
     _switched = null;
-    _showOpening(null);
+    _showOpening(null, fromBackup: fromBackup);
     if (!ok) _busy = false;
   }
 
@@ -284,12 +291,12 @@ class HomeCubit extends Cubit<HomeState> {
   /// The latest ProjectList.
   ProjectList? _list;
 
-  void _showOpening(String? opening) {
+  void _showOpening(String? opening, {bool fromBackup = false}) {
     _opening = opening;
-    if (state is HomeProjects && !isClosed) _emitList();
+    if (state is HomeProjects && !isClosed) _emitList(fromBackup: fromBackup);
   }
 
-  void _emitList({bool recovered = false}) {
+  void _emitList({bool recovered = false, bool fromBackup = false}) {
     final list = _list;
     if (list == null) return;
     emit(
@@ -297,6 +304,7 @@ class HomeCubit extends Cubit<HomeState> {
         list.projects,
         opening: _opening,
         recovered: recovered,
+        openedFromBackup: fromBackup,
         folders: list.folders,
         folder: _folder,
         sort: _sort,

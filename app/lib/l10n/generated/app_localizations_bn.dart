@@ -325,6 +325,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get workRecovered => 'শেষ কাজ পর্যন্ত সেভ আছে';
 
   @override
+  String get openedFromBackup =>
+      'শেষ সেভটি নষ্ট ছিল, তাই আগের একটি কপি খোলা হলো';
+
+  @override
   String get untitledProject => 'নামহীন প্রজেক্ট';
 
   @override

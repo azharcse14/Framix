@@ -630,6 +630,9 @@ message TimelineChanged {
   // The loop SetLoop set, in ticks, as given; both 0 = no loop.
   int64 loop_start = 15;
   int64 loop_end = 16;
+  // This answers an OpenProject whose last save was damaged: the project opened from its
+  // newest good backup (tell the user once). False for every other change.
+  bool from_backup = 17;
 }
 
 // A track and its clips, sorted by start.

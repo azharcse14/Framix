@@ -71,10 +71,20 @@ class _HomeView extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: BlocConsumer<HomeCubit, HomeState>(
-          listenWhen: (_, state) => state is HomeProjects && state.recovered,
-          listener: (context, _) => ScaffoldMessenger.of(context)
+          listenWhen: (_, state) =>
+              state is HomeProjects &&
+              (state.recovered || state.openedFromBackup),
+          listener: (context, state) => ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(l10n.workRecovered))),
+            ..showSnackBar(
+              SnackBar(
+                content: Text(
+                  (state as HomeProjects).openedFromBackup
+                      ? l10n.openedFromBackup
+                      : l10n.workRecovered,
+                ),
+              ),
+            ),
           builder: (context, state) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

@@ -602,6 +602,12 @@ abstract class AppLocalizations {
   /// **'Saved up to your last edit'**
   String get workRecovered;
 
+  /// Shown once when a project is opened and its last save could not be read, so the app opened the newest good earlier copy instead. Some recent edits may be missing.
+  ///
+  /// In en, this message translates to:
+  /// **'The last save was damaged, so an earlier copy was opened'**
+  String get openedFromBackup;
+
   /// No description provided for @untitledProject.
   ///
   /// In en, this message translates to:
