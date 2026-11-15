@@ -118,3 +118,14 @@ fn remove_all_leaves_no_copy_of_the_file() {
     assert_eq!(left, ["other.framix"], "no backup or set-aside copy left");
     FileStore.remove_all(&path).unwrap();
 }
+
+#[test]
+fn unsynced_saves_are_atomic_and_keep_backups_too() {
+    let dir = temp_dir("unsynced");
+    let path = dir.join("p.framix");
+    FileStore.save(&path, b"v1").unwrap();
+    FileStore.save_unsynced(&path, b"v2").unwrap();
+    assert_eq!(FileStore.load(&path).unwrap(), b"v2");
+    assert_eq!(fs::read(dir.join("p.framix.bak1")).unwrap(), b"v1");
+    assert!(!dir.join("p.framix.tmp").exists());
+}

@@ -5948,11 +5948,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [
     {
      "date": "2026-10-15",
@@ -5991,11 +5991,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [],
    "source": "plan"
   },
@@ -6249,11 +6249,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [
     {
      "date": "2026-10-15",
@@ -7845,12 +7845,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "4c36b2e",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "verified: no field number removed/renumbered on main's history; check.sh buf breaking now compares against merge-base origin/main or HEAD~1"
+    }
+   ],
    "source": "plan"
   },
   {
@@ -7884,12 +7889,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "73d29b4",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "Rust half already existed (engine/ffi/src/lib.rs engine_create -> ENGINE_ERR_PROTOCOL, test engine/ffi/tests/engine_api.rs wrong_protocol_version_is_refused); this task added the Dart side."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -7903,10 +7913,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "98153e3",
    "branch": "main",
    "notes": [],
    "source": "plan"
@@ -15030,12 +15040,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "507b3b6",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "review: slop test corrected in c538768 before the fix (undo-based check; the first version passed its width check on the jitter trim)"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15049,10 +15064,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "54478f5",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15092,10 +15107,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "e70981f",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15178,10 +15193,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "00418cf",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15212,6 +15227,121 @@
    "title": "v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-034",
+   "section": "UX",
+   "group": null,
+   "title": "Widget tests: a startup 'That didn't work' snackbar (CreatePreview fails without a GPU) covers lower timeline widgets after ~0.5 s; give tests a preview fake or keep the snackbar off the lane (found in P1-113)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
+   "done": null,
+   "commit": null,
+   "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-121",
+   "section": "P1",
+   "group": null,
+   "title": "Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-122",
+   "section": "P1",
+   "group": null,
+   "title": "Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "in_progress",
+   "started": "2026-11-15",
+   "done": null,
+   "commit": null,
+   "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-123",
+   "section": "P1",
+   "group": null,
+   "title": "ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-124",
+   "section": "P1",
+   "group": null,
+   "title": "FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-040",
+   "section": "SYS",
+   "group": null,
+   "title": "Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003)",
+   "tags": [
+    "Rust",
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,

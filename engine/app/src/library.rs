@@ -187,7 +187,8 @@ fn purge(
         }
     }
     if removed {
-        let _ = write_index(store, dir, index.clone());
+        // Lost on a power loss: the next list drops the entries again (files already gone).
+        let _ = write_index(store, dir, index.clone(), Durability::Unsynced);
     }
     index
 }
@@ -331,17 +332,36 @@ fn update_entry(
     if entry == before {
         return Ok(());
     }
+    // A lost restore would bring back the old deleted time, and purge would remove the
+    // project for good while the user thinks it is back: that write goes to the disk.
+    let durability = if before.deleted_ms != 0 && entry.deleted_ms == 0 {
+        Durability::Synced
+    } else {
+        Durability::Unsynced
+    };
     if entry.name.is_empty() && entry.folder.is_empty() && entry.deleted_ms == 0 {
         index.remove(id);
     } else {
         index.insert(id.to_owned(), entry);
     }
-    write_index(store, dir, index)
+    write_index(store, dir, index, durability)
 }
 
 /// The library's file of names and folders, apart from the projects so autosave never
-/// rewrites it. Saved like a project (atomic, with backups); not a `.framix` file, so [`list`]
-/// skips it.
+/// rewrites it. Saved atomically with backups like a project; not a `.framix` file, so
+/// [`list`] skips it.
+///
+/// It is not a cache: names, folders and Recently deleted live only here. Still, most writes
+/// don't wait for the disk flush (P1-114): two F_FULLFSYNCs per op stalled Home 1-2 s under
+/// disk load, so [`ProjectStore::save_unsynced`] flushes in the background. An app crash or
+/// kill loses nothing (the OS already has the bytes and the rename); only a power loss or
+/// kernel panic in the flush window can, and then [`read_index`] falls back to a backup or to
+/// empty. That costs at most the latest names, folders or deletes (a deleted project comes
+/// back); project files keep their full durability. A restore waits for the flush (see
+/// `update_entry`).
+// ponytail: in-flight backup renames may reach the disk in any order on a power loss, so a
+// synced restore can still be lost if later writes rotate it out and all are torn. Sync every
+// write whose loss could purge a project if that ever shows up.
 const INDEX: &str = "library.index";
 /// Index format this engine writes and the newest it reads.
 const INDEX_FORMAT_VERSION: u32 = 1;
@@ -390,10 +410,17 @@ fn read_index(
         .collect())
 }
 
+/// Whether an index write is forced to the disk (see [`INDEX`]).
+enum Durability {
+    Synced,
+    Unsynced,
+}
+
 fn write_index(
     store: &dyn ProjectStore,
     dir: &Path,
     index: HashMap<String, LibraryEntry>,
+    durability: Durability,
 ) -> Result<(), String> {
     let mut projects: Vec<LibraryEntry> = index.into_values().collect();
     projects.sort_by(|a, b| a.id.cmp(&b.id));
@@ -406,9 +433,12 @@ fn write_index(
     if bytes.len() > MAX_INDEX_BYTES {
         return Err("library index full".into());
     }
-    store
-        .save(&dir.join(INDEX), &bytes)
-        .map_err(|e| e.kind().to_string())
+    let file = dir.join(INDEX);
+    match durability {
+        Durability::Synced => store.save(&file, &bytes),
+        Durability::Unsynced => store.save_unsynced(&file, &bytes),
+    }
+    .map_err(|e| e.kind().to_string())
 }
 
 /// Folder of the media the app copied in, next to the library folder: a `media/<name>` uri
