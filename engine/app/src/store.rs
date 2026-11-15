@@ -47,8 +47,9 @@ pub trait ProjectStore: Send {
         let _ = path;
         Err(std::io::ErrorKind::Unsupported.into())
     }
-    /// Every copy this store keeps of `path`: its backups and a file set aside
-    /// ([`ProjectStore::set_aside`]). They may not exist.
+    /// Every copy this store keeps of `path`; they may not exist. The default lists only
+    /// [`ProjectStore::backups`], so a store that implements [`ProjectStore::set_aside`]
+    /// must override this to add the file it sets aside.
     fn copies(&self, path: &Path) -> Vec<PathBuf> {
         self.backups(path)
     }

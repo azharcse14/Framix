@@ -332,6 +332,9 @@ impl ProjectStore for Shifted {
     fn backups(&self, path: &Path) -> Vec<PathBuf> {
         FileStore.backups(path)
     }
+    fn copies(&self, path: &Path) -> Vec<PathBuf> {
+        FileStore.copies(path)
+    }
     fn put(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
         FileStore.put(path, bytes)
     }
@@ -607,6 +610,19 @@ fn project_storage_counts_the_copy_set_aside_as_broken() {
     // A broken file moved aside (`<id>.framix.broken`) is deleted with the project, so it counts.
     let lib = temp_dir("brokenbytes");
     let mut engine = library(&lib, "");
+    project_with(&mut engine, &[A]);
+    let id = list(&mut engine)[0].id.clone();
+    write(&lib.join(format!("{id}.framix.broken")), 900);
+
+    let p = list(&mut engine).remove(0);
+    assert_eq!(p.bytes, project_bytes(&lib, &id) + 900);
+}
+
+#[test]
+fn a_wrapping_store_counts_the_copy_set_aside_as_broken_too() {
+    // Shifted forwards to FileStore; it must forward `copies` too, or the `.broken` file is missed.
+    let lib = temp_dir("brokenbytes_shifted");
+    let mut engine = library_on(Box::new(Shifted::default()), &lib, "");
     project_with(&mut engine, &[A]);
     let id = list(&mut engine)[0].id.clone();
     write(&lib.join(format!("{id}.framix.broken")), 900);
