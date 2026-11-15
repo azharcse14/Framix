@@ -32,6 +32,9 @@ const _notUiText = <String, Map<String, String>>{
     r'engine_create failed: $code': 'developer error, never shown',
     'FramixEngine used after dispose': 'developer error, never shown',
     r'engine_send failed: $code': 'developer error, never shown',
+    r'Engine refused protocol version $version':
+        'developer error: debug error screen and Sentry only; release shows ErrorPanel (ENG-045)',
+    'framix': 'Flutter error library tag (logs only)',
   },
   'lib/core/media/channel_media_importer.dart': {
     'framix/media': 'method channel name',
