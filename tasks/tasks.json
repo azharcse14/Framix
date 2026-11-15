@@ -13111,6 +13111,18 @@
     {
      "date": "2026-11-05",
      "text": "Takes over from P1-055 (ADR 0004 note): call SurfaceProducer.getSurface() before each draw and recreate the wgpu surface when it differs (always after setSize) or is invalid."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "slice 2 plan: render thread in ffi (owns GpuRenderer + decoder, made on that thread); engine's draw enqueues owned layers; latest draw per texture wins; frame_available signalled after the draw on the render thread; forget waits for the render thread before release; GPU loss comes back as a message -> Engine::preview_draw_lost -> PreviewLost. GPU sync, iOS double buffering, Android getSurface stay device work."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "slice 2 (render thread) lives in app/src/render_thread.rs, not ffi; first draw per texture is synchronous (CreatePreview still fails on a dead GPU). Device check: scrub/playback draw on framix-render thread; forced GPU loss on a redraw yields PreviewLost via EngineMessage::PreviewLost (serve-loop arm untested on host)."
+    },
+    {
+     "date": "2026-11-15",
+     "text": "slice 2 merged: 1601799 rewrote the render_thread.rs tests from c7c99b4 after the first draw became synchronous (warm-up waited draw + started channel instead of a sleep); no assertion dropped. Still open: GPU sync (MTLSharedEvent / fences), iOS double buffering, one Android wgpu surface + getSurface check, render-thread pooling (P1-058 note, P1-119)."
     }
    ],
    "source": "added"
@@ -15112,6 +15124,25 @@
    "section": "P1",
    "group": null,
    "title": "Test: purge of an expired project whose main file is damaged reads its backup for the media caches (P1-111 review nit)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-119",
+   "section": "P1",
+   "group": null,
+   "title": "Preview render thread: no per-draw allocation (recycle the layer Vecs or share Media via Arc) and a criterion bench for the queued draw (P1-053 review)",
    "tags": [
     "Rust"
    ],
