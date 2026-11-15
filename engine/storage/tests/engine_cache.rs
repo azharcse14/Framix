@@ -619,6 +619,21 @@ fn project_storage_counts_the_copy_set_aside_as_broken() {
 }
 
 #[test]
+fn project_storage_counts_temp_files_a_crash_left_behind() {
+    // A crash mid-save leaves `<id>.framix.tmp` and `<id>.framix.bak.tmp`; deleting the
+    // project removes them, so they count.
+    let lib = temp_dir("crashbytes");
+    let mut engine = library(&lib, "");
+    project_with(&mut engine, &[A]);
+    let id = list(&mut engine)[0].id.clone();
+    write(&lib.join(format!("{id}.framix.tmp")), 700);
+    write(&lib.join(format!("{id}.framix.bak.tmp")), 300);
+
+    let p = list(&mut engine).remove(0);
+    assert_eq!(p.bytes, project_bytes(&lib, &id) + 1000);
+}
+
+#[test]
 fn a_wrapping_store_counts_the_copy_set_aside_as_broken_too() {
     // Shifted forwards to FileStore; it must forward `copies` too, or the `.broken` file is missed.
     let lib = temp_dir("brokenbytes_shifted");

@@ -119,6 +119,19 @@ fn remove_all_leaves_no_copy_of_the_file() {
 }
 
 #[test]
+fn remove_all_takes_temp_files_a_crash_left_behind() {
+    let dir = temp_dir("remove-all-crash");
+    let path = dir.join("p.framix");
+    FileStore.save(&path, b"v1").unwrap();
+    fs::write(dir.join("p.framix.tmp"), b"half a save").unwrap();
+    fs::write(dir.join("p.framix.bak.tmp"), b"half a backup").unwrap();
+
+    FileStore.remove_all(&path).unwrap();
+    let left: Vec<_> = fs::read_dir(&dir).unwrap().collect();
+    assert!(left.is_empty(), "crash leftovers kept: {left:?}");
+}
+
+#[test]
 fn unsynced_saves_are_atomic_and_keep_backups_too() {
     let dir = temp_dir("unsynced");
     let path = dir.join("p.framix");
