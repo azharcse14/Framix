@@ -13,6 +13,12 @@ pub trait ProjectStore: Send {
     /// Writes `bytes` to `path` so a crash leaves either the old or the new file, never a
     /// torn one, and keeps the previous saves as backups.
     fn save(&self, path: &Path, bytes: &[u8]) -> std::io::Result<()>;
+    /// Like [`ProjectStore::save`] (atomic, with backups) but without forcing the bytes to
+    /// the disk: an app crash loses nothing, a power loss can lose the newest saves or leave
+    /// the file torn. Only for files whose reader falls back to a backup and can afford that.
+    fn save_unsynced(&self, path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+        self.save(path, bytes)
+    }
     /// Reads the project file at `path`.
     fn load(&self, path: &Path) -> std::io::Result<Vec<u8>>;
     /// Files directly in `dir` with when each was last written.
