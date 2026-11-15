@@ -17,3 +17,4 @@ check.sh green does not cover these; check them by hand on every FFI/proto/nativ
 
 **Why:** these slipped past a green check.sh in P1-005.
 **How to apply:** grep the proto diff, then confirm the version bump and gateway docs; ask for native_warnings output.
+- Disk (P1-118, 2026-11-15): a fresh per-reviewer CARGO_TARGET_DIR is ~3.3 GB after clippy (host + android) + tests; with parallel reviews the data volume hit 100% and check.sh died mid `cargo test` (log just ends in "error"). For test-only Rust diffs, run fmt/clippy and the one test binary, reuse an existing target dir, and `df -h /private/tmp` before a full check.sh.

@@ -14944,10 +14944,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "ccdba85",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15130,12 +15130,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "30ce214",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "Test passed on first run; mutation check: without the backup copy the test fails (A's thumbnail stays), so it exercises load_or_backup in purge."
+    }
+   ],
    "source": "added"
   },
   {
@@ -15154,6 +15159,25 @@
    "done": null,
    "commit": null,
    "branch": "main",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-120",
+   "section": "P1",
+   "group": null,
+   "title": "Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
