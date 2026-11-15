@@ -6514,15 +6514,17 @@ class ProjectSummary extends $pb.GeneratedMessage {
 }
 
 /// A command was rejected; the timeline is unchanged. `reason` is developer text for logs,
-/// never shown to users; add a code enum when the UI needs to explain failures.
+/// never shown to users; `kind` says what failed when the UI explains it.
 class CommandFailed extends $pb.GeneratedMessage {
   factory CommandFailed({
     $core.String? reason,
     $fixnum.Int64? commandId,
+    FailureKind? kind,
   }) {
     final result = CommandFailed._();
     if (reason != null) result.reason = reason;
     if (commandId != null) result.commandId = commandId;
+    if (kind != null) result.kind = kind;
     return result;
   }
 
@@ -6543,6 +6545,8 @@ class CommandFailed extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         2, _omitFieldNames ? '' : 'commandId', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aE<FailureKind>(3, _omitFieldNames ? '' : 'kind',
+        enumValues: FailureKind.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6585,6 +6589,15 @@ class CommandFailed extends $pb.GeneratedMessage {
   $core.bool hasCommandId() => $_has(1);
   @$pb.TagNumber(2)
   void clearCommandId() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  FailureKind get kind => $_getN(2);
+  @$pb.TagNumber(3)
+  set kind(FailureKind value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKind() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKind() => $_clearField(3);
 }
 
 const $core.bool _omitFieldNames =

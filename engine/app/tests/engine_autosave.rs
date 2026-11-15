@@ -7,7 +7,8 @@ use std::sync::{Arc, Mutex};
 
 use framix_app::engine::Engine;
 use framix_app::proto::{
-    AddTrack, Command, EnableAutosave, Event, TrackKind, Undo, command, event,
+    AddTrack, Command, EnableAutosave, Event, FailureKind, RemoveClip, TrackKind, Undo, command,
+    event,
 };
 use framix_app::store::ProjectStore;
 
@@ -154,6 +155,33 @@ fn a_failed_autosave_is_reported_without_the_path() {
             assert!(f.reason.contains("autosave"), "{}", f.reason);
             assert!(!f.reason.contains("data"), "no path: {}", f.reason);
         }
+        other => panic!("expected CommandFailed, got {other:?}"),
+    }
+}
+
+/// P1-121: the UI tells a failed autosave apart from a refused command by its kind.
+#[test]
+fn a_failed_autosave_says_it_is_an_autosave_failure() {
+    let store = MemStore {
+        fail: true,
+        ..MemStore::default()
+    };
+    let mut engine = Engine::with_store(Box::new(store));
+    enable(&mut engine);
+    add_track(&mut engine);
+    match engine.autosave().and_then(|e| e.kind) {
+        Some(event::Kind::CommandFailed(f)) => {
+            assert_eq!(f.kind(), FailureKind::Autosave);
+            assert_eq!(f.command_id, 0);
+        }
+        other => panic!("expected CommandFailed, got {other:?}"),
+    }
+    let refused = engine.handle(Command {
+        id: 7,
+        kind: Some(command::Kind::RemoveClip(RemoveClip { clip_id: 999 })),
+    });
+    match refused.kind {
+        Some(event::Kind::CommandFailed(f)) => assert_eq!(f.kind(), FailureKind::Unspecified),
         other => panic!("expected CommandFailed, got {other:?}"),
     }
 }

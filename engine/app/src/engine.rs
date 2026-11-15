@@ -1475,6 +1475,7 @@ pub fn command_failed(reason: impl Into<String>) -> Event {
             reason: reason.into(),
             // `Engine::handle` fills in the command's id.
             command_id: 0,
+            kind: proto::FailureKind::Unspecified as i32,
         })),
     }
 }

@@ -202,5 +202,27 @@ class MediaKind extends $pb.ProtobufEnum {
   const MediaKind._(super.value, super.name);
 }
 
+/// What failed, for failures the UI explains with their own message.
+class FailureKind extends $pb.ProtobufEnum {
+  static const FailureKind FAILURE_KIND_UNSPECIFIED =
+      FailureKind._(0, _omitEnumNames ? '' : 'FAILURE_KIND_UNSPECIFIED');
+
+  /// A background autosave did not reach the file; the edits are not saved yet.
+  static const FailureKind FAILURE_KIND_AUTOSAVE =
+      FailureKind._(1, _omitEnumNames ? '' : 'FAILURE_KIND_AUTOSAVE');
+
+  static const $core.List<FailureKind> values = <FailureKind>[
+    FAILURE_KIND_UNSPECIFIED,
+    FAILURE_KIND_AUTOSAVE,
+  ];
+
+  static final $core.List<FailureKind?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static FailureKind? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const FailureKind._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames =
     $core.bool.fromEnvironment('protobuf.omit_enum_names');

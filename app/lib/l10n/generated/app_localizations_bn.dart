@@ -193,6 +193,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get commandFailed => 'কাজটি হয়নি। আবার চেষ্টা করুন।';
 
   @override
+  String get autosaveFailed =>
+      'আপনার পরিবর্তন সেভ হয়নি। Framix আবার চেষ্টা করছে।';
+
+  @override
   String get addColorClip => 'ফাঁকা ক্লিপ যোগ করুন';
 
   @override
