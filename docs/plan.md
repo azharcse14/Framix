@@ -989,7 +989,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-035` Preview unavailable: show a localized message instead of a bare canvas outline when CreatePreview is refused or fails later (id-0 preview failures may need their own event) (UX-034 review) \[Dart\] \[Rust\]
 - [x] `UX-036` home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review) \[Dart\]
 - [x] `UX-037` Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review) \[Dart\]
-- [ ] `UX-038` One-time notices (openedFromBackup, workRecovered, export results) can be dropped while the autosave failure message shows and one message already waits (messages.dart:27-30); let one-time notices outrank generic failures in the waiting slot; also test the showing=null reset after the autosave message closes (UX-037 review) \[Dart\]
+- [x] `UX-038` One-time notices (openedFromBackup, workRecovered, export results) can be dropped while the autosave failure message shows and one message already waits (messages.dart:27-30); let one-time notices outrank generic failures in the waiting slot; also test the showing=null reset after the autosave message closes (UX-037 review) \[Dart\]
 
 ## Design system
 
@@ -1075,7 +1075,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-012` Store listing (naam, description, screenshot) protita bhashay \[—\]
 - [ ] `L10N-013` Region onujayi template, music, sticker (pore, backend) \[Backend\]
 - [ ] `L10N-014` iOS Info.plist permission text (NSPhotoLibraryAddUsageDescription) localized en + bn via InfoPlist.strings/xcstrings (L10N-002 review) \[Native\]
-- [ ] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
+- [x] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
 - [x] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
 - [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
 - [ ] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
