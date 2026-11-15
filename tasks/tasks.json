@@ -15315,10 +15315,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "046a7be",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15334,12 +15334,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "8b331e1",
    "branch": "main",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-15",
+     "text": "no regression test: copy fallback unreachable without a single-caller seam, fsync not observable (reviewer accepted)"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15392,10 +15397,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "cb7475d",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15446,6 +15451,44 @@
    "title": "Preview unavailable: show a localized message instead of a bare canvas outline when CreatePreview is refused or fails later (id-0 preview failures may need their own event) (UX-034 review)",
    "tags": [
     "Dart",
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-042",
+   "section": "SYS",
+   "group": null,
+   "title": "rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-125",
+   "section": "P1",
+   "group": null,
+   "title": "App test MemStores that implement set_aside (engine_autosave_restore.rs, engine_autosave_broken.rs) must override copies, per the ProjectStore::copies rule (P1-123 review)",
+   "tags": [
     "Rust"
    ],
    "owner": "claude",

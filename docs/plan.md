@@ -500,8 +500,9 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-120` Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review) \[Rust\]
 - [ ] `P1-121` Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review) \[Dart\]
 - [x] `P1-122` Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review) \[Rust\]
-- [ ] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
-- [ ] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
+- [x] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
+- [x] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
+- [ ] `P1-125` App test MemStores that implement set_aside (engine_autosave_restore.rs, engine_autosave_broken.rs) must override copies, per the ProjectStore::copies rule (P1-123 review) \[Rust\]
 
 ## Phase 2: Audio
 
@@ -1067,7 +1068,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-013` Region onujayi template, music, sticker (pore, backend) \[Backend\]
 - [ ] `L10N-014` iOS Info.plist permission text (NSPhotoLibraryAddUsageDescription) localized en + bn via InfoPlist.strings/xcstrings (L10N-002 review) \[Native\]
 - [ ] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
-- [ ] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
+- [x] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
 - [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
 
 ## Invisible system features
@@ -1132,6 +1133,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
 - [ ] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
 - [ ] `SYS-041` Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review) \[Rust\]
+- [ ] `SYS-042` rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review) \[Rust\]
 
 ## Engine ar platform er gobhir details
 
