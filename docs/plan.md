@@ -491,7 +491,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-111` Cache clean: SHA-256 padding-boundary tests (55/56/64 bytes), skip in-progress .part files, log a failed autosave before clean, clean caches of projects purged from Recently deleted (P1-017 review) \[Rust\]
 - [x] `P1-112` Widget test: with no loop set, Clear loop stays hidden when one or two clips are selected (guards the _ClipActions looping wiring; P1-106 review) \[Dart\]
 - [x] `P1-113` Trim handles of a selected narrow clip cover the next narrow clip's tap target, so it can't be tapped into the selection (found in P1-104) \[Dart\]
-- [ ] `P1-114` Library DeleteProject/RestoreProject/Rename/Move each do two full disk flushes (F_FULLFSYNC on macOS/iOS) on the command thread; Home can stall 1-2 s under disk load. Consider cheaper durability for library.index (found in P1-108) \[Rust\]
+- [x] `P1-114` Library DeleteProject/RestoreProject/Rename/Move each do two full disk flushes (F_FULLFSYNC on macOS/iOS) on the command thread; Home can stall 1-2 s under disk load. Consider cheaper durability for library.index (found in P1-108) \[Rust\]
 - [x] `P1-115` Move the ~15 hand-written 100x20 ms wait loops in timeline/export tests to app/test/pump_until.dart's load-safe pumpUntilTrue (P1-108 follow-up) \[Dart\]
 - [x] `P1-116` ListProjects drops the one-time autosave failure (let _ = self.autosave()), so a failed autosave is never shown once Home lists first; carry the failure on ProjectList or don't consume it (P1-111 review) \[Rust\]
 - [x] `P1-117` Partial cache writes (.part) left by a crash are never cleaned now; remove .part files older than ~1 h during clean/purge (P1-111 review) \[Rust\]
@@ -501,6 +501,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [ ] `P1-121` Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review) \[Dart\]
 - [ ] `P1-122` Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review) \[Rust\]
 - [ ] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
+- [ ] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
 
 ## Phase 2: Audio
 
@@ -1125,6 +1126,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-037` Notification e tap korle sorasori result screen ba project e (deep link) \[Dart\]
 - [ ] `SYS-038` Push notification (FCM/APNs) backend hole pore \[Backend\]
 - [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
+- [ ] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
 
 ## Engine ar platform er gobhir details
 

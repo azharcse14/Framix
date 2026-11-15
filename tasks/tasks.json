@@ -15064,10 +15064,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-15",
+   "commit": "54478f5",
    "branch": "main",
    "notes": [],
    "source": "added"
@@ -15303,6 +15303,45 @@
    "title": "ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review)",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-124",
+   "section": "P1",
+   "group": null,
+   "title": "FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-040",
+   "section": "SYS",
+   "group": null,
+   "title": "Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003)",
+   "tags": [
+    "Rust",
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
