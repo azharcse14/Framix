@@ -150,12 +150,16 @@ impl Engine {
         if *self.history.timeline() == self.autosaved {
             return None;
         }
-        let saved = project::encode_for_save(self.history.timeline())
-            .map_err(|e| e.to_string())
-            .and_then(|bytes| {
-                // The kind only: an io error's text could name the path.
-                (self.store()?.save(&path, &bytes)).map_err(|e| e.kind().to_string())
-            });
+        // A panicking encode or store is one more failure: same latch, same unsaved marker.
+        let saved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            project::encode_for_save(self.history.timeline())
+                .map_err(|e| e.to_string())
+                .and_then(|bytes| {
+                    // The kind only: an io error's text could name the path.
+                    (self.store()?.save(&path, &bytes)).map_err(|e| e.kind().to_string())
+                })
+        }))
+        .unwrap_or_else(|_| Err("internal error".into()));
         match saved {
             Ok(()) => {
                 self.autosaved = self.history.timeline().clone();
