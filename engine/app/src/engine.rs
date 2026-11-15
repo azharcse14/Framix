@@ -731,8 +731,11 @@ impl Engine {
                 .map(|()| Reply::Accepted),
             command::Kind::ListProjects(op) => {
                 let dir = self.library.clone().ok_or("no library")?;
-                // A failed save was reported by autosave; the list still shows the last save.
-                let _ = self.autosave();
+                // The list shows the last save. The reply is the list, so a failure first
+                // hit here is left for the next autosave to report.
+                if self.autosave().is_some() {
+                    self.autosave_failed = false;
+                }
                 let store = self.store()?;
                 // Home shows: no project is open in the editor now.
                 crate::library::clear_open(store, &dir);
