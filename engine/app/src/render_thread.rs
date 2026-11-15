@@ -1,8 +1,9 @@
 //! The preview's render thread (P1-053): draws, and the decodes under them, leave the engine
 //! thread. The engine queues a draw and goes on; a burst of draws for one texture (a scrub)
-//! draws only the latest; Flutter hears of a frame only once it is drawn.
+//! draws only the latest; Flutter hears of a frame only once it is drawn. The layer lists sent
+//! with draws come back to be refilled, so a steady stream of draws allocates nothing (P1-119).
 
-use std::sync::mpsc::{Receiver, Sender, channel};
+use std::sync::mpsc::{Receiver, Sender, SyncSender, channel, sync_channel};
 use std::thread::JoinHandle;
 
 use framix_core::media::Media;
@@ -14,9 +15,15 @@ use crate::preview::{DrawError, PlatformTexture, PreviewHost, PreviewRenderer};
 /// How a draw went, for a caller that waits on it.
 type Reply = Sender<Result<(), DrawError>>;
 
+/// A draw's layers, owned so they can cross to the render thread.
+type Layers = Vec<(Media, LayerKey)>;
+
+/// Layer lists kept for reuse; one in flight and one queued is the usual steady state.
+const SPARE_LISTS: usize = 4;
+
 enum Job {
     /// Draw; with a reply the caller waits for the result, and the draw is never skipped.
-    Draw(PlatformTexture, Time, Vec<(Media, LayerKey)>, Option<Reply>),
+    Draw(PlatformTexture, Time, Layers, Option<Reply>),
     /// Tell Flutter that texture `id` holds a new frame; queued after its draw.
     Signal(i64),
     /// Drop what the renderer keeps for the texture, then answer.
@@ -28,6 +35,8 @@ enum Job {
 /// thread-bound GPU state stays on one thread). Dropping it stops and joins the thread.
 pub struct RenderThread {
     jobs: Sender<Job>,
+    /// Layer lists the render thread is done with.
+    spare: Receiver<Layers>,
     thread: Option<JoinHandle<()>>,
     /// Textures drawn once; until then a draw waits for its result.
     drawn: Vec<i64>,
@@ -43,11 +52,13 @@ impl RenderThread {
         lost: impl Fn(i64) + Send + 'static,
     ) -> std::io::Result<Self> {
         let (jobs, inbox) = channel();
+        let (recycle, spare) = sync_channel(SPARE_LISTS);
         let thread = std::thread::Builder::new()
             .name("framix-render".into())
-            .spawn(move || serve(make(), &inbox, &signal, &lost))?;
+            .spawn(move || serve(make(), &inbox, &recycle, &signal, &lost))?;
         Ok(Self {
             jobs,
+            spare,
             thread: Some(thread),
             drawn: Vec::new(),
         })
@@ -72,9 +83,9 @@ impl PreviewRenderer for RenderThread {
         time: Time,
         layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError> {
-        // ponytail: one Vec and a Media clone per draw (~30/s while playing); pool them if a
-        // profile shows it.
-        let layers = layers.map(|l| (l.media.clone(), l.key())).collect();
+        let mut list = self.spare.try_recv().unwrap_or_default();
+        refill(&mut list, layers);
+        let layers = list;
         let stopped = || DrawError::Gpu("render thread stopped".into());
         if self.drawn.contains(&target.id) {
             return self
@@ -132,11 +143,28 @@ impl PreviewHost for Host {
     }
 }
 
+/// Copies `layers` into `list`, reusing its entries and their strings.
+fn refill(list: &mut Layers, layers: &mut dyn Iterator<Item = Layer<'_>>) {
+    let mut len = 0;
+    for layer in layers {
+        match list.get_mut(len) {
+            Some((media, key)) => {
+                media.clone_from(layer.media);
+                *key = layer.key();
+            }
+            None => list.push((layer.media.clone(), layer.key())),
+        }
+        len += 1;
+    }
+    list.truncate(len);
+}
+
 /// Runs jobs until Stop. Each wake takes everything queued and skips a draw or signal that a
 /// later one for the same texture replaces.
 fn serve(
     mut renderer: Box<dyn PreviewRenderer>,
     inbox: &Receiver<Job>,
+    recycle: &SyncSender<Layers>,
     signal: &dyn Fn(i64),
     lost: &dyn Fn(i64),
 ) {
@@ -180,7 +208,12 @@ fn serve(
                 Job::Stop => return,
             }
         }
-        batch.clear();
+        for job in batch.drain(..) {
+            if let Job::Draw(_, _, layers, _) = job {
+                // Full (or the engine side gone): the list is simply dropped.
+                let _ = recycle.try_send(layers);
+            }
+        }
     }
 }
 

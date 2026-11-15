@@ -70,7 +70,7 @@ pub enum MediaError {
 }
 
 /// Validated media.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Media {
     uri: String,
     kind: MediaKind,
@@ -81,6 +81,37 @@ pub struct Media {
     codec: String,
     /// 0xRRGGBBAA for [`MediaKind::Color`]; 0 otherwise.
     color: u32,
+}
+
+impl Clone for Media {
+    fn clone(&self) -> Self {
+        let mut media = Self::solid(0);
+        media.clone_from(self);
+        media
+    }
+
+    /// Reuses this media's string buffers, so the preview's render thread can recycle the
+    /// layers it is sent without allocating per draw (P1-119).
+    fn clone_from(&mut self, source: &Self) {
+        let Self {
+            uri,
+            kind,
+            duration,
+            width,
+            height,
+            rotation,
+            codec,
+            color,
+        } = source;
+        self.uri.clone_from(uri);
+        self.kind = *kind;
+        self.duration = *duration;
+        self.width = *width;
+        self.height = *height;
+        self.rotation = *rotation;
+        self.codec.clone_from(codec);
+        self.color = *color;
+    }
 }
 
 impl Media {
