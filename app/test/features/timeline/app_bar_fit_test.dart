@@ -11,6 +11,7 @@ import 'package:framix/features/timeline/bloc/thumbnail_cubit.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 import 'package:framix/features/timeline/bloc/timeline_zoom_cubit.dart';
 import 'package:framix/features/timeline/view/timeline_page.dart';
+import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -40,10 +41,7 @@ void main() {
           theme: framixDarkTheme(),
           locale: locale,
           // As FramixApp: bn needs the global Material delegates too.
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            ...GlobalMaterialLocalizations.delegates,
-          ],
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: RepositoryProvider<MediaImporter>.value(
             value: FakeImporter(const []),

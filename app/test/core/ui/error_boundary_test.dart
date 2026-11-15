@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/ui/error_boundary.dart';
 import 'package:framix/core/ui/framix_theme.dart';
+import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -17,10 +18,7 @@ class _Broken extends StatelessWidget {
 Widget _app(Locale locale, Widget child) => MaterialApp(
   theme: framixDarkTheme(),
   locale: locale,
-  localizationsDelegates: const [
-    AppLocalizations.delegate,
-    ...GlobalMaterialLocalizations.delegates,
-  ],
+  localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(
     body: Column(
