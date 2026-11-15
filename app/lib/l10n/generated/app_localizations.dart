@@ -500,11 +500,11 @@ abstract class AppLocalizations {
   /// **'{kbps} kbps'**
   String bitrateKbps(int kbps);
 
-  /// No description provided for @exportFrameSize.
+  /// Pixel counts, formatted ungrouped by frameSize (lib/core/ui/file_size.dart).
   ///
   /// In en, this message translates to:
   /// **'{width} × {height}'**
-  String exportFrameSize(int width, int height);
+  String exportFrameSize(String width, String height);
 
   /// No description provided for @exportEstimate.
   ///

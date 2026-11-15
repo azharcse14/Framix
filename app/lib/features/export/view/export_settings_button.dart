@@ -112,7 +112,7 @@ class _ExportSettingsSheet extends StatelessWidget {
                     onDone: (kbps) => cubit.changeExportSettings(kbps: kbps),
                   ),
                 Text(l10n.bitrateKbps(e.effectiveKbps)),
-                Text(l10n.exportFrameSize(e.width, e.height)),
+                Text(frameSize(l10n, e.width, e.height)),
                 Text(
                   l10n.exportEstimate(
                     fileSize(

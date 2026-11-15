@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
+import 'package:framix/core/ui/file_size.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 import 'package:framix/features/timeline/view/timeline_page.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
@@ -36,13 +37,13 @@ void main() {
       await tester.tap(find.byTooltip(l10n.exportSettings));
       await pumpUntil(tester, find.text(l10n.exportResolution4k));
       // The engine's numbers for the default 9:16 1080p.
-      expect(find.text(l10n.exportFrameSize(1080, 1920)), findsOneWidget);
+      expect(find.text(frameSize(l10n, 1080, 1920)), findsOneWidget);
 
       await tester.tap(find.text(l10n.exportResolution4k));
       await until(
         () => export().resolution == ExportResolution.EXPORT_RESOLUTION_4K,
       );
-      await pumpUntil(tester, find.text(l10n.exportFrameSize(2160, 3840)));
+      await pumpUntil(tester, find.text(frameSize(l10n, 2160, 3840)));
 
       await tester.tap(find.text(l10n.framesPerSecond(60)));
       await until(() => export().fps == ExportFps.EXPORT_FPS_60);

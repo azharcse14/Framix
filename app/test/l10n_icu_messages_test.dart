@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:framix/l10n/generated/app_localizations.dart';
 
 // L10N-003: plurals and variable text are ARB ICU messages, never Dart string building.
 // (en/bn key and placeholder parity: test/l10n_test.dart, L10N-001.)
@@ -18,8 +20,6 @@ const _notCounts = {
   'aspectRatioLabel.height',
   'framesPerSecond.fps',
   'bitrateKbps.kbps',
-  'exportFrameSize.width',
-  'exportFrameSize.height',
 };
 
 void main() {
@@ -56,6 +56,34 @@ void main() {
       isEmpty,
       reason: 'remove allowlist entries no longer in app_en.arb',
     );
+  });
+
+  // L10N-015: numbers in a message use the locale's digits, like NumberFormat and
+  // DateFormat elsewhere (fileSize, dates): Bengali digits in bn, Latin in en.
+  test('every int/num placeholder declares a number format', () {
+    final unformatted = [
+      for (final MapEntry(:key, :value) in _arb('en').entries)
+        if (key.startsWith('@') && !key.startsWith('@@'))
+          for (final MapEntry(key: name, value: meta)
+              in ((value as Map<String, dynamic>)['placeholders']
+                          as Map<String, dynamic>? ??
+                      const {})
+                  .entries)
+            if (const {'int', 'num'}.contains(meta['type']) &&
+                meta['format'] == null)
+              '${key.substring(1)}.$name',
+    ];
+    expect(unformatted, isEmpty, reason: 'add "format": "decimalPattern"');
+  });
+
+  test('int placeholders render bn digits in bn and Latin digits in en', () {
+    final bn = lookupAppLocalizations(const Locale('bn'));
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(bn.videoTrackName(3), contains('৩'));
+    expect(bn.clipCount(12), contains('১২'));
+    expect(bn.daysLeft(12), contains('১২'));
+    expect(en.videoTrackName(3), contains('3'));
+    expect(en.clipCount(12), contains('12'));
   });
 
   test('app/lib builds no text around localized strings', () {
