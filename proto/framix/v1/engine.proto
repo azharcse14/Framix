@@ -712,7 +712,9 @@ message ProjectSummary {
   string name = 6;
   // MoveProject's folder; empty: none.
   string folder = 7;
-  // Size of the project file.
+  // Size of the project file, its backups and the media copies the app made for it
+  // (`media/<name>` uris, in `media/` next to OpenLibrary.dir); `content://` originals never
+  // count. A media copy used by more than one project counts in each.
   uint64 bytes = 8;
   // In Recently deleted: when it will be removed for good, in milliseconds since the Unix
   // epoch; 0: not deleted.

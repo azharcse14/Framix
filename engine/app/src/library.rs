@@ -1,7 +1,7 @@
 //! The user's projects for Home (P1-089): files `<dir>/<id>.framix` in one folder.
 
 use std::cmp::{Ordering, Reverse};
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::hash::{BuildHasher, Hasher};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
@@ -101,9 +101,11 @@ pub fn list(
         Err(_) => HashMap::new(),
     };
     let files = store.list(dir).map_err(|e| e.kind().to_string())?;
+    let disk: HashMap<PathBuf, u64> = store.sizes(dir).unwrap_or_default().into_iter().collect();
+    let media = media_sizes(store, dir);
     let mut projects: Vec<ProjectSummary> = files
         .into_iter()
-        .filter_map(|(file, modified)| summary(store, &file, modified, cache))
+        .filter_map(|(file, modified)| summary(store, &file, modified, cache, &disk, &media))
         .map(|mut p| {
             if let Some(entry) = index.get(&p.id) {
                 p.name.clone_from(&entry.name);
@@ -117,6 +119,38 @@ pub fn list(
         .collect();
     projects.sort_by(newest_first);
     Ok(projects)
+}
+
+/// The project file's size (even when a backup stood in for it) plus its backups'. `raw`
+/// stands in for the file when the store can't list sizes.
+fn project_bytes(
+    store: &dyn ProjectStore,
+    file: &Path,
+    raw: Option<Vec<u8>>,
+    disk: &HashMap<PathBuf, u64>,
+) -> u64 {
+    let own = disk
+        .get(file)
+        .copied()
+        .or_else(|| raw.map(|b| b.len() as u64))
+        .unwrap_or(0);
+    store
+        .backups(file)
+        .iter()
+        .filter_map(|b| disk.get(b))
+        .fold(own, |sum, len| sum.saturating_add(*len))
+}
+
+/// Bytes of the media copies (`media/<name>`) `timeline` uses; one used twice counts once.
+/// `content://` originals are the user's files, not the app's, and never count.
+fn media_bytes(timeline: &framix_core::timeline::Timeline, media: &HashMap<String, u64>) -> u64 {
+    timeline
+        .all_media()
+        .map(|(_, m)| m.uri())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .filter_map(|uri| media.get(uri))
+        .fold(0, |sum, len| sum.saturating_add(*len))
 }
 
 /// How long Recently deleted keeps a project: 30 days.
@@ -376,11 +410,32 @@ fn write_index(
         .map_err(|e| e.kind().to_string())
 }
 
+/// Folder of the media the app copied in, next to the library folder: a `media/<name>` uri
+/// is relative to the library's parent (the platform's app folder, P1-011).
+const MEDIA: &str = "media";
+
+/// The app's media copies by uri (`media/<name>`), from one listing of the media folder; a
+/// missing or unlistable folder counts as empty.
+fn media_sizes(store: &dyn ProjectStore, dir: &Path) -> HashMap<String, u64> {
+    let Some(app) = dir.parent() else {
+        return HashMap::new();
+    };
+    store
+        .sizes(&app.join(MEDIA))
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|(file, len)| Some((format!("{MEDIA}/{}", file.file_name()?.to_str()?), len)))
+        .collect()
+}
+
+/// `disk` is the library folder's file sizes, `media` [`media_sizes`].
 fn summary(
     store: &dyn ProjectStore,
     file: &Path,
     modified: SystemTime,
     cache: &CacheSizes,
+    disk: &HashMap<PathBuf, u64>,
+    media: &HashMap<String, u64>,
 ) -> Option<ProjectSummary> {
     if file.extension()? != EXTENSION {
         return None;
@@ -407,8 +462,8 @@ fn summary(
         modified_ms,
         // Timeline caps clips far below u32::MAX (project::MAX_CLIPS).
         clips: u32::try_from(clips).unwrap_or(u32::MAX),
-        // The project file's size, even when a backup stood in for it.
-        bytes: raw.map_or(0, |b| b.len() as u64),
+        bytes: project_bytes(store, file, raw.ok(), disk)
+            .saturating_add(media_bytes(&timeline, media)),
         cache_bytes: crate::cache::project_bytes(cache, &timeline),
         ..ProjectSummary::default()
     })
