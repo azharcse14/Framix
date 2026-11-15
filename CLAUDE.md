@@ -18,7 +18,7 @@ The full plan is docs/plan.md; read the section you need, never all of it.
 ## Commands
 - All checks: `scripts/check.sh` (`--quick` = changed parts only)
 - Tasks: `python3 scripts/task.py next | start <ID> | done <ID> --commit <sha> | note <ID> "..." | add <PREFIX> "..." | list --status in_progress`
-- Flutter: `fvm flutter analyze`, `scripts/flutter_test.sh [args]` (locked `flutter test`; never run it bare)
+- Flutter: `fvm flutter analyze`, `scripts/flutter_test.sh [args]` (locked `flutter test`, test paths relative to app/; never run it bare)
 - Rust: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test`, `cargo bench`
 - Codegen: `scripts/gen_ffi.sh` (cbindgen, ffigen, prost)
 

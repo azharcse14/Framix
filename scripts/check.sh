@@ -40,7 +40,7 @@ if [ -f engine/Cargo.toml ] && touched engine/; then
 fi
 
 # Flutter app
-if [ -f app/pubspec.yaml ] && touched app/; then
+if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh; }; then
   if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flutter); fi
   run_in app "${FLUTTER[@]}" gen-l10n
   run git diff --exit-code -- app/lib/l10n/generated
