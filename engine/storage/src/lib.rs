@@ -89,10 +89,11 @@ impl ProjectStore for FileStore {
         }
     }
 
-    /// The backups and the `.broken` copy ([`ProjectStore::set_aside`]).
+    /// The backups, the `.broken` copy ([`ProjectStore::set_aside`]) and the temp files a
+    /// crash mid-save can leave (`.tmp`, `.bak.tmp`). Never loaded: only counted and removed.
     fn copies(&self, path: &Path) -> Vec<PathBuf> {
         let mut copies = self.backups(path);
-        copies.push(aside(path));
+        copies.extend([aside(path), temp(path), backup_temp(path)]);
         copies
     }
 
@@ -124,7 +125,7 @@ fn files<T>(
 /// `sync`, the temp file is synced before and the directory after. Returns the written file
 /// and, without `sync`, a `.bak1` copy that still needs a sync (see [`rotate_backups`]).
 fn replace(path: &Path, bytes: &[u8], sync: bool) -> io::Result<(File, Option<File>)> {
-    let tmp = sibling(path, ".tmp");
+    let tmp = temp(path);
     let written = write(&tmp, bytes, sync)
         .and_then(|file| rotate_backups(path, sync).map(|copy| (file, copy)))
         .and_then(|files| fs::rename(&tmp, path).map(|()| files));
@@ -160,6 +161,16 @@ fn aside(path: &Path) -> PathBuf {
     sibling(path, ".broken")
 }
 
+/// Where [`replace`] writes the new version before renaming it over `path`.
+fn temp(path: &Path) -> PathBuf {
+    sibling(path, ".tmp")
+}
+
+/// Where [`rotate_backups`] builds the new `.bak1`.
+fn backup_temp(path: &Path) -> PathBuf {
+    sibling(path, ".bak.tmp")
+}
+
 fn backup(path: &Path, n: usize) -> PathBuf {
     sibling(path, &format!(".bak{n}"))
 }
@@ -173,7 +184,7 @@ fn rotate_backups(path: &Path, sync: bool) -> io::Result<Option<File>> {
     if !path.exists() {
         return Ok(None);
     }
-    let tmp = sibling(path, ".bak.tmp");
+    let tmp = backup_temp(path);
     let rotated = build_backup(path, &tmp, sync).and_then(|copy| {
         for n in (1..BACKUPS).rev() {
             match fs::rename(backup(path, n), backup(path, n + 1)) {

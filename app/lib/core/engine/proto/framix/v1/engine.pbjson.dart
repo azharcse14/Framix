@@ -1693,6 +1693,7 @@ const TimelineChanged$json = {
     {'1': 'playing', '3': 14, '4': 1, '5': 8, '10': 'playing'},
     {'1': 'loop_start', '3': 15, '4': 1, '5': 3, '10': 'loopStart'},
     {'1': 'loop_end', '3': 16, '4': 1, '5': 3, '10': 'loopEnd'},
+    {'1': 'from_backup', '3': 17, '4': 1, '5': 8, '10': 'fromBackup'},
   ],
 };
 
@@ -1707,7 +1708,8 @@ final $typed_data.Uint8List timelineChangedDescriptor = $convert.base64Decode(
     'Y2xpcBgKIAEoBFIKYWN0aXZlQ2xpcBItCgZleHBvcnQYCyABKAsyFS5mcmFtaXgudjEuRXhwb3'
     'J0SW5mb1IGZXhwb3J0EhgKB3Byb2plY3QYDCABKARSB3Byb2plY3QSGAoHc25hcHBlZBgNIAEo'
     'CFIHc25hcHBlZBIYCgdwbGF5aW5nGA4gASgIUgdwbGF5aW5nEh0KCmxvb3Bfc3RhcnQYDyABKA'
-    'NSCWxvb3BTdGFydBIZCghsb29wX2VuZBgQIAEoA1IHbG9vcEVuZA==');
+    'NSCWxvb3BTdGFydBIZCghsb29wX2VuZBgQIAEoA1IHbG9vcEVuZBIfCgtmcm9tX2JhY2t1cBgR'
+    'IAEoCFIKZnJvbUJhY2t1cA==');
 
 @$core.Deprecated('Use trackDescriptor instead')
 const Track$json = {

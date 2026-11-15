@@ -498,7 +498,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-118` Test: purge of an expired project whose main file is damaged reads its backup for the media caches (P1-111 review nit) \[Rust\]
 - [x] `P1-119` Preview render thread: no per-draw allocation (recycle the layer Vecs or share Media via Arc) and a criterion bench for the queued draw (P1-053 review) \[Rust\]
 - [x] `P1-120` Project storage: count the set-aside <id>.framix.broken copy (deleted with the project) and test the fallback when the store can't list sizes (P1-109 review) \[Rust\]
-- [ ] `P1-121` Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review) \[Dart\]
+- [x] `P1-121` Show a failed autosave (id-0 CommandFailed) in the UI; FramixEngine drops it today (P1-116 review) \[Dart\]
 - [x] `P1-122` Test that ListProjects does not re-arm an already reported autosave failure (engine.rs autosave guard; P1-116 review) \[Rust\]
 - [x] `P1-123` ProjectStore::copies doc: a store implementing set_aside must override copies; Shifted test store forwards copies (P1-120 review) \[Rust\]
 - [x] `P1-124` FileStore rotate_backups: the fs::copy fallback (hard link failed) leaves an unsynced .bak1; sync it or narrow the save_unsynced comment (P1-114 review) \[Rust\]
@@ -1134,10 +1134,12 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-037` Notification e tap korle sorasori result screen ba project e (deep link) \[Dart\]
 - [ ] `SYS-038` Push notification (FCM/APNs) backend hole pore \[Backend\]
 - [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
-- [ ] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
+- [x] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
 - [x] `SYS-041` Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review) \[Rust\]
 - [x] `SYS-042` rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review) \[Rust\]
 - [ ] `SYS-043` Crash leftovers <file>.tmp and <file>.bak.tmp are not in FileStore::copies(): not counted in size, not removed when the project is deleted; add them or sweep on delete (SYS-042 review) \[Rust\]
+- [ ] `SYS-044` check.sh flake: 'flutter test' sometimes fails before running tests with codesign/install_name_tool 'app/build/native_assets/macos/libframix_ffi.dylib: No such file' (5x on 2026-11-15, mostly the first check.sh after Rust changes merge into main; a rerun passes); find the race (native_toolchain_rust hook output vs flutter test) and fix \[Dart\]
+- [ ] `SYS-045` Project size over-counts a crash-left .bak.tmp that is a hard link to the live file (same inode counted twice) until the next save; skip names sharing an inode when summing (SYS-043 review) \[Rust\]
 
 ## Engine ar platform er gobhir details
 

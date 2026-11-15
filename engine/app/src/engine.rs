@@ -644,7 +644,7 @@ impl Engine {
         };
         match self.apply(kind) {
             // An edit may have shortened the timeline under the playhead.
-            Ok(reply @ (Reply::Timeline | Reply::Snapped)) => {
+            Ok(reply @ (Reply::Timeline | Reply::Snapped | Reply::FromBackup)) => {
                 if let Some(proxies) = self.proxies.as_mut() {
                     proxies.ask(self.history.timeline());
                 }
@@ -655,6 +655,7 @@ impl Engine {
                 let mut event = self.timeline_changed();
                 if let Some(proto::event::Kind::TimelineChanged(t)) = event.kind.as_mut() {
                     t.snapped = matches!(reply, Reply::Snapped);
+                    t.from_backup = matches!(reply, Reply::FromBackup);
                 }
                 event
             }
@@ -736,7 +737,13 @@ impl Engine {
                 Ok(Reply::Timeline)
             }
             command::Kind::OpenProject(open) if self.library.is_some() => {
-                timeline(self.open_from_library(&open.id))
+                self.open_from_library(&open.id).map(|from_backup| {
+                    if from_backup {
+                        Reply::FromBackup
+                    } else {
+                        Reply::Timeline
+                    }
+                })
             }
             command::Kind::OpenProject(open) => timeline(self.open(&open.path).map(|()| {
                 self.start_project();
@@ -1185,7 +1192,8 @@ impl Engine {
     }
 
     /// Opens library project `id` and autosaves there; the current project is saved first.
-    fn open_from_library(&mut self, id: &str) -> Result<(), String> {
+    /// True when its file was damaged and it opened from a backup.
+    fn open_from_library(&mut self, id: &str) -> Result<bool, String> {
         let dir = self.library.clone().ok_or("no library")?;
         let file = crate::library::path(&dir, id).ok_or("malformed project id")?;
         if crate::library::is_deleted(self.store()?, &dir, id) {
@@ -1208,7 +1216,7 @@ impl Engine {
         self.history = History::new(timeline);
         self.autosave_to(Some(file), saved);
         self.start_project();
-        Ok(())
+        Ok(from_backup)
     }
 
     /// The engine stops normally (after its last autosave): the open project was closed, so
@@ -1383,6 +1391,8 @@ impl Engine {
                 playing: self.is_playing(),
                 loop_start: self.loop_range.map_or(0, |(start, _)| start.0),
                 loop_end: self.loop_range.map_or(0, |(_, end)| end.0),
+                // `reply` sets it for the answer to an OpenProject restored from a backup.
+                from_backup: false,
             })),
         }
     }
@@ -1440,6 +1450,8 @@ enum Reply {
     Timeline,
     /// The timeline after a SnapTrim or SnapMove that landed on a snap point.
     Snapped,
+    /// The timeline after an OpenProject whose damaged file was replaced by a backup.
+    FromBackup,
     /// The project was saved.
     Saved,
     /// Work started; its result comes later as its own event.

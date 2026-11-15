@@ -328,6 +328,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workRecovered => 'Saved up to your last edit';
 
   @override
+  String get openedFromBackup =>
+      'The last save was damaged, so an earlier copy was opened';
+
+  @override
   String get untitledProject => 'Untitled project';
 
   @override
