@@ -30,15 +30,18 @@ impl ProjectStore for FileStore {
     /// flush of the whole drive cache) on a thread of their own, so the caller doesn't wait.
     /// The thread syncs the handle it wrote, not the path, so every version is synced even
     /// when later saves have already rotated it into the backups (a hard link shares that
-    /// handle's inode; the copy fallback in `rotate_backups` syncs its copy inline).
+    /// handle's inode); a `.bak1` copied where hard links fail is synced on that thread too.
     fn save_unsynced(&self, path: &Path, bytes: &[u8]) -> io::Result<()> {
-        let file = replace(path, bytes, false)?;
+        let (file, backup_copy) = replace(path, bytes, false)?;
         let path = path.to_path_buf();
         // Best effort: if the thread doesn't start or the sync fails, the OS writes the file
         // back on its own schedule.
         let _ = std::thread::Builder::new()
             .name("framix-flush".into())
             .spawn(move || {
+                if let Some(copy) = backup_copy {
+                    let _ = copy.sync_all();
+                }
                 let _ = file.sync_all().and_then(|()| sync_parent(&path));
             });
         Ok(())
@@ -118,21 +121,22 @@ fn files<T>(
 }
 
 /// Writes `<file>.tmp`, rotates the backups, then renames the temp file over `path`; with
-/// `sync`, the temp file is synced before and the directory after. Returns the written file.
-fn replace(path: &Path, bytes: &[u8], sync: bool) -> io::Result<File> {
+/// `sync`, the temp file is synced before and the directory after. Returns the written file
+/// and, without `sync`, a `.bak1` copy that still needs a sync (see [`rotate_backups`]).
+fn replace(path: &Path, bytes: &[u8], sync: bool) -> io::Result<(File, Option<File>)> {
     let tmp = sibling(path, ".tmp");
     let written = write(&tmp, bytes, sync)
-        .and_then(|file| rotate_backups(path).map(|()| file))
-        .and_then(|file| fs::rename(&tmp, path).map(|()| file));
+        .and_then(|file| rotate_backups(path, sync).map(|copy| (file, copy)))
+        .and_then(|files| fs::rename(&tmp, path).map(|()| files));
     if written.is_err() {
         // Don't leave a large orphan behind (e.g. after a disk-full failure).
         let _ = fs::remove_file(&tmp);
     }
-    let file = written?;
+    let files = written?;
     if sync {
         sync_parent(path)?;
     }
-    Ok(file)
+    Ok(files)
 }
 
 fn write(path: &Path, bytes: &[u8], sync: bool) -> io::Result<File> {
@@ -161,10 +165,12 @@ fn backup(path: &Path, n: usize) -> PathBuf {
 }
 
 /// Shifts `.bak1`.. up by one (dropping the oldest) and makes `.bak1` the current file.
-fn rotate_backups(path: &Path) -> io::Result<()> {
+/// Where hard links fail `.bak1` is a copy, a new inode: with `sync` it is synced here,
+/// otherwise it is returned for the caller to sync.
+fn rotate_backups(path: &Path, sync: bool) -> io::Result<Option<File>> {
     // No current file (new, or set aside): nothing to keep, so the backups stay as they are.
     if !path.exists() {
-        return Ok(());
+        return Ok(None);
     }
     for n in (1..BACKUPS).rev() {
         match fs::rename(backup(path, n), backup(path, n + 1)) {
@@ -177,13 +183,18 @@ fn rotate_backups(path: &Path) -> io::Result<()> {
         Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
         _ => {}
     }
-    // A hard link keeps the old file in place until the rename; copy where links fail. The
-    // copy is a new inode that no later sync covers, so sync it here; on failure the save
-    // stops before the rename and the project file stays as it was.
-    fs::hard_link(path, &newest).or_else(|_| {
-        fs::copy(path, &newest)?;
-        File::open(&newest)?.sync_all()
-    })
+    // A hard link keeps the old file in place until the rename; copy where links fail.
+    if fs::hard_link(path, &newest).is_ok() {
+        return Ok(None);
+    }
+    fs::copy(path, &newest)?;
+    let copy = File::open(&newest)?;
+    if !sync {
+        return Ok(Some(copy));
+    }
+    // On failure the save stops before the rename and the project file stays as it was.
+    copy.sync_all()?;
+    Ok(None)
 }
 
 /// Makes the rename durable: syncs the directory entry (Unix; a no-op elsewhere).
