@@ -7,6 +7,7 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/core/ui/framix_theme.dart';
 import 'package:framix/features/home/view/home_page.dart';
+import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -48,7 +49,7 @@ void main() {
         child: MaterialApp(
           theme: framixDarkTheme(),
           locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: HomePage(projectsDir: () async => '/data/projects'),
         ),

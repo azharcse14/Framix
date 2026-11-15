@@ -6,6 +6,7 @@ import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/core/ui/framix_theme.dart';
 import 'package:framix/features/preview/view/canvas_gestures.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
+import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -70,7 +71,7 @@ void main() {
   Future<void> pump(WidgetTester tester) => tester.pumpWidget(
     MaterialApp(
       theme: framixDarkTheme(),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: BlocProvider<TimelineCubit>.value(
         value: cubit,

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/features/export/bloc/export_cubit.dart';
 import 'package:framix/features/export/view/export_buttons.dart';
+import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -28,7 +29,7 @@ void main() {
 
   Widget app() => MaterialApp(
     locale: const Locale('en'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: BlocProvider<ExportCubit>.value(
       value: cubit,

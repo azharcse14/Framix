@@ -64,4 +64,40 @@ void main() {
       expect(Localizations.localeOf(context), locale);
     });
   }
+
+  testWidgets('bn Material strings differ from en', (tester) async {
+    Future<String> okLabel(Locale locale) async {
+      await tester.pumpWidget(EngineFailedApp(locale: locale));
+      return MaterialLocalizations.of(tester.element(find.byType(ErrorPanel)))
+          .okButtonLabel;
+    }
+
+    expect(
+      await okLabel(const Locale('bn')),
+      isNot(await okLabel(const Locale('en'))),
+    );
+  });
+
+  // L10N-016: tests use the app's one delegate list, not the generated
+  // AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino
+  // delegates) or a hand-copied list.
+  test('app and tests use the app delegate list', () {
+    final banned = RegExp(
+      r'AppLocalizations\.(localizationsDelegates|delegate\b)',
+    );
+    bool allowed(String path) =>
+        path == 'lib/l10n/app_delegates.dart' ||
+        path.startsWith('lib/l10n/generated/') ||
+        path == 'test/l10n_test.dart';
+    final offenders = [
+      for (final dir in const ['lib', 'test'])
+        for (final file in Directory(dir).listSync(recursive: true))
+          if (file is File &&
+              file.path.endsWith('.dart') &&
+              !allowed(file.path) &&
+              banned.hasMatch(file.readAsStringSync()))
+            file.path,
+    ];
+    expect(offenders, isEmpty);
+  });
 }

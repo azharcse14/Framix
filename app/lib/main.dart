@@ -19,6 +19,7 @@ import 'features/timeline/bloc/thumbnail_cubit.dart';
 import 'features/timeline/bloc/timeline_cubit.dart';
 import 'features/timeline/bloc/timeline_zoom_cubit.dart';
 import 'features/timeline/view/timeline_page.dart';
+import 'l10n/app_delegates.dart';
 import 'l10n/generated/app_localizations.dart';
 
 Future<void> main() => SentryFlutter.init(
@@ -54,10 +55,7 @@ MaterialApp _materialApp({
   onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
   theme: framixDarkTheme(),
   locale: locale,
-  localizationsDelegates: const [
-    AppLocalizations.delegate,
-    ...GlobalMaterialLocalizations.delegates,
-  ],
+  localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: home,
   builder: builder,
