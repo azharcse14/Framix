@@ -100,7 +100,7 @@ pub unsafe extern "C" fn engine_create(protocol_version: u32, out: *mut *mut Eng
         // Detached: engine_destroy does not wait for it; EngineStopped says it is done.
         if std::thread::Builder::new()
             .name("framix-engine".into())
-            .spawn(move || run_engine(inbox, host))
+            .spawn(move || run_engine(inbox, host, Box::new(framix_storage::FileStore)))
             .is_err()
         {
             return ENGINE_ERR_STOPPED;
@@ -187,11 +187,15 @@ fn post(engine: Option<&Engine>, message: EngineMessage) -> i32 {
 /// The engine thread: serves messages until Shutdown, then sends EngineStopped last. If the
 /// engine itself fails (a panic outside one message, e.g. while starting), commands are
 /// refused until Shutdown, so the stream still ends.
-fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
+fn run_engine(
+    inbox: Receiver<EngineMessage>,
+    host: platform::PlatformHost,
+    store: Box<dyn framix_app::store::ProjectStore>,
+) {
     let mut callback: EngineEventCallback = None;
     let mut stopping = false;
     let served = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        serve(&inbox, host, &mut callback, &mut stopping);
+        serve(&inbox, host, store, &mut callback, &mut stopping);
     }));
     // A panic after Shutdown (the engine's drop) must not wait for another one.
     if served.is_err() && !stopping {
@@ -236,6 +240,7 @@ fn run_engine(inbox: Receiver<EngineMessage>, host: platform::PlatformHost) {
 fn serve(
     inbox: &Receiver<EngineMessage>,
     host: platform::PlatformHost,
+    store: Box<dyn framix_app::store::ProjectStore>,
     callback: &mut EngineEventCallback,
     stopping: &mut bool,
 ) {
@@ -250,7 +255,7 @@ fn serve(
     };
     let exports = host.engine.clone();
     let losses = host.engine.clone();
-    let engine = framix_app::engine::Engine::with_store(Box::new(framix_storage::FileStore))
+    let engine = framix_app::engine::Engine::with_store(store)
         .with_export()
         .with_thumbnails(Box::new(thumbnails))
         .with_proxies(Box::new(proxies))
@@ -543,4 +548,100 @@ pub unsafe extern "C" fn engine_free_buffer(buf: EngineBuffer) -> i32 {
         }
         ENGINE_OK
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use framix_app::proto::{AddTrack, EnableAutosave, FailureKind, TrackKind, command};
+    use std::path::Path;
+    use std::sync::Mutex;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
+
+    static EVENTS: Mutex<Option<Sender<Event>>> = Mutex::new(None);
+    static SAVES: AtomicUsize = AtomicUsize::new(0);
+
+    unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
+        // SAFETY: the engine passes a live buffer of `len` bytes that this callback now owns.
+        let bytes = unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec();
+        // SAFETY: ownership came with the call; freed exactly once here.
+        unsafe { engine_free_buffer(EngineBuffer { ptr, len }) };
+        if let Some(tx) = EVENTS.lock().unwrap().as_ref() {
+            let _ = tx.send(Event::decode(bytes.as_slice()).unwrap());
+        }
+    }
+
+    /// Nothing saved yet; every save panics.
+    struct PanickingStore;
+
+    impl framix_app::store::ProjectStore for PanickingStore {
+        fn save(&self, _: &Path, _: &[u8]) -> std::io::Result<()> {
+            SAVES.fetch_add(1, Ordering::SeqCst);
+            panic!("save panicked (test)");
+        }
+        fn load(&self, _: &Path) -> std::io::Result<Vec<u8>> {
+            Err(std::io::ErrorKind::NotFound.into())
+        }
+    }
+
+    fn edit(messages: &Sender<EngineMessage>) {
+        let add = command::Kind::AddTrack(AddTrack {
+            kind: TrackKind::Audio as i32,
+        });
+        let bytes = Command {
+            id: 0,
+            kind: Some(add),
+        }
+        .encode_to_vec();
+        messages.send(EngineMessage::Command(bytes)).unwrap();
+    }
+
+    /// P1-126: a panicking autosave is reported once per streak and retried while idle,
+    /// like a failing one.
+    #[test]
+    fn a_panicking_autosave_is_reported_once_and_retried_while_idle() {
+        let (tx, events) = channel();
+        *EVENTS.lock().unwrap() = Some(tx);
+        let (messages, inbox) = channel();
+        let host = platform::PlatformHost {
+            engine: messages.clone(),
+        };
+        let engine = std::thread::spawn(move || run_engine(inbox, host, Box::new(PanickingStore)));
+        messages
+            .send(EngineMessage::SetCallback(Some(on_event)))
+            .unwrap();
+        let enable = command::Kind::EnableAutosave(EnableAutosave {
+            path: "/framix-test/autosave.framix".into(),
+        });
+        let bytes = Command {
+            id: 0,
+            kind: Some(enable),
+        }
+        .encode_to_vec();
+        messages.send(EngineMessage::Command(bytes)).unwrap();
+        edit(&messages);
+        // Idle: the first save at ~1 s, retries at ~2 s and ~3 s.
+        std::thread::sleep(AUTOSAVE_DELAY * 3 + AUTOSAVE_DELAY / 2);
+        let idle_saves = SAVES.load(Ordering::SeqCst);
+        // A second edit burst within the same streak.
+        edit(&messages);
+        std::thread::sleep(AUTOSAVE_DELAY + AUTOSAVE_DELAY / 2);
+        messages.send(EngineMessage::Shutdown).unwrap();
+        let mut reports = 0;
+        loop {
+            let event = events.recv_timeout(Duration::from_secs(10)).expect("event");
+            match event.kind {
+                Some(event::Kind::EngineStopped(_)) => break,
+                Some(event::Kind::CommandFailed(f)) => {
+                    assert_eq!(f.kind, FailureKind::Autosave as i32, "{}", f.reason);
+                    reports += 1;
+                }
+                _ => {}
+            }
+        }
+        engine.join().unwrap();
+        assert!(idle_saves >= 3, "retried while idle: {idle_saves} saves");
+        assert_eq!(reports, 1, "one report for the whole streak");
+    }
 }
