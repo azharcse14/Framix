@@ -28,7 +28,14 @@ Future<void> main() => SentryFlutter.init(
     // reports through FlutterError.onError, which Sentry wraps. Run earlier, Sentry would
     // chain this handler and report every async error twice.
     installErrorBoundary();
-    final engine = startEngine();
+    final FramixEngine? engine;
+    try {
+      engine = startEngine();
+    } on EngineProtocolMismatch catch (error) {
+      // Debug fail-fast (ENG-045): show the error, then let it escape to the log.
+      runApp(EngineFailedApp(error: error));
+      rethrow;
+    }
     if (engine == null) return runApp(const EngineFailedApp());
     GetIt.I.registerSingleton<FramixEngine>(
       engine,
@@ -38,26 +45,41 @@ Future<void> main() => SentryFlutter.init(
   },
 );
 
-/// Root widget when the engine could not start (a release build with a protocol
-/// mismatch, ENG-045): only says something went wrong.
+/// The app shell both roots share: title, theme and localizations.
+MaterialApp _materialApp({
+  required Widget home,
+  Locale? locale,
+  TransitionBuilder? builder,
+}) => MaterialApp(
+  onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+  theme: framixDarkTheme(),
+  locale: locale,
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    ...GlobalMaterialLocalizations.delegates,
+  ],
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: home,
+  builder: builder,
+);
+
+/// Root widget when the engine could not start (protocol mismatch, ENG-045): in release
+/// it only says something went wrong; a debug fail-fast passes [error] to show it.
 class EngineFailedApp extends StatelessWidget {
-  const EngineFailedApp({super.key, this.locale});
+  const EngineFailedApp({super.key, this.locale, this.error});
 
   /// Forces a locale (tests); null follows the device.
   final Locale? locale;
 
+  /// Shown as Flutter's error screen (debug only); null shows [ErrorPanel].
+  final Object? error;
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: framixDarkTheme(),
+    final error = this.error;
+    return _materialApp(
       locale: locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        ...GlobalMaterialLocalizations.delegates,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: const ErrorPanel(),
+      home: error == null ? const ErrorPanel() : ErrorWidget(error),
     );
   }
 }
@@ -85,15 +107,8 @@ class FramixApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: framixDarkTheme(),
+    return _materialApp(
       locale: locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        ...GlobalMaterialLocalizations.delegates,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
       home: home,
       // Above the Navigator, so every route (the editor pushed from Home, dialogs) sees them.
       builder: (context, navigator) => MultiRepositoryProvider(
