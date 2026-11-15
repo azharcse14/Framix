@@ -77,19 +77,18 @@ impl ProjectStore for FileStore {
         }
     }
 
-    /// The file, its backups and its `.broken` copy ([`ProjectStore::set_aside`]).
-    fn remove_all(&self, path: &Path) -> io::Result<()> {
-        std::iter::once(path.to_path_buf())
-            .chain(self.backups(path))
-            .chain([sibling(path, ".broken")])
-            .try_for_each(|f| self.remove(&f))
+    /// The backups and the `.broken` copy ([`ProjectStore::set_aside`]).
+    fn copies(&self, path: &Path) -> Vec<PathBuf> {
+        let mut copies = self.backups(path);
+        copies.push(aside(path));
+        copies
     }
 
     /// Renames the file to `<file>.broken`, over an earlier one.
     // ponytail: one slot; a second damaged file replaces the first. Keep numbered slots if a
     // validator change could ever refuse good files.
     fn set_aside(&self, path: &Path) -> io::Result<()> {
-        fs::rename(path, sibling(path, ".broken"))?;
+        fs::rename(path, aside(path))?;
         sync_parent(path)
     }
 }
@@ -120,6 +119,11 @@ fn sibling(path: &Path, suffix: &str) -> PathBuf {
     let mut name = OsString::from(path.as_os_str());
     name.push(suffix);
     PathBuf::from(name)
+}
+
+/// Where [`FileStore::set_aside`] moves `path`.
+fn aside(path: &Path) -> PathBuf {
+    sibling(path, ".broken")
 }
 
 fn backup(path: &Path, n: usize) -> PathBuf {

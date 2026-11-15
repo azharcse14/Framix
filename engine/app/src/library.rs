@@ -121,8 +121,9 @@ pub fn list(
     Ok(projects)
 }
 
-/// The project file's size (even when a backup stood in for it) plus its backups'. `raw`
-/// stands in for the file when the store can't list sizes.
+/// The project file's size (even when a backup stood in for it) plus its copies' (backups,
+/// a file set aside), all deleted with it. `raw` stands in for the file when the store can't
+/// list sizes.
 fn project_bytes(
     store: &dyn ProjectStore,
     file: &Path,
@@ -135,7 +136,7 @@ fn project_bytes(
         .or_else(|| raw.map(|b| b.len() as u64))
         .unwrap_or(0);
     store
-        .backups(file)
+        .copies(file)
         .iter()
         .filter_map(|b| disk.get(b))
         .fold(own, |sum, len| sum.saturating_add(*len))
