@@ -1,22 +1,22 @@
 //! FileStore::list for the project library (P1-089).
 
 use std::fs;
-use std::path::PathBuf;
 use std::time::SystemTime;
+
+mod common;
+use common::TempDir;
 
 use framix_app::store::ProjectStore;
 use framix_storage::FileStore;
 
-fn temp_dir(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("framix-list-{name}-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    dir
+fn temp_dir(name: &str) -> TempDir {
+    TempDir::new(&format!("framix-list-{name}"))
 }
 
 #[test]
 fn lists_the_files_in_a_folder_with_their_write_times() {
-    let dir = temp_dir("files");
+    let tmp = temp_dir("files");
+    let dir = tmp.to_path_buf();
     let before = SystemTime::now() - std::time::Duration::from_secs(5);
     FileStore.save(&dir.join("a.framix"), b"1").unwrap();
     FileStore.save(&dir.join("a.framix"), b"2").unwrap();
@@ -41,7 +41,8 @@ fn lists_the_files_in_a_folder_with_their_write_times() {
 
 #[test]
 fn a_missing_folder_is_not_found() {
-    let dir = temp_dir("missing").join("nope");
+    let tmp = temp_dir("missing");
+    let dir = tmp.join("nope");
     let e = FileStore.list(&dir).unwrap_err();
     assert_eq!(e.kind(), std::io::ErrorKind::NotFound);
 }
