@@ -171,9 +171,13 @@ class _PreviewUnavailable extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, box) {
           final painter = TextPainter(
-            text: TextSpan(text: message, style: style),
+            text: TextSpan(
+              text: message,
+              style: DefaultTextStyle.of(context).style.merge(style),
+            ),
             textAlign: TextAlign.center,
             textDirection: Directionality.of(context),
+            locale: Localizations.localeOf(context),
             textScaler: MediaQuery.textScalerOf(context),
           )..layout(maxWidth: box.maxWidth);
           // The longest word must fit unbroken, and all lines in the height.
@@ -184,8 +188,10 @@ class _PreviewUnavailable extends StatelessWidget {
           return Center(
             child: fits
                 ? Text(message, textAlign: TextAlign.center, style: style)
+                // The label is read; the tooltip is for sight only, not read twice.
                 : Tooltip(
                     message: message,
+                    excludeFromSemantics: true,
                     child: Semantics(
                       label: message,
                       child: Icon(

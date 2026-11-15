@@ -321,7 +321,7 @@ impl Engine {
     /// FAILURE_KIND_PREVIEW when it answers a CreatePreview, so the UI says the preview is
     /// unavailable (UX-035); an answer nobody asked for is no preview failure.
     pub fn preview_texture_ready(&mut self, texture: Result<PlatformTexture, String>) -> Event {
-        let requested = self.preview.as_ref().is_some_and(|p| p.pending > 0);
+        let requested = self.awaits_preview();
         match self.show_preview(texture) {
             Ok(texture_id) => Event {
                 kind: Some(proto::event::Kind::PreviewReady(proto::PreviewReady {
@@ -331,6 +331,11 @@ impl Engine {
             Err(reason) if requested => preview_failed(reason),
             Err(reason) => command_failed(reason),
         }
+    }
+
+    /// Whether an accepted CreatePreview still awaits the platform's answer.
+    pub fn awaits_preview(&self) -> bool {
+        self.preview.as_ref().is_some_and(|p| p.pending > 0)
     }
 
     fn request_preview(&mut self, width: u32, height: u32) -> Result<(), String> {
@@ -1502,6 +1507,17 @@ pub fn autosave_failed(reason: impl Into<String>) -> Event {
 /// preview is unavailable (UX-035).
 pub fn preview_failed(reason: impl Into<String>) -> Event {
     failed(reason, proto::FailureKind::Preview)
+}
+
+/// The event for a panic while answering a CreatePreview; `awaited` is
+/// [`Engine::awaits_preview`] from before the answer. Only an awaited answer is a preview
+/// failure, as in [`Engine::preview_texture_ready`].
+pub fn preview_answer_panicked(awaited: bool) -> Event {
+    if awaited {
+        preview_failed("internal error")
+    } else {
+        command_failed("internal error")
+    }
 }
 
 fn failed(reason: impl Into<String>, kind: proto::FailureKind) -> Event {

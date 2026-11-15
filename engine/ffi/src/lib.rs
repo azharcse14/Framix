@@ -4,7 +4,7 @@ use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel}
 use std::time::Instant;
 
 use framix_app::engine::{
-    AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, autosave_failed, command_failed, preview_failed,
+    AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, autosave_failed, command_failed, preview_answer_panicked,
 };
 use framix_app::preview::{PlatformTexture, PreviewHost as _};
 use framix_app::proto::{Command, Event, event};
@@ -396,11 +396,11 @@ fn serve(
             }
             EngineMessage::Export(result) => guarded(|| engine.export_result(result)),
             EngineMessage::PreviewTexture(texture) => {
-                // A panic still ends the preview request: the UI says it is unavailable.
+                let awaited = engine.awaits_preview();
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     engine.preview_texture_ready(texture)
                 }))
-                .unwrap_or_else(|_| preview_failed("internal error"))
+                .unwrap_or_else(|_| preview_answer_panicked(awaited))
             }
             EngineMessage::PreviewLost(id) => {
                 // Reported as PreviewLost by the next flush_preview.
