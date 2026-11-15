@@ -441,3 +441,82 @@ fn a_project_purged_from_recently_deleted_takes_its_caches_along() {
     assert_eq!(ids, [second.id]);
     assert_eq!(tree(&cache), [format!("thumbs/{B_HASH}-0-128.jpg")]);
 }
+
+/// Writes `path` stamped as last written at `at`.
+fn write_stamped(path: &Path, at: SystemTime) {
+    write(path, 5);
+    fs::File::options()
+        .write(true)
+        .open(path)
+        .unwrap()
+        .set_modified(at)
+        .unwrap();
+}
+
+#[test]
+fn cleaning_removes_partial_writes_a_crash_left_over_an_hour_ago() {
+    let root = temp_dir("stalepart");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    let hours_ago = SystemTime::now() - Duration::from_secs(2 * 60 * 60);
+    // Any media's, and iOS proxies `<UUID>.part.mov` that name no media (P1-117).
+    write_stamped(
+        &cache.join(format!("thumbs/{A_HASH}-0-128.jpg5551234.part")),
+        hours_ago,
+    );
+    write_stamped(
+        &cache.join(format!("thumbs/{B_HASH}-1-128.jpg.part")),
+        hours_ago,
+    );
+    write_stamped(
+        &cache.join("proxies/0F1E2D3C-AAAA-BBBB-CCCC-123456789ABC.part.mov"),
+        hours_ago,
+    );
+    // Still being written, or stamped ahead of the clock: they stay.
+    let fresh = format!("thumbs/{B_HASH}-2-128.jpg.part");
+    write_stamped(
+        &cache.join(&fresh),
+        SystemTime::now() - Duration::from_secs(60),
+    );
+    let ahead = format!("proxies/{A_HASH}-1280.mov.part");
+    write_stamped(
+        &cache.join(&ahead),
+        SystemTime::now() + Duration::from_secs(2 * 60 * 60),
+    );
+    let mut engine = library(&lib, cache.to_str().unwrap());
+    project_with(&mut engine, &[A]);
+    let p = list(&mut engine).remove(0);
+
+    cleaned(&mut engine, &p.id);
+    let mut left = vec![ahead, fresh];
+    left.sort();
+    assert_eq!(tree(&cache), left);
+}
+
+#[test]
+fn a_purge_removes_partial_writes_a_crash_left_over_an_hour_ago() {
+    let root = temp_dir("stalepartpurge");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    write_stamped(
+        &cache.join(format!("thumbs/{B_HASH}-1-128.jpg.part")),
+        SystemTime::now() - Duration::from_secs(2 * 60 * 60),
+    );
+    let mut engine = library(&lib, cache.to_str().unwrap());
+    project_with(&mut engine, &[A]);
+    let id = list(&mut engine)[0].id.clone();
+    let e = run(
+        &mut engine,
+        command::Kind::DeleteProject(DeleteProject { id }),
+    );
+    assert!(matches!(e, Some(event::Kind::CommandAccepted(_))), "{e:?}");
+    drop(engine);
+
+    let later = Shifted {
+        later: Duration::from_secs(31 * 24 * 60 * 60),
+        ..Shifted::default()
+    };
+    let mut engine = library_on(Box::new(later), &lib, cache.to_str().unwrap());
+    assert!(list(&mut engine).is_empty());
+    assert_eq!(tree(&cache), Vec::<String>::new());
+}
