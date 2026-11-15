@@ -317,14 +317,18 @@ impl Engine {
     }
 
     /// The platform's answer to a CreatePreview: draws into the texture, signals the frame,
-    /// and returns PreviewReady, or CommandFailed if the platform or the GPU failed.
+    /// and returns PreviewReady, or CommandFailed if the platform or the GPU failed: of kind
+    /// FAILURE_KIND_PREVIEW when it answers a CreatePreview, so the UI says the preview is
+    /// unavailable (UX-035); an answer nobody asked for is no preview failure.
     pub fn preview_texture_ready(&mut self, texture: Result<PlatformTexture, String>) -> Event {
+        let requested = self.preview.as_ref().is_some_and(|p| p.pending > 0);
         match self.show_preview(texture) {
             Ok(texture_id) => Event {
                 kind: Some(proto::event::Kind::PreviewReady(proto::PreviewReady {
                     texture_id,
                 })),
             },
+            Err(reason) if requested => failed(reason, proto::FailureKind::Preview),
             Err(reason) => command_failed(reason),
         }
     }

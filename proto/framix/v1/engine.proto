@@ -741,4 +741,7 @@ enum FailureKind {
   FAILURE_KIND_UNSPECIFIED = 0;
   // A background autosave did not reach the file; the edits are not saved yet.
   FAILURE_KIND_AUTOSAVE = 1;
+  // An accepted CreatePreview could not make its preview (the platform or the GPU failed);
+  // the UI says the preview is unavailable.
+  FAILURE_KIND_PREVIEW = 2;
 }

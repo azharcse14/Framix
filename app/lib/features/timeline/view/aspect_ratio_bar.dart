@@ -6,6 +6,7 @@ import '../../../core/ui/framix_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../export/view/export_buttons.dart';
 import '../../export/view/export_settings_button.dart';
+import '../../preview/bloc/preview_cubit.dart';
 import '../bloc/timeline_cubit.dart';
 
 /// Ratios offered to the user; the engine validates and stores them reduced.
@@ -140,10 +141,43 @@ class CanvasOutline extends StatelessWidget {
                 color: scheme.surface,
                 border: Border.all(color: scheme.outline),
               ),
+              child: const _PreviewUnavailable(),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Says so inside the canvas when the engine has no preview to show (UX-035); nothing otherwise.
+class _PreviewUnavailable extends StatelessWidget {
+  const _PreviewUnavailable();
+
+  /// Width the message wraps at before it is scaled down into a narrow canvas.
+  static const _wrapWidth = 160.0;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!context.select((PreviewCubit c) => c.state is PreviewUnavailable)) {
+      return const SizedBox.shrink();
+    }
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(FramixSpace.s),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _wrapWidth),
+          child: Text(
+            AppLocalizations.of(context).previewUnavailable,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

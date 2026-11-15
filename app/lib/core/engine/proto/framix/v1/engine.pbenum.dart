@@ -211,13 +211,19 @@ class FailureKind extends $pb.ProtobufEnum {
   static const FailureKind FAILURE_KIND_AUTOSAVE =
       FailureKind._(1, _omitEnumNames ? '' : 'FAILURE_KIND_AUTOSAVE');
 
+  /// An accepted CreatePreview could not make its preview (the platform or the GPU failed);
+  /// the UI says the preview is unavailable.
+  static const FailureKind FAILURE_KIND_PREVIEW =
+      FailureKind._(2, _omitEnumNames ? '' : 'FAILURE_KIND_PREVIEW');
+
   static const $core.List<FailureKind> values = <FailureKind>[
     FAILURE_KIND_UNSPECIFIED,
     FAILURE_KIND_AUTOSAVE,
+    FAILURE_KIND_PREVIEW,
   ];
 
   static final $core.List<FailureKind?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 1);
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
   static FailureKind? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 

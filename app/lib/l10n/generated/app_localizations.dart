@@ -284,6 +284,12 @@ abstract class AppLocalizations {
   /// **'Move and resize the clip on the canvas'**
   String get canvasPlaceClip;
 
+  /// No description provided for @previewUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview unavailable'**
+  String get previewUnavailable;
+
   /// No description provided for @export.
   ///
   /// In en, this message translates to:

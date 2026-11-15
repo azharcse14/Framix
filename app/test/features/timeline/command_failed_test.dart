@@ -112,7 +112,7 @@ void main() {
     }
     await sub.cancel();
     await cubit.close();
-    expect(cubit.state, isNull);
+    expect(cubit.state, const PreviewUnavailable());
     expect(failures, [last]);
   });
 

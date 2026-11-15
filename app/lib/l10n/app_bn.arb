@@ -31,6 +31,7 @@
   "clearLoop": "লুপ বন্ধ করুন",
   "timelineRuler": "টাইমলাইন",
   "canvasPlaceClip": "ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন",
+  "previewUnavailable": "প্রিভিউ দেখানো যাচ্ছে না",
   "export": "এক্সপোর্ট",
   "exporting": "ভিডিও এক্সপোর্ট হচ্ছে",
   "cancelExport": "এক্সপোর্ট বাতিল",

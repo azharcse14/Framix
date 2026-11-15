@@ -119,6 +119,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get canvasPlaceClip => 'Move and resize the clip on the canvas';
 
   @override
+  String get previewUnavailable => 'Preview unavailable';
+
+  @override
   String get export => 'Export';
 
   @override
