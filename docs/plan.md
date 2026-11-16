@@ -1083,6 +1083,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
 - [x] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
 - [ ] `L10N-019` Rename app/lib/core/ui/file_size.dart to a locale-number home (it now holds localeDigits, frameSize, the NumberFormat cache) and take the locale one way (l10n.localeName vs Localizations.localeOf in home_page.dart:431) (L10N-015/018 review) \[Dart\]
+- [ ] `L10N-020` iOS l10n test: check InfoPlist.xcstrings is in the Runner Resources phase files block, not just any pbxproj comment (L10N-014 review) \[Native\]
 
 ## Invisible system features
 

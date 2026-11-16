@@ -1,0 +1,24 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSPhotoLibraryAddUsageDescription" : {
+      "comment" : "Permission prompt when Framix saves an exported video to Photos.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Framix আপনার এক্সপোর্ট করা ভিডিও Photos-এ সেভ করে।"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Framix saves your exported videos to Photos."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
