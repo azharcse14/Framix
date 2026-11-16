@@ -72,6 +72,22 @@ fn media_a_remaining_state_uses_stays_registered() {
 }
 
 #[test]
+fn media_only_an_undo_state_uses_stays_registered() {
+    let mut h = History::new(Timeline::default());
+    let clip = import(&mut h, 1);
+    let media = h.timeline().clip(clip).unwrap().media;
+    h.apply(|tl| tl.remove_clip(clip)).unwrap();
+    add_track(&mut h);
+    assert!(h.undo());
+    // Drops the add-track state; current has no clip on the media, the import state does.
+    add_track(&mut h);
+    assert!(h.timeline().media(media).is_some());
+    assert!(h.undo());
+    assert!(h.undo());
+    assert_eq!(h.timeline().clip(clip).unwrap().media, media);
+}
+
+#[test]
 fn forgotten_media_ids_are_never_reissued() {
     let mut h = with_unused_media();
     add_track(&mut h);
