@@ -16090,6 +16090,10 @@
     {
      "date": "2026-11-16",
      "text": "plan: one fix where every call routes (with_kotlin): new jni_thread::thread_env attaches a thread once and parks a thread-local guard that detaches at thread exit (jni crate attach_current_thread_permanently semantics; the repo uses raw jni-sys 0.4.1, which has no helper, and adding the jni crate is a new dependency, so hand-rolled ~20 lines). with_kotlin wraps each call in Push/PopLocalFrame since detach no longer frees leaked locals. Host test: fake JavaVM vtable counts attach/detach (jni-sys as dev-dependency)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "done in branch worktree-agent-a2186f4b8298096ce (c021d4e test, f78fb09 fix, ee36aaa clippy fix of the test's unused field); check.sh green; code-reviewer was still running at handback, verdict pending. No Android device/emulator run (no image); correctness shown by the host fake-JavaVM test (attach 1x for 100 calls, detach 1x at thread exit) and android clippy. No criterion bench applies without a device."
     }
    ],
    "source": "added"
