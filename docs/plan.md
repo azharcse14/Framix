@@ -507,6 +507,7 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-126` Autosave panic: report once per failure streak and keep retrying while idle (ffi lib.rs stalled path; P1-121 review) \[Rust\]
 - [x] `P1-127` Caught autosave panic should go through Engine's Err path: one 'report once until saved' latch (not autosave_failed + ffi autosave_panicked) and mark_saved_work(false) so the crash marker knows work is unsaved (P1-126 review) \[Rust\]
 - [ ] `P1-128` Android instrumented test for ExportEncoder: draw frames via Surface.lockHardwareCanvas, check sample count and PTS with MediaExtractor (needs androidx.test deps, approve first) \[Native\]
+- [ ] `P1-129` Android export: a codec that fails mid-export (onError, reclaimed in background) must abandon its input Surface so a blocked Vulkan acquire returns (old loaders ignore the acquire timeout); pin the export window in Gpu's surface cache; attach the export worker to the JVM once per export \[Native\]
 
 ## Phase 2: Audio
 

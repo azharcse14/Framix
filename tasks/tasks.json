@@ -15918,6 +15918,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "P1-129",
+   "section": "P1",
+   "group": null,
+   "title": "Android export: a codec that fails mid-export (onError, reclaimed in background) must abandon its input Surface so a blocked Vulkan acquire returns (old loaders ignore the acquire timeout); pin the export window in Gpu's surface cache; attach the export worker to the JVM once per export",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
