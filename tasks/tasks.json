@@ -13745,6 +13745,22 @@
     {
      "date": "2026-10-24",
      "text": "P1-036: verify on device/emulator: export lands in exportDir (cacheDir, not Dart's code_cache systemTemp), Save writes Movies/Framix, Share via FileProvider (.files authority, cache-path). Emulator install kept failing on 2026-10-24, so Android save/share is built but never run."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: encoder_frame returns the codec input Surface's ANativeWindow* (same every frame); GpuRenderer draws/presents through draw_to_android_window like the preview. Surface buffers carry queue time, not frame time, so the codec runs with KEY_MAX_B_FRAMES=0 and Kotlin rewrites each output PTS from a FIFO of encoder_frame times; reordered or lost frames fail the export."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: Gpu keeps 2 window surfaces (LRU: preview + export) so a preview draw mid-export never disconnects the codec window; run_export forgets the last target only after encoder_finish (an early disconnect can drop queued frames). Codec runs async on its own HandlerThread (muxer written only there); finish waits up to 10 s for EOS."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: no Kotlin unit/instrumented tests: app/android has no test deps (JUnit/androidx.test) and new deps need approval; Rust app test with fakes covers the forget-after-finish order. Emulator: ~/.android/avd is empty (no AVDs), so no end-to-end run."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "native_warnings.sh: iOS sim + Android debug APK build OK; it fails only on 3 upstream cold-build lines (package_info_plus plugin deprecation, Gradle transform-api jar cache lines), none from app/android."
     }
    ],
    "source": "added"
@@ -15840,6 +15856,44 @@
    "title": "check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up)",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-128",
+   "section": "P1",
+   "group": null,
+   "title": "Android instrumented test for ExportEncoder: draw frames via Surface.lockHardwareCanvas, check sample count and PTS with MediaExtractor (needs androidx.test deps, approve first)",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "TC-015",
+   "section": "TC",
+   "group": null,
+   "title": "native_warnings.sh: allowlist cold-build upstream lines (package_info_plus 10.2.2 build.gradle.kts Project.android deprecation; Gradle cache lines naming transform-api-2.0.0-deprecated-use-gradle-api.jar)",
+   "tags": [
+    "Native"
    ],
    "owner": "claude",
    "deferred": false,
