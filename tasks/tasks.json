@@ -16736,7 +16736,12 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-a0449d7b796119ba9",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "only group tearDown changed in home_design/find/page/storage tests: tearDown is async and awaits engine.events.drain() after dispose() before deleteSync (home_folder_test pattern; broadcast stream closes on EngineStopped so drain ends outside the fake clock). No assertion changed or dropped. 4 files together 5x green (11 tests)."
+    }
+   ],
    "source": "added"
   },
   {
