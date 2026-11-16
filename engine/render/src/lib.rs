@@ -1209,7 +1209,7 @@ fn draw_into(
 
 #[cfg(test)]
 mod tests {
-    use super::{ALL_SPACES, Placement, shown_pixels, space_index};
+    use super::{ALL_SPACES, DrawError, Placement, shown_pixels, space_index};
     use framix_core::placement::Affine;
 
     /// The canvas fills the target; the source is `source` (target UV -> source UV).
@@ -1264,6 +1264,57 @@ mod tests {
         // rather than the shader's black.
         let p = on_canvas([2.0, 0.0, -0.5, 0.0, 1.0, 0.0]);
         assert_eq!(shown_pixels(&p, 2, 4), None);
+    }
+
+    /// Runs [`super::composite`] over `layers` with a fake draw: each layer's outcome is given;
+    /// returns the result plus every draw call (layer, clear) and whether black was drawn.
+    fn composite_fake(
+        layers: &[Result<bool, DrawError>],
+    ) -> (Result<(), DrawError>, Vec<(usize, bool)>, bool) {
+        let mut calls = Vec::new();
+        let mut black = false;
+        let result = super::composite(
+            &mut (0..layers.len()),
+            |&i, clear| {
+                calls.push((i, clear));
+                layers[i].clone()
+            },
+            || {
+                black = true;
+                Ok(())
+            },
+        );
+        (result, calls, black)
+    }
+
+    #[test]
+    fn an_undecoded_layer_is_left_out_and_reported_after_the_rest_are_drawn() {
+        let decode = || Err(DrawError::Decode("missing".into()));
+        let (result, calls, black) = composite_fake(&[decode(), Ok(true), Ok(true)]);
+        assert_eq!(result, Err(DrawError::Decode("missing".into())));
+        // The first layer drawn clears the target; the ones over it draw over.
+        assert_eq!(calls, [(0, true), (1, true), (2, false)]);
+        assert!(!black);
+    }
+
+    #[test]
+    fn nothing_drawn_leaves_a_black_target() {
+        let (result, calls, black) = composite_fake(&[Ok(false)]);
+        assert_eq!(result, Ok(()));
+        assert_eq!(calls, [(0, true)]);
+        assert!(black);
+        let (result, _, black) = composite_fake(&[]);
+        assert_eq!(result, Ok(()));
+        assert!(black);
+    }
+
+    #[test]
+    fn a_gpu_failure_stops_the_draw() {
+        let gpu = || Err(DrawError::Gpu("lost".into()));
+        let (result, calls, black) = composite_fake(&[Ok(true), gpu(), Ok(true)]);
+        assert_eq!(result, Err(DrawError::Gpu("lost".into())));
+        assert_eq!(calls, [(0, true), (1, false)]);
+        assert!(!black);
     }
 
     #[test]
