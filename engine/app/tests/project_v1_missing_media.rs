@@ -177,7 +177,7 @@ fn bad_v1_ranges_are_refused_by_the_timeline() {
     for c in [clip(3, 0, 0, 0), clip(3, 0, 0, -5), clip(3, -10, 0, 5)] {
         assert!(
             matches!(
-                decode(&v1(vec![], vec![c.clone()])),
+                decode(&v1(vec![], vec![c])),
                 Err(ProjectError::Invalid(
                     TimelineError::NonPositiveDuration | TimelineError::NegativeTime
                 ))
