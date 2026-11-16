@@ -16409,10 +16409,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "95edce1",
    "branch": "worktree-agent-a150e72a50bbd7d30",
    "notes": [
     {
@@ -16426,6 +16426,10 @@
     {
      "date": "2026-11-16",
      "text": "Review: APPROVE, no Critical. Warning: the 'no trim or duration change reverses the order' claim was false in combination (set_photo_durations then a left-half start trim lifts l.src past r.src -> refused; not a regression). Doc comment corrected and filed as ENG-064 together with the stale MergeClips proto comment (regen needed, so left out here). Suggestions done: rewrapped the 120-char check_source doc line, bool match -> if/else."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "tracker: this branch's follow-up landed on main as ENG-064 (still merge order gap); the ENG-063 sweep fail-closed work in the unmerged ENG-063 branch also used ENG-064 and is renumbered when it merges"
     }
    ],
    "source": "added"
