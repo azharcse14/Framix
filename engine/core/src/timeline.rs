@@ -3,7 +3,7 @@
 //! Keyframes (P5-001) are not modelled yet. Clip-local times are relative to the clip, so
 //! keyframes added later stay valid when a clip moves.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::aspect::AspectRatio;
 use crate::media::{MAX_IMPORT, Media, MediaKind, PHOTO_DEFAULT_DURATION};
@@ -1088,6 +1088,19 @@ impl Timeline {
             .filter_map(|t| t.clips.last().map(Clip::end))
             .max()
             .unwrap_or(Time(0))
+    }
+
+    /// The media id of every clip, in track and clip order (repeats included).
+    pub fn used_media(&self) -> impl Iterator<Item = MediaId> + '_ {
+        self.tracks.iter().flat_map(|t| &t.clips).map(|c| c.media)
+    }
+
+    /// Unregisters every media neither in `keep` nor used by a clip here (ENG-055); the ids
+    /// stay used up and are never reissued.
+    pub fn forget_media_except(&mut self, keep: &BTreeSet<MediaId>) {
+        let own: BTreeSet<MediaId> = self.used_media().collect();
+        self.media
+            .retain(|id, _| keep.contains(id) || own.contains(id));
     }
 
     /// Makes every id this timeline hands out from now on newer than any id `other`
