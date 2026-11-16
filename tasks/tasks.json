@@ -16665,7 +16665,16 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-ac7776362980b35bc",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: the prescribed fix (set_photo_durations keeps the start/offset gap) is not enough: a grow then shrink of the left half's start already lifts its offset past the right half's (grow clamps at 0, ENG-060; shrink shifts it up), no duration change needed (test split_photo_halves_merge_after_the_left_grows_then_shrinks_at_its_start). Fix at the root instead: trim_clip keeps a photo/color source offset; only split sets one (right = left + cut), so every later piece of one still sits above the first and left-to-right merge always rejoins. set_photo_durations unchanged. check_source's max(0) clamp for stills dropped (insert refuses negatives, trim passes the kept offset). Also closes the ENG-062 gap 'duplicate of a start-shrunk still after a fresh copy merges'. Remaining gap: a piece split off a grown left half may sit above the old right half (merge from the left still rejoins)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "tests: 8dd43f5 (failing: 2 unit + proptest). bef8f70 fixed the new proptest: its start-trim op hit any piece, and a later piece's start trim leaves a gap (never mergeable); now only the first piece. Older test edited: clip_ops_edges overflowing_source_or_end_is_refused pinned TimeOverflow for a still trim with offset i64::MAX-5 (the old shifting trim); it now pins Ok and the kept offset. Proto: MergeClips/TrimClip/SnapTrim/TrimToPlayhead comments only, regenerated, no field or protocol change."
+    }
+   ],
    "source": "added"
   }
  ]
