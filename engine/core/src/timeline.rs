@@ -413,7 +413,7 @@ impl Timeline {
         let at = free_slot(&self.tracks[index].clips, placement.start, end, None)?;
         self.check_source(
             placement.media,
-            placement.source_start,
+            placement.source_start.0,
             end - placement.start.0,
         )?;
         self.check_transform(placement.media, transform)?;
@@ -625,7 +625,8 @@ impl Timeline {
 
     /// Moves a clip's edges to `[start, end)`. Moving the start also moves the source offset by
     /// the same amount, so the frames under the rest of the clip stay put. A video clip stays
-    /// inside its media ([`TimelineError::PastMediaEnd`]).
+    /// inside its media ([`TimelineError::PastMediaEnd`]); a photo or color clip may grow either
+    /// way (its source offset stops at 0).
     pub fn trim_clip(&mut self, clip: ClipId, start: Time, end: Time) -> Result<(), TimelineError> {
         let (t, i) = self.locate(clip)?;
         let clips = &mut self.tracks[t].clips;
@@ -637,14 +638,11 @@ impl Timeline {
             return Err(TimelineError::NonPositiveDuration);
         }
         // Both starts are non-negative, so the difference cannot overflow.
-        let source_start = c
+        let shifted = c
             .source_start
             .0
             .checked_add(start.0 - c.start.0)
             .ok_or(TimelineError::TimeOverflow)?;
-        if source_start < 0 {
-            return Err(TimelineError::NegativeTime);
-        }
         // A trim moves edges but never past a neighbour, so the track stays sorted.
         if let Some(prev) = clips[..i].last().filter(|p| p.end() > start) {
             return Err(TimelineError::Overlap(prev.id));
@@ -653,10 +651,10 @@ impl Timeline {
             return Err(TimelineError::Overlap(next.id));
         }
         // Both edges are non-negative, so the difference cannot overflow.
-        self.check_source(c.media, Time(source_start), end.0 - start.0)?;
+        let source_start = self.check_source(c.media, shifted, end.0 - start.0)?;
         let trimmed = &mut self.tracks[t].clips[i];
         trimmed.start = start;
-        trimmed.source_start = Time(source_start);
+        trimmed.source_start = source_start;
         trimmed.duration = Time(end.0 - start.0);
         Ok(())
     }
@@ -815,27 +813,34 @@ impl Timeline {
             .is_none_or(|m| m.kind() != MediaKind::Color)
     }
 
-    /// `media` is registered and, for a video, `[source_start, source_start + duration)` lies
-    /// inside it (`source_start` is checked non-negative by the caller). Photos and colors have
-    /// no length. The one home of the source-range rule: insert and trim call it, and split,
-    /// merge, move and duplicate only keep or narrow a range that passed it.
+    /// The source start a clip of `media` holds for a wanted `source_start`: `media` is
+    /// registered and, for a video, `[source_start, source_start + duration)` lies inside it
+    /// ([`TimelineError::NegativeTime`], [`TimelineError::PastMediaEnd`]). Photos and colors have
+    /// no length: any range is fine and a start below 0 holds as 0 (ENG-060; the picture ignores
+    /// it, split and merge use it to tell halves of one clip). The one home of the source-range
+    /// rule: insert and trim call it, and split, merge, move and duplicate only keep or narrow a
+    /// range that passed it.
     fn check_source(
         &self,
         media: MediaId,
-        source_start: Time,
+        source_start: i64,
         duration: i64,
-    ) -> Result<(), TimelineError> {
+    ) -> Result<Time, TimelineError> {
         let m = self
             .media(media)
             .ok_or(TimelineError::UnknownMedia(media))?;
-        let past_end = m.kind() == MediaKind::Video
-            && source_start
-                .0
-                .checked_add(duration)
-                .is_none_or(|end| end > m.duration().0);
-        match past_end {
+        if m.kind() != MediaKind::Video {
+            return Ok(Time(source_start.max(0)));
+        }
+        if source_start < 0 {
+            return Err(TimelineError::NegativeTime);
+        }
+        match source_start
+            .checked_add(duration)
+            .is_none_or(|end| end > m.duration().0)
+        {
             true => Err(TimelineError::PastMediaEnd),
-            false => Ok(()),
+            false => Ok(Time(source_start)),
         }
     }
 
