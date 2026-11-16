@@ -16414,7 +16414,16 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-a150e72a50bbd7d30",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision (Plan agent): option C. Videos keep the exact rule (l.source_start + l.duration == r.source_start). A photo/color merges with its right neighbour when same media, same transform, adjacent and r.source_start > l.source_start. Why: the picture ignores a still's offset, and the offset drifts two ways the exact rule cannot survive: a start trim clamps it at 0 (ENG-060) and set_photo_durations changes durations but keeps offsets (any split photo became unmergeable after a photo-duration change). Order survives both (split adds the cut; trims and duration changes never reverse it), while a duplicate copies its original's offset (equal -> refused) and separate inserts of one still both sit at 0 (refused), so the UX rule holds. Rejected A (pure adjacency): offers merge for duplicates. Rejected B (keep): set_photo_durations case has no user workaround. Known gaps (rare, look identical on screen): a duplicate of a start-shrunk still placed after a fresh copy is mergeable; after a left half grows (offset 0) and is split again, the new middle may not merge directly with the old right half (merging left-to-right still rejoins). No format change. Track::mergeable_with_next moved to Timeline::mergeable_with_next(track, index) because a Track cannot see media kinds; merge_refusal is now a Timeline method (still the one home)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Older tests: none edited. Tests commit dd36698 (failing: media_range still_halves_merge_after_the_left_grows_at_its_start + proptest, photo_duration split_photo_halves_merge_after_the_duration_changes, engine_mergeable photo test); duplicate/two-insert tests pin the refusal."
+    }
+   ],
    "source": "added"
   },
   {
