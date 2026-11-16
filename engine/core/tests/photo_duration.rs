@@ -173,7 +173,11 @@ proptest! {
                 0 if c.duration.0 > 1 => tl
                     .split_clip(c.id, Time(c.start.0 + 1 + seed % (c.duration.0 - 1)))
                     .map(drop),
-                1 => tl.trim_clip(c.id, Time(seed % c.end().0), c.end()),
+                // Only the first piece: a later one's start trim leaves a gap (never mergeable).
+                1 => {
+                    let first = clips[0];
+                    tl.trim_clip(first.id, Time(seed % first.end().0), first.end())
+                }
                 2 => tl.set_photo_durations(Time(1 + seed % (10 * S))),
                 _ => Ok(()),
             };
