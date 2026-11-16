@@ -368,6 +368,12 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get done;
 
+  /// No description provided for @showExportResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the exported video'**
+  String get showExportResult;
+
   /// No description provided for @somethingWentWrong.
   ///
   /// In en, this message translates to:

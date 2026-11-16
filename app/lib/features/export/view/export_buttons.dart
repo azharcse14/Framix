@@ -13,7 +13,8 @@ import '../../timeline/bloc/playback_cubit.dart';
 import '../bloc/export_cubit.dart';
 import 'export_result_page.dart';
 
-/// Export, its progress and cancel; a finished export opens the Result screen.
+/// Export, its progress and cancel; a finished export opens the Result screen, and it stays
+/// reachable from here.
 class ExportButtons extends StatefulWidget {
   const ExportButtons({super.key});
 
@@ -47,8 +48,9 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// message) and outranks a generic one waiting behind that.
   void _tell(String text) => showMessage(context, text, important: true);
 
-  /// Opens the Result screen for the file just exported. The route carries the cubits it
-  /// reads, as the editor sees them (they may sit below the Navigator).
+  /// Opens the Result screen for the last exported file. The route carries the cubits it
+  /// reads, as the editor sees them: in the app they sit above the Navigator, but a route
+  /// must not depend on that (tests provide them inside the editor route).
   void _showResult() => Navigator.of(context).push<void>(
     MaterialPageRoute<void>(
       builder: (_) => MultiBlocProvider(
@@ -98,10 +100,24 @@ class _ExportButtonsState extends State<ExportButtons> {
             ],
           );
         }
-        return IconButton(
+        final export = IconButton(
           tooltip: l10n.export,
           icon: const Icon(Icons.movie),
           onPressed: () => _export(cubit),
+        );
+        // A finished export stays reachable: it may have finished while the editor was closed
+        // (the export outlives it), or the user went Back to edit.
+        if (state is! ExportDone) return export;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: l10n.showExportResult,
+              icon: const Icon(Icons.play_circle_outline),
+              onPressed: _showResult,
+            ),
+            export,
+          ],
         );
       },
     );

@@ -56,20 +56,23 @@ class _ExportResultPageState extends State<ExportResultPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final busy = _busy;
     return PopScope(
-      canPop: !busy,
+      canPop: !_busy,
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             tooltip: l10n.backToEdit,
             icon: const BackButtonIcon(),
-            onPressed: busy ? null : () => Navigator.of(context).pop(),
+            onPressed: _busy ? null : () => Navigator.of(context).pop(),
           ),
           title: Text(l10n.exportResultTitle),
           actions: [
+            // Text color, not accent: Save is the one accent action (docs/design-system.md).
             TextButton(
-              onPressed: busy
+              style: TextButton.styleFrom(
+                foregroundColor: FramixColors.of(context).text,
+              ),
+              onPressed: _busy
                   ? null
                   : () => Navigator.of(context).popUntil((r) => r.isFirst),
               child: Text(l10n.done),
@@ -102,13 +105,13 @@ class _ExportResultPageState extends State<ExportResultPage> {
                 FilledButton.icon(
                   icon: const Icon(Icons.save_alt),
                   label: Text(l10n.saveToGallery),
-                  onPressed: busy ? null : () => _save(l10n),
+                  onPressed: _busy ? null : () => _save(l10n),
                 ),
                 const SizedBox(height: FramixSpace.s),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.share),
                   label: Text(l10n.share),
-                  onPressed: busy ? null : () => _share(l10n),
+                  onPressed: _busy ? null : () => _share(l10n),
                 ),
               ],
             ),

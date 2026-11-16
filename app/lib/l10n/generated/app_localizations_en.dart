@@ -181,6 +181,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get done => 'Done';
 
   @override
+  String get showExportResult => 'Show the exported video';
+
+  @override
   String get somethingWentWrong => 'Something went wrong. Try again.';
 
   @override
