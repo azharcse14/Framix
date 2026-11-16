@@ -3386,12 +3386,13 @@ class SnapMove extends $pb.GeneratedMessage {
 }
 
 /// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
-/// Refused on a locked track, for a start before 0, when end <= start, or when an edge crosses
-/// a neighbouring clip. Edges first snap to the nearest edge (0, a clip start or end, the
-/// timeline end) within snap_within ticks, as Seek does. Only a moved edge snaps, the clip's
-/// own edges are no targets, and an edge snapped onto or past the other stays where dropped.
-/// Then a video clip's edges stop at its media's first and last frame (not a snap). 0 = no
-/// snapping, more than 10 s is capped, negative is refused.
+/// A video clip's edges stop at its media's first and last frame (not a snap). Refused on a
+/// locked track, for a start that is still before 0, when end <= start, or when an edge
+/// crosses a neighbouring clip. Edges first snap to the nearest edge (0, a clip start or end,
+/// the timeline end) within snap_within ticks, as Seek does. Only a moved edge snaps, the
+/// clip's own edges and points past the media's ends are no targets, and an edge snapped onto
+/// or past the other stays where dropped. 0 = no snapping, more than 10 s is capped, negative
+/// is refused.
 class SnapTrim extends $pb.GeneratedMessage {
   factory SnapTrim({
     $fixnum.Int64? clipId,
