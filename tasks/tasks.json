@@ -16533,8 +16533,31 @@
     {
      "date": "2026-11-16",
      "text": "edited older test: app/test/features/home/home_storage_test.dart writes its thumbnail once Home (and so the library) is open, for the same reason; assertions unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Fixed: W1 OpenLibrary proto doc (comment only, regenerated engine.pb.dart; no protocol bump: no wire change) and MediaPicker back-reference; W2 tests for the 1 h boundary, current-timeline-only media, decodable/torn side copies, newer-app project; W3 FileStore-backed sweep test (links in media/ and cache, sub-folder, outside target kept); nit: sweep doc says why exact uri match suffices. W4: the frozen-test reorder is recorded in the earlier note; the user's standing instruction is never to ask, so it was decided here. Not done: mark-phase listing skips entries whose stat fails (FileStore files()), fails open in theory; filed as follow-up."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "ENG-064",
+   "section": "ENG",
+   "group": null,
+   "title": "Library sweep (ENG-063): fail closed when listing the library folder skips an entry it can't stat",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

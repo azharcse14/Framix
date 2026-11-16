@@ -268,6 +268,74 @@ fn a_copy_written_within_the_hour_is_kept() {
 }
 
 #[test]
+fn a_copy_is_fresh_for_exactly_one_hour() {
+    let store = MemStore::default();
+    let hour = Duration::from_secs(60 * 60);
+    store.put_at("/data/media/hour.jpg", b"h", NOW - hour);
+    store.put_at(
+        "/data/media/almost.jpg",
+        b"a",
+        NOW - hour + Duration::from_secs(1),
+    );
+    // Stamped ahead of the store's clock: fresh.
+    store.put_at("/data/media/ahead.jpg", b"f", NOW + hour);
+    assert_eq!(sweep(&store), paths(&["/data/media/hour.jpg"]));
+}
+
+#[test]
+fn a_copy_only_the_current_timeline_uses_is_kept() {
+    let store = MemStore::default();
+    store.put("/data/media/now.jpg", b"n");
+    let mut engine = Engine::with_store(Box::new(store.clone()));
+    let reply = run(
+        &mut engine,
+        command::Kind::ImportMedia(ImportMedia {
+            items: vec![MediaItem {
+                uri: "media/now.jpg".into(),
+                kind: MediaKind::Image as i32,
+                width: 4,
+                height: 3,
+                ..Default::default()
+            }],
+        }),
+    );
+    assert!(
+        matches!(reply, Some(event::Kind::TimelineChanged(_))),
+        "{reply:?}"
+    );
+    open_library(&mut engine);
+    assert_eq!(store.paths(), paths(&["/data/media/now.jpg"]));
+}
+
+#[test]
+fn a_side_copy_marks_its_media_when_it_decodes_and_is_ignored_when_it_does_not() {
+    let store = MemStore::default();
+    store.project("/data/projects/p1.framix", &["media/a.jpg"]);
+    // Set aside as damaged yet still readable, and one torn by a crash mid-save.
+    store.project("/data/projects/p1.framix.broken", &["media/b.jpg"]);
+    store.put("/data/projects/p1.framix.tmp", b"\xff\xff torn");
+    store.put("/data/media/b.jpg", b"b");
+    store.put("/data/media/gone.jpg", b"g");
+    assert_eq!(sweep(&store), paths(&["/data/media/gone.jpg"]));
+}
+
+#[test]
+fn a_project_from_a_newer_app_keeps_every_file() {
+    use framix_app::project::FORMAT_VERSION;
+    use framix_app::project_proto::ProjectFile;
+    use prost::Message as _;
+    let store = MemStore::default();
+    let newer = ProjectFile {
+        format_version: FORMAT_VERSION + 1,
+        min_reader_version: FORMAT_VERSION + 1,
+        ..Default::default()
+    };
+    store.put("/data/projects/p1.framix", &newer.encode_to_vec());
+    store.put("/data/media/gone.jpg", b"g");
+    assert_eq!(sweep(&store), BTreeSet::new());
+}
+
+#[test]
 fn cache_files_of_media_no_project_uses_are_deleted() {
     let store = MemStore::default();
     store.project("/data/projects/p1.framix", &["media/a.jpg"]);

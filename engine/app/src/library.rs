@@ -474,7 +474,9 @@ const FRESH_COPY: Duration = Duration::from_secs(60 * 60);
 /// `cache_dir`) of media that no project in `dir` (its file, backups or other copies) and no
 /// timeline of `open` refers to (ENG-063). Only files listed in those folders are removed; no
 /// path is built from a project's uri. Deletes nothing when a project file or backup can't be
-/// read: it may refer to any copy. A copy written within [`FRESH_COPY`] stays. Best effort.
+/// read: it may refer to any copy. A copy written within [`FRESH_COPY`] stays. A copy is
+/// matched by its exact `media/<name>` uri, the only form the media validator lets a copy's
+/// uri take. Best effort.
 // ponytail: decodes every project on the command thread, like [`list`]; move it to a worker
 // with the summary cache (OVL-015) if launches slow down.
 pub fn sweep<'a>(
