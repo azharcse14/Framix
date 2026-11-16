@@ -16419,12 +16419,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-af72e80673b806d3c",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "finding: lazy: false alone is not load-bearing today. The first editor makes ExportCubit and TimelineCubit in the same build; TimelineCubit's GetTimeline reply (a TimelineChanged with the project) always reaches the lazy ExportCubit, so it learns the exported project anyway. Proof: the test passes with lazy: false removed; it fails (showExportResult still found in the opened project) with both lazy: false and the GetTimeline send removed. Not a bug: behavior is correct. decision: kept the app-level test (New, export done via a wrapper engine that accepts ExportProject then ExportFinished(ok), Open a project saved before start) as the guard for the whole mechanism; no edit in the new project, since an edit's TimelineChanged would also reach a lazy cubit."
+    }
+   ],
    "source": "added"
   },
   {
