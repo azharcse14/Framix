@@ -27,6 +27,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -52,4 +53,11 @@ dependencies {
     // FileProvider for sharing exports (MediaPicker.share); the version the Flutter embedding
     // already brings, declared so a Flutter upgrade can't drop it.
     implementation("androidx.core:core:1.13.1")
+
+    // Instrumented tests (src/androidTest), run on a device or emulator with
+    // `./gradlew app:connectedDebugAndroidTest`.
+    androidTestImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test:core:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
