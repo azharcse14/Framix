@@ -20,6 +20,9 @@ pub struct History {
 }
 
 impl History {
+    /// The most undo steps kept; past it the oldest go first (GOT-051).
+    pub const MAX_UNDO_STEPS: usize = 100;
+
     /// Starts a history at `timeline` with nothing to undo.
     pub fn new(timeline: Timeline) -> Self {
         Self {
