@@ -1006,7 +1006,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-045` An export from project A that finishes while B is open lands silently as ExportIdle: show a one-line notice (finished/failed), or have the engine cancel exports on New/Open; also A -> B -> A while running shows A's result as Idle (UX-041 review) \[Dart\]
 - [x] `UX-046` ExportCubit test: a second accepted export's ExportDone carries the second path (last accepted wins; UX-042 review) \[Dart\]
 - [x] `UX-047` export_switch_app_test: dispose the earlier engine and wait for EngineStopped before pumping the app (two live writers on one library dir, teardown deleteSync race; follow home_from_backup_test.dart:58-72); comment why snack bars are cleared (UX-044 review) \[Dart\]
-- [ ] `UX-048` export_switch_app_test and home_from_backup_test: teardown waits for the app engine's EngineStopped before deleteSync (it autosaves on shutdown; UX-047 review) \[Dart\]
+- [x] `UX-048` export_switch_app_test and home_from_backup_test: teardown waits for the app engine's EngineStopped before deleteSync (it autosaves on shutdown; UX-047 review) \[Dart\]
 - [ ] `UX-049` bangla_text_fit_test: the per-test addTearDown deletes the library dir before the group tearDown disposes the engine; delete it after stopEngine (UX-048) \[Dart\]
 - [ ] `UX-050` home_design, home_find, home_page, home_storage tests: group tearDown deletes the library dir right after engine.dispose(); await engine.events.drain() first like home_folder_test (UX-048) \[Dart\]
 
