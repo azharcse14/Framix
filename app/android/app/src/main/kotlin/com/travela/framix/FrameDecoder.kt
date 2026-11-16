@@ -49,9 +49,12 @@ class FrameDecoder private constructor(private val context: Context) {
     private val callbackHandler = Handler(callbacks.looper)
 
     private lateinit var gl: Gl
-    private var output: Output? = null
-    private var video: Video? = null
-    private var photo: Photo? = null
+
+    // Least recently used first (access order), at most CACHED of each: PIP with two videos or
+    // photos keeps both open instead of reopening a codec every frame (P1-131).
+    private val outputs = LinkedHashMap<Pair<Int, Int>, Output>(4, 0.75f, true)
+    private val videos = LinkedHashMap<String, Video>(4, 0.75f, true)
+    private val photos = LinkedHashMap<String, Photo>(4, 0.75f, true)
 
     /** The frame handed out last and the media range it shows; kept until the next call. */
     private var shown: Shown? = null
@@ -62,7 +65,7 @@ class FrameDecoder private constructor(private val context: Context) {
             // Only the kind of failure: messages can carry the uri.
             .onFailure {
                 Log.w("framix", "decode failed: ${it.javaClass.simpleName}")
-                closeVideo()
+                videos.remove(uri)?.let(::closeVideo)
             }
             .getOrNull()
     }
@@ -73,11 +76,12 @@ class FrameDecoder private constructor(private val context: Context) {
             onThread {
                 shown?.release()
                 shown = null
-                closeVideo()
-                photo?.let { GLES20.glDeleteTextures(1, intArrayOf(it.texture), 0) }
-                photo = null
-                output?.close(gl)
-                output = null
+                videos.values.forEach(::closeVideo)
+                videos.clear()
+                photos.values.forEach(::closePhoto)
+                photos.clear()
+                outputs.values.forEach { it.close(gl) }
+                outputs.clear()
                 gl.close()
             }
         } finally {
@@ -87,6 +91,21 @@ class FrameDecoder private constructor(private val context: Context) {
     }
 
     private fun <T> onThread(task: () -> T): T = work.submit(task).get()
+
+    /**
+     * The entry for [key], else [make]'s, after closing the least recently used one if the cache
+     * is full (first, so no more than CACHED codecs are ever open). Runs only once the frame
+     * handed out last is released, so closing never frees a buffer the engine still reads.
+     */
+    private fun <K, V> LinkedHashMap<K, V>.cached(key: K, close: (V) -> Unit, make: () -> V): V {
+        get(key)?.let { return it }
+        while (size >= CACHED) {
+            val eldest = entries.first()
+            remove(eldest.key)
+            close(eldest.value)
+        }
+        return make().also { put(key, it) }
+    }
 
     private fun frameOnThread(uri: String, image: Boolean, timeUs: Long): HardwareBuffer? {
         shown?.let { if (it.uri == uri && it.image == image && it.covers(timeUs)) return it.buffer }
@@ -108,11 +127,7 @@ class FrameDecoder private constructor(private val context: Context) {
 
     /** Draws the photo (stored orientation: the engine applies EXIF) into the output. */
     private fun drawPhoto(uri: String): Pair<Output, LongRange> {
-        val cached = photo?.takeIf { it.uri == uri } ?: run {
-            photo?.let { GLES20.glDeleteTextures(1, intArrayOf(it.texture), 0) }
-            photo = null
-            loadPhoto(uri).also { photo = it }
-        }
+        val cached = photos.cached(uri, ::closePhoto) { loadPhoto(uri) }
         val out = outputFor(cached.width, cached.height)
         gl.draw(out, Gl.Source.Photo(cached.texture), Gl.FLIP_V)
         return out to Long.MIN_VALUE..Long.MAX_VALUE
@@ -139,7 +154,7 @@ class FrameDecoder private constructor(private val context: Context) {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
             Gl.linearClamp(GLES20.GL_TEXTURE_2D)
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
-            return Photo(uri, texture, bitmap.width, bitmap.height)
+            return Photo(texture, bitmap.width, bitmap.height)
         } finally {
             bitmap.recycle()
         }
@@ -155,8 +170,8 @@ class FrameDecoder private constructor(private val context: Context) {
     private fun drawVideo(uri: String, timeUs: Long): Pair<Output, LongRange>? {
         // ponytail: forward reads up to 1 s, else seek to the previous sync frame; keyframe-aware
         // seeking and caching are ENG-006.
-        val v = video?.takeIf { it.uri == uri } ?: openVideo(uri)
-        // The latched frame still shows: draw it again (a photo call may have reused the output).
+        val v = videos.cached(uri, ::closeVideo) { Video.open(context, uri) }
+        // The latched frame still shows: draw it again (another call may have used the output since).
         v.latched?.let { (range, transform) ->
             if (timeUs in range) {
                 val out = outputFor(v.width, v.height)
@@ -197,26 +212,16 @@ class FrameDecoder private constructor(private val context: Context) {
         return out to (start until end)
     }
 
-    private fun openVideo(uri: String): Video {
-        closeVideo()
-        return Video.open(context, uri).also { video = it }
+    private fun closeVideo(video: Video) {
+        video.close()
+        GLES20.glDeleteTextures(1, intArrayOf(video.textureId), 0)
     }
 
-    private fun closeVideo() {
-        video?.let {
-            it.close()
-            GLES20.glDeleteTextures(1, intArrayOf(it.textureId), 0)
-        }
-        video = null
-    }
+    private fun closePhoto(photo: Photo) = GLES20.glDeleteTextures(1, intArrayOf(photo.texture), 0)
 
-    /** The output sized [width] x [height], remade when the size changes. */
-    private fun outputFor(width: Int, height: Int): Output {
-        output?.takeIf { it.width == width && it.height == height }?.let { return it }
-        output?.close(gl)
-        output = null
-        return Output(width, height, gl, callbackHandler).also { output = it }
-    }
+    /** The output sized [width] x [height] (one per size, cached like the media). */
+    private fun outputFor(width: Int, height: Int): Output =
+        outputs.cached(width to height, { it.close(gl) }) { Output(width, height, gl, callbackHandler) }
 
     /** The frame handed out: [image] owns [buffer] until released. */
     private class Shown(
@@ -234,7 +239,7 @@ class FrameDecoder private constructor(private val context: Context) {
         }
     }
 
-    private class Photo(val uri: String, val texture: Int, val width: Int, val height: Int)
+    private class Photo(val texture: Int, val width: Int, val height: Int)
 
     /** An ImageReader of RGBA8 HardwareBuffers the engine samples, and the EGL surface on it. */
     private class Output(val width: Int, val height: Int, gl: Gl, handler: Handler) {
@@ -275,7 +280,6 @@ class FrameDecoder private constructor(private val context: Context) {
 
     /** One video's extractor and codec, decoding into a SurfaceTexture on [textureId]. */
     private class Video(
-        val uri: String,
         val extractor: MediaExtractor,
         val codec: MediaCodec,
         val textureId: Int,
@@ -393,7 +397,7 @@ class FrameDecoder private constructor(private val context: Context) {
                     codec = MediaCodec.createDecoderByType(mime)
                     codec.configure(format, surface, null, 0)
                     codec.start()
-                    return Video(uri, extractor, codec, textureId, texture, surface, width, height)
+                    return Video(extractor, codec, textureId, texture, surface, width, height)
                 } catch (e: Exception) {
                     codec?.release()
                     surface?.release()
@@ -578,6 +582,12 @@ class FrameDecoder private constructor(private val context: Context) {
         private const val FRAME_WAIT_MS = 2_000L
         private const val SEEK_AHEAD_US = 1_000_000L
         private const val PHOTO_MAX_SIDE = 4096
+
+        // ponytail: 2 of each per decoder: PIP with two videos or photos. Each decoder (preview,
+        // export) holds up to 2 MediaCodecs, so at most 4 app-wide, within the hardware decoder
+        // limit of low-end phones; photos are up to 64 MB textures. Three or more alternating
+        // media evict each other every frame (as before); a decoder pool is ENG-007.
+        private const val CACHED = 2
 
         /** A decoder with its own thread and EGL context, or null if GLES is unavailable. */
         fun open(context: Context): FrameDecoder? {
