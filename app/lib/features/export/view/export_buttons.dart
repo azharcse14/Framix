@@ -7,10 +7,14 @@ import '../../../core/media/export_sharer.dart';
 import '../../../core/ui/file_size.dart';
 import '../../../core/ui/messages.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../bloc/export_cubit.dart';
 import '../../../core/ui/small_spinner.dart';
+import '../../preview/bloc/preview_cubit.dart';
+import '../../timeline/bloc/playback_cubit.dart';
+import '../bloc/export_cubit.dart';
+import 'export_result_page.dart';
 
-/// Export, its progress and cancel, then save to gallery and share for the finished file.
+/// Export, its progress and cancel; a finished export opens the Result screen, and it stays
+/// reachable from here.
 class ExportButtons extends StatefulWidget {
   const ExportButtons({super.key});
 
@@ -22,7 +26,7 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// The export folder: Dart temp until the platform answers (within the first frames).
   String _dir = Directory.systemTemp.path;
 
-  /// Where the last export was written; save and share read this file.
+  /// Where the last export was written; the Result screen saves and shares this file.
   String? _exported;
 
   /// One export file; each export replaces it.
@@ -40,36 +44,24 @@ class _ExportButtonsState extends State<ExportButtons> {
     cubit.start(path);
   }
 
-  /// A save or share is reading the file; a new export would overwrite it underneath.
-  bool _busy = false;
-
   /// A one-time result: it replaces a message still showing (except a failed-autosave
   /// message) and outranks a generic one waiting behind that.
   void _tell(String text) => showMessage(context, text, important: true);
 
-  Future<void> _whileBusy(Future<void> Function() work) async {
-    setState(() => _busy = true);
-    try {
-      await work();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _save(AppLocalizations l10n) => _whileBusy(() async {
-    final result = await const ExportSharer().saveToGallery(_path);
-    if (!mounted) return;
-    _tell(switch (result) {
-      SaveResult.saved => l10n.savedToGallery,
-      SaveResult.denied => l10n.saveDenied,
-      SaveResult.failed => l10n.saveFailed,
-    });
-  });
-
-  Future<void> _share(AppLocalizations l10n) => _whileBusy(() async {
-    if (await const ExportSharer().share(_path)) return;
-    if (mounted) _tell(l10n.shareFailed);
-  });
+  /// Opens the Result screen for the last exported file. The route carries the cubits it
+  /// reads, as the editor sees them: in the app they sit above the Navigator, but a route
+  /// must not depend on that (tests provide them inside the editor route).
+  void _showResult() => Navigator.of(context).push<void>(
+    MaterialPageRoute<void>(
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<PreviewCubit>()),
+          BlocProvider.value(value: context.read<PlaybackCubit>()),
+        ],
+        child: ExportResultPage(path: _path),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -77,16 +69,20 @@ class _ExportButtonsState extends State<ExportButtons> {
     final cubit = context.read<ExportCubit>();
     final locale = '${Localizations.localeOf(context)}';
     return BlocConsumer<ExportCubit, ExportState>(
-      listenWhen: (_, next) => next is ExportFailed || next is ExportNoSpace,
-      listener: (_, state) => _tell(switch (state) {
-        // Needed rounds up, free rounds down: needed always reads as more than free.
-        ExportNoSpace(:final neededBytes, :final freeBytes) =>
-          l10n.exportNoSpace(
-            fileSize(l10n, locale, neededBytes, rounding: SizeRounding.up),
-            fileSize(l10n, locale, freeBytes, rounding: SizeRounding.down),
-          ),
-        _ => l10n.exportFailed,
-      }),
+      listenWhen: (_, next) =>
+          next is ExportDone || next is ExportFailed || next is ExportNoSpace,
+      listener: (_, state) {
+        if (state is ExportDone) return _showResult();
+        _tell(switch (state) {
+          // Needed rounds up, free rounds down: needed always reads as more than free.
+          ExportNoSpace(:final neededBytes, :final freeBytes) =>
+            l10n.exportNoSpace(
+              fileSize(l10n, locale, neededBytes, rounding: SizeRounding.up),
+              fileSize(l10n, locale, freeBytes, rounding: SizeRounding.down),
+            ),
+          _ => l10n.exportFailed,
+        });
+      },
       builder: (context, state) {
         if (state is ExportRunning) {
           return Row(
@@ -104,26 +100,23 @@ class _ExportButtonsState extends State<ExportButtons> {
             ],
           );
         }
+        final export = IconButton(
+          tooltip: l10n.export,
+          icon: const Icon(Icons.movie),
+          onPressed: () => _export(cubit),
+        );
+        // A finished export stays reachable: it may have finished while the editor was closed
+        // (the export outlives it), or the user went Back to edit.
+        if (state is! ExportDone) return export;
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (state is ExportDone) ...[
-              IconButton(
-                tooltip: l10n.saveToGallery,
-                icon: const Icon(Icons.save_alt),
-                onPressed: _busy ? null : () => _save(l10n),
-              ),
-              IconButton(
-                tooltip: l10n.share,
-                icon: const Icon(Icons.share),
-                onPressed: _busy ? null : () => _share(l10n),
-              ),
-            ],
             IconButton(
-              tooltip: l10n.export,
-              icon: const Icon(Icons.movie),
-              onPressed: _busy ? null : () => _export(cubit),
+              tooltip: l10n.showExportResult,
+              icon: const Icon(Icons.play_circle_outline),
+              onPressed: _showResult,
             ),
+            export,
           ],
         );
       },

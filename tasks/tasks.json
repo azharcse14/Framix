@@ -13822,12 +13822,29 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: Result is a route the editor pushes on ExportDone (ExportButtons listener); save/share moved there from the app bar (no duplicate). Preview = engine preview texture without canvas gestures plus play/pause (same render path as export), not a player of the exported file. Save to gallery is the one primary (filled) button, Share outlined; Back to edit = app bar back, Done = app bar text button, pops to the first route (Home). Back/Done/system back held while a save or share reads the file."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "moved P1-036 save/share/busy tests from export_buttons_test/export_dir_test into export_result_page_test (equal or stricter); app_bar_fit/height tests no longer seed ExportDone"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: a finished export stays reachable through a 'Show the exported video' button next to Export (state ExportDone), instead of a root-level listener: the frozen export_result_page_test opens Result from the editor with cubits below the Navigator, so ExportButtons keeps pushing it and the MultiBlocProvider re-provide stays"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "re-review: APPROVE. Warnings filed as tasks: ExportDone survives project switch; exported path re-derived on re-entry. Nit filed: theme-level textButtonTheme."
+    }
+   ],
    "source": "added"
   },
   {
@@ -16096,6 +16113,101 @@
    "title": "Android FrameDecoder keeps a codec and photo per media (small LRU) so PIP with two videos doesn't reopen MediaCodec every frame (P1-098 for Android, P1-070 follow-up)",
    "tags": [
     "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-039",
+   "section": "UX",
+   "group": null,
+   "title": "Export Result: play the exported file itself (native player) and show its duration and size from the engine",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-040",
+   "section": "UX",
+   "group": null,
+   "title": "360 dp en/bn fit test for the AspectRatioBar preset row (where ExportButtons sits, not the AppBar) seeding ExportRunning and ExportDone (export + show-result now the widest states); fix stale doc comment in app_bar_fit_test.dart:21-22",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-041",
+   "section": "UX",
+   "group": null,
+   "title": "ExportCubit returns to ExportIdle on project switch (New/Open), so project B never shows project A's Show-result button or Result screen (UX-032 re-review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-042",
+   "section": "UX",
+   "group": null,
+   "title": "Keep the exported file path in the export state (cubit or engine ExportFinished), not ExportButtons State; re-entry today re-derives it and can point at systemTemp before exportDir answers (UX-032 re-review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-043",
+   "section": "UX",
+   "group": null,
+   "title": "Theme textButtonTheme foreground = text token, so TextButtons (home dialogs, Cancel/Save) are not accent text; drop the inline Done style (UX-032 re-review)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,

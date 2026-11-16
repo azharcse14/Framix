@@ -82,7 +82,7 @@ class AspectRatioBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Export settings and export (save and share once done) go with the presets.
+                // Export settings and export (and the last result once done) go with the presets.
                 const ExportSettingsButton(),
                 const ExportButtons(),
               ],

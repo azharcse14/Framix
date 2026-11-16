@@ -21,12 +21,6 @@ void main() {
   late FramixEngine engine;
   late SeededExport cubit;
 
-  void reply(Object? answer) =>
-      messenger.setMockMethodCallHandler(channel, (call) async {
-        calls.add(call);
-        return answer;
-      });
-
   Widget app() => MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: appLocalizationsDelegates,
@@ -78,47 +72,5 @@ void main() {
       find.byType(CircularProgressIndicator),
     );
     expect(progress.value, isNull);
-  });
-
-  testWidgets('a finished export saves the exported file to the gallery', (
-    tester,
-  ) async {
-    await tester.pumpWidget(app());
-    cubit.seed(const ExportDone());
-    await tester.pump();
-
-    reply('saved');
-    await tester.tap(find.byTooltip(l10n.saveToGallery));
-    await tester.pumpAndSettle();
-    expect(find.text(l10n.savedToGallery), findsOneWidget);
-    expect(calls.single.method, 'saveToGallery');
-    final path = (calls.single.arguments as Map)['path'] as String;
-    expect(path, endsWith('.mp4'));
-  });
-
-  testWidgets('a denied save points to share (Files)', (tester) async {
-    await tester.pumpWidget(app());
-    cubit.seed(const ExportDone());
-    await tester.pump();
-
-    reply('denied');
-    await tester.tap(find.byTooltip(l10n.saveToGallery));
-    await tester.pumpAndSettle();
-    expect(find.text(l10n.saveDenied), findsOneWidget);
-  });
-
-  testWidgets('share hands the same file to the platform', (tester) async {
-    await tester.pumpWidget(app());
-    cubit.seed(const ExportDone());
-    await tester.pump();
-
-    reply('saved');
-    await tester.tap(find.byTooltip(l10n.saveToGallery));
-    await tester.pumpAndSettle();
-    reply(null);
-    await tester.tap(find.byTooltip(l10n.share));
-    await tester.pumpAndSettle();
-    expect(calls.map((c) => c.method), ['saveToGallery', 'share']);
-    expect(calls[1].arguments, calls[0].arguments);
   });
 }

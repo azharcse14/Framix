@@ -7,7 +7,11 @@ import 'canvas_gestures.dart';
 /// The engine's preview in a Flutter Texture; frames never pass through Dart. Shows nothing
 /// until the engine reports the texture.
 class PreviewView extends StatelessWidget {
-  const PreviewView({super.key});
+  const PreviewView({super.key, this.editable = true});
+
+  /// Whether gestures on the canvas move and scale clips; false where it is only watched
+  /// (the export Result screen).
+  final bool editable;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +23,7 @@ class PreviewView extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               Texture(textureId: textureId),
-              const CanvasGestures(),
+              if (editable) const CanvasGestures(),
             ],
           ),
         ),

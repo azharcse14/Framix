@@ -25,7 +25,7 @@ class TimelinePage extends StatefulWidget {
 }
 
 class _TimelinePageState extends State<TimelinePage> {
-  // Rotating moves these between the two layouts; the keys keep their state (export guard,
+  // Rotating moves these between the two layouts; the keys keep their state (export path,
   // timeline scroll) instead of building them anew.
   final _bar = GlobalKey();
   final _timeline = GlobalKey();
