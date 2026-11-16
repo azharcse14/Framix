@@ -2615,8 +2615,8 @@ class ListProjects extends $pb.GeneratedMessage {
 }
 
 /// Moves library project `id` to Recently deleted: ListProjects shows it only with `deleted`,
-/// OpenProject refuses it, and 30 days after this it is removed for good (with its backups) by
-/// the next ListProjects. Answered CommandAccepted.
+/// OpenProject refuses it, and ProjectList.keep_deleted_days after this it is removed for good
+/// (with its backups) by the next ListProjects. Answered CommandAccepted.
 class DeleteProject extends $pb.GeneratedMessage {
   factory DeleteProject({
     $core.String? id,
@@ -6262,12 +6262,14 @@ class ProjectList extends $pb.GeneratedMessage {
     $core.String? recovered,
     $core.Iterable<$core.String>? folders,
     $core.int? deleted,
+    $core.int? keepDeletedDays,
   }) {
     final result = ProjectList._();
     if (projects != null) result.projects.addAll(projects);
     if (recovered != null) result.recovered = recovered;
     if (folders != null) result.folders.addAll(folders);
     if (deleted != null) result.deleted = deleted;
+    if (keepDeletedDays != null) result.keepDeletedDays = keepDeletedDays;
     return result;
   }
 
@@ -6289,6 +6291,8 @@ class ProjectList extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'recovered')
     ..pPS(3, _omitFieldNames ? '' : 'folders')
     ..aI(4, _omitFieldNames ? '' : 'deleted', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'keepDeletedDays',
+        fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6343,6 +6347,16 @@ class ProjectList extends $pb.GeneratedMessage {
   $core.bool hasDeleted() => $_has(3);
   @$pb.TagNumber(4)
   void clearDeleted() => $_clearField(4);
+
+  /// How many days Recently deleted keeps a project before removing it for good.
+  @$pb.TagNumber(5)
+  $core.int get keepDeletedDays => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set keepDeletedDays($core.int value) => $_setUnsignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasKeepDeletedDays() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearKeepDeletedDays() => $_clearField(5);
 }
 
 /// One library project as Home lists it.

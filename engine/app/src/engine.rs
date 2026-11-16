@@ -691,6 +691,7 @@ impl Engine {
                     recovered,
                     folders: found.folders,
                     deleted: found.deleted,
+                    keep_deleted_days: 0,
                 })),
             },
             Ok(Reply::Accepted) => Event {
