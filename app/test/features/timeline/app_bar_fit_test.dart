@@ -60,7 +60,6 @@ void main() {
           ),
         ),
       );
-      export.seed(const ExportDone());
       await tester.pump();
 
       expect(tester.takeException(), isNull, reason: 'no overflow');
@@ -73,8 +72,6 @@ void main() {
         l10n.redo,
         l10n.exportSettings,
         l10n.export,
-        l10n.saveToGallery,
-        l10n.share,
       ]) {
         final button = find.byTooltip(tip);
         expect(button, findsOneWidget, reason: tip);

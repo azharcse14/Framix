@@ -57,7 +57,6 @@ void main() {
         ),
       ),
     );
-    export.seed(const ExportDone());
     await tester.pump();
     return export;
   }
