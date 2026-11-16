@@ -12935,6 +12935,18 @@
     {
      "date": "2026-11-03",
      "text": "P1-025: 'Trim start/end to playhead' can lengthen a clip when the playhead is in a gap; the media-length check must cover them too."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Plan: one private Timeline::check_source (next to the UnknownMedia check, which it absorbs) used by insert_clip_with and trim_clip; new TimelineError::PastMediaEnd. Split/merge/move/duplicate only keep or narrow a checked range, so they need no check (proptest edits_never_leave_the_media). Photos/colors have no length and are exempt."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Decision: project decode goes through insert_clip_with, so a format>=2 file with a clip past its listed video's end is refused (ProjectError::Invalid(PastMediaEnd)) rather than clamped; pre-release, such files could only come from the old unchecked trim. Format-1 migration sizes missing media to the furthest source end, so v1 files still open (tested)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Older tests edited (setup only, assertions unchanged, commit 20fde1e): core tests/common media 1,2 are now 24 h missing videos (were 1 tick); clip_ops_edges overflow test puts its i64::MAX-5 source on a photo; engine_trim_snap, engine_edit_snapped, engine_edit_snapped_edges import 5 s videos and trim them to 2 s instead of stretching 2 s videos past their end."
     }
    ],
    "source": "added"
@@ -16096,6 +16108,25 @@
    "title": "Android FrameDecoder keeps a codec and photo per media (small LRU) so PIP with two videos doesn't reopen MediaCodec every frame (P1-098 for Android, P1-070 follow-up)",
    "tags": [
     "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-060",
+   "section": "ENG",
+   "group": null,
+   "title": "A photo clip cannot be trimmed longer at its start: trim_clip moves its source_start below 0 (NegativeTime) though photos have no source range",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
