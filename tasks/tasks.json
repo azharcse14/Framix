@@ -13761,6 +13761,10 @@
     {
      "date": "2026-11-16",
      "text": "native_warnings.sh: iOS sim + Android debug APK build OK; it fails only on 3 upstream cold-build lines (package_info_plus plugin deprecation, Gradle transform-api jar cache lines), none from app/android."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warnings filed: mid-export codec failure can block Vulkan acquire (new task), rate control sees queue times (ADR + P1-128), media layers export as test pattern until P1-070 (note there), no device run (P1-128)."
     }
    ],
    "source": "added"
@@ -13838,6 +13842,10 @@
     {
      "date": "2026-11-05",
      "text": "P1-071: Android draw_into still shows only the top layer; composite every layer into one surface frame (draw all, then present once) when the decoder lands."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "P1-069: Android export now opens; until this decoder lands, video/image layers export as the test pattern (draw_into on Android)."
     }
    ],
    "source": "added"
@@ -15884,7 +15892,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "Also check (P1-069 review): output bitrate within tolerance of kbps (codec rate control sees queue times, not frame times); 'reordered frame' failures on devices ignoring KEY_MAX_B_FRAMES; a full export on device/emulator (Vulkan swapchain on the codec Surface, format, queueBuffer on present)."
+    }
+   ],
    "source": "added"
   },
   {

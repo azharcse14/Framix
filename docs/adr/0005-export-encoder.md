@@ -39,7 +39,9 @@ take the previous one.
   window path (`Gpu::draw_to_android_window`) and presents, which queues the frame into the codec.
   - A queued frame carries its queue time, not its frame time (wgpu cannot set it), so the codec
     runs without B-frames and Kotlin gives each output frame the next time `encoder_frame`
-    reported. Reordered or lost frames fail the export rather than mistime it.
+    reported. Reordered or lost frames fail the export rather than mistime it. Risk: the codec's
+    rate control still sees the queue times, so per-frame size may follow render speed; the
+    device check (P1-128) measures the output bitrate against `kbps`.
   - `Gpu` keeps two window surfaces (preview and export), so a preview draw during an export
     does not disconnect the codec's window. The export forgets its surface only after
     `encoder_finish`: dropping it earlier disconnects the window, which can drop frames the codec
