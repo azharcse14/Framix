@@ -991,6 +991,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [x] `UX-037` Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review) \[Dart\]
 - [x] `UX-038` One-time notices (openedFromBackup, workRecovered, export results) can be dropped while the autosave failure message shows and one message already waits (messages.dart:27-30); let one-time notices outrank generic failures in the waiting slot; also test the showing=null reset after the autosave message closes (UX-037 review) \[Dart\]
 - [ ] `UX-039` Export Result: play the exported file itself (native player) and show its duration and size from the engine \[Dart\] \[Rust\] \[Native\]
+- [ ] `UX-040` 360 dp en/bn app-bar fit test seeding ExportRunning and ExportDone (export + show-result now the widest states); fix stale doc comment in app_bar_fit_test.dart:21-22 \[Dart\]
 
 ## Design system
 

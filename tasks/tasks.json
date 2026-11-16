@@ -13794,6 +13794,14 @@
     {
      "date": "2026-11-16",
      "text": "decision: Result is a route the editor pushes on ExportDone (ExportButtons listener); save/share moved there from the app bar (no duplicate). Preview = engine preview texture without canvas gestures plus play/pause (same render path as export), not a player of the exported file. Save to gallery is the one primary (filled) button, Share outlined; Back to edit = app bar back, Done = app bar text button, pops to the first route (Home). Back/Done/system back held while a save or share reads the file."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "moved P1-036 save/share/busy tests from export_buttons_test/export_dir_test into export_result_page_test (equal or stricter); app_bar_fit/height tests no longer seed ExportDone"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: a finished export stays reachable through a 'Show the exported video' button next to Export (state ExportDone), instead of a root-level listener: the frozen export_result_page_test opens Result from the editor with cubits below the Navigator, so ExportButtons keeps pushing it and the MultiBlocProvider re-provide stays (in the app the cubits sit above the Navigator; the route just does not depend on it)"
     }
    ],
    "source": "added"
@@ -15892,6 +15900,25 @@
     "Dart",
     "Rust",
     "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-040",
+   "section": "UX",
+   "group": null,
+   "title": "360 dp en/bn app-bar fit test seeding ExportRunning and ExportDone (export + show-result now the widest states); fix stale doc comment in app_bar_fit_test.dart:21-22",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
