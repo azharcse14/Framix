@@ -49,6 +49,20 @@ fn overflowing_source_or_end_is_refused() {
 }
 
 #[test]
+fn a_video_start_trim_whose_source_overflows_is_refused() {
+    // ENG-064 review: a video's trim still moves its source offset with the start.
+    let mut tl = common::timeline();
+    let t = tl.add_track(TrackKind::Video);
+    let c = tl.insert_clip(t, place(1000, 0, 60)).unwrap();
+    let before = tl.clone();
+    assert_eq!(
+        tl.trim_clip(c, Time(i64::MAX - 1), Time(i64::MAX)),
+        Err(TimelineError::TimeOverflow)
+    );
+    assert_eq!(tl, before);
+}
+
+#[test]
 fn clips_on_different_tracks_never_merge() {
     let mut tl = common::timeline();
     let a = tl.add_track(TrackKind::Video);

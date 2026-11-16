@@ -633,15 +633,13 @@ impl Timeline {
     /// A video's `r` must play the next source frame. A photo or color shows one picture
     /// whatever its offset, and its lengths change without it (trims, ENG-060;
     /// [`Timeline::set_photo_durations`]), so only the order counts (ENG-062): a split gives the
-    /// right half a higher offset and nothing else changes a still's offset (ENG-064),
+    /// right half a higher offset and nothing else changes its pieces' offsets (ENG-064),
     /// while a duplicate repeats its original's offset and is refused. Known gaps: a still after
     /// a lower-offset clip of the same still that is not its other half merges too; a piece
     /// split off a grown left half may sit above the old right half's offset (merging from the
     /// left still rejoins all pieces).
     fn merge_refusal(&self, l: &Clip, r: &Clip) -> Option<TimelineError> {
-        let still = self
-            .media(l.media)
-            .is_some_and(|m| m.kind() != MediaKind::Video);
+        let still = self.still(l.media);
         let next_source = if still {
             r.source_start > l.source_start
         } else {
@@ -672,9 +670,7 @@ impl Timeline {
         if end <= start {
             return Err(TimelineError::NonPositiveDuration);
         }
-        let still = self
-            .media(c.media)
-            .is_some_and(|m| m.kind() != MediaKind::Video);
+        let still = self.still(c.media);
         // A still keeps its offset: it only orders split halves (ENG-064). Both starts are
         // non-negative, so the difference cannot overflow.
         let shifted = if still {
@@ -846,6 +842,12 @@ impl Timeline {
         self.check_transform(self.tracks[t].clips[i].media, transform)?;
         self.tracks[t].clips[i].transform = transform;
         Ok(())
+    }
+
+    /// Whether `media` is a photo or color: one picture, no length.
+    fn still(&self, media: MediaId) -> bool {
+        self.media(media)
+            .is_some_and(|m| m.kind() != MediaKind::Video)
     }
 
     /// Whether clips of `media` may be moved, scaled or cropped on the canvas: a color fills the
