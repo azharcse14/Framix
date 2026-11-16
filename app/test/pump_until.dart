@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:framix/core/engine/framix_engine.dart';
 
 /// Wall-clock wait for an engine reply. Generous on purpose: a reply that writes the library
 /// (atomic save: two fsyncs, which on macOS are F_FULLFSYNC and flush the whole disk) took
@@ -38,3 +39,14 @@ Future<void> pumpUntilGone(WidgetTester tester, Finder finder) => pumpUntilTrue(
   () => finder.evaluate().isEmpty,
   () => 'still found: $finder',
 );
+
+/// Stops [engine] and pumps until its EngineStopped: the engine autosaves on shutdown and
+/// closes [FramixEngine.events] only after that write, so its library dir can go then. For
+/// a test's own `addTearDown`, which runs before the binding's: its events still arrive
+/// through the fake clock, so a bare `events.drain()` there never completes.
+Future<void> stopEngine(WidgetTester tester, FramixEngine engine) async {
+  var stopped = false;
+  engine.events.listen(null, onDone: () => stopped = true);
+  engine.dispose();
+  await pumpUntilTrue(tester, () => stopped, () => 'engine never stopped');
+}

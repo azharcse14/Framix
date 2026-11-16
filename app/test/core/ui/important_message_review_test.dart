@@ -119,9 +119,9 @@ void main() {
     final dir = Directory.systemTemp.createTempSync('framix-notice-waits');
     final crashed = FramixEngine.create();
     final engine = FramixEngine.create();
-    addTearDown(() {
-      engine.dispose();
-      crashed.dispose();
+    addTearDown(() async {
+      await stopEngine(tester, engine);
+      await stopEngine(tester, crashed);
       dir.deleteSync(recursive: true);
     });
     // A crashed launch with a project open: the next Home says its work was saved.

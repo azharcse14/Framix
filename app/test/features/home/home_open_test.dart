@@ -14,8 +14,8 @@ void main() {
   testWidgets('tapping the older of two projects opens it', (tester) async {
     final engine = FramixEngine.create();
     final dir = Directory.systemTemp.createTempSync('framix-home-open');
-    addTearDown(() {
-      engine.dispose();
+    addTearDown(() async {
+      await stopEngine(tester, engine);
       dir.deleteSync(recursive: true);
     });
     final l10n = lookupAppLocalizations(const Locale('en'));

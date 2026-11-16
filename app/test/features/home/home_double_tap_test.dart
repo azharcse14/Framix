@@ -15,8 +15,8 @@ void main() {
   testWidgets('a double tap on New project opens one editor', (tester) async {
     final engine = FramixEngine.create();
     final dir = Directory.systemTemp.createTempSync('framix-home-double');
-    addTearDown(() {
-      engine.dispose();
+    addTearDown(() async {
+      await stopEngine(tester, engine);
       dir.deleteSync(recursive: true);
     });
     final l10n = lookupAppLocalizations(const Locale('en'));
