@@ -7163,6 +7163,10 @@
     {
      "date": "2026-11-16",
      "text": "P1-132: the codec-shortage retry frees only the failing decoder's own cached videos; an export decoder (empty cache) can still fail while the idle preview decoder holds 2 codecs. Fix here: e.g. preview drops its cached codecs when an export starts."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "iOS (P1-098): each FrameDecoder (preview, export) now keeps up to 2 AVAssetReader/VideoToolbox sessions open (old code: 1), so up to 4 plus the proxy reader during export; the idle preview keeps its 2 open. No shortage handling: a shortage shows as a failed reader while reading (AVError .decoderTemporarilyUnavailable etc.), which, unlike a nil open, tells it from a bad file; a retry that evicts the other cached video should key on that code. Photo cache: up to 2 RGBA textures per decoder (about 64 MB each at 4096 px), not freed on memory pressure or idle."
     }
    ],
    "source": "plan"
@@ -13127,6 +13131,10 @@
     {
      "date": "2026-11-16",
      "text": "P1-070 removed the P1-056 spike (spike_clip.mp4, nativeRenderFrame): check real decoded media through the Android FrameDecoder instead."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "P1-098: check PIP with two videos and with two photos on an iOS device (no reader reopen per frame, no decoder failures with preview + export running)."
     }
    ],
    "source": "added"
@@ -14876,6 +14884,10 @@
     {
      "date": "2026-11-16",
      "text": "decisions: FrameDecoder.swift keeps videos (OpenVideo = VideoReader + its held frame) and photos (MTLTexture) in RecentCache, an LRU of 2 per kind keyed by reference (proxy = reference@side). On a miss the least recently used entry is dropped before the new reader/photo opens (never 3 open). iOS has no decoder queue: each FrameDecoder is used only by its owning engine thread (preview or export), so eviction runs there with no lock and nothing new for Swift 6 concurrency. Buffer lifetime: the last call's media is the most recently used and cap 2 never evicts it; Rust also retains each MTLTexture (wrap_metal Retained::retain) and Gpu::draw polls before the next layer's decode. No retry after a reader-open failure (P1-132's Android retry): AVAssetReader/VideoToolbox report decoder shortage while reading, not at open, and a nil open cannot tell a bad file from a shortage, so a retry would evict the other video every frame for a bad file. Dead fields VideoReader.reference / VideoFrame.reference removed. Tests: RecentCache XCTests in RunnerTests (xcodebuild test on the iPhone 16 simulator, iOS 18.6, Xcode 26.2); the FrameDecoder wiring itself has no test (needs media + Metal). PIP with two videos not run on a simulator (needs picked media through the UI)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. W1 (decoder counts, device check) noted on ENG-007 and P1-051; W2 (shortage shows as an AVError while reading, usable for a later retry) noted on ENG-007. Nits left: photo cache memory (on ENG-007), same media at two source times still reopens (not per-media scope)."
     }
    ],
    "source": "added"
