@@ -16557,6 +16557,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "UX-047",
+   "section": "UX",
+   "group": null,
+   "title": "export_switch_app_test: dispose the earlier engine and wait for EngineStopped before pumping the app (two live writers on one library dir, teardown deleteSync race; follow home_from_backup_test.dart:58-72); comment why snack bars are cleared (UX-044 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
