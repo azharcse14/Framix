@@ -29,9 +29,6 @@ object EnginePlatform {
     /** The current FlutterEngine's textures; null between engines. */
     @Volatile private var textures: TextureRegistry? = null
 
-    /** SPIKE (P1-056): app files dir; `spike_clip.mp4` there (adb push) is drawn over the preview. */
-    @Volatile private var files: File? = null
-
     /** The app context, for media access and the cache folder. */
     @Volatile private var context: Context? = null
 
@@ -42,9 +39,8 @@ object EnginePlatform {
     private val producers = mutableMapOf<Long, TextureRegistry.SurfaceProducer>()
 
     /** Registers once per process and serves [textures] until [detach]. Main thread. */
-    fun attach(textures: TextureRegistry, files: File?, context: Context) {
+    fun attach(textures: TextureRegistry, context: Context) {
         this.textures = textures
-        this.files = files
         this.context = context.applicationContext
         if (registered) return
         registered = true
@@ -83,7 +79,6 @@ object EnginePlatform {
             val (producer, surface) = made
             producers[producer.id()] = producer
             nativePreviewTextureDone(doneCtx, producer.id(), surface)
-            spikeDecode(producer)
         }
     }
 
@@ -189,18 +184,21 @@ object EnginePlatform {
     @Suppress("unused") // Kept for JNI by proguard-rules.pro.
     fun encoderFinish(encoder: ExportEncoder, ok: Boolean): Boolean = encoder.finish(ok)
 
-    /** SPIKE (P1-056): decode the pushed clip off the main thread and draw it over the preview. */
-    private fun spikeDecode(producer: TextureRegistry.SurfaceProducer) {
-        val clip = files?.resolve("spike_clip.mp4")?.takeIf { it.isFile } ?: return
-        Thread {
-            runCatching {
-                SpikeDecode.withFirstFrame(clip) { frame ->
-                    nativeRenderFrame(producer.surface, frame)
-                }
-            }.onSuccess { Log.i("framix", "spike decode: nativeRenderFrame -> $it") }
-                .onFailure { Log.w("framix", "spike decode failed", it) }
-        }.start()
-    }
+    // The frame decoder (docs/adr/0006-decoder-port.md, P1-070), called by Rust (JNI) from the
+    // engine thread (preview) or the export worker; each thread owns one, and calls may block.
+
+    /** Opens a decoder; null if it can't (not attached, or no GLES). */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun decoderOpen(): FrameDecoder? = context?.let(FrameDecoder::open)
+
+    /** The frame of [uri] at [timeUs] as an RGBA8 buffer valid until the next call; null on failure. */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun decoderFrame(decoder: FrameDecoder, uri: String, image: Boolean, timeUs: Long): HardwareBuffer? =
+        decoder.frame(uri, image, timeUs)
+
+    /** Frees [decoder]; called once per opened decoder. */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun decoderClose(decoder: FrameDecoder) = decoder.close()
 
     private external fun nativeRegister(): Int
 
@@ -209,9 +207,6 @@ object EnginePlatform {
 
     /** engine/ffi/src/android_platform.rs: the thumbnail file's path, or null if it failed. */
     private external fun nativeThumbnailDone(doneCtx: Long, path: String?)
-
-    /** SPIKE (P1-056): engine/ffi/src/spike_preview.rs, draws an RGBA8 frame. */
-    private external fun nativeRenderFrame(surface: Surface, frame: HardwareBuffer): Int
 
     init {
         // The engine library Dart already loaded (native assets); same instance.

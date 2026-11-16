@@ -220,7 +220,7 @@ pub struct Gpu {
     blit: wgpu::RenderPipeline,
     /// One RGBA8 pixel holding a color clip's color while it is drawn. The lock keeps the
     /// preview and the export worker from writing it under each other's draw. Lock order on
-    /// Android: `color`, then `window_surface`; never take `color` while holding the other.
+    /// Android: `window_surface`, then `color`; never take `window_surface` while holding `color`.
     color: std::sync::Mutex<wgpu::Texture>,
     /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
@@ -228,11 +228,10 @@ pub struct Gpu {
     /// The window surfaces kept between draws, least recently drawn first: the preview's and
     /// an export encoder's (P1-069), so drawing one never disconnects the other. Its lock is
     /// also the queue lock for the window-draw and frame-import paths (the Vulkan import submits
-    /// on the raw queue), so the renderer, the export and the decode spike never overlap
-    /// (P1-004). The other draw methods take no lock and must not run concurrently with an
-    /// import. SPIKE: a surface (and its window reference) lives until [`MAX_WINDOW_SURFACES`]
-    /// other windows were drawn after it or its owner forgets it
-    /// ([`Gpu::forget_android_window`]).
+    /// on the raw queue), so the preview and the export never overlap (P1-004). The other draw
+    /// methods take no lock and must not run concurrently with an import. SPIKE: a surface (and
+    /// its window reference) lives until [`MAX_WINDOW_SURFACES`] other windows were drawn after
+    /// it or its owner forgets it ([`Gpu::forget_android_window`]).
     #[cfg(target_os = "android")]
     window_surface: std::sync::Mutex<Vec<WindowSurface>>,
 }
@@ -252,8 +251,7 @@ struct WindowSurface {
 
 impl Gpu {
     /// SPIKE (P1-004): the process's one GPU, opened on first use, shared by the preview
-    /// renderer and the Android decode spike so they draw through one device and one window
-    /// surface. A failure to open is kept for the process (no retry). The render thread
+    /// renderer and the export so they draw through one device and its window surfaces. A failure to open is kept for the process (no retry). The render thread
     /// (P1-053) owns the GPU instead.
     pub fn shared() -> Result<&'static Gpu, RenderError> {
         static GPU: std::sync::OnceLock<Result<Gpu, String>> = std::sync::OnceLock::new();
@@ -490,34 +488,6 @@ impl Gpu {
         })
     }
 
-    /// Imports an RGBA8 AHardwareBuffer (a decoder frame the platform layer converted) as a
-    /// texture for [`Gpu::draw_to_android_window`], without copying.
-    ///
-    /// # Safety
-    /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be
-    /// done, and nothing may write it while the returned texture is used. The call serialises
-    /// itself with [`Gpu::draw_to_android_window`]; no other queue use may run meanwhile.
-    #[cfg(target_os = "android")]
-    pub unsafe fn import_android_frame(
-        &self,
-        ahb: std::ptr::NonNull<std::ffi::c_void>,
-    ) -> Result<wgpu::Texture, RenderError> {
-        if !self.imports_frames {
-            return Err(RenderError::Android(
-                "device has no AHardwareBuffer import".to_owned(),
-            ));
-        }
-        // The Vulkan import submits on wgpu's raw queue: hold the queue lock (see
-        // `window_surface`) so no draw or present runs meanwhile.
-        let _queue = self
-            .window_surface
-            .lock()
-            .unwrap_or_else(|e| e.into_inner());
-        // SAFETY: forwarded from this function's contract; the device was opened with the
-        // import extensions or is GLES (checked above); the queue lock is held.
-        unsafe { android::import_ahb(&self.device, ahb) }
-    }
-
     /// Drops the cached surface (and its window reference) if it draws into `window`, so the
     /// platform can release that window (P1-055).
     #[cfg(target_os = "android")]
@@ -668,20 +638,22 @@ impl Gpu {
         Ok(())
     }
 
-    /// Draws one frame into an Android window and presents it: `source` (an imported decoder
-    /// frame or a color pixel, placed) or, without one, the test pattern. The window's buffers
-    /// are what Flutter's SurfaceProducer samples, so nothing is copied.
+    /// Acquires the next frame of an Android window, lets `draw` fill it, and presents it once
+    /// unless `draw` failed with [`DrawError::Gpu`] (P1-071). The window's buffers are what
+    /// Flutter's SurfaceProducer (or the export codec) samples, so nothing is copied. The queue
+    /// lock is held throughout, so `draw` may import frames ([`WindowFrame::import`]).
     ///
     /// # Safety
     /// `window` must be a live `ANativeWindow*` that outlives this call.
     #[cfg(target_os = "android")]
-    pub unsafe fn draw_to_android_window(
+    unsafe fn draw_to_android_window(
         &self,
         window: std::ptr::NonNull<std::ffi::c_void>,
-        source: Option<(&wgpu::Texture, &Placement)>,
-    ) -> Result<(), RenderError> {
+        draw: impl FnOnce(&WindowFrame<'_>) -> Result<(), DrawError>,
+    ) -> Result<(), DrawError> {
+        let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
         // SAFETY: the caller guarantees a live window for the whole call.
-        let (width, height) = unsafe { android::window_size(window) }?;
+        let (width, height) = unsafe { android::window_size(window) }.map_err(gpu_err)?;
         let mut cached = self
             .window_surface
             .lock()
@@ -704,14 +676,15 @@ impl Gpu {
                 }
                 // SAFETY: the caller guarantees the window is live for this call; the surface
                 // takes its own reference.
-                cached.push(unsafe { self.window_surface(window, width, height) }?);
+                cached
+                    .push(unsafe { self.window_surface(window, width, height) }.map_err(gpu_err)?);
             }
         }
         let Some(WindowSurface {
             surface, config, ..
         }) = cached.last_mut()
         else {
-            return Err(RenderError::SurfaceUnusable);
+            return Err(gpu_err(RenderError::SurfaceUnusable));
         };
         if (config.width, config.height) != (width, height) {
             config.width = width;
@@ -722,25 +695,20 @@ impl Gpu {
         let frame = match surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(frame)
             | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-            _ => return Err(RenderError::SurfaceUnusable),
+            _ => return Err(gpu_err(RenderError::SurfaceUnusable)),
         };
-        // SPIKE: one frame, so the pipeline is built per call.
-        match source {
-            Some((source, placement)) => {
-                let pipeline =
-                    fullscreen_pipeline(&self.device, "rgba frame", BLIT_WGSL, config.format);
-                let bind_group = self.rgba_bind_group(&pipeline, source, placement);
-                self.draw(&frame.texture, Some(&pipeline), Some(&bind_group), None)?;
-            }
-            None => self.draw(
-                &frame.texture,
-                Some(&test_pattern_pipeline(&self.device, config.format)),
-                None,
-                None,
-            )?,
+        // ponytail: the blit pipeline is built per frame for the window's format; cache it per
+        // format when the render thread lands (P1-053).
+        let blit = fullscreen_pipeline(&self.device, "rgba frame", BLIT_WGSL, config.format);
+        let drawn = draw(&WindowFrame {
+            gpu: self,
+            texture: &frame.texture,
+            blit: &blit,
+        });
+        if !matches!(drawn, Err(DrawError::Gpu(_))) {
+            self.queue.present(frame);
         }
-        self.queue.present(frame);
-        Ok(())
+        drawn
     }
 
     /// Creates and configures a surface on `window`, holding a reference to it.
@@ -925,6 +893,80 @@ impl Gpu {
     }
 }
 
+/// One acquired Android window frame, filled while [`Gpu::draw_to_android_window`] holds the
+/// queue lock, so imports and draws here take no lock of their own.
+#[cfg(target_os = "android")]
+struct WindowFrame<'a> {
+    gpu: &'a Gpu,
+    texture: &'a wgpu::Texture,
+    /// The RGBA blit for the window's format.
+    blit: &'a wgpu::RenderPipeline,
+}
+
+#[cfg(target_os = "android")]
+impl WindowFrame<'_> {
+    /// The frame's size in pixels.
+    fn size(&self) -> (u32, u32) {
+        (self.texture.width(), self.texture.height())
+    }
+
+    /// Imports an RGBA8 AHardwareBuffer (a decoder frame the platform layer converted) as a
+    /// texture, without copying.
+    ///
+    /// # Safety
+    /// `ahb` must be a live `AHardwareBuffer*` for the call, the GPU work that wrote it must be
+    /// done, and nothing may write it while the returned texture is used.
+    unsafe fn import(
+        &self,
+        ahb: std::ptr::NonNull<std::ffi::c_void>,
+    ) -> Result<wgpu::Texture, RenderError> {
+        if !self.gpu.imports_frames {
+            return Err(RenderError::Android(
+                "device has no AHardwareBuffer import".to_owned(),
+            ));
+        }
+        // SAFETY: forwarded from this function's contract; the device was opened with the
+        // import extensions or is GLES (checked above); draw_to_android_window holds the queue
+        // lock while this frame exists.
+        unsafe { android::import_ahb(&self.gpu.device, ahb) }
+    }
+
+    /// Draws the RGBA8 `source` placed by `placement`; `clear` false draws over the frame.
+    fn draw(
+        &self,
+        source: &wgpu::Texture,
+        placement: &Placement,
+        clear: bool,
+    ) -> Result<(), RenderError> {
+        if !sampled(source, wgpu::TextureFormat::Rgba8Unorm) {
+            return Err(RenderError::InvalidTexture);
+        }
+        let bind_group = self.gpu.rgba_bind_group(self.blit, source, placement);
+        self.gpu.draw(
+            self.texture,
+            Some(self.blit),
+            Some(&bind_group),
+            (!clear).then_some(placement),
+        )
+    }
+
+    /// [`Gpu::draw_color`] into this frame.
+    fn draw_color(&self, rgba: u32, canvas: Affine, clear: bool) -> Result<(), RenderError> {
+        let pixel = self.gpu.color_pixel(rgba);
+        // Canvas UV is the pixel's UV, so the color covers the canvas exactly.
+        let placement = Placement {
+            canvas,
+            source: canvas,
+        };
+        self.draw(&pixel, &placement, clear)
+    }
+
+    /// Fills the frame with black (an empty canvas).
+    fn draw_black(&self) -> Result<(), RenderError> {
+        self.gpu.draw(self.texture, None, None, None)
+    }
+}
+
 /// The pixels of a `width` x `height` target whose centres show `placement`'s picture (canvas
 /// and source UV both in 0..1, as the shaders test), as a scissor rect `(x, y, w, h)`; None when
 /// none do. Both maps are axis-aligned (quarter turns only), so the pixels form one rectangle.
@@ -1016,7 +1058,7 @@ fn fullscreen_pipeline(
 /// into the platform's texture. Uses [`Gpu::shared`], opened on first use.
 pub struct GpuRenderer {
     gpu: Option<&'static Gpu>,
-    /// Frames for the layers; None draws black (Android until its decoder lands).
+    /// Frames for the layers; None leaves media layers out.
     decoder: Option<Box<dyn Decoder>>,
 }
 
@@ -1028,7 +1070,8 @@ impl GpuRenderer {
     /// `EnginePreviewTextureDone` or `encoder_frame` (a live BGRA `id<MTLTexture>` with render
     /// target usage on Apple, an owned `ANativeWindow*` on Android) and stays alive for the call.
     /// The decoder's frames must be live textures of the kinds [`Frame`] names, on the same
-    /// Metal device, until its next call.
+    /// Metal device, until its next call. On Android they are RGBA8 `AHardwareBuffer*`s whose
+    /// GPU writes are done and that nothing writes until the decoder's next call.
     pub unsafe fn new(decoder: Option<Box<dyn Decoder>>) -> Self {
         Self { gpu: None, decoder }
     }
@@ -1065,12 +1108,40 @@ impl PreviewRenderer for GpuRenderer {
     }
 }
 
-/// Draws `layers` bottom to top: the first one drawn clears the target, later ones draw over
-/// it. Each layer is drawn and waited on before the next decode, since a decoder frame lives
-/// only until the decoder's next call. A layer that can't be decoded is left out (reported as
-/// Decode once all are drawn); the layers under and over it still show.
-// ponytail: one submit and wait per layer; a single submit needs frames that outlive the next
-// decode (render thread, P1-053).
+/// Draws `layers` bottom to top with `draw_layer(layer, clear)`, which says whether it drew
+/// anything: the first layer drawn clears the target, later ones draw over it. A layer that
+/// can't be decoded is left out (reported as Decode once all are drawn); the layers under and
+/// over it still show. Nothing drawn: `draw_black`. A GPU failure stops at once.
+// ponytail: one submit and wait per layer (each draw waits); a single submit needs frames that
+// outlive the next decode (render thread, P1-053).
+#[cfg_attr(
+    not(any(target_vendor = "apple", target_os = "android")),
+    allow(dead_code, reason = "only the Apple and Android renderers composite")
+)]
+fn composite<T>(
+    layers: &mut dyn Iterator<Item = T>,
+    mut draw_layer: impl FnMut(&T, bool) -> Result<bool, DrawError>,
+    draw_black: impl FnOnce() -> Result<(), DrawError>,
+) -> Result<(), DrawError> {
+    let mut cleared = false;
+    let mut undecoded = None;
+    for layer in layers {
+        match draw_layer(&layer, !cleared) {
+            Ok(drew) => cleared |= drew,
+            Err(DrawError::Decode(reason)) => {
+                undecoded.get_or_insert(reason);
+            }
+            Err(gpu_failed) => return Err(gpu_failed),
+        }
+    }
+    if !cleared {
+        draw_black()?;
+    }
+    undecoded.map_or(Ok(()), |reason| Err(DrawError::Decode(reason)))
+}
+
+/// Draws `layers` into the platform texture ([`composite`]). Each layer is drawn and waited on
+/// before the next decode, since a decoder frame lives only until the decoder's next call.
 #[cfg(target_vendor = "apple")]
 fn draw_into(
     gpu: &Gpu,
@@ -1083,21 +1154,11 @@ fn draw_into(
     // reported as made.
     let texture = unsafe { gpu.wrap_metal_texture(target.handle as *mut std::ffi::c_void) }
         .map_err(gpu_err)?;
-    let mut cleared = false;
-    let mut undecoded = None;
-    for layer in layers {
-        match draw_layer(gpu, &texture, decoder, &layer, !cleared) {
-            Ok(drew) => cleared |= drew,
-            Err(DrawError::Decode(reason)) => {
-                undecoded.get_or_insert(reason);
-            }
-            Err(gpu_failed) => return Err(gpu_failed),
-        }
-    }
-    if !cleared {
-        gpu.draw_black(&texture).map_err(gpu_err)?;
-    }
-    undecoded.map_or(Ok(()), |reason| Err(DrawError::Decode(reason)))
+    composite(
+        layers,
+        |layer, clear| draw_layer(gpu, &texture, decoder, layer, clear),
+        || gpu.draw_black(&texture).map_err(gpu_err),
+    )
 }
 
 /// Draws one layer into `texture` (over black when `clear`); `Ok(false)` when nothing was drawn
@@ -1161,38 +1222,85 @@ fn draw_layer(
     }
 }
 
-// ponytail: Android draws only the top layer, and the test pattern for media, until its decoder
-// lands (P1-070, which also composites all layers into one surface frame); colors need no
-// decoder and are filled already.
+/// Draws `layers` into the platform's window ([`composite`]) and presents them as one frame.
+// ponytail: decoding runs under the queue lock, so the preview and the export wait on each
+// other's decodes; the render thread (P1-053) moves the decode out.
 #[cfg(target_os = "android")]
 fn draw_into(
     gpu: &Gpu,
     target: PlatformTexture,
-    _decoder: &mut Option<Box<dyn Decoder>>,
+    decoder: &mut Option<Box<dyn Decoder>>,
     layers: &mut dyn Iterator<Item = Layer<'_>>,
 ) -> Result<(), DrawError> {
-    use framix_core::media::MediaKind;
-    use framix_core::placement::target_to_canvas;
-    let layer = layers.last();
-    let gpu_err = |e: RenderError| DrawError::Gpu(e.to_string());
     let window = std::ptr::NonNull::new(target.handle as *mut std::ffi::c_void)
         .ok_or_else(|| DrawError::Gpu("null preview window".into()))?;
-    let Some(layer) = layer.filter(|l| l.media.kind() == MediaKind::Color) else {
-        // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
-        // reported as made.
-        return unsafe { gpu.draw_to_android_window(window, None) }.map_err(gpu_err);
-    };
-    // SAFETY: as above.
-    let (width, height) = unsafe { android::window_size(window) }.map_err(gpu_err)?;
+    // SAFETY: GpuRenderer::new's contract: the handle is a live ANativeWindow* the platform
+    // reported as made.
+    unsafe {
+        gpu.draw_to_android_window(window, |frame| {
+            composite(
+                layers,
+                |layer, clear| draw_window_layer(frame, decoder, layer, clear),
+                || {
+                    frame
+                        .draw_black()
+                        .map_err(|e| DrawError::Gpu(e.to_string()))
+                },
+            )
+        })
+    }
+}
+
+/// Draws one layer into `frame` (over black when `clear`); `Ok(false)` when nothing was drawn
+/// (no decoder). A frame that cannot be imported counts as undecoded, so the preview stays.
+#[cfg(target_os = "android")]
+fn draw_window_layer(
+    frame: &WindowFrame<'_>,
+    decoder: &mut Option<Box<dyn Decoder>>,
+    layer: &Layer,
+    clear: bool,
+) -> Result<bool, DrawError> {
+    use framix_app::preview::Frame;
+    use framix_core::media::MediaKind;
+    use framix_core::placement::{canvas_to_source, target_to_canvas};
+    let (width, height) = frame.size();
     let canvas = target_to_canvas(layer.canvas, width, height);
-    // Canvas UV is the pixel's UV, so the color covers the canvas exactly (as `draw_color`).
-    let placement = Placement {
-        canvas,
-        source: canvas,
+    let drawn = if layer.media.kind() == MediaKind::Color {
+        frame.draw_color(layer.media.color(), canvas, clear)
+    } else {
+        let Some(decoder) = decoder.as_mut() else {
+            return Ok(false);
+        };
+        let picture = decoder
+            .frame(layer.media, layer.source_time, layer.proxy_side)
+            .map_err(DrawError::Decode)?;
+        let Frame::Rgba { texture: ahb } = picture else {
+            return Err(DrawError::Decode("Android frames are RGBA".into()));
+        };
+        let ahb = std::ptr::NonNull::new(ahb as *mut std::ffi::c_void)
+            .ok_or_else(|| DrawError::Decode("null frame".into()))?;
+        // SAFETY: GpuRenderer::new's contract: the decoder's frame is a live AHardwareBuffer
+        // whose GPU writes are done and that nothing writes until the decoder's next call,
+        // which comes after this draw (each draw waits for the GPU).
+        let picture = unsafe { frame.import(ahb) }.map_err(|e| DrawError::Decode(e.to_string()))?;
+        let placement = Placement {
+            canvas,
+            source: canvas.then(&canvas_to_source(
+                layer.media,
+                &layer.transform,
+                layer.canvas,
+            )),
+        };
+        frame.draw(&picture, &placement, clear)
     };
-    let pixel = gpu.color_pixel(layer.media.color());
-    // SAFETY: as above.
-    unsafe { gpu.draw_to_android_window(window, Some((&pixel, &placement))) }.map_err(gpu_err)
+    match drawn {
+        Ok(()) => Ok(true),
+        // The window frame is the engine's own, so an unusable texture is the picture's.
+        Err(RenderError::InvalidTexture) => {
+            Err(DrawError::Decode(RenderError::InvalidTexture.to_string()))
+        }
+        Err(e) => Err(DrawError::Gpu(e.to_string())),
+    }
 }
 
 #[cfg(not(any(target_vendor = "apple", target_os = "android")))]

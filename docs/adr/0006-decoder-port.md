@@ -35,6 +35,13 @@ an engine rule that preview and export must apply the same way.
 - Seeking reopens the reader for backward or far (over 1 s) jumps; keyframe-aware seeking and
   caching are ENG-006.
 - Only one layer is drawn; compositing several tracks is a later task.
-- Android registers decoder stubs that fail, so its preview stays on the test pattern until
-  its own decoder task.
+- Android (P1-070): `FrameDecoder.kt` runs MediaExtractor + MediaCodec into a SurfaceTexture
+  on its own thread and EGL context, and one GLES pass (the P1-056 spike's) draws the frame
+  into an RGBA8 ImageReader buffer; photos (BitmapFactory, stored orientation, 4096 px cap) go
+  through the same pass. `decoder_frame` reports that `AHardwareBuffer*` as an RGBA frame;
+  the renderer imports it (ADR 0004's import) and composites every layer into one window frame,
+  presented once. The driver picks the YCbCr matrix and range; reading the stream's tags
+  needs a YCbCr sampler or our own convert pass (P1-002). Decoding runs under the GPU queue
+  lock until the render thread (P1-053), and Android proxies (ADR 0007) are not made yet, so
+  `proxy_side` falls back to the original.
 - The legacy iOS path is removed when the minimum becomes iOS 26.

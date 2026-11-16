@@ -14,8 +14,6 @@ use prost::Message as _;
 mod android_platform;
 mod platform;
 #[cfg(target_os = "android")]
-mod spike_preview;
-#[cfg(target_os = "android")]
 pub use android_platform::{
     Java_com_travela_framix_EnginePlatform_nativePreviewTextureDone,
     Java_com_travela_framix_EnginePlatform_nativeRegister,
@@ -27,8 +25,6 @@ pub use platform::{
     ENGINE_YCBCR_601, ENGINE_YCBCR_709, ENGINE_YCBCR_UNKNOWN, EngineFrame, EnginePlatform,
     EnginePreviewTextureDone, EngineProxyDone, EngineThumbnailDone, engine_platform_register,
 };
-#[cfg(target_os = "android")]
-pub use spike_preview::Java_com_travela_framix_EnginePlatform_nativeRenderFrame;
 
 /// Call succeeded.
 pub const ENGINE_OK: i32 = 0;
