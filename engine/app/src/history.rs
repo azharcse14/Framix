@@ -1,6 +1,8 @@
 //! Undo/redo for timeline edits.
 
-use framix_core::timeline::Timeline;
+use std::collections::BTreeSet;
+
+use framix_core::timeline::{MediaId, Timeline};
 
 /// Owns the timeline; every edit goes through [`History::apply`] so it can be undone.
 ///
@@ -50,7 +52,10 @@ impl History {
             return Ok(value);
         }
         self.undo.push(std::mem::replace(&mut self.current, next));
-        self.redo.clear();
+        if !self.redo.is_empty() {
+            self.redo.clear();
+            self.forget_unused_media();
+        }
         Ok(value)
     }
 
@@ -106,6 +111,20 @@ impl History {
     pub fn redo(&mut self) -> bool {
         self.merging = None;
         Self::step(&mut self.current, &mut self.redo, &mut self.undo)
+    }
+
+    /// Unregisters, from every state left, the media no clip of any state left uses (ENG-055).
+    /// Call it whenever states leave the history. Each state's clips keep their media, so undo
+    /// and redo still find it; ids only go forward, so a forgotten id is never reissued.
+    // ponytail: scans every snapshot; fine while drops are rare (a new edit after undo).
+    fn forget_unused_media(&mut self) {
+        let used: BTreeSet<MediaId> = self.timelines().flat_map(Timeline::used_media).collect();
+        for timeline in std::iter::once(&mut self.current)
+            .chain(&mut self.undo)
+            .chain(&mut self.redo)
+        {
+            timeline.forget_media_except(&used);
+        }
     }
 
     /// Moves `current` onto `to` and pops `from` into `current`.

@@ -85,12 +85,7 @@ pub enum ProjectError {
 /// Encodes `timeline` as a project file. Only media some clip uses is listed (ENG-054): the
 /// undo history, which may still need the rest, is not saved.
 pub fn encode(timeline: &Timeline) -> Vec<u8> {
-    let used: std::collections::BTreeSet<MediaId> = timeline
-        .tracks()
-        .iter()
-        .flat_map(|t| t.clips())
-        .map(|c| c.media)
-        .collect();
+    let used: std::collections::BTreeSet<MediaId> = timeline.used_media().collect();
     let tracks = timeline
         .tracks()
         .iter()
