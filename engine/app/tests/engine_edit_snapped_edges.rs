@@ -26,7 +26,7 @@ fn video(n: u32) -> MediaItem {
     MediaItem {
         uri: format!("content://media/external/video/{n}"),
         kind: MediaKind::Video as i32,
-        duration_value: 2000,
+        duration_value: 5000,
         duration_timescale: 1000,
         width: 1080,
         height: 1920,
@@ -53,21 +53,26 @@ fn mv(clip_id: u64, track_id: u64, start: i64, snap_within: i64) -> command::Kin
     })
 }
 
-/// [0, 2 s) and [4 s, 6 s) on one track: (track, first, second).
+/// [0, 2 s) and [4 s, 6 s) on one track: (track, first, second). Each plays the first 2 s of a
+/// 5 s video, so trims may lengthen it (ENG-053).
 fn apart(engine: &mut Engine) -> (u64, u64, u64) {
-    let t = run(
-        engine,
-        command::Kind::ImportMedia(ImportMedia {
-            items: vec![video(1), video(2)],
-        }),
-    );
-    let (track, a, b) = (
-        t.tracks[0].id,
-        t.tracks[0].clips[0].id,
-        t.tracks[0].clips[1].id,
-    );
-    run(engine, mv(b, track, 4 * S, 0));
-    (track, a, b)
+    let mut ids = Vec::new();
+    let mut track = 0;
+    for n in [1, 2] {
+        let t = run(
+            engine,
+            command::Kind::ImportMedia(ImportMedia {
+                items: vec![video(n)],
+            }),
+        );
+        let c = t.tracks[0].clips.last().unwrap();
+        let (id, start) = (c.id, c.start);
+        track = t.tracks[0].id;
+        run(engine, trim(id, start, start + 2 * S, 0));
+        ids.push(id);
+    }
+    run(engine, mv(ids[1], track, 4 * S, 0));
+    (track, ids[0], ids[1])
 }
 
 #[test]

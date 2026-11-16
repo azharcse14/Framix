@@ -22,11 +22,12 @@ fn run(engine: &mut Engine, kind: command::Kind) -> TimelineChanged {
     }
 }
 
-fn video(n: u32) -> MediaItem {
+/// A `ms` long video.
+fn video(n: u32, ms: i64) -> MediaItem {
     MediaItem {
         uri: format!("content://media/external/video/{n}"),
         kind: MediaKind::Video as i32,
-        duration_value: 2000,
+        duration_value: ms,
         duration_timescale: 1000,
         width: 1080,
         height: 1920,
@@ -59,7 +60,7 @@ fn snapping_edits_say_so_and_others_do_not() {
     let t = run(
         &mut engine,
         command::Kind::ImportMedia(ImportMedia {
-            items: vec![video(1), video(2)],
+            items: vec![video(1, 5000), video(2, 2000)],
         }),
     );
     assert!(!t.snapped, "an import does not snap");
@@ -69,6 +70,8 @@ fn snapping_edits_say_so_and_others_do_not() {
         t.tracks[0].clips[1].id,
     );
 
+    // The first clip plays 2 s of its 5 s, so trims may lengthen it again (ENG-053).
+    run(&mut engine, trim(a, 0, 2 * S, 0));
     let t = run(&mut engine, mv(b, track, 4 * S, 0));
     assert!(!t.snapped, "no tolerance, no snap");
     // The first clip's end dropped at 3.95 s lands on the second clip's start (4 s).

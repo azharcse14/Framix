@@ -1,6 +1,7 @@
 //! P1-018 review: overflow paths and cross-track merges.
 mod common;
 
+use framix_core::media::{Media, MediaKind, RawMedia};
 use framix_core::time::Time;
 use framix_core::timeline::{ClipPlacement, MediaId, TimelineError, TrackKind};
 
@@ -17,7 +18,25 @@ fn place(source_start: i64, start: i64, duration: i64) -> ClipPlacement {
 fn overflowing_source_or_end_is_refused() {
     let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
-    let c = tl.insert_clip(t, place(i64::MAX - 5, 0, 100)).unwrap();
+    // A video's source must end inside it (ENG-053); a photo has no length, so its clip
+    // can carry the largest source offset.
+    let photo = Media::validate(RawMedia {
+        uri: "media/p.jpg".into(),
+        kind: MediaKind::Image,
+        duration_value: 0,
+        duration_timescale: 0,
+        width: 4,
+        height: 3,
+        rotation: 0,
+        codec: String::new(),
+    })
+    .unwrap();
+    tl.restore_media(MediaId(3), photo);
+    let huge_source = ClipPlacement {
+        media: MediaId(3),
+        ..place(i64::MAX - 5, 0, 100)
+    };
+    let c = tl.insert_clip(t, huge_source).unwrap();
     assert_eq!(tl.split_clip(c, Time(50)), Err(TimelineError::TimeOverflow));
     assert_eq!(
         tl.trim_clip(c, Time(50), Time(100)),
