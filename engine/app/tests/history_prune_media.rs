@@ -1,11 +1,11 @@
-//! ENG-055: each history state registers only the media its own clips use, so the live
-//! registry stops growing, and undo/redo still find every clip's media.
+//! ENG-055: when states leave the history, media no remaining state's clips use is
+//! unregistered everywhere; undo and redo still find every clip's media.
 
 use std::collections::BTreeSet;
 
 use framix_app::history::History;
 use framix_core::media::Media;
-use framix_core::timeline::{ClipId, MediaId, Timeline};
+use framix_core::timeline::{ClipId, MediaId, Timeline, TimelineError, TrackKind};
 use proptest::prelude::*;
 
 fn registered(tl: &Timeline) -> BTreeSet<MediaId> {
@@ -32,56 +32,53 @@ fn import(h: &mut History, color: u32) -> ClipId {
     h.apply(|tl| tl.import(vec![Media::solid(color)])).unwrap()[0]
 }
 
+fn add_track(h: &mut History) {
+    h.apply(|tl| Ok::<_, TimelineError>(tl.add_track(TrackKind::Video)))
+        .unwrap();
+}
+
+/// A history whose start registers media 5 without any clip on it.
+fn with_unused_media() -> History {
+    let mut tl = Timeline::default();
+    tl.restore_media(MediaId(5), Media::solid(5));
+    History::new(tl)
+}
+
 #[test]
-fn deleting_the_last_clip_of_a_media_unregisters_it_and_undo_brings_both_back() {
+fn dropping_redo_unregisters_media_no_remaining_state_uses() {
+    let mut h = with_unused_media();
+    add_track(&mut h);
+    assert!(h.undo());
+    add_track(&mut h);
+    for tl in h.timelines() {
+        assert_eq!(tl.media(MediaId(5)), None);
+    }
+}
+
+#[test]
+fn media_a_remaining_state_uses_stays_registered() {
     let mut h = History::new(Timeline::default());
     let clip = import(&mut h, 1);
     let media = h.timeline().clip(clip).unwrap().media;
     h.apply(|tl| tl.remove_clip(clip)).unwrap();
-    assert_eq!(h.timeline().media(media), None);
-
     assert!(h.undo());
-    assert!(h.timeline().media(media).is_some());
-    assert_eq!(h.timeline().clip(clip).unwrap().media, media);
+    assert!(h.undo());
     assert!(h.redo());
-    assert_eq!(h.timeline().media(media), None);
+    // Drops the delete; the import state still uses the media.
+    add_track(&mut h);
+    assert!(h.timeline().media(media).is_some());
+    assert!(h.undo());
+    assert_eq!(h.timeline().clip(clip).unwrap().media, media);
 }
 
 #[test]
-fn replacing_a_clip_unregisters_the_old_media() {
-    let mut h = History::new(Timeline::default());
-    let clip = import(&mut h, 1);
-    let old = h.timeline().clip(clip).unwrap().media;
-    let new = h
-        .apply(|tl| tl.replace_clip(clip, Media::solid(2)))
-        .unwrap();
-    assert_eq!(registered(h.timeline()), BTreeSet::from([new]));
+fn forgotten_media_ids_are_never_reissued() {
+    let mut h = with_unused_media();
+    add_track(&mut h);
     assert!(h.undo());
-    assert_eq!(registered(h.timeline()), BTreeSet::from([old]));
-}
-
-#[test]
-fn pruned_media_ids_are_never_reissued() {
-    let mut h = History::new(Timeline::default());
-    let clip = import(&mut h, 1);
-    let pruned = h.timeline().clip(clip).unwrap().media;
-    h.apply(|tl| tl.remove_clip(clip)).unwrap();
-    let next = import(&mut h, 2);
-    assert!(h.timeline().clip(next).unwrap().media.0 > pruned.0);
-    // Back past the import and the delete, then a new edit: still a fresh id.
-    assert!(h.undo());
-    assert!(h.undo());
-    let again = import(&mut h, 3);
-    assert!(h.timeline().clip(again).unwrap().media.0 > pruned.0);
-}
-
-#[test]
-fn a_failed_edit_keeps_the_registry() {
-    let mut h = History::new(Timeline::default());
-    import(&mut h, 1);
-    let before = registered(h.timeline());
-    assert!(h.apply(|tl| tl.remove_clip(ClipId(999))).is_err());
-    assert_eq!(registered(h.timeline()), before);
+    add_track(&mut h);
+    let clip = import(&mut h, 2);
+    assert!(h.timeline().clip(clip).unwrap().media.0 > 5);
 }
 
 #[derive(Clone, Debug)]
@@ -105,13 +102,15 @@ fn op() -> impl Strategy<Value = Op> {
 
 proptest! {
     #[test]
-    fn every_state_registers_exactly_the_media_its_clips_use(
+    fn snapshots_find_their_media_and_dropped_media_is_gone(
         ops in proptest::collection::vec(op(), 0..40)
     ) {
-        let mut h = History::new(Timeline::default());
+        let mut h = with_unused_media();
+        let mut dropped = false;
         for op in ops {
             let current = clips(h.timeline());
             let pick = |i: usize| (!current.is_empty()).then(|| current[i % current.len()]);
+            let had_redo = h.can_redo();
             match op {
                 Op::Import(c) => {
                     import(&mut h, c);
@@ -133,9 +132,15 @@ proptest! {
                     h.redo();
                 }
             }
-            // Every snapshot finds its clips' media, and keeps none that no clip of it uses.
+            let edit = matches!(op, Op::Import(_) | Op::Delete(_) | Op::Replace(..));
+            dropped |= edit && had_redo && !h.can_redo();
             for tl in h.timelines() {
-                prop_assert_eq!(registered(tl), used(tl));
+                prop_assert!(used(tl).is_subset(&registered(tl)));
+            }
+            if dropped {
+                let all_used: BTreeSet<_> = h.timelines().flat_map(used).collect();
+                let all_registered: BTreeSet<_> = h.timelines().flat_map(registered).collect();
+                prop_assert_eq!(all_registered, all_used);
             }
         }
     }

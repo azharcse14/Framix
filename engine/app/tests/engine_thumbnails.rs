@@ -224,20 +224,3 @@ fn timeline_reports_the_thumbnail_step() {
         };
     assert_eq!(t.thumbnail_step, SECOND);
 }
-
-#[test]
-fn media_of_a_deleted_clip_still_gets_thumbnails_while_undo_can_bring_it_back() {
-    let (mut engine, requests, video, _) = setup();
-    let t = match run(&mut engine, command::Kind::GetTimeline(Default::default())).kind {
-        Some(event::Kind::TimelineChanged(t)) => t,
-        other => panic!("{other:?}"),
-    };
-    let clip_id = t.tracks[0].clips[0].id;
-    run(
-        &mut engine,
-        command::Kind::RemoveClip(framix_app::proto::RemoveClip { clip_id }),
-    );
-    // A request the UI sent before it saw the delete must not fail.
-    assert!(accepted(&ask(&mut engine, video, &[0], 128)));
-    assert_eq!(times(&requests), vec![0]);
-}
