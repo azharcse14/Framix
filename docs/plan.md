@@ -1270,6 +1270,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-063` Delete app media copies (Application Support/media) no saved project or open undo history refers to (split from ENG-054) \[Rust\]
 - [x] `ENG-064` Still merge order gap (ENG-062): set_photo_durations then a left-half start trim lifts the left offset past the right half's, so split photo halves refuse to merge; keep the start/offset delta between halves in set_photo_durations. Also update the MergeClips proto comment ('continuous source' is video-only now; needs gen_ffi.sh) \[Rust\]
 - [x] `ENG-065` Library sweep (ENG-063): fail closed when listing the library folder skips an entry it can't stat \[Rust\]
+- [ ] `ENG-066` Undo history byte budget or shared snapshots (Arc'd tracks/media registry); the GOT-051 count cap alone is unbounded in bytes for very large projects \[Rust\]
 
 **Security**
 

@@ -11836,6 +11836,10 @@
     {
      "date": "2026-11-16",
      "text": "plan/decision: snapshots are full Timeline clones (no Arc sharing), so the cost is steps x timeline size. The plan gives no number, so the cap is by count only: History::MAX_UNDO_STEPS = 100 (public const, no config surface). apply pushes the old state; if undo grows past the cap the oldest states are drained from the front, and forget_unused_media runs once whenever states left (cap drop or cleared redo). Redo only fills from undo, so undo+redo never exceeds the cap. apply_merged's later calls replace current without a push, so gestures never grow history; autosave reads only current, so it is unaffected. No byte-size estimate: metadata snapshots are small (~100 clips x 100 steps is a few MB); a byte budget or Arc'd tracks come in if timelines get large."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. W1 (count cap only, unbounded bytes for huge projects) filed as ENG-066. Suggestions left: skip the prune scan when the dropped state's media are all still used; a_gesture_at_the_cap_stays_one_step passes without the stepped fix (the d4baad8 test is the real guard)."
     }
    ],
    "source": "plan"
@@ -16825,6 +16829,25 @@
      "text": "tracker: this work was done as 'ENG-064' in branch worktree-agent-a37b0839282e86bbc (commits 95f61e1, 70e4e9c, 4de33bf, 4955b25); main already had a different ENG-064 (still merge order gap, from ENG-062), so it was renumbered to ENG-065 at merge"
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "ENG-066",
+   "section": "ENG",
+   "group": null,
+   "title": "Undo history byte budget or shared snapshots (Arc'd tracks/media registry); the GOT-051 count cap alone is unbounded in bytes for very large projects",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
