@@ -16256,12 +16256,29 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: the path lives in ExportDone(path), taken from the ExportProject the engine accepted (the command that started the export); no proto change, since the engine refuses a second export while one runs, so the accepted path is the one ExportFinished is about. ExportFinished(ok) with no accepted export of ours goes ExportIdle (cannot happen with the eager cubit)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "old tests edited (b2500b1, assertions unchanged): ExportDone seeds carry '/plat/cache/framix-export.mp4' (export_result_page_test, export_result_review_test); fromEvent(ok) test passes exported:; export_project_switch_test accepts a start before its ExportFinished(ok). That commit follows the fix commit since it needs the new ExportDone(path)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "check.sh green: all checks passed"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warning (latest-accepted path not pinned by a two-export test) filed as a task. Nits kept: ExportIdle fallback for ok-without-accepted-start untested; _startingPath not cleared (harmless, start() overwrites it)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -16443,6 +16460,25 @@
      "text": "Gate runs after analyze (gen-l10n does no pub get; formatter needs package_config for the language version). Excludes *.g.dart, lib/l10n/generated, lib/core/engine/proto via find. Without fvm, dart = the one next to the resolved flutter binary. Style commit 3a5793f reformatted 5 files, whitespace/trailing commas only."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "UX-046",
+   "section": "UX",
+   "group": null,
+   "title": "ExportCubit test: a second accepted export's ExportDone carries the second path (last accepted wins; UX-042 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

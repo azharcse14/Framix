@@ -31,9 +31,17 @@ final class ExportRunning extends ExportState {
   int get hashCode => Object.hash(frame, frames);
 }
 
-/// The file is complete.
+/// The file at [path] is complete: the path the accepted ExportProject wrote.
 final class ExportDone extends ExportState {
-  const ExportDone();
+  const ExportDone(this.path);
+
+  final String path;
+
+  @override
+  bool operator ==(Object other) => other is ExportDone && other.path == path;
+
+  @override
+  int get hashCode => path.hashCode;
 }
 
 /// Stopped by the user or the engine; the file was removed.
@@ -80,7 +88,7 @@ class ExportCubit extends Cubit<ExportState> {
       if (event.hasTimelineChanged()) {
         return _onProject(event.timelineChanged.project.toInt());
       }
-      final next = fromEvent(event);
+      final next = fromEvent(event, exported: _path);
       if (next != null) {
         _starting = null;
         // The end of an export from a project no longer open is not this one's result.
@@ -100,6 +108,7 @@ class ExportCubit extends Cubit<ExportState> {
       } else if (event.hasCommandAccepted() &&
           event.commandAccepted.commandId.toInt() == starting) {
         _starting = null;
+        _path = _startingPath;
         emit(const ExportRunning(0, 0));
       }
     });
@@ -110,6 +119,12 @@ class ExportCubit extends Cubit<ExportState> {
 
   /// The id of the ExportProject waiting for its reply.
   int? _starting;
+
+  /// The path of the ExportProject waiting for its reply.
+  String? _startingPath;
+
+  /// The path of the export the engine accepted last: the file its ExportFinished is about.
+  String? _path;
 
   /// The project of the latest TimelineChanged; the engine changes it on every New or Open.
   int? _project;
@@ -131,14 +146,18 @@ class ExportCubit extends Cubit<ExportState> {
   }
 
   /// The state an engine event moves the export to; null if the event is not about it.
-  static ExportState? fromEvent(Event event) {
+  /// [exported] is the path of the export the engine accepted (null: none of ours).
+  static ExportState? fromEvent(Event event, {String? exported}) {
     if (event.hasExportProgress()) {
       final p = event.exportProgress;
       return ExportRunning(p.frame, p.frames);
     }
     if (!event.hasExportFinished()) return null;
     final f = event.exportFinished;
-    if (f.ok) return const ExportDone();
+    if (f.ok) {
+      // No accepted export of ours to show (cannot happen while this cubit sees every one).
+      return exported == null ? const ExportIdle() : ExportDone(exported);
+    }
     if (f.cancelled) return const ExportCancelled();
     if (f.neededBytes > 0) {
       return ExportNoSpace(f.neededBytes.toInt(), f.freeBytes.toInt());
@@ -151,6 +170,7 @@ class ExportCubit extends Cubit<ExportState> {
     if (state is ExportRunning) return;
     // A retry that fails the same way is a new state again, so it is reported again.
     emit(const ExportIdle());
+    _startingPath = path;
     // Only once it was sent: a send that throws must not leave a start waiting for a reply.
     _starting = _engine.send(
       Command(exportProject: ExportProject(path: path)),

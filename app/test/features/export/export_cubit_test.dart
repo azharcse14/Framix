@@ -16,7 +16,10 @@ void main() {
 
     test('finished is done, cancelled or failed', () {
       expect(
-        ExportCubit.fromEvent(Event(exportFinished: ExportFinished(ok: true))),
+        ExportCubit.fromEvent(
+          Event(exportFinished: ExportFinished(ok: true)),
+          exported: '/x.mp4',
+        ),
         isA<ExportDone>(),
       );
       expect(

@@ -32,6 +32,9 @@ Event _project(int project) =>
 
 final _done = Event(exportFinished: ExportFinished(ok: true));
 
+/// The engine's reply to the cubit's ExportProject (the fake's send returns id 1).
+final _accepted = Event(commandAccepted: CommandAccepted(commandId: Int64(1)));
+
 /// UX-041: project B never shows project A's export.
 void main() {
   late _Engine engine;
@@ -46,7 +49,14 @@ void main() {
 
   Future<void> settle() => Future<void>.delayed(Duration.zero);
 
+  /// An export the engine accepted, so its ExportFinished has a file to show.
+  void started() {
+    cubit.start('/plat/a.mp4');
+    engine.emit(_accepted);
+  }
+
   test('opening project B after A exported is idle', () async {
+    started();
     engine
       ..emit(_project(1))
       ..emit(Event(exportProgress: ExportProgress(frame: 1, frames: 2)))
@@ -60,6 +70,7 @@ void main() {
   });
 
   test('an edit in the same project keeps the finished export', () async {
+    started();
     engine
       ..emit(_project(1))
       ..emit(_done)
@@ -80,6 +91,7 @@ void main() {
   test(
     'an export running at the switch keeps showing, and its end is idle',
     () async {
+      started();
       engine
         ..emit(_project(1))
         ..emit(Event(exportProgress: ExportProgress(frame: 1, frames: 4)))
@@ -104,6 +116,7 @@ void main() {
 
   testWidgets('project B shows no Show-result button for A', (tester) async {
     // Finished before the editor shows, as after Back to edit: no Result push here.
+    started();
     engine
       ..emit(_project(1))
       ..emit(_done);
