@@ -113,7 +113,11 @@ void main() {
       tester,
     ) async {
       final dir = Directory.systemTemp.createTempSync('framix-home');
-      addTearDown(() => dir.deleteSync(recursive: true));
+      addTearDown(() async {
+        // The engine autosaves on shutdown: stop it before its library dir goes.
+        await stopEngine(tester, engine);
+        dir.deleteSync(recursive: true);
+      });
       await pumpHome(tester, scale, dir);
       await pumpUntil(tester, find.text(bn.projectsEmpty));
       expect(tester.takeException(), isNull);
@@ -124,7 +128,11 @@ void main() {
       'Home with a project: no Bangla text cut at text scale $scale',
       (tester) async {
         final dir = Directory.systemTemp.createTempSync('framix-home');
-        addTearDown(() => dir.deleteSync(recursive: true));
+        addTearDown(() async {
+          // The engine autosaves on shutdown: stop it before its library dir goes.
+          await stopEngine(tester, engine);
+          dir.deleteSync(recursive: true);
+        });
         await pumpHome(tester, scale, dir);
         await pumpUntil(tester, find.text(bn.projectsEmpty));
         await tester.tap(find.text(bn.newProject));
