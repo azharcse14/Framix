@@ -16720,6 +16720,10 @@
     {
      "date": "2026-11-16",
      "text": "only teardown changed: the two Home tests' addTearDown now awaits stopEngine(tester, engine) (test/pump_until.dart) before deleteSync; the group tearDown's dispose stays (idempotent no-op then). No assertion changed or dropped. 5/5 runs green."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical/Warning. Suggestion left as is (matches the UX-048 tests): if stopEngine throws, deleteSync is skipped and the temp dir leaks."
     }
    ],
    "source": "added"
