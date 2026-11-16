@@ -16583,7 +16583,12 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-a69b73ca6f4bce832",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: setup/teardown only. The earlier engine is disposed and its EngineStopped (events onDone) awaited right after its save, before pumpWidget, as in home_from_backup_test.dart:58-72; the teardown keeps earlier.dispose() (idempotent, same as that test). Added the snack bar comment from home_open_test.dart:35-36. No assertion changed or dropped (both expects and every pumpUntil target unchanged). Stable: 5/5 runs pass."
+    }
+   ],
    "source": "added"
   }
  ]
