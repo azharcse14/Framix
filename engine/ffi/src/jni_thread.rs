@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn a_thread_attaches_once_and_detaches_at_exit() {
-        let vm = (&raw const FAKE_VM).cast::<JavaVM>().cast_mut();
+        let vm = (&raw const FAKE_VM.0).cast::<JavaVM>().cast_mut();
         let vm = vm as usize;
         std::thread::spawn(move || {
             for _ in 0..100 {
