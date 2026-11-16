@@ -12970,15 +12970,27 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "worktree-agent-a55809e8769fac0be",
    "notes": [
     {
      "date": "2026-10-15",
      "text": "Also delete unreferenced files in Application Support/media (iOS copies of refused/undone/deleted imports)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "plan/decision: save-time prune only. project::encode lists only media that some clip uses; the in-memory registry (and so every undo/redo snapshot) is untouched, so undo after a save never meets unknown media. History is not persisted, so a reopened project starts with only used media. encode_for_save drops its media-count cap (used media <= clips <= MAX_CLIPS); decode keeps its cap for untrusted files. No proto change. Boundary: ENG-055 owns pruning the in-memory registry once no undo/redo snapshot refers to the media; deleting app media copies on disk (Application Support/media, this task's 2026-10-15 note) moves to its own task since it needs every project's references plus the open history."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "edited older test: project_media_limits::saving_more_media_than_open_allows_is_refused now gives each of the MAX_CLIPS+1 media a clip (a save no longer lists unused media); assertion (TooLarge) unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "ENG-063 filed for deleting unreferenced media copies on disk (the 2026-10-15 note)."
     }
    ],
    "source": "added"
@@ -16428,6 +16440,25 @@
    "title": "check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-063",
+   "section": "ENG",
+   "group": null,
+   "title": "Delete app media copies (Application Support/media) no saved project or open undo history refers to (split from ENG-054)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
