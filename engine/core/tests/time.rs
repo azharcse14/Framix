@@ -87,6 +87,20 @@ fn any_parts() -> impl Strategy<Value = (u32, u32)> {
     prop_oneof![(any::<u32>(), 1u32..=7), (any::<u32>(), any::<u32>())]
 }
 
+/// An accepted rate and a frame whose start fits in [`Time`], so no input is filtered out
+/// (filtering random i64 frames rejects too many and proptest aborts).
+fn accepted_rate_and_frame() -> impl Strategy<Value = (Rate, i64)> {
+    any_parts()
+        .prop_filter_map("rejected rate", |(num, den)| {
+            let r = Rate::new(num, den)?;
+            // Last frame whose start fits: i64::MAX * num / (den * TICKS_PER_SECOND).
+            let ticks_per_frame_num = i128::from(den) * i128::from(TICKS_PER_SECOND);
+            let max = i128::from(i64::MAX) * i128::from(num) / ticks_per_frame_num;
+            Some((r, i64::try_from(max).unwrap_or(i64::MAX)))
+        })
+        .prop_flat_map(|(r, max)| (Just(r), -max..=max))
+}
+
 proptest! {
     /// ENG-047: `new` accepts exactly the rates whose frame is at least one tick long.
     #[test]
@@ -97,10 +111,7 @@ proptest! {
 
     /// ENG-047: every accepted rate round-trips frame -> time -> frame.
     #[test]
-    fn every_accepted_rate_round_trips((num, den) in any_parts(), frame in any::<i64>()) {
-        let r = Rate::new(num, den);
-        prop_assume!(r.is_some());
-        let r = r.unwrap();
+    fn every_accepted_rate_round_trips((r, frame) in accepted_rate_and_frame()) {
         let t = r.frame_to_time(frame);
         prop_assume!(t.is_some());
         prop_assert_eq!(r.time_to_frame(t.unwrap()), Some(frame));
