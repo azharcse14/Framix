@@ -13878,6 +13878,10 @@
     {
      "date": "2026-11-16",
      "text": "review: REQUEST CHANGES, 1 Critical fixed: video frames kept their own latched range (Video.latched) so a photo layer between calls no longer makes the video read ahead or fail after its last frame. Also fixed: close() shuts threads down in finally, Gl init frees EGL on link failure, shared picture_placement/layer_drawn helpers (Apple+Android). Warnings filed: per-call JVM attach (new task), Android PIP LRU (new task), no device run (open risk, P1-128). Tracking order nit: task start was committed after the test/impl commits."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "re-review: APPROVE, no Critical. Its one nit (late first frame range) fixed. plan.md entries for P1-130/P1-131 were written by task.py add."
     }
    ],
    "source": "added"
