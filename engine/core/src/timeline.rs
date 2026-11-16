@@ -265,7 +265,8 @@ pub enum TimelineError {
     /// A split point must lie strictly inside the clip.
     #[error("split point is not inside the clip")]
     SplitOutside,
-    /// Merge needs two neighbouring clips on one track, same media, continuous source.
+    /// Merge needs two neighbouring clips on one track, same media, and the right source after
+    /// the left (see `Timeline::merge_clips`).
     #[error("clips cannot be merged")]
     NotMergeable,
     /// The track is locked; its clips cannot be edited.
