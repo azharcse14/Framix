@@ -1140,7 +1140,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-036` Permission na dile o export kaj korbe; Android e tokhon foreground service er notice notification drawer e na dekhiye task manager e thake \[Native\]
 - [ ] `SYS-037` Notification e tap korle sorasori result screen ba project e (deep link) \[Dart\]
 - [ ] `SYS-038` Push notification (FCM/APNs) backend hole pore \[Backend\]
-- [ ] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
+- [x] `SYS-039` v1 projects can't be saved after migration: v1 clips reference media ids the file never listed (UnknownMedia on save); pick offline/missing media entries (fits SYS-004 relink), drop the clips, or a clear error; then remove the v1 skip in engine/app/tests/project_fixtures.rs (found in ENG-046) \[Rust\]
 - [x] `SYS-040` Tell the user when a project opened from its backup (engine flag in the OpenProject reply + localized notice; plan.md 'shesh save bhanga chhilo') (found in SYS-003) \[Rust\] \[Dart\]
 - [x] `SYS-041` Storage tests leave framix-* temp dirs in TMPDIR (temp_dir() only clears before); remove after each test (SYS-003 review) \[Rust\]
 - [x] `SYS-042` rotate_backups: build the new backup under a temp name, then shift, then rename to .bak1, so a failure mid-rotation does not drop old versions; test with a step failing after the shift (P1-124 review) \[Rust\]

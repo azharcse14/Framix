@@ -15269,15 +15269,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-15",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "845dafb",
    "branch": "main",
    "notes": [
     {
      "date": "2026-11-15",
      "text": "format unchanged (5/5): empty-uri video = missing; pre-SYS-039 readers refuse it as bad uri, no data loss (P1-048 precedent); conditional min_reader_version later if a 'needs newer app' message is wanted"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: test file c7ca6ac got one lint-only change (7b0be24, clone_on_copy), no assertion changed. Follow-up: proxy.rs skips missing media only because of its 1x1 size; add an is_missing check when SYS-004 gives missing media real dimensions"
     }
    ],
    "source": "added"
