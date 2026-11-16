@@ -1164,7 +1164,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
 - [x] `SYS-047` check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up) \[Dart\]
 - [ ] `SYS-048` SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change
-- [ ] `SYS-049` check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test \[Dart\]
+- [x] `SYS-049` check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test \[Dart\]
 
 ## Engine ar platform er gobhir details
 
