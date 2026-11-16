@@ -16596,6 +16596,34 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
+   "done": null,
+   "commit": null,
+   "branch": "worktree-agent-a69b73ca6f4bce832",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: setup/teardown only. The earlier engine is disposed and its EngineStopped (events onDone) awaited right after its save, before pumpWidget, as in home_from_backup_test.dart:58-72; the teardown keeps earlier.dispose() (idempotent, same as that test). Added the snack bar comment from home_open_test.dart:35-36. No assertion changed or dropped (both expects and every pumpUntil target unchanged). Stable: 5/5 runs pass."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warning fixed: the comment claimed no engine writes during teardown; the app engine still autosaves on shutdown right before deleteSync (same in home_from_backup_test). Narrowed the comment and filed the teardown wait as a follow-up."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "UX-048",
+   "section": "UX",
+   "group": null,
+   "title": "export_switch_app_test and home_from_backup_test: teardown waits for the app engine's EngineStopped before deleteSync (it autosaves on shutdown; UX-047 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
