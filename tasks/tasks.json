@@ -16538,6 +16538,25 @@
     }
    ],
    "source": "added"
+  },
+  {
+   "id": "P1-132",
+   "section": "P1",
+   "group": null,
+   "title": "Android FrameDecoder: when Video.open fails (codec resources) with the LRU full, evict the other cached videos and retry once; drop or prove the 'within the hardware decoder limit' comment; try/finally in closeVideo so a codec.release throw still deletes the texture (P1-131 review)",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
