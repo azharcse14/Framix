@@ -1704,7 +1704,7 @@ OS memory ke page e bhag kore; ager Android e page 4 KB, Android 15 theke 16 KB 
 **Data ar project**
 
 - [ ] `GOT-050` Project file e effect/asset er stable ID ar version; effect pack update hole purono project er look na bodlay \[Rust\]
-- [ ] `GOT-051` Undo history er memory limit \[Rust\]
+- [x] `GOT-051` Undo history er memory limit \[Rust\]
 - [ ] `GOT-052` Project file e number locale-independent format e ("1,5" vs "1.5") \[Rust\]\[Dart\]
 - [ ] `GOT-053` System "reduce motion" setting mene UI animation kom \[Dart\]
 
