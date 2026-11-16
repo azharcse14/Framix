@@ -16557,7 +16557,16 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-a37b0839282e86bbc",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: new port method ProjectStore::list_strict (default = list, for stores that never skip an entry); FileStore implements it via files(strict) which fails on an entry it can't stat or whose info is missing (a vanished entry, NotFound, is still skipped). Only the sweep's mark phase (library::saved_uris) uses it; list/sizes stay lenient so Home still lists the other projects, and the media/cache sweep listings already fail safe (a skipped file is kept). The port stub went into the test commit so the fake could compile. Not covered: a symlinked or non-regular <id>.framix is still not a project (Home ignores it too)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "tests: real-FileStore tests make entries unstat-able with a read-only, non-searchable (0o444) folder; when permissions aren't enforced (root) they return early with a message, since the case can't be built there."
+    }
+   ],
    "source": "added"
   }
  ]

@@ -509,11 +509,11 @@ pub fn sweep<'a>(
 }
 
 /// The media uris of every project file in `dir` (a `<name>.framix` and each copy next to
-/// it). None when `dir` can't be listed or a project or backup doesn't load; copies the
+/// it). None when `dir` can't be listed in full or a project or backup doesn't load; copies the
 /// engine never loads (set aside as damaged, or left by a crash mid-save) count only when
 /// they decode.
 fn saved_uris(store: &dyn ProjectStore, dir: &Path) -> Option<BTreeSet<String>> {
-    let files = store.list(dir).ok()?;
+    let files = store.list_strict(dir).ok()?;
     let mut loadable = BTreeSet::new();
     for (file, _) in &files {
         if file.extension().is_some_and(|e| e == EXTENSION) {
