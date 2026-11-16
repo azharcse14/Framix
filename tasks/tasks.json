@@ -16555,7 +16555,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "started by assistant (user said 'sob koro' 2026-11-16); task.py start refused human-owned task"
+    }
+   ],
    "source": "added"
   },
   {
