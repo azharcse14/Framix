@@ -126,6 +126,67 @@ fn split_photo_halves_merge_after_the_duration_changes() {
     assert_eq!(spans(&tl, 0), [(0, 6)]);
 }
 
+#[test]
+fn split_photo_halves_merge_after_a_duration_change_then_a_left_start_trim() {
+    // ENG-064: a longer duration then a shorter left half must not lift its offset past the
+    // right half's.
+    let mut tl = Timeline::default();
+    tl.import(vec![photo()]).unwrap();
+    let c = tl.tracks()[0].clips()[0].id;
+    let right = tl.split_clip(c, Time(S)).unwrap();
+    tl.set_photo_durations(Time(10 * S)).unwrap();
+    tl.trim_clip(c, Time(5 * S), Time(10 * S)).unwrap();
+    assert_eq!(tl.merge_clips(c, right), Ok(()));
+    assert_eq!(spans(&tl, 0), [(5, 15)]);
+}
+
+#[test]
+fn split_photo_halves_merge_after_the_left_grows_then_shrinks_at_its_start() {
+    // ENG-064: growing stops the offset at 0 (ENG-060); shrinking after that must not lift it
+    // past the right half's.
+    let mut tl = Timeline::default();
+    let ids = tl.import(vec![photo()]).unwrap();
+    let track = tl.tracks()[0].id();
+    tl.move_clip(ids[0], track, Time(10 * S)).unwrap();
+    let right = tl.split_clip(ids[0], Time(11 * S)).unwrap();
+    tl.trim_clip(ids[0], Time(0), Time(11 * S)).unwrap();
+    tl.trim_clip(ids[0], Time(10 * S + S / 2), Time(11 * S))
+        .unwrap();
+    assert_eq!(tl.merge_clips(ids[0], right), Ok(()));
+}
+
+proptest! {
+    /// ENG-064: whatever splits, start trims and duration changes happen, the pieces of one
+    /// photo merge back left to right, and a duplicate of the result never merges with it.
+    #[test]
+    fn photo_pieces_always_merge_back_and_a_duplicate_never_does(
+        ops in prop::collection::vec((0u8..3, 0usize..8, 0i64..i64::MAX), 0..40),
+    ) {
+        let mut tl = Timeline::default();
+        let ids = tl.import(vec![photo()]).unwrap();
+        let track = tl.tracks()[0].id();
+        tl.move_clip(ids[0], track, Time(20 * S)).unwrap();
+        for (op, pick, seed) in ops {
+            let clips = tl.tracks()[0].clips();
+            let c = clips[pick % clips.len()];
+            let _ = match op {
+                0 if c.duration.0 > 1 => tl
+                    .split_clip(c.id, Time(c.start.0 + 1 + seed % (c.duration.0 - 1)))
+                    .map(drop),
+                1 => tl.trim_clip(c.id, Time(seed % c.end().0), c.end()),
+                2 => tl.set_photo_durations(Time(1 + seed % (10 * S))),
+                _ => Ok(()),
+            };
+        }
+        let first = tl.tracks()[0].clips()[0].id;
+        while let Some(next) = tl.tracks()[0].clips().get(1).map(|c| c.id) {
+            prop_assert_eq!(tl.merge_clips(first, next), Ok(()));
+        }
+        let copy = tl.duplicate_clip(first).unwrap();
+        prop_assert_eq!(tl.merge_clips(first, copy), Err(TimelineError::NotMergeable));
+    }
+}
+
 proptest! {
     /// Photos get exactly `d`, others keep theirs, order and gaps between clips are kept.
     #[test]
