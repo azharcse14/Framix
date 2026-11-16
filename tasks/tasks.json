@@ -16144,6 +16144,10 @@
     {
      "date": "2026-11-16",
      "text": "failing evidence: with the F1A5...04B1 build-file line removed from the Runner Resources files block (PBXBuildFile comment 'InfoPlist.xcstrings in Resources' still present, so the old contains() check passed), the test fails: Expected: contains 'InfoPlist.xcstrings', Actual: ['Flutter/AppFrameworkInfo.plist', 'Assets.xcassets']. Passes on the real pbxproj."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical/Warning. Nits left: doc could say name-only refs (variant groups) drop out and the parser fails closed on format changes."
     }
    ],
    "source": "added"
