@@ -233,6 +233,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [x] `TC-013` native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist \[Native\] \[Dart\]
 - [x] `TC-014` Upgrade sentry_flutter/sentry to 10.2.0+ (jni 1.1.0) once 14 days old (2026-11-05) and drop the jni Groovy allowlist line in scripts/native_warnings.sh \[Dart\] \[Native\]
 - [ ] `TC-015` native_warnings.sh: allowlist cold-build upstream lines (package_info_plus 10.2.2 build.gradle.kts Project.android deprecation; Gradle cache lines naming transform-api-2.0.0-deprecated-use-gradle-api.jar) \[Native\]
+- [ ] `TC-016` fvm is not installed on the dev Mac, so check.sh silently falls back to Homebrew Flutter 3.47.9 instead of the pinned 3.47.7: install fvm (or pin Homebrew), and make check.sh fail when the Flutter version differs from .fvmrc
 
 ## AI diye code lekha (Claude Code)
 
@@ -1089,7 +1090,7 @@ Shuru thekei app localization-ready; prothom bhasha English + Bangla, pore targe
 - [x] `L10N-014` iOS Info.plist permission text (NSPhotoLibraryAddUsageDescription) localized en + bn via InfoPlist.strings/xcstrings (L10N-002 review) \[Native\]
 - [x] `L10N-015` bn mixes digit systems: gen-l10n int placeholders render Latin digits while NumberFormat/DateFormat (fileSize, dates) and recentlyDeletedEmpty use Bengali digits; pick one (e.g. placeholder format decimalPattern) (L10N-003 review) \[Dart\]
 - [x] `L10N-016` Tests build MaterialApp with the generated AppLocalizations.localizationsDelegates (package:flutter Material/Cupertino delegates, not material_ui's); expose the app's delegate list once and use it in tests (L10N-001 review) \[Dart\]
-- [ ] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
+- [x] `L10N-017` recentlyDeletedEmpty hard-codes 30 days in ARB; the retention period is an engine rule; pass it as a placeholder from the engine (L10N-003 review) \[Dart\] \[Rust\]
 - [x] `L10N-018` Timecode and ruler labels build digits with toString/padLeft (core/ui/timecode.dart:5, timeline_view.dart _secondsLabel), so bn editor still shows Latin digits; use Bengali digits or record a decision that timecodes stay Latin (L10N-015 review) \[Dart\]
 - [ ] `L10N-019` Rename app/lib/core/ui/file_size.dart to a locale-number home (it now holds localeDigits, frameSize, the NumberFormat cache) and take the locale one way (l10n.localeName vs Localizations.localeOf in home_page.dart:431) (L10N-015/018 review) \[Dart\]
 - [ ] `L10N-020` iOS l10n test: check InfoPlist.xcstrings is in the Runner Resources phase files block, not just any pbxproj comment (L10N-014 review) \[Native\]
@@ -1163,6 +1164,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-046` flutter test outside check.sh still races check.sh on app/build/native_assets/macos (SYS-044 lock only covers check.sh): move the lock into a scripts/flutter_test.sh used by check.sh and agents, and point CLAUDE.md Commands at it; guard flock on Linux with command -v (SYS-044 review) \[Dart\]
 - [x] `SYS-047` check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up) \[Dart\]
 - [ ] `SYS-048` SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change
+- [ ] `SYS-049` check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test \[Dart\]
 
 ## Engine ar platform er gobhir details
 

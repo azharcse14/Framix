@@ -15577,10 +15577,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "4cb88af",
    "branch": "worktree-agent-a2459b0c1f1a4324e",
    "notes": [
     {
@@ -16377,6 +16377,42 @@
    "section": "UX",
    "group": null,
    "title": "An export from project A that finishes while B is open lands silently as ExportIdle: show a one-line notice (finished/failed), or have the engine cancel exports on New/Open; also A -> B -> A while running shows A's result as Idle (UX-041 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "TC-016",
+   "section": "TC",
+   "group": null,
+   "title": "fvm is not installed on the dev Mac, so check.sh silently falls back to Homebrew Flutter 3.47.9 instead of the pinned 3.47.7: install fvm (or pin Homebrew), and make check.sh fail when the Flutter version differs from .fvmrc",
+   "tags": [],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-049",
+   "section": "SYS",
+   "group": null,
+   "title": "check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test",
    "tags": [
     "Dart"
    ],
