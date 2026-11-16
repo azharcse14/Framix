@@ -73,7 +73,7 @@ void main() {
 
     // The other project, saved before the app starts: one audio track.
     // The earlier engine stops before the app starts, so only one engine writes the
-    // library dir and none is still writing when the teardown deletes it.
+    // library dir while the app runs.
     var listed = false;
     var stopped = false;
     earlier.events.listen(
