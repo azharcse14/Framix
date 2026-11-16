@@ -16889,6 +16889,23 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "SYS-050",
+   "section": "SYS",
+   "group": null,
+   "title": "gen_ffi.sh exits 255 with no output when 'dart run ffigen' fails: out=$(...) under set -e kills the script before the captured error is printed (seen with 'Invalid SDK hash')",
+   "tags": [],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
