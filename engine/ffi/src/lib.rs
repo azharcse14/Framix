@@ -3,7 +3,9 @@
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel};
 use std::time::Instant;
 
-use framix_app::engine::{AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, autosave_failed, command_failed};
+use framix_app::engine::{
+    AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, autosave_failed, command_failed, preview_answer_panicked,
+};
 use framix_app::preview::{PlatformTexture, PreviewHost as _};
 use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
@@ -45,7 +47,7 @@ pub const ENGINE_ERR_GPU: i32 = -5;
 pub const ENGINE_ERR_ALREADY: i32 = -6;
 
 /// Version of the command/event contract (proto/framix/v1/engine.proto).
-pub const ENGINE_PROTOCOL_VERSION: u32 = 49;
+pub const ENGINE_PROTOCOL_VERSION: u32 = 50;
 
 /// Receives one encoded `framix.v1.Event`. The callee owns the bytes and must release them
 /// with [`engine_free_buffer`]. Called on the engine thread. After [`engine_destroy`] the
@@ -394,7 +396,11 @@ fn serve(
             }
             EngineMessage::Export(result) => guarded(|| engine.export_result(result)),
             EngineMessage::PreviewTexture(texture) => {
-                guarded(|| engine.preview_texture_ready(texture))
+                let awaited = engine.awaits_preview();
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    engine.preview_texture_ready(texture)
+                }))
+                .unwrap_or_else(|_| preview_answer_panicked(awaited))
             }
             EngineMessage::PreviewLost(id) => {
                 // Reported as PreviewLost by the next flush_preview.

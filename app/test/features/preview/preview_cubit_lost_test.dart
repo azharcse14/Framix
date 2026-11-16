@@ -38,16 +38,16 @@ void main() {
 
       engine.emit(Event(previewReady: PreviewReady(textureId: Int64(7))));
       await Future<void>.delayed(Duration.zero);
-      expect(cubit.state, 7);
+      expect(cubit.state, const PreviewShown(7));
 
       engine.emit(Event(previewLost: PreviewLost(textureId: Int64(7))));
       await Future<void>.delayed(Duration.zero);
-      expect(cubit.state, isNull);
+      expect(cubit.state, const PreviewPending());
       expect(engine.sent.where((c) => c.hasCreatePreview()), hasLength(2));
 
       engine.emit(Event(previewReady: PreviewReady(textureId: Int64(8))));
       await Future<void>.delayed(Duration.zero);
-      expect(cubit.state, 8);
+      expect(cubit.state, const PreviewShown(8));
     },
   );
 }

@@ -6594,7 +6594,8 @@ class CommandFailed extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearReason() => $_clearField(1);
 
-  /// The id of the command this answers; 0 for failures no command caused (autosave).
+  /// The id of the command this answers; 0 for failures no command caused (autosave) and
+  /// for a late failure of an accepted CreatePreview (kind FAILURE_KIND_PREVIEW).
   @$pb.TagNumber(2)
   $fixnum.Int64 get commandId => $_getI64(1);
   @$pb.TagNumber(2)

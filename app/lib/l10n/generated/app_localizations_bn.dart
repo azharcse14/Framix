@@ -137,6 +137,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get canvasPlaceClip => 'ক্যানভাসে ক্লিপ সরান ও বড়-ছোট করুন';
 
   @override
+  String get previewUnavailable => 'প্রিভিউ দেখানো যাচ্ছে না';
+
+  @override
   String get export => 'এক্সপোর্ট';
 
   @override

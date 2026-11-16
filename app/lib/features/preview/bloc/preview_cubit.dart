@@ -5,17 +5,52 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/engine/framix_engine.dart';
 import '../../../core/engine/proto/framix/v1/engine.pb.dart';
 
-/// Mirrors the engine's preview: the Flutter texture id once the engine reports PreviewReady,
-/// null before that (or where the platform has no preview yet). A PreviewLost for the shown texture clears it and
-/// asks the engine for a new preview.
-class PreviewCubit extends Cubit<int?> {
-  PreviewCubit(this._engine) : super(null) {
+/// The engine's preview as the UI shows it.
+sealed class PreviewState {
+  const PreviewState();
+}
+
+/// Asked for, not reported yet.
+final class PreviewPending extends PreviewState {
+  const PreviewPending();
+}
+
+/// The engine draws into the Flutter texture [textureId].
+final class PreviewShown extends PreviewState {
+  const PreviewShown(this.textureId);
+  final int textureId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PreviewShown && other.textureId == textureId;
+
+  @override
+  int get hashCode => textureId.hashCode;
+}
+
+/// The engine refused CreatePreview (no GPU, no preview on this platform) or could not make
+/// the preview it accepted (UX-035).
+final class PreviewUnavailable extends PreviewState {
+  const PreviewUnavailable();
+}
+
+/// Mirrors the engine's preview: shown once the engine reports PreviewReady, unavailable when
+/// it refuses CreatePreview or fails it later (CommandFailed of FAILURE_KIND_PREVIEW). A
+/// PreviewLost for the shown texture asks the engine for a new preview.
+class PreviewCubit extends Cubit<PreviewState> {
+  PreviewCubit(this._engine) : super(const PreviewPending()) {
     _events = _engine.events.listen((e) {
-      if (e.hasPreviewReady()) emit(e.previewReady.textureId.toInt());
+      if (e.hasPreviewReady()) {
+        emit(PreviewShown(e.previewReady.textureId.toInt()));
+      }
       // A late loss of an older texture must not drop the one now shown.
-      if (e.hasPreviewLost() && e.previewLost.textureId.toInt() == state) {
-        emit(null);
+      if (e.hasPreviewLost() &&
+          state == PreviewShown(e.previewLost.textureId.toInt())) {
+        emit(const PreviewPending());
         _create();
+      }
+      if (e.hasCommandFailed() && _isPreviewFailure(e.commandFailed)) {
+        emit(const PreviewUnavailable());
       }
     });
     _create();
@@ -28,9 +63,15 @@ class PreviewCubit extends Cubit<int?> {
   final FramixEngine _engine;
   late final StreamSubscription<Event> _events;
 
-  /// A refused preview (no GPU, or no preview on this platform) keeps the state null, which
-  /// is how this cubit reports it; the user never asked for it, so no generic message (UX-034).
-  void _create() => _engine.send(
+  /// Id of the last CreatePreview; its refusal makes the preview unavailable.
+  int _createId = 0;
+
+  bool _isPreviewFailure(CommandFailed failed) => failed.commandId == 0
+      ? failed.kind == FailureKind.FAILURE_KIND_PREVIEW
+      : failed.commandId.toInt() == _createId;
+
+  /// A refused preview is shown in the canvas, not as the generic failure message (UX-034).
+  void _create() => _createId = _engine.send(
     Command(
       createPreview: CreatePreview(width: width, height: height),
     ),

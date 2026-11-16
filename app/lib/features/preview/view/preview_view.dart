@@ -11,19 +11,20 @@ class PreviewView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PreviewCubit, int?>(
-      builder: (context, textureId) => textureId == null
-          ? const SizedBox.shrink()
-          : AspectRatio(
-              aspectRatio: PreviewCubit.width / PreviewCubit.height,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Texture(textureId: textureId),
-                  const CanvasGestures(),
-                ],
-              ),
-            ),
+    return BlocBuilder<PreviewCubit, PreviewState>(
+      builder: (context, state) => switch (state) {
+        PreviewShown(:final textureId) => AspectRatio(
+          aspectRatio: PreviewCubit.width / PreviewCubit.height,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Texture(textureId: textureId),
+              const CanvasGestures(),
+            ],
+          ),
+        ),
+        _ => const SizedBox.shrink(),
+      },
     );
   }
 }
