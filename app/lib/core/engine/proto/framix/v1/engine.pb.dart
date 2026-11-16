@@ -3076,7 +3076,8 @@ class SplitClip extends $pb.GeneratedMessage {
   void clearAt() => $_clearField(2);
 }
 
-/// Joins `right_id` into `left_id`: neighbours on one track, same media, continuous source.
+/// Joins `right_id` into `left_id`: neighbours on one track, same media, same transform; a video's
+/// right source continues the left one, a photo's or color's right source offset is above the left.
 class MergeClips extends $pb.GeneratedMessage {
   factory MergeClips({
     $fixnum.Int64? leftId,
@@ -3146,7 +3147,7 @@ class MergeClips extends $pb.GeneratedMessage {
   void clearRightId() => $_clearField(2);
 }
 
-/// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+/// Moves a clip's edges to [start, end); moving a video's start moves the source offset with it.
 /// Retired (ADR 0008): the app sends SnapTrim.
 @$core.Deprecated('This message is deprecated')
 class TrimClip extends $pb.GeneratedMessage {
@@ -3388,7 +3389,7 @@ class SnapMove extends $pb.GeneratedMessage {
   void clearSnapWithin() => $_clearField(4);
 }
 
-/// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
+/// Moves a clip's edges to [start, end); moving a video's start moves the source offset with it.
 /// A video clip's edges stop at its media's first and last frame (not a snap). Refused on a
 /// locked track, for a start that is still before 0, when end <= start, or when an edge
 /// crosses a neighbouring clip. Edges first snap to the nearest edge (0, a clip start or end,
@@ -3489,7 +3490,7 @@ class SnapTrim extends $pb.GeneratedMessage {
 }
 
 /// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
-/// moving the start moves the source offset with it, and nothing snaps. On a video clip the
+/// moving a video's start moves the source offset with it, and nothing snaps. On a video clip the
 /// edge stops at its media's first or last frame. Refused on a locked track, when that edge is
 /// at or beyond the other edge, or when it crosses a neighbouring clip. The engine uses its own
 /// playhead and clip, never the UI's copy.

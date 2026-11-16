@@ -38,15 +38,28 @@ fn overflowing_source_or_end_is_refused() {
     };
     let c = tl.insert_clip(t, huge_source).unwrap();
     assert_eq!(tl.split_clip(c, Time(50)), Err(TimelineError::TimeOverflow));
-    assert_eq!(
-        tl.trim_clip(c, Time(50), Time(100)),
-        Err(TimelineError::TimeOverflow)
-    );
+    // A still's trim keeps its source offset (ENG-064), so nothing can overflow there.
+    assert_eq!(tl.trim_clip(c, Time(50), Time(100)), Ok(()));
+    assert_eq!(tl.clip(c).unwrap().source_start, Time(i64::MAX - 5));
 
     let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let c = tl.insert_clip(t, place(0, i64::MAX - 100, 60)).unwrap();
     assert_eq!(tl.duplicate_clip(c), Err(TimelineError::TimeOverflow));
+}
+
+#[test]
+fn a_video_start_trim_whose_source_overflows_is_refused() {
+    // ENG-064 review: a video's trim still moves its source offset with the start.
+    let mut tl = common::timeline();
+    let t = tl.add_track(TrackKind::Video);
+    let c = tl.insert_clip(t, place(1000, 0, 60)).unwrap();
+    let before = tl.clone();
+    assert_eq!(
+        tl.trim_clip(c, Time(i64::MAX - 1), Time(i64::MAX)),
+        Err(TimelineError::TimeOverflow)
+    );
+    assert_eq!(tl, before);
 }
 
 #[test]
