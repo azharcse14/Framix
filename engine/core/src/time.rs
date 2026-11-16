@@ -4,6 +4,12 @@
 /// x/1001 rates) and audio sample rate divides it exactly.
 pub const TICKS_PER_SECOND: i64 = 705_600_000;
 
+/// [`TICKS_PER_SECOND`] as a `u32`: the fastest whole rate. Checked at compile time.
+const MAX_WHOLE_FPS: u32 = {
+    assert!(TICKS_PER_SECOND <= u32::MAX as i64);
+    TICKS_PER_SECOND as u32
+};
+
 /// A point or span on the timeline, in ticks of [`TICKS_PER_SECOND`]. Defaults to 0.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Time(pub i64);
@@ -19,8 +25,8 @@ impl Time {
 
 /// Frames (or samples) per second as an exact fraction `num / den`, e.g. 30000/1001.
 ///
-/// Conversions are exact only while `num <= den * TICKS_PER_SECOND`; faster rates make a
-/// frame shorter than one tick (rejecting them in `new` is ENG-047).
+/// Always `num <= den * TICKS_PER_SECOND`: a frame is at least one tick long, so conversions
+/// round-trip exactly (ENG-047).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Rate {
     num: u32,
@@ -28,17 +34,19 @@ pub struct Rate {
 }
 
 impl Rate {
-    /// `fps` whole frames per second; 0 counts as 1.
+    /// `fps` whole frames per second; 0 counts as 1, and it is capped at one frame per tick.
     pub fn whole(fps: u32) -> Self {
         Self {
-            num: fps.max(1),
+            num: fps.clamp(1, MAX_WHOLE_FPS),
             den: 1,
         }
     }
 
-    /// Returns `None` unless both parts are non-zero.
+    /// Returns `None` unless both parts are non-zero and a frame is at least one tick long
+    /// (`num <= den * TICKS_PER_SECOND`); media headers are untrusted.
     pub fn new(num: u32, den: u32) -> Option<Self> {
-        (num != 0 && den != 0).then_some(Self { num, den })
+        let frame_fits = i64::from(num) <= i64::from(den) * TICKS_PER_SECOND;
+        (num != 0 && den != 0 && frame_fits).then_some(Self { num, den })
     }
 
     /// Start time of frame `frame`. `None` if it does not fit in [`Time`].
