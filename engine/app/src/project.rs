@@ -62,7 +62,7 @@ pub enum ProjectError {
     /// A media id (or a clip's media id) is above [`MAX_ID`].
     #[error("id {0} out of range")]
     IdOutOfRange(u64),
-    /// A clip refers to media the file does not list (format 2+).
+    /// A clip refers to media the file does not list (format 1 clips get missing media).
     #[error("clip refers to unlisted media {0}")]
     UnknownMedia(u64),
     /// Export settings out of range.
@@ -152,7 +152,7 @@ pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
     if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || media > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
     }
-    // Open refuses format-2 clips whose media is not listed, so never write one.
+    // Open refuses clips whose media is not listed, so never write one.
     if let Some(clip) = tracks
         .iter()
         .flat_map(|t| t.clips())
@@ -291,8 +291,11 @@ fn restore_unlisted_media(
         let end = ends.entry(c.media_id).or_insert(1);
         *end = (*end).max(c.source_start.saturating_add(c.duration));
     }
+    // Media the file does list (a hand-made or future-tool v1 file) stays as listed.
     for (id, end) in ends {
-        timeline.restore_media(MediaId(id), Media::missing(Time(end))?);
+        if timeline.media(MediaId(id)).is_none() {
+            timeline.restore_media(MediaId(id), Media::missing(Time(end))?);
+        }
     }
     Ok(())
 }

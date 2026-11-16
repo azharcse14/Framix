@@ -552,9 +552,8 @@ impl Timeline {
         self.media.insert(id, media);
     }
 
-    /// Makes sure ids up to `id` are never handed out (e.g. media ids that clips of an old
-    /// project file refer to).
-    pub fn reserve_ids_through(&mut self, id: u64) {
+    /// Makes sure ids up to `id` are never handed out.
+    fn reserve_ids_through(&mut self, id: u64) {
         self.next_id = self.next_id.max(id);
     }
 
@@ -879,7 +878,8 @@ impl Timeline {
     }
 
     fn layer(&self, clip: &Clip, time: Time) -> Option<Layer<'_>> {
-        let media = self.media(clip.media)?;
+        // Missing media has no file to decode: no layer, so it shows black.
+        let media = self.media(clip.media).filter(|m| !m.is_missing())?;
         let source_time = match media.kind() {
             MediaKind::Image | MediaKind::Color => Time(0),
             // Inside the clip, so start <= time < end and the sum stays in the source range.

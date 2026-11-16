@@ -97,6 +97,9 @@ impl Thumbnails {
         if media.kind() == MediaKind::Color {
             return Err("a color clip has no thumbnails".into());
         }
+        if media.is_missing() {
+            return Err("missing media has no thumbnails".into());
+        }
         for &time in times {
             let time = snap(media, time);
             let key = ThumbnailKey {
