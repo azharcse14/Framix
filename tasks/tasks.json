@@ -7159,7 +7159,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "P1-132: the codec-shortage retry frees only the failing decoder's own cached videos; an export decoder (empty cache) can still fail while the idle preview decoder holds 2 codecs. Fix here: e.g. preview drops its cached codecs when an export starts."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -16039,6 +16044,10 @@
     {
      "date": "2026-11-16",
      "text": "Also check (P1-069 review): output bitrate within tolerance of kbps (codec rate control sees queue times, not frame times); 'reordered frame' failures on devices ignoring KEY_MAX_B_FRAMES; a full export on device/emulator (Vulkan swapchain on the codec Surface, format, queueBuffer on present)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "device checks pending: P1-131 PIP with two videos; P1-132 force a codec shortage (PIP with 3+ high-res videos, or export while preview holds 2 codecs) and confirm the open retry recovers within one decoder."
     }
    ],
    "source": "added"
@@ -16559,12 +16568,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a8c4d43312d214f9c",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decisions: resource failure = MediaCodec.CodecException that isTransient (create NO_MEMORY), isRecoverable, or ERROR_INSUFFICIENT_RESOURCE (configure/start); anything else (IOException/NoSuchElement from the extractor, i.e. a bad file) is thrown as before. On a shortage with other videos cached, openVideo evicts all of this decoder's other videos (cached() already left at most CACHED-1) and calls Video.open once more; a second failure is thrown, no loop. 'within the hardware decoder limit' comment dropped (unprovable without devices). closeVideo deletes the texture in finally. No Kotlin unit test: no test deps (P1-128) and CodecException has no public constructor, so the predicate cannot be exercised on the JVM; verified by gradle compileDebugKotlin only; no emulator image, so no device run (P1-128). Vendors that throw IOException at create on exhaustion are not retried."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Fixed W1 (comment now says the other decoder's codecs are not freed; noted on ENG-007) and Nit 1 (a close error during eviction is added as suppressed and the original CodecException rethrown). W2: device check noted on P1-128. Nit 2 (Video.close leaks extractor/surface if codec.release throws) left: out of scope, release is not documented to throw."
+    }
+   ],
    "source": "added"
   },
   {

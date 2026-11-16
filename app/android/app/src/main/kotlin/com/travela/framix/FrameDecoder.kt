@@ -99,12 +99,17 @@ class FrameDecoder private constructor(private val context: Context) {
      */
     private fun <K, V> LinkedHashMap<K, V>.cached(key: K, close: (V) -> Unit, make: () -> V): V {
         get(key)?.let { return it }
-        while (size >= CACHED) {
+        evictDownTo(CACHED - 1, close)
+        return make().also { put(key, it) }
+    }
+
+    /** Closes the least recently used entries until at most [count] are left. */
+    private fun <K, V> LinkedHashMap<K, V>.evictDownTo(count: Int, close: (V) -> Unit) {
+        while (size > count) {
             val eldest = entries.first()
             remove(eldest.key)
             close(eldest.value)
         }
-        return make().also { put(key, it) }
     }
 
     private fun frameOnThread(uri: String, image: Boolean, timeUs: Long): HardwareBuffer? {
@@ -170,7 +175,7 @@ class FrameDecoder private constructor(private val context: Context) {
     private fun drawVideo(uri: String, timeUs: Long): Pair<Output, LongRange>? {
         // ponytail: forward reads up to 1 s, else seek to the previous sync frame; keyframe-aware
         // seeking and caching are ENG-006.
-        val v = videos.cached(uri, ::closeVideo) { Video.open(context, uri) }
+        val v = videos.cached(uri, ::closeVideo) { openVideo(uri) }
         // The latched frame still shows: draw it again (another call may have used the output since).
         v.latched?.let { (range, transform) ->
             if (timeUs in range) {
@@ -212,9 +217,27 @@ class FrameDecoder private constructor(private val context: Context) {
         return out to (start until end)
     }
 
+    /**
+     * Opens [uri]'s video. If the device is out of codecs, closes this decoder's other cached
+     * videos and tries once more (P1-132); any other failure (a bad file) is thrown as is.
+     */
+    private fun openVideo(uri: String): Video = try {
+        Video.open(context, uri)
+    } catch (e: MediaCodec.CodecException) {
+        if (!isCodecShortage(e) || videos.isEmpty()) throw e
+        runCatching { videos.evictDownTo(0, ::closeVideo) }.exceptionOrNull()?.let {
+            e.addSuppressed(it)
+            throw e
+        }
+        Video.open(context, uri)
+    }
+
     private fun closeVideo(video: Video) {
-        video.close()
-        GLES20.glDeleteTextures(1, intArrayOf(video.textureId), 0)
+        try {
+            video.close()
+        } finally {
+            GLES20.glDeleteTextures(1, intArrayOf(video.textureId), 0)
+        }
     }
 
     private fun closePhoto(photo: Photo) = GLES20.glDeleteTextures(1, intArrayOf(photo.texture), 0)
@@ -584,10 +607,21 @@ class FrameDecoder private constructor(private val context: Context) {
         private const val PHOTO_MAX_SIDE = 4096
 
         // ponytail: 2 of each per decoder: PIP with two videos or photos. Each decoder (preview,
-        // export) holds up to 2 MediaCodecs, so at most 4 app-wide, within the hardware decoder
-        // limit of low-end phones; photos are up to 64 MB textures. Three or more alternating
-        // media evict each other every frame (as before); a decoder pool is ENG-007.
+        // export) holds up to 2 MediaCodecs, so up to 4 app-wide; on a phone that has fewer,
+        // openVideo frees only this decoder's others and retries once, never the other decoder's
+        // (an export while preview holds 2 can still fail; ENG-007). Photos are up to 64 MB textures.
+        // Three or more alternating media evict each other every frame (as before); a decoder
+        // pool is ENG-007.
         private const val CACHED = 2
+
+        /**
+         * True if [e] says the device ran out of codec resources, not that the file is bad:
+         * MediaCodec reports a codec it cannot allocate at create (NO_MEMORY) as transient, and
+         * one it cannot configure or start as ERROR_INSUFFICIENT_RESOURCE or recoverable.
+         */
+        private fun isCodecShortage(e: MediaCodec.CodecException) =
+            e.isTransient || e.isRecoverable ||
+                e.errorCode == MediaCodec.CodecException.ERROR_INSUFFICIENT_RESOURCE
 
         /** A decoder with its own thread and EGL context, or null if GLES is unavailable. */
         fun open(context: Context): FrameDecoder? {
