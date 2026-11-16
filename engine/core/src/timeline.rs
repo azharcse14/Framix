@@ -630,12 +630,13 @@ impl Timeline {
     /// [`Timeline::mergeable_with_next`]).
     ///
     /// A video's `r` must play the next source frame. A photo or color shows one picture
-    /// whatever its offset, and its offset drifts (a start trim stops it at 0, ENG-060;
-    /// [`Timeline::set_photo_durations`] keeps it), so only the order counts (ENG-062): a split
-    /// gives the right half a higher offset and trims alone keep that, while a duplicate repeats
-    /// its original's offset and is refused. Known gaps (ENG-064): a still after a lower-offset
-    /// clip of the same still that is not its other half merges too; a photo-duration change
-    /// then a left-half start trim can lift the left offset past the right one (refused).
+    /// whatever its offset, and its lengths change without it (trims, ENG-060;
+    /// [`Timeline::set_photo_durations`]), so only the order counts (ENG-062): a split gives the
+    /// right half a higher offset and nothing else changes a still's offset (ENG-064),
+    /// while a duplicate repeats its original's offset and is refused. Known gaps: a still after
+    /// a lower-offset clip of the same still that is not its other half merges too; a piece
+    /// split off a grown left half may sit above the old right half's offset (merging from the
+    /// left still rejoins all pieces).
     fn merge_refusal(&self, l: &Clip, r: &Clip) -> Option<TimelineError> {
         let still = self
             .media(l.media)
@@ -656,13 +657,13 @@ impl Timeline {
         }
     }
 
-    /// Moves a clip's edges to `[start, end)`. Moving the start also moves the source offset by
-    /// the same amount, so the frames under the rest of the clip stay put. A video clip stays
-    /// inside its media ([`TimelineError::PastMediaEnd`]); a photo or color clip may grow either
-    /// way (its source offset stops at 0).
+    /// Moves a clip's edges to `[start, end)`. Moving a video's start also moves its source
+    /// offset by the same amount, so the frames under the rest of the clip stay put, and the clip
+    /// stays inside its media ([`TimelineError::PastMediaEnd`]). A photo or color clip may grow
+    /// either way and keeps its source offset (ENG-064, see `merge_refusal`).
     pub fn trim_clip(&mut self, clip: ClipId, start: Time, end: Time) -> Result<(), TimelineError> {
         let (t, i) = self.locate(clip)?;
-        let clips = &mut self.tracks[t].clips;
+        let clips = &self.tracks[t].clips;
         let c = clips[i];
         if start.0 < 0 {
             return Err(TimelineError::NegativeTime);
@@ -670,12 +671,19 @@ impl Timeline {
         if end <= start {
             return Err(TimelineError::NonPositiveDuration);
         }
-        // Both starts are non-negative, so the difference cannot overflow.
-        let shifted = c
-            .source_start
-            .0
-            .checked_add(start.0 - c.start.0)
-            .ok_or(TimelineError::TimeOverflow)?;
+        let still = self
+            .media(c.media)
+            .is_some_and(|m| m.kind() != MediaKind::Video);
+        // A still keeps its offset: it only orders split halves (ENG-064). Both starts are
+        // non-negative, so the difference cannot overflow.
+        let shifted = if still {
+            c.source_start.0
+        } else {
+            c.source_start
+                .0
+                .checked_add(start.0 - c.start.0)
+                .ok_or(TimelineError::TimeOverflow)?
+        };
         // A trim moves edges but never past a neighbour, so the track stays sorted.
         if let Some(prev) = clips[..i].last().filter(|p| p.end() > start) {
             return Err(TimelineError::Overlap(prev.id));
@@ -849,8 +857,8 @@ impl Timeline {
     /// The source start a clip of `media` holds for a wanted `source_start`: `media` is
     /// registered and, for a video, `[source_start, source_start + duration)` lies inside it
     /// ([`TimelineError::NegativeTime`], [`TimelineError::PastMediaEnd`]). Photos and colors have
-    /// no length: any range is fine and a start below 0 holds as 0 (ENG-060; the picture ignores
-    /// it, merge uses its order to tell halves of one clip from a duplicate, ENG-062). The one
+    /// no length: any range is fine (ENG-060; the picture ignores the offset, merge uses its order
+    /// to tell halves of one clip from a duplicate, ENG-062). The one
     /// home of the source-range rule: insert and trim call it, and split, merge, move and
     /// duplicate only keep or narrow a range that passed it.
     fn check_source(
@@ -863,7 +871,7 @@ impl Timeline {
             .media(media)
             .ok_or(TimelineError::UnknownMedia(media))?;
         if m.kind() != MediaKind::Video {
-            return Ok(Time(source_start.max(0)));
+            return Ok(Time(source_start));
         }
         if source_start < 0 {
             return Err(TimelineError::NegativeTime);
