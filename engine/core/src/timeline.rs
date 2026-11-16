@@ -306,6 +306,9 @@ pub enum TimelineError {
     /// A multi-clip edit names this clip more than once.
     #[error("clip {0:?} is selected twice")]
     RepeatedClip(ClipId),
+    /// No media is registered under this id; a clip on it could never be saved.
+    #[error("media {0:?} is not in the project")]
+    UnknownMedia(MediaId),
 }
 
 /// The editable timeline of a video project.
@@ -378,7 +381,7 @@ impl Timeline {
     }
 
     /// Places a clip on `track` with `transform` (checked like [`Timeline::set_clip_transform`]).
-    /// Fails if it would overlap a clip already there.
+    /// Fails if it would overlap a clip already there or its media is not registered.
     pub fn insert_clip_with(
         &mut self,
         track: TrackId,
@@ -405,6 +408,9 @@ impl Timeline {
             return Err(TimelineError::TrackLocked(track));
         }
         let at = free_slot(&self.tracks[index].clips, placement.start, end, None)?;
+        if self.media(placement.media).is_none() {
+            return Err(TimelineError::UnknownMedia(placement.media));
+        }
         self.check_transform(placement.media, transform)?;
         let id = ClipId(self.allocate_id());
         let clip = Clip {
@@ -419,8 +425,8 @@ impl Timeline {
         Ok(id)
     }
 
-    /// Places a clip on `track` with the identity transform. Fails if it would overlap a clip
-    /// already there.
+    /// Places a clip on `track` with the identity transform. Fails like
+    /// [`Timeline::insert_clip_with`].
     pub fn insert_clip(
         &mut self,
         track: TrackId,

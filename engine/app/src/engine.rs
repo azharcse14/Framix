@@ -726,10 +726,6 @@ impl Engine {
                     start: Time(insert.start),
                     duration: Time(insert.duration),
                 };
-                // A clip on unregistered media could never be saved (UnknownMedia).
-                if self.history.timeline().media(placement.media).is_none() {
-                    return Err(format!("media {} is not in the project", insert.media_id));
-                }
                 timeline(self.edit(|tl| tl.insert_clip(TrackId(insert.track_id), placement)))
             }
             command::Kind::Undo(_) => timeline(step(self.history.undo(), "nothing to undo")),
