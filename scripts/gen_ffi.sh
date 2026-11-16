@@ -4,6 +4,9 @@
 # check.sh runs this and fails if any output differs from what is committed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# It deletes and rewrites generated files in app/, so it runs under the app lock that flutter
+# analyze/test take (scripts/app_lock.sh); otherwise they can read a file that is gone.
+[ -n "${FRAMIX_APP_LOCK:-}" ] || exec scripts/app_lock.sh scripts/gen_ffi.sh "$@"
 
 CBINDGEN_VERSION=0.29.4
 if [ "$(cbindgen --version 2>/dev/null)" != "cbindgen $CBINDGEN_VERSION" ]; then
