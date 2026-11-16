@@ -16207,10 +16207,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "c1d813c",
    "branch": "worktree-agent-a43ab4bbccc075f5c",
    "notes": [
     {
@@ -16228,6 +16228,10 @@
     {
      "date": "2026-11-16",
      "text": "check.sh --quick green (Dart-only change). code-reviewer launched; verdict not received before handback."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warning (lazy: false untested) and the cross-project export result suggestion filed as tasks."
     }
    ],
    "source": "added"
@@ -16328,6 +16332,44 @@
    "title": "Split photo/color halves stop merging after the left half grows at its start (its source offset clamps at 0, ENG-060); decide a still merge rule (adjacent, same media, same transform?) vs keeping duplicates unmergeable",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-044",
+   "section": "UX",
+   "group": null,
+   "title": "Widget test through FramixApp(home: HomePage()) that New -> export done -> Open another project shows no showExportResult button; locks in ExportCubit lazy: false (UX-041 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-045",
+   "section": "UX",
+   "group": null,
+   "title": "An export from project A that finishes while B is open lands silently as ExportIdle: show a one-line notice (finished/failed), or have the engine cancel exports on New/Open; also A -> B -> A while running shows A's result as Idle (UX-041 review)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
