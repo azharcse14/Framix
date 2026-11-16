@@ -34,7 +34,7 @@ an engine rule that preview and export must apply the same way.
   work on the command thread" until P1-053 moves drawing to the render thread.
 - Seeking reopens the reader for backward or far (over 1 s) jumps; keyframe-aware seeking and
   caching are ENG-006.
-- Only one layer is drawn; compositing several tracks is a later task.
+- Every visible layer is drawn bottom to top (one shared composite loop on iOS and Android).
 - Android (P1-070): `FrameDecoder.kt` runs MediaExtractor + MediaCodec into a SurfaceTexture
   on its own thread and EGL context, and one GLES pass (the P1-056 spike's) draws the frame
   into an RGBA8 ImageReader buffer; photos (BitmapFactory, stored orientation, 4096 px cap) go

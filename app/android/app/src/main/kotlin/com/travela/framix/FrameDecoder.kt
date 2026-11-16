@@ -69,18 +69,21 @@ class FrameDecoder private constructor(private val context: Context) {
 
     /** Frees everything; the decoder is unusable after. */
     fun close() {
-        onThread {
-            shown?.release()
-            shown = null
-            closeVideo()
-            photo?.let { GLES20.glDeleteTextures(1, intArrayOf(it.texture), 0) }
-            photo = null
-            output?.close(gl)
-            output = null
-            gl.close()
+        try {
+            onThread {
+                shown?.release()
+                shown = null
+                closeVideo()
+                photo?.let { GLES20.glDeleteTextures(1, intArrayOf(it.texture), 0) }
+                photo = null
+                output?.close(gl)
+                output = null
+                gl.close()
+            }
+        } finally {
+            work.shutdown()
+            callbacks.quitSafely()
         }
-        work.shutdown()
-        callbacks.quitSafely()
     }
 
     private fun <T> onThread(task: () -> T): T = work.submit(task).get()
@@ -153,6 +156,14 @@ class FrameDecoder private constructor(private val context: Context) {
         // ponytail: forward reads up to 1 s, else seek to the previous sync frame; keyframe-aware
         // seeking and caching are ENG-006.
         val v = video?.takeIf { it.uri == uri } ?: openVideo(uri)
+        // The latched frame still shows: draw it again (a photo call may have reused the output).
+        v.latched?.let { (range, transform) ->
+            if (timeUs in range) {
+                val out = outputFor(v.width, v.height)
+                gl.draw(out, Gl.Source.External(v.textureId), transform)
+                return out to range
+            }
+        }
         if (timeUs < v.position || timeUs - v.position > SEEK_AHEAD_US) v.seek(timeUs)
         var current: Video.Out? = null
         while (true) {
@@ -176,6 +187,7 @@ class FrameDecoder private constructor(private val context: Context) {
         v.render(chosen, callbackHandler)
         val out = outputFor(v.width, v.height)
         val transform = FloatArray(16).also { v.texture.getTransformMatrix(it) }
+        v.latched = (start until end) to transform
         gl.draw(out, Gl.Source.External(v.textureId), transform)
         return out to (start until end)
     }
@@ -278,6 +290,9 @@ class FrameDecoder private constructor(private val context: Context) {
         /** A dequeued output not yet released: the frame after the last one shown. */
         var pending: Out? = null
 
+        /** The frame in [texture] (its time range and transform); stays there until [render]. */
+        var latched: Pair<LongRange, FloatArray>? = null
+
         /** Start time of the last frame shown, or where the last seek landed. */
         var position = 0L
 
@@ -329,6 +344,7 @@ class FrameDecoder private constructor(private val context: Context) {
 
         /** Sends [frame] to the SurfaceTexture and latches it into [textureId]. GL thread. */
         fun render(frame: Out, handler: Handler) {
+            latched = null
             arrived.drainPermits()
             texture.setOnFrameAvailableListener({ arrived.release() }, handler)
             codec.releaseOutputBuffer(frame.index, true)
@@ -436,8 +452,17 @@ class FrameDecoder private constructor(private val context: Context) {
                 EGL14.eglDestroyContext(display, context)
                 error("eglMakeCurrent")
             }
-            external = program(EXTERNAL_FRAGMENT)
-            flat = program(FLAT_FRAGMENT)
+            try {
+                external = program(EXTERNAL_FRAGMENT)
+                flat = program(FLAT_FRAGMENT)
+            } catch (e: Exception) {
+                EGL14.eglMakeCurrent(
+                    display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT,
+                )
+                EGL14.eglDestroySurface(display, idle)
+                EGL14.eglDestroyContext(display, context)
+                throw e
+            }
         }
 
         fun windowSurface(target: Surface): EGLSurface {

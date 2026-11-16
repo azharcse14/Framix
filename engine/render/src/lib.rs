@@ -251,8 +251,9 @@ struct WindowSurface {
 
 impl Gpu {
     /// SPIKE (P1-004): the process's one GPU, opened on first use, shared by the preview
-    /// renderer and the export so they draw through one device and its window surfaces. A failure to open is kept for the process (no retry). The render thread
-    /// (P1-053) owns the GPU instead.
+    /// renderer and the export so they draw through one device and its window surfaces. A
+    /// failure to open is kept for the process (no retry). The render thread (P1-053) owns the
+    /// GPU instead.
     pub fn shared() -> Result<&'static Gpu, RenderError> {
         static GPU: std::sync::OnceLock<Result<Gpu, String>> = std::sync::OnceLock::new();
         GPU.get_or_init(|| Gpu::new().map_err(|e| e.to_string()))
@@ -1140,6 +1141,39 @@ fn composite<T>(
     undecoded.map_or(Ok(()), |reason| Err(DrawError::Decode(reason)))
 }
 
+/// Where a decoded picture of `layer` goes: `canvas` maps target UV to canvas UV.
+#[cfg_attr(
+    not(any(target_vendor = "apple", target_os = "android")),
+    allow(dead_code, reason = "only the Apple and Android renderers composite")
+)]
+fn picture_placement(layer: &Layer, canvas: Affine) -> Placement {
+    use framix_core::placement::canvas_to_source;
+    Placement {
+        canvas,
+        source: canvas.then(&canvas_to_source(
+            layer.media,
+            &layer.transform,
+            layer.canvas,
+        )),
+    }
+}
+
+/// One layer's draw result for [`composite`]. The caller's target is known good, so an
+/// unusable texture is the layer's picture (undecoded); any other failure is the GPU's.
+#[cfg_attr(
+    not(any(target_vendor = "apple", target_os = "android")),
+    allow(dead_code, reason = "only the Apple and Android renderers composite")
+)]
+fn layer_drawn(drawn: Result<(), RenderError>) -> Result<bool, DrawError> {
+    match drawn {
+        Ok(()) => Ok(true),
+        Err(RenderError::InvalidTexture) => {
+            Err(DrawError::Decode(RenderError::InvalidTexture.to_string()))
+        }
+        Err(e) => Err(DrawError::Gpu(e.to_string())),
+    }
+}
+
 /// Draws `layers` into the platform texture ([`composite`]). Each layer is drawn and waited on
 /// before the next decode, since a decoder frame lives only until the decoder's next call.
 #[cfg(target_vendor = "apple")]
@@ -1173,7 +1207,7 @@ fn draw_layer(
 ) -> Result<bool, DrawError> {
     use framix_app::preview::Frame;
     use framix_core::media::MediaKind;
-    use framix_core::placement::{canvas_to_source, target_to_canvas};
+    use framix_core::placement::target_to_canvas;
     let canvas = target_to_canvas(layer.canvas, texture.width(), texture.height());
     let drawn = if layer.media.kind() == MediaKind::Color {
         gpu.color(texture, layer.media.color(), canvas, clear)
@@ -1184,14 +1218,7 @@ fn draw_layer(
         let frame = decoder
             .frame(layer.media, layer.source_time, layer.proxy_side)
             .map_err(DrawError::Decode)?;
-        let placement = Placement {
-            canvas,
-            source: canvas.then(&canvas_to_source(
-                layer.media,
-                &layer.transform,
-                layer.canvas,
-            )),
-        };
+        let placement = picture_placement(layer, canvas);
         match frame {
             Frame::Nv12 { y, cbcr, space } => {
                 // SAFETY: GpuRenderer::new's contract: the decoder's planes are live R8/RG8
@@ -1212,14 +1239,8 @@ fn draw_layer(
             }
         }
     };
-    match drawn {
-        Ok(()) => Ok(true),
-        // The target was checked when wrapped, so an unusable texture is the frame's.
-        Err(RenderError::InvalidTexture) => {
-            Err(DrawError::Decode(RenderError::InvalidTexture.to_string()))
-        }
-        Err(e) => Err(DrawError::Gpu(e.to_string())),
-    }
+    // The target was checked when wrapped.
+    layer_drawn(drawn)
 }
 
 /// Draws `layers` into the platform's window ([`composite`]) and presents them as one frame.
@@ -1262,7 +1283,7 @@ fn draw_window_layer(
 ) -> Result<bool, DrawError> {
     use framix_app::preview::Frame;
     use framix_core::media::MediaKind;
-    use framix_core::placement::{canvas_to_source, target_to_canvas};
+    use framix_core::placement::target_to_canvas;
     let (width, height) = frame.size();
     let canvas = target_to_canvas(layer.canvas, width, height);
     let drawn = if layer.media.kind() == MediaKind::Color {
@@ -1283,24 +1304,11 @@ fn draw_window_layer(
         // whose GPU writes are done and that nothing writes until the decoder's next call,
         // which comes after this draw (each draw waits for the GPU).
         let picture = unsafe { frame.import(ahb) }.map_err(|e| DrawError::Decode(e.to_string()))?;
-        let placement = Placement {
-            canvas,
-            source: canvas.then(&canvas_to_source(
-                layer.media,
-                &layer.transform,
-                layer.canvas,
-            )),
-        };
+        let placement = picture_placement(layer, canvas);
         frame.draw(&picture, &placement, clear)
     };
-    match drawn {
-        Ok(()) => Ok(true),
-        // The window frame is the engine's own, so an unusable texture is the picture's.
-        Err(RenderError::InvalidTexture) => {
-            Err(DrawError::Decode(RenderError::InvalidTexture.to_string()))
-        }
-        Err(e) => Err(DrawError::Gpu(e.to_string())),
-    }
+    // The window frame is the engine's own.
+    layer_drawn(drawn)
 }
 
 #[cfg(not(any(target_vendor = "apple", target_os = "android")))]
