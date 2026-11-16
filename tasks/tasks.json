@@ -16207,12 +16207,29 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a43ab4bbccc075f5c",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: ExportCubit resets on a TimelineChanged whose project differs from the last one (same signal HomeCubit/ThumbnailCubit use; NewProject/OpenProject change it). Done/Failed/NoSpace/Cancelled go to ExportIdle. ExportCubit is now lazy: false in main.dart so it sees every switch."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: an export running at the switch is not cancelled (the engine keeps it; leaving the editor never cancelled it): progress and Cancel stay visible in project B, and its ExportFinished (any outcome) lands as ExportIdle, so B never shows A's Result/Show-result button or an A failure message. A new export from B stays refused by the engine until it ends."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "test fix: the committed widget test pumped once after the switch, but the fake engine's stream lives outside the fake clock, so the event never arrived (it also failed for that reason). Added a runAsync gap before the pump; no expectation changed, and it still fails without the fix."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "check.sh --quick green (Dart-only change). code-reviewer launched; verdict not received before handback."
+    }
+   ],
    "source": "added"
   },
   {
