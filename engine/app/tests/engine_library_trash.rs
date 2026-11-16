@@ -302,3 +302,27 @@ fn bad_deletes_and_restores_are_refused() {
     assert!(refused(delete(&mut bare, &id)));
     assert!(refused(restore(&mut bare, &id)));
 }
+
+#[test]
+fn the_list_says_how_many_days_a_deleted_project_is_kept() {
+    // L10N-017: Home's empty Recently deleted names this number; the engine owns the rule.
+    let store = MemStore::default();
+    let mut engine = library(&store);
+    let id = project(&mut engine);
+    let days = u64::from(list_with(&mut engine, false).keep_deleted_days);
+    assert!(days > 0, "every ProjectList carries the retention");
+    assert_eq!(
+        u64::from(list_with(&mut engine, true).keep_deleted_days),
+        days
+    );
+
+    assert!(accepted(delete(&mut engine, &id)));
+    store.advance((days - 1) * DAY);
+    assert_eq!(
+        ids(&mut engine, true),
+        [id.as_str()],
+        "kept for {days} days"
+    );
+    store.advance(DAY);
+    assert!(ids(&mut engine, true).is_empty(), "gone after {days} days");
+}

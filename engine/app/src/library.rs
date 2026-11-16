@@ -154,8 +154,9 @@ fn media_bytes(timeline: &framix_core::timeline::Timeline, media: &HashMap<Strin
         .fold(0, |sum, len| sum.saturating_add(*len))
 }
 
-/// How long Recently deleted keeps a project: 30 days.
-const KEEP_DELETED_MS: i64 = 30 * 24 * 60 * 60 * 1000;
+/// How many days Recently deleted keeps a project (ProjectList.keep_deleted_days).
+pub const KEEP_DELETED_DAYS: u32 = 30;
+const KEEP_DELETED_MS: i64 = KEEP_DELETED_DAYS as i64 * 24 * 60 * 60 * 1000;
 
 /// Removes for good, with their backups and the cache files of their media (in `cache_dir`),
 /// the projects deleted [`KEEP_DELETED_MS`] ago or more, and returns the index without them.

@@ -15577,12 +15577,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a2459b0c1f1a4324e",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "plan: ProjectList gets uint32 keep_deleted_days = 5 (filled from library::KEEP_DELETED_DAYS, which KEEP_DELETED_MS derives from); protocol 50 -> 51 (precedent e893d2f bumps for added event fields); HomeProjects.keepDeletedDays; ARB recentlyDeletedEmpty takes {days} as an ICU plural with decimalPattern so bn shows Bengali digits"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Fixed Warning: dart format home_page.dart. Suggestion not taken: en =1 branch ('1 day') of recentlyDeletedEmpty has no test (engine sends 30). Decision: protocol bumped 50->51 for the new field (precedent e893d2f)."
+    }
+   ],
    "source": "added"
   },
   {

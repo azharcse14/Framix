@@ -1827,6 +1827,13 @@ const ProjectList$json = {
     {'1': 'recovered', '3': 2, '4': 1, '5': 9, '10': 'recovered'},
     {'1': 'folders', '3': 3, '4': 3, '5': 9, '10': 'folders'},
     {'1': 'deleted', '3': 4, '4': 1, '5': 13, '10': 'deleted'},
+    {
+      '1': 'keep_deleted_days',
+      '3': 5,
+      '4': 1,
+      '5': 13,
+      '10': 'keepDeletedDays'
+    },
   ],
 };
 
@@ -1834,7 +1841,8 @@ const ProjectList$json = {
 final $typed_data.Uint8List projectListDescriptor = $convert.base64Decode(
     'CgtQcm9qZWN0TGlzdBI1Cghwcm9qZWN0cxgBIAMoCzIZLmZyYW1peC52MS5Qcm9qZWN0U3VtbW'
     'FyeVIIcHJvamVjdHMSHAoJcmVjb3ZlcmVkGAIgASgJUglyZWNvdmVyZWQSGAoHZm9sZGVycxgD'
-    'IAMoCVIHZm9sZGVycxIYCgdkZWxldGVkGAQgASgNUgdkZWxldGVk');
+    'IAMoCVIHZm9sZGVycxIYCgdkZWxldGVkGAQgASgNUgdkZWxldGVkEioKEWtlZXBfZGVsZXRlZF'
+    '9kYXlzGAUgASgNUg9rZWVwRGVsZXRlZERheXM=');
 
 @$core.Deprecated('Use projectSummaryDescriptor instead')
 const ProjectSummary$json = {

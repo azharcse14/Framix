@@ -265,8 +265,8 @@ message ListProjects {
 }
 
 // Moves library project `id` to Recently deleted: ListProjects shows it only with `deleted`,
-// OpenProject refuses it, and 30 days after this it is removed for good (with its backups) by
-// the next ListProjects. Answered CommandAccepted.
+// OpenProject refuses it, and ProjectList.keep_deleted_days after this it is removed for good
+// (with its backups) by the next ListProjects. Answered CommandAccepted.
 message DeleteProject {
   string id = 1;
 }
@@ -698,6 +698,8 @@ message ProjectList {
   repeated string folders = 3;
   // How many projects are in Recently deleted.
   uint32 deleted = 4;
+  // How many days Recently deleted keeps a project before removing it for good.
+  uint32 keep_deleted_days = 5;
 }
 
 // One library project as Home lists it.

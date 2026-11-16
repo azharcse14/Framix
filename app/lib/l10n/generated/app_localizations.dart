@@ -734,17 +734,17 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get deleteProject;
 
-  /// Home filter chip: deleted projects, kept 30 days.
+  /// Home filter chip: deleted projects, kept for a while before they are removed for good.
   ///
   /// In en, this message translates to:
   /// **'Recently deleted'**
   String get recentlyDeleted;
 
-  /// 30 days is the engine's KEEP_DELETED_MS (engine/app/src/library.rs); change both together.
+  /// Empty Recently deleted. days: how long the engine keeps a deleted project (ProjectList.keep_deleted_days).
   ///
   /// In en, this message translates to:
-  /// **'Nothing deleted. Deleted projects stay here for 30 days.'**
-  String get recentlyDeletedEmpty;
+  /// **'{days, plural, =1{Nothing deleted. Deleted projects stay here for 1 day.} other{Nothing deleted. Deleted projects stay here for {days} days.}}'**
+  String recentlyDeletedEmpty(int days);
 
   /// No description provided for @restoreProject.
   ///

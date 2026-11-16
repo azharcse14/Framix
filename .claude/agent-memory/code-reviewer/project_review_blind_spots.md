@@ -1,6 +1,6 @@
 ---
 name: review-blind-spots
-description: Things scripts/check.sh does not catch in Framix reviews: protocol version bump, native (Swift/Kotlin) warnings, adapter placement
+description: Things scripts/check.sh does not catch in Framix reviews: protocol version bump, native (Swift/Kotlin) warnings, adapter placement, no dart format gate
 metadata:
   type: project
 ---
@@ -18,3 +18,4 @@ check.sh green does not cover these; check them by hand on every FFI/proto/nativ
 **Why:** these slipped past a green check.sh in P1-005.
 **How to apply:** grep the proto diff, then confirm the version bump and gateway docs; ask for native_warnings output.
 - Disk (P1-118, 2026-11-15): a fresh per-reviewer CARGO_TARGET_DIR is ~3.3 GB after clippy (host + android) + tests; with parallel reviews the data volume hit 100% and check.sh died mid `cargo test` (log just ends in "error"). For test-only Rust diffs, run fmt/clippy and the one test binary, reuse an existing target dir, and `df -h /private/tmp` before a full check.sh.
+- No `dart format` gate (L10N-017, 2026-11-16): check.sh runs analyze/test/gen-l10n diffs but never `dart format --set-exit-if-changed`, so hand-edited Dart lines over 80 cols ship (home_page.dart ternary arg, 86 cols). Quick check: `awk 'length($0)>80 && !/\/\/|import|'\''/'` on changed .dart files; comments over 80 are fine (formatter keeps them).
