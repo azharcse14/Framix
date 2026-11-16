@@ -1253,7 +1253,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-051` TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval) \[Dart\]
 - [x] `ENG-052` InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia) \[Rust\]
 - [x] `ENG-053` Trims and splits must stay inside the media's duration (P1-011 media registry has durations) \[Rust\]
-- [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
+- [x] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 - [ ] `ENG-055` Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review) \[Rust\]
 - [x] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
 - [x] `ENG-057` ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep \[Rust\]
