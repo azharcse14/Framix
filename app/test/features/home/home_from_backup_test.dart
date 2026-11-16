@@ -49,9 +49,9 @@ Future<AppLocalizations> _openDamagedProject(
   final dir = Directory.systemTemp.createTempSync('framix-from-backup');
   final earlier = FramixEngine.create();
   final engine = FramixEngine.create();
-  addTearDown(() {
-    engine.dispose();
-    earlier.dispose();
+  addTearDown(() async {
+    await stopEngine(tester, engine);
+    await stopEngine(tester, earlier);
     dir.deleteSync(recursive: true);
   });
 

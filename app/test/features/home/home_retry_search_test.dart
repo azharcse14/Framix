@@ -20,8 +20,8 @@ void main() {
     );
     final dir = Directory('${root.path}/projects')..createSync();
     final away = '${root.path}/away';
-    addTearDown(() {
-      engine.dispose();
+    addTearDown(() async {
+      await stopEngine(tester, engine);
       root.deleteSync(recursive: true);
     });
     engine.send(Command(openLibrary: OpenLibrary(dir: dir.path)));

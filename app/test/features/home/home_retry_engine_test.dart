@@ -19,8 +19,8 @@ void main() {
       final engine = FramixEngine.create();
       final root = Directory.systemTemp.createTempSync('framix-home-retry');
       final dir = Directory('${root.path}/projects');
-      addTearDown(() {
-        engine.dispose();
+      addTearDown(() async {
+        await stopEngine(tester, engine);
         root.deleteSync(recursive: true);
       });
       final l10n = lookupAppLocalizations(locale);

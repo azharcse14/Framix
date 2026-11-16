@@ -21,9 +21,9 @@ void main() {
       // stopped before the next launch starts.
       final crashed = FramixEngine.create();
       final engine = FramixEngine.create();
-      addTearDown(() {
-        engine.dispose();
-        crashed.dispose();
+      addTearDown(() async {
+        await stopEngine(tester, engine);
+        await stopEngine(tester, crashed);
         dir.deleteSync(recursive: true);
       });
       crashed

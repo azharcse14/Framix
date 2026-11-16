@@ -64,9 +64,9 @@ void main() {
     final dir = Directory.systemTemp.createTempSync('framix-export-switch');
     final earlier = FramixEngine.create();
     final engine = _ExportingEngine(FramixEngine.create());
-    addTearDown(() {
-      engine.dispose();
-      earlier.dispose();
+    addTearDown(() async {
+      await stopEngine(tester, engine);
+      await stopEngine(tester, earlier);
       dir.deleteSync(recursive: true);
     });
     final l10n = lookupAppLocalizations(const Locale('en'));
