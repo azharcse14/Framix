@@ -107,7 +107,10 @@ fn photo_and_color_clips_lengthen_at_their_start() {
     for (i, media) in [PHOTO, COLOR].into_iter().enumerate() {
         let start = 1_000 + i64::try_from(i).unwrap() * 10_000;
         let c = tl.insert_clip(t, place(media, 0, start, 10)).unwrap();
-        assert_eq!(tl.trim_clip(c, Time(start - 1_000), Time(start + 10)), Ok(()));
+        assert_eq!(
+            tl.trim_clip(c, Time(start - 1_000), Time(start + 10)),
+            Ok(())
+        );
         let clip = tl.clip(c).unwrap();
         assert_eq!(
             (clip.source_start, clip.start, clip.duration),
