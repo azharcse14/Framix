@@ -67,11 +67,7 @@ class _ExportResultPageState extends State<ExportResultPage> {
           ),
           title: Text(l10n.exportResultTitle),
           actions: [
-            // Text color, not accent: Save is the one accent action (docs/design-system.md).
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: FramixColors.of(context).text,
-              ),
               onPressed: _busy
                   ? null
                   : () => Navigator.of(context).popUntil((r) => r.isFirst),

@@ -16360,12 +16360,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a247aec5adcf50559",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: every TextButton uses the text token via theme textButtonTheme (design-system.md: accent only on the one primary action per screen, and primary actions are FilledButtons). No TextButton stays accent: home dialog Save is the dialog's confirm but not the screen's primary action, so neutral like M3-free Cancel. Inline Done style on export_result_page removed. Only a dark theme exists; the test covers it and notes a light case goes there when a light theme lands. Disabled color keeps the M3 default."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Nits left: no test for the disabled Done color while busy (M3 default); dark theme only (no light theme exists)."
+    }
+   ],
    "source": "added"
   },
   {
