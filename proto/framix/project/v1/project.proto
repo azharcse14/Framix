@@ -38,6 +38,9 @@ enum SavedMediaKind {
 // Imported media, validated again on load (the file is untrusted).
 message SavedMedia {
   uint64 id = 1;
+  // Empty for a video: missing media (format 1 projects listed none; SYS-039). Readers
+  // before SYS-039 refuse it (bad uri), so only migrated format 1 projects are affected
+  // and the format version is unchanged.
   string uri = 2;
   SavedMediaKind kind = 3;
   // Ticks; 0 for images.

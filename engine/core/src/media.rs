@@ -130,6 +130,24 @@ impl Media {
         }
     }
 
+    /// A video whose file is unknown (an old project never listed it): no uri, 1x1 pixel,
+    /// `duration` long so its clips keep their source ranges. Shows black until relinked.
+    pub fn missing(duration: Time) -> Result<Self, MediaError> {
+        if !(1..=MAX_VIDEO).contains(&i128::from(duration.0)) {
+            return Err(MediaError::BadDuration);
+        }
+        Ok(Self {
+            kind: MediaKind::Video,
+            duration,
+            ..Self::solid(0)
+        })
+    }
+
+    /// True for [`Media::missing`]: there is no file to open.
+    pub fn is_missing(&self) -> bool {
+        self.kind == MediaKind::Video && self.uri.is_empty()
+    }
+
     /// Checks reported media; see [`MediaError`] for the rules.
     pub fn validate(raw: RawMedia) -> Result<Self, MediaError> {
         if !uri_allowed(&raw.uri) {

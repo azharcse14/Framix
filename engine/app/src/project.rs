@@ -62,7 +62,7 @@ pub enum ProjectError {
     /// A media id (or a clip's media id) is above [`MAX_ID`].
     #[error("id {0} out of range")]
     IdOutOfRange(u64),
-    /// A clip refers to media the file does not list (format 2+).
+    /// A clip refers to media the file does not list (format 1 clips get missing media).
     #[error("clip refers to unlisted media {0}")]
     UnknownMedia(u64),
     /// Export settings out of range.
@@ -152,7 +152,7 @@ pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
     if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || media > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
     }
-    // Open refuses format-2 clips whose media is not listed, so never write one.
+    // Open refuses clips whose media is not listed, so never write one.
     if let Some(clip) = tracks
         .iter()
         .flat_map(|t| t.clips())
@@ -214,14 +214,9 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         }
         timeline.restore_media(id, restore_media(saved)?);
     }
-    // Clips of format-1 files refer to media the file does not list; never reuse those ids.
-    let referenced = file
-        .tracks
-        .iter()
-        .flat_map(|t| &t.clips)
-        .map(|c| c.media_id)
-        .max();
-    timeline.reserve_ids_through(referenced.unwrap_or(0));
+    if file.format_version == 1 {
+        restore_unlisted_media(&mut timeline, &file.tracks)?;
+    }
     for saved in file.tracks {
         let kind = match SavedTrackKind::try_from(saved.kind) {
             Ok(SavedTrackKind::Video) => TrackKind::Video,
@@ -245,8 +240,8 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                 start: Time(c.start),
                 duration: Time(c.duration),
             };
-            // Format 1 had no media list; from format 2 on every clip's media is listed.
-            if file.format_version >= 2 && timeline.media(placement.media).is_none() {
+            // Every clip's media is listed (format 1's by restore_unlisted_media).
+            if timeline.media(placement.media).is_none() {
                 return Err(ProjectError::UnknownMedia(c.media_id));
             }
             let transform = ClipTransform {
@@ -281,6 +276,28 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
         timeline.set_track_flags(track, flags)?;
     }
     Ok(timeline)
+}
+
+/// Format 1 listed no media: each media id its clips use gets a [`Media::missing`] entry as
+/// long as the furthest source end of those clips, so every clip is kept and the project
+/// saves again (SYS-039).
+fn restore_unlisted_media(
+    timeline: &mut Timeline,
+    tracks: &[SavedTrack],
+) -> Result<(), ProjectError> {
+    // At least 1 tick, so a clip with a bad range is refused by the timeline's own checks.
+    let mut ends = std::collections::BTreeMap::<u64, i64>::new();
+    for c in tracks.iter().flat_map(|t| &t.clips) {
+        let end = ends.entry(c.media_id).or_insert(1);
+        *end = (*end).max(c.source_start.saturating_add(c.duration));
+    }
+    // Media the file does list (a hand-made or future-tool v1 file) stays as listed.
+    for (id, end) in ends {
+        if timeline.media(MediaId(id)).is_none() {
+            timeline.restore_media(MediaId(id), Media::missing(Time(end))?);
+        }
+    }
+    Ok(())
 }
 
 /// Export settings from a file; 0 in a field (files before format 5) keeps its default.
@@ -340,6 +357,10 @@ fn restore_media(saved: SavedMedia) -> Result<Media, ProjectError> {
         Ok(SavedMediaKind::Color) => return Ok(Media::solid(saved.color)),
         _ => return Err(ProjectError::UnknownMediaKind(saved.kind)),
     };
+    // An empty uri is a missing video (format 1 migration); the duration is still checked.
+    if kind == MediaKind::Video && saved.uri.is_empty() {
+        return Ok(Media::missing(Time(saved.duration))?);
+    }
     let raw = RawMedia {
         uri: saved.uri,
         kind,
