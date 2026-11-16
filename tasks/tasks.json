@@ -16498,6 +16498,10 @@
     {
      "date": "2026-11-16",
      "text": "test-only: new group 'two exports in a row' in export_cubit_test.dart with a fake engine that gives each send the next command id. Mutations: '_path ??= _startingPath' (keep first path) fails the second-path test; setting _path in start() fails the refused test. No cubit bug found. check.sh green: all checks passed"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warning: test commit landed before the task-start commit (task.py start ran first, its tasks/ change was committed after). Suggestion (shared FramixEngine fake in app/test/support) not filed: per-file fakes are tiny."
     }
    ],
    "source": "added"
