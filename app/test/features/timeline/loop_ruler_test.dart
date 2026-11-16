@@ -64,7 +64,11 @@ void main() {
 
         await tester.tap(find.byTooltip(l10n.deleteClip));
         await pumpUntil(tester, find.text(l10n.clipCount(0)));
-        expect(state().loopEnd, isNot(Int64.ZERO), reason: 'the engine kept it');
+        expect(
+          state().loopEnd,
+          isNot(Int64.ZERO),
+          reason: 'the engine kept it',
+        );
         expect(
           find.byKey(TimelineView.loopKey),
           findsOneWidget,

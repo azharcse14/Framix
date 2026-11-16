@@ -41,12 +41,16 @@ fi
 
 # Flutter app
 if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh; }; then
-  if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flutter); fi
+  if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter) DART=(fvm dart); else FLUTTER=(flutter) DART=("$(dirname "$(realpath "$(command -v flutter)")")/dart"); fi
   # Codegen and its readers hold this checkout's app lock (scripts/app_lock.sh), so a
   # concurrent check never reads a generated file while another rewrites it.
   run_in app ../scripts/app_lock.sh "${FLUTTER[@]}" gen-l10n
   run scripts/app_lock.sh git diff --exit-code -- app/lib/l10n/generated
   run_in app ../scripts/app_lock.sh "${FLUTTER[@]}" analyze
+  # Hand-written Dart only; generated files keep their generator's layout. After analyze,
+  # whose pub get gives the formatter the package language version. Same SDK as analyze.
+  run_in app ../scripts/app_lock.sh "${DART[@]}" format --output=none --set-exit-if-changed \
+    $(cd app && find lib test -name '*.dart' ! -name '*.g.dart' ! -path 'lib/l10n/generated/*' ! -path 'lib/core/engine/proto/*')
   run scripts/flutter_test.sh
 fi
 
