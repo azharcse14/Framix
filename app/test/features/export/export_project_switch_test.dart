@@ -122,6 +122,8 @@ void main() {
     expect(find.byTooltip(l10n.showExportResult), findsOneWidget);
 
     engine.emit(_project(2));
+    // The fake engine's stream was made outside the fake clock: let its event through.
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump();
     expect(find.byTooltip(l10n.showExportResult), findsNothing);
     expect(find.byTooltip(l10n.export), findsOneWidget);
