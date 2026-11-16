@@ -1259,7 +1259,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-058` ProjectList and the New/Open TimelineChanged carry their command id (extend ENG-056), so Home matches replies by id instead of order and project change \[Rust\] \[Dart\]
 - [x] `ENG-059` Timeline::insert_clip refuses unregistered media (one home for the clip-media rule; drop the InsertClip arm and decode copies) \[Rust\]
 - [x] `ENG-060` A photo clip cannot be trimmed longer at its start: trim_clip moves its source_start below 0 (NegativeTime) though photos have no source range \[Rust\]
-- [ ] `ENG-061` SnapTrim / TrimToPlayhead clamp the moved edge to the media end instead of refusing (ENG-053) \[Rust\]
+- [x] `ENG-061` SnapTrim / TrimToPlayhead clamp the moved edge to the media end instead of refusing (ENG-053) \[Rust\]
 - [ ] `ENG-062` Split photo/color halves stop merging after the left half grows at its start (its source offset clamps at 0, ENG-060); decide a still merge rule (adjacent, same media, same transform?) vs keeping duplicates unmergeable \[Rust\]
 
 **Security**
