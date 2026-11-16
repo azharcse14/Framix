@@ -128,7 +128,8 @@ class FramixApp extends StatelessWidget {
                 project: ctx.read<TimelineCubit>().state.project.toInt(),
               ),
             ),
-            BlocProvider(create: (_) => ExportCubit(engine)),
+            // Not lazy: it must see every project switch (TimelineChanged) from the start.
+            BlocProvider(create: (_) => ExportCubit(engine), lazy: false),
           ],
           child: CommandFailureMessages(engine: engine, child: navigator!),
         ),

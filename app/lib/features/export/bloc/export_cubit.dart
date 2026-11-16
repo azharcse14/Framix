@@ -77,9 +77,17 @@ final class ExportNoSpace extends ExportState {
 class ExportCubit extends Cubit<ExportState> {
   ExportCubit(this._engine) : super(const ExportIdle()) {
     _events = _engine.events.listen((event) {
+      if (event.hasTimelineChanged()) {
+        return _onProject(event.timelineChanged.project.toInt());
+      }
       final next = fromEvent(event);
       if (next != null) {
         _starting = null;
+        // The end of an export from a project no longer open is not this one's result.
+        if (_fromOtherProject && event.hasExportFinished()) {
+          _fromOtherProject = false;
+          return emit(const ExportIdle());
+        }
         return emit(next);
       }
       final starting = _starting;
@@ -102,6 +110,25 @@ class ExportCubit extends Cubit<ExportState> {
 
   /// The id of the ExportProject waiting for its reply.
   int? _starting;
+
+  /// The project of the latest TimelineChanged; the engine changes it on every New or Open.
+  int? _project;
+
+  /// The running export was started in an earlier project (it outlives the switch).
+  bool _fromOtherProject = false;
+
+  /// A New or Open: the last export's result belongs to the old project, so it goes idle.
+  /// A running export keeps its progress and Cancel; its end is shown as idle.
+  void _onProject(int project) {
+    final known = _project;
+    _project = project;
+    if (known == null || known == project) return;
+    if (state is ExportRunning) {
+      _fromOtherProject = true;
+    } else {
+      emit(const ExportIdle());
+    }
+  }
 
   /// The state an engine event moves the export to; null if the event is not about it.
   static ExportState? fromEvent(Event event) {
