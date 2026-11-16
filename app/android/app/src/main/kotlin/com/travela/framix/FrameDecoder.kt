@@ -176,7 +176,12 @@ class FrameDecoder private constructor(private val context: Context) {
             }
             current?.let { v.codec.releaseOutputBuffer(it.index, false) }
             current = next
-            if (next.ptsUs > timeUs) break
+            if (next.ptsUs > timeUs) {
+                // A first frame after the target: read one ahead too, so its range ends where
+                // the next frame starts.
+                v.pending = v.nextOutput()
+                break
+            }
         }
         val chosen = current ?: return null
         v.position = chosen.ptsUs
