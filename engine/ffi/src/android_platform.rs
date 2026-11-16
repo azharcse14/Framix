@@ -148,9 +148,10 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
     }
 }
 
-/// Runs `call` with a JNIEnv for the current thread and the Kotlin object. A thread that was
-/// not attached to the VM is attached for the call and detached after it: the engine thread may
-/// exit at any time (it is detached), and ART aborts on an attached thread exiting.
+/// Runs `call` with a JNIEnv for the current thread and the Kotlin object. A thread not yet
+/// attached to the VM is attached once and stays attached until it exits (P1-130,
+/// [`crate::jni_thread::thread_env`]); `call` runs in its own local frame, so its local
+/// references never pile up on a thread that never returns to Java.
 /// Returns false if no env was available or the call threw.
 ///
 /// # Safety
@@ -162,31 +163,26 @@ unsafe fn with_kotlin(call: impl FnOnce(*mut JNIEnv, &Java)) -> bool {
     // SAFETY: `java` holds a live VM, a global reference and method ids of its class (JNI keeps
     // them valid for the process); `call` follows this fn's contract.
     unsafe {
-        let invoke = &(**java.vm).v1_4;
-        let mut env: *mut c_void = null_mut();
-        let attached_here = match (invoke.GetEnv)(java.vm, &mut env, jni_sys::JNI_VERSION_1_6) {
-            jni_sys::JNI_OK => false,
-            jni_sys::JNI_EDETACHED => {
-                if (invoke.AttachCurrentThread)(java.vm, &mut env, null_mut()) != jni_sys::JNI_OK {
-                    return false;
-                }
-                true
-            }
-            _ => return false,
+        let Some(env) = crate::jni_thread::thread_env(java.vm) else {
+            return false;
         };
-        let env = env.cast::<JNIEnv>();
-        call(env, java);
         let jni = &(**env).v1_6;
+        if (jni.PushLocalFrame)(env, LOCAL_FRAME) != jni_sys::JNI_OK {
+            (jni.ExceptionClear)(env);
+            return false;
+        }
+        call(env, java);
         let threw = (jni.ExceptionCheck)(env);
         if threw {
             (jni.ExceptionClear)(env);
         }
-        if attached_here {
-            (invoke.DetachCurrentThread)(java.vm);
-        }
+        (jni.PopLocalFrame)(env, null_mut());
         !threw
     }
 }
+
+/// Local references a `with_kotlin` call may hold at once (each call makes at most three).
+const LOCAL_FRAME: jint = 8;
 
 /// `create_preview_texture`: asks Kotlin for a SurfaceProducer; it answers through
 /// [`Java_com_travela_framix_EnginePlatform_nativePreviewTextureDone`].

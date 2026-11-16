@@ -1,10 +1,26 @@
 //! Attaches native threads to the JVM once (P1-130): the engine, render and export threads call
 //! Kotlin per frame, and an attach plus detach on every call is a hot-path cost.
 
+use std::cell::OnceCell;
 use std::ffi::c_void;
 use std::ptr::null_mut;
 
 use jni_sys::{JNI_EDETACHED, JNI_OK, JNI_VERSION_1_6, JNIEnv, JavaVM};
+
+/// Detaches its thread from the VM when the thread exits.
+struct Attachment(*mut JavaVM);
+
+impl Drop for Attachment {
+    fn drop(&mut self) {
+        // SAFETY: `self.0` is the live VM this thread attached to in `thread_env`, and a
+        // thread-local destructor runs on that thread.
+        unsafe { ((**self.0).v1_4.DetachCurrentThread)(self.0) };
+    }
+}
+
+thread_local! {
+    static ATTACHMENT: OnceCell<Attachment> = const { OnceCell::new() };
+}
 
 /// Returns this thread's `JNIEnv`, attaching the thread to `vm` on its first call. A thread
 /// attached here stays attached until it exits, when a thread-local guard detaches it (ART
@@ -22,10 +38,17 @@ pub(crate) unsafe fn thread_env(vm: *mut JavaVM) -> Option<*mut JNIEnv> {
             JNI_EDETACHED => {}
             _ => return None,
         }
-        if (invoke.AttachCurrentThread)(vm, &mut env, null_mut()) != JNI_OK {
-            return None;
-        }
-        Some(env.cast())
+        // No guard slot (the thread is exiting): attaching would leave it attached at exit.
+        ATTACHMENT
+            .try_with(|guard| {
+                if (invoke.AttachCurrentThread)(vm, &mut env, null_mut()) != JNI_OK {
+                    return None;
+                }
+                guard.get_or_init(|| Attachment(vm));
+                Some(env.cast())
+            })
+            .ok()
+            .flatten()
     }
 }
 
