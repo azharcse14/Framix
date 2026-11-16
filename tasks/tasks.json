@@ -13574,6 +13574,10 @@
     {
      "date": "2026-11-16",
      "text": "design revised before implementing (supersedes the first plan note): the registry lives in each Timeline and history is linear, so the state that imported or replaced a media stays in history as long as any later state does. Per-step pruning (each state keeps only its own clips' media) was tried in the first test commit but breaks the media-pool model InsertClip relies on (registered media without clips; 13 older tests in 6 files) and makes thumbnails of undo-able media fail, so it was dropped. Final: History::forget_unused_media runs when states leave (today: an edit clears a non-empty redo); it unregisters from every remaining state the media no clip of any remaining state uses. Until GOT-051 adds a cap that drops the oldest states, that removes only media never used by a remaining state (pool media from load/restore, dropped redo-only media). next_id is untouched, so forgotten ids are never reissued. apply_merged replaces current in place without a drop scan (gestures don't change media usage; leftovers go at the next drop)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical/Warning. Done: forget_media_except now keeps its own clips' media (no caller precondition); added sharper undo-only-media test and the engine thumbnails guard. Nits left: two guard tests pass without the implementation; queued proxy requests for pruned media still run (files go at the next sweep)."
     }
    ],
    "source": "added"
