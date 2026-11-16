@@ -64,7 +64,13 @@ impl ProjectStore for FileStore {
     /// Regular files directly in `dir` (no folders, no recursion); an entry that vanishes or
     /// can't be read while listing is skipped.
     fn list(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
-        files(dir, |meta| meta.modified().ok())
+        files(dir, false, |meta| meta.modified().ok())
+    }
+
+    /// Like [`FileStore::list`], but an entry that can't be read fails it (one that vanished
+    /// is still skipped).
+    fn list_strict(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
+        files(dir, true, |meta| meta.modified().ok())
     }
 
     /// Like [`FileStore::list`]; a link is not a regular file, so what it points to is never
@@ -76,7 +82,9 @@ impl ProjectStore for FileStore {
         {
             use std::os::unix::fs::MetadataExt as _;
             let mut seen = std::collections::HashSet::new();
-            let mut sizes = files(dir, |meta| Some((meta.dev(), meta.ino(), meta.len())))?;
+            let mut sizes = files(dir, false, |meta| {
+                Some((meta.dev(), meta.ino(), meta.len()))
+            })?;
             sizes.sort();
             Ok(sizes
                 .into_iter()
@@ -86,7 +94,7 @@ impl ProjectStore for FileStore {
                 .collect())
         }
         #[cfg(not(unix))]
-        files(dir, |meta| Some(meta.len()))
+        files(dir, false, |meta| Some(meta.len()))
     }
 
     fn backups(&self, path: &Path) -> Vec<PathBuf> {
@@ -122,19 +130,38 @@ impl ProjectStore for FileStore {
     }
 }
 
-/// Regular files directly in `dir` with `info` of each; an entry that vanishes or can't be
-/// read while listing is skipped. The entry's own metadata: links are not followed.
+/// Regular files directly in `dir` with `info` of each; an entry that vanishes while listing
+/// is skipped, one that can't be read (or has no `info`) is skipped too or, when `strict`,
+/// fails the listing. The entry's own metadata: links are not followed.
 fn files<T>(
     dir: &Path,
+    strict: bool,
     info: impl Fn(&fs::Metadata) -> Option<T>,
 ) -> io::Result<Vec<(PathBuf, T)>> {
-    Ok(fs::read_dir(dir)?
-        .filter_map(|entry| {
-            let entry = entry.ok()?;
-            let meta = entry.metadata().ok()?;
-            meta.is_file().then(|| Some((entry.path(), info(&meta)?)))?
-        })
-        .collect())
+    let mut files = Vec::new();
+    for entry in fs::read_dir(dir)? {
+        // An error listing the folder itself ends the listing, so strict fails on it; an
+        // entry's stat that is NotFound means it vanished.
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) if strict => return Err(e),
+            Err(_) => continue,
+        };
+        let (path, meta) = match entry.metadata() {
+            Ok(meta) => (entry.path(), meta),
+            Err(e) if strict && e.kind() != io::ErrorKind::NotFound => return Err(e),
+            Err(_) => continue,
+        };
+        if !meta.is_file() {
+            continue;
+        }
+        match info(&meta) {
+            Some(info) => files.push((path, info)),
+            None if strict => return Err(io::ErrorKind::Unsupported.into()),
+            None => {}
+        }
+    }
+    Ok(files)
 }
 
 /// Writes `<file>.tmp`, rotates the backups, then renames the temp file over `path`; with

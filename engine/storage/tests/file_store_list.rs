@@ -46,3 +46,28 @@ fn a_missing_folder_is_not_found() {
     let e = FileStore.list(&dir).unwrap_err();
     assert_eq!(e.kind(), std::io::ErrorKind::NotFound);
 }
+
+/// ENG-064: `list` leaves out an entry it can't stat; `list_strict` fails instead.
+#[cfg(unix)]
+#[test]
+fn a_strict_listing_fails_on_an_entry_it_can_not_read() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let tmp = temp_dir("strict");
+    let dir = tmp.join("lib");
+    fs::create_dir(&dir).unwrap();
+    fs::write(dir.join("a.framix"), b"1").unwrap();
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o444)).unwrap();
+    let enforced = fs::symlink_metadata(dir.join("a.framix")).is_err();
+    let lenient = FileStore.list(&dir).map(|l| l.len());
+    let strict = FileStore.list_strict(&dir).map_err(|e| e.kind());
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o755)).unwrap();
+
+    // Root ignores permissions, so the entry can't be made unreadable there.
+    if !enforced {
+        eprintln!("skipped: permissions are not enforced for this user");
+        return;
+    }
+    assert_eq!(lenient.unwrap(), 0, "list skips it (Home shows the rest)");
+    assert_eq!(strict.unwrap_err(), std::io::ErrorKind::PermissionDenied);
+}

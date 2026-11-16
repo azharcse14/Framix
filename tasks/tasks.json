@@ -16561,15 +16561,39 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-16",
      "text": "Scope (ENG-054 review W1/W2): also delete thumbs/ and proxies/ cache files whose media key no saved project or open history uses. Since ENG-054 a save drops unused media, so library purge, CleanProjectCache and cache_bytes/media_bytes (library.rs, engine.rs clean_cache) no longer see them: their cache files leak and project sizes undercount the copies left on disk until this lands."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "plan/design: mark-and-sweep once per engine, when OpenLibrary first sets the library (app start, before Home can import). Mark = media uris of every <id>.framix in the library folder and its backups (each must decode, NotFound ok; any other error, incl. a newer app's file or damage, skips the whole sweep), of its .broken/.tmp/.bak.tmp copies when they decode, and of every timeline in the open undo/redo history. Sweep media/: only regular files listed in <library parent>/media (no path is ever built from a project uri), kept when any marked uri's last segment equals the file name (conservative superset), or written within the last hour (an import in flight; iOS MediaPicker now stamps the copy's mtime since copy/move keep the source's). Sweep cache thumbs/ and proxies/: files whose media key no marked uri has (partials untouched). W2: the sweep removes the leftover copies, so library sizes match the disk again (only media held by the open undo history or <1h old stay uncounted)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "test fix (before any review): copies_only_the_open_undo_history_uses_are_kept did undo-then-import, and the import clears redo, so undone.jpg was truly unreferenced; steps reordered (remove-clip case first, undo last). Assertion unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "edited older tests: storage/tests/engine_cache.rs (7 tests) now open the library before writing their cache files, since opening the library now deletes cache files no project uses; assertions unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "edited older test: app/test/features/home/home_storage_test.dart writes its thumbnail once Home (and so the library) is open, for the same reason; assertions unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Fixed: W1 OpenLibrary proto doc (comment only, regenerated engine.pb.dart; no protocol bump: no wire change) and MediaPicker back-reference; W2 tests for the 1 h boundary, current-timeline-only media, decodable/torn side copies, newer-app project; W3 FileStore-backed sweep test (links in media/ and cache, sub-folder, outside target kept); nit: sweep doc says why exact uri match suffices. W4: the frozen-test reorder is recorded in the earlier note; the user's standing instruction is never to ask, so it was decided here. Not done: mark-phase listing skips entries whose stat fails (FileStore files()), fails open in theory; filed as follow-up."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "verified: no project referencing media/ copies can live outside the library folder. Dart sends only OpenLibrary, NewProject and OpenProject{id} (app/lib/features/home/bloc/home_cubit.dart:176,277,281); nothing in app/lib sends EnableAutosave, SaveProject or OpenProject{path} (only generated proto code), and git history (git log -G 'EnableAutosave\\(|enableAutosave:' -- app/lib app/test: d7689d2, b950988, tests and codegen only) shows no shipped Dart caller ever did, so no legacy single-file autosave exists on devices. Engine writes go to self.autosave (engine.rs:159), which in library mode is always <dir>/<id>.framix (engine.rs:740-742 NewProject, 1219-1243 open_from_library incl. set_aside + write_back of the backup restore, which stay in the library folder and are marked); EnableAutosave is refused once the library is open and vice versa (engine.rs:1154-1167, 1265-1268); SaveProject{path} (engine.rs:798,1147) has no caller. Native code never sends commands (engine_send only in engine/ffi/src/lib.rs; its EnableAutosave uses at lib.rs:608,684 are in #[cfg(test)] mod tests at :547). No open-from-file or share-in flow: Info.plist has no CFBundleDocumentTypes/UTExportedTypeDeclarations/LSSupportsOpeningDocumentsInPlace, AndroidManifest has only the MAIN/LAUNCHER intent-filter (:23-26), and Kotlin ACTION_SEND (MediaPicker.kt:109) shares an exported video out. If EnableAutosave or SaveProject{path} ever gets a real caller, the sweep must also mark those files."
     }
    ],
    "source": "added"
@@ -16666,6 +16690,42 @@
    "commit": null,
    "branch": null,
    "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-065",
+   "section": "ENG",
+   "group": null,
+   "title": "Library sweep (ENG-063): fail closed when listing the library folder skips an entry it can't stat",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: new port method ProjectStore::list_strict (default = list, for stores that never skip an entry); FileStore implements it via files(strict) which fails on an entry it can't stat or whose info is missing (a vanished entry, NotFound, is still skipped). Only the sweep's mark phase (library::saved_uris) uses it; list/sizes stay lenient so Home still lists the other projects, and the media/cache sweep listings already fail safe (a skipped file is kept). The port stub went into the test commit so the fake could compile. Not covered: a symlinked or non-regular <id>.framix is still not a project (Home ignores it too)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "tests: real-FileStore tests make entries unstat-able with a read-only, non-searchable (0o444) folder; when permissions aren't enforced (root) they return early with a message, since the case can't be built there."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Fixed W1: list_strict's default now fails (Unsupported), so a store or wrapper without it makes the sweep delete nothing (was: lenient list). Fixed nit: in strict mode an error listing the folder itself fails too; only an entry's NotFound stat counts as vanished. Open suggestion: the real-FileStore tests return early when permissions aren't enforced (root CI)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "tracker: this work was done as 'ENG-064' in branch worktree-agent-a37b0839282e86bbc (commits 95f61e1, 70e4e9c, 4de33bf, 4955b25); main already had a different ENG-064 (still merge order gap, from ENG-062), so it was renumbered to ENG-065 at merge"
+    }
+   ],
    "source": "added"
   }
  ]

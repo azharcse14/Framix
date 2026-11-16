@@ -2381,6 +2381,9 @@ class OpenProject extends $pb.GeneratedMessage {
 /// Sets the folder of the user's projects (Home), once at startup: answered CommandAccepted.
 /// Again with the same folder changes nothing; another folder, or any after EnableAutosave, is
 /// refused. Projects are files `<dir>/<id>.framix`, each autosaved like EnableAutosave's.
+/// The first one deletes the media copies (`<parent of dir>/media`) and cache files of media
+/// that no project file, backup or open undo history uses (ENG-063); copies written within the
+/// hour stay, and nothing is deleted when a project can't be read.
 class OpenLibrary extends $pb.GeneratedMessage {
   factory OpenLibrary({
     $core.String? dir,

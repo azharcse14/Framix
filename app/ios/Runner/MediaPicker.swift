@@ -39,8 +39,8 @@ final class MediaPicker: NSObject {
     }
     if call.method == "projectsDir" {
       // The user's projects (P1-089), backed up like other documents.
-      // The engine counts media copies at <parent of this folder>/media (engine/app/src/library.rs
-      // media_sizes); move both together.
+      // The engine counts and deletes unused media copies at <parent of this folder>/media
+      // (engine/app/src/library.rs media_sizes, sweep); move both together.
       let dir = try? FileManager.default.url(
         for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true
       ).appendingPathComponent("projects", isDirectory: true)
@@ -181,6 +181,10 @@ final class MediaPicker: NSObject {
     } else {
       try manager.copyItem(at: source, to: dest)
     }
+    // Copy and move keep the source's date; the engine keeps a copy written within the hour
+    // while no project knows it yet (engine/app/src/library.rs sweep, FRESH_COPY). Best
+    // effort: without it the copy is only at risk if the library opens mid-import.
+    try? manager.setAttributes([.modificationDate: Date()], ofItemAtPath: dest.path)
     return Stored(relative: "media/\(name)", url: dest, isVideo: isVideo)
   }
 

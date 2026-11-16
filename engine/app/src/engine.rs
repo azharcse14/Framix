@@ -1166,6 +1166,15 @@ impl Engine {
             Some(_) => Err("the library is already open on another folder".into()),
             None if self.autosave.is_some() => Err("autosave is on for a single file".into()),
             None => {
+                if let Some(store) = self.store.as_deref() {
+                    // Once per run, before Home can start an import.
+                    crate::library::sweep(
+                        store,
+                        &dir,
+                        cache_dir.as_deref(),
+                        self.history.timelines(),
+                    );
+                }
                 self.recovered = self
                     .store
                     .as_deref()

@@ -25,9 +25,7 @@ void main() {
     engine = FramixEngine.create();
     root = Directory.systemTemp.createTempSync('framix-home-storage');
     projects = Directory('${root.path}/projects')..createSync();
-    thumb = File('${root.path}/cache/thumbs/$_hash-0-128.jpg')
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(List.filled(2048, 7));
+    thumb = File('${root.path}/cache/thumbs/$_hash-0-128.jpg');
   });
   tearDown(() {
     engine.dispose();
@@ -51,6 +49,11 @@ void main() {
       ),
     );
     await pumpUntil(tester, find.text(l10n.newProject));
+    // Written once the library is open: opening it deletes cache files no project uses
+    // (ENG-063).
+    thumb
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(List.filled(2048, 7));
     await tester.tap(find.text(l10n.newProject));
     await pumpUntil(tester, find.text(l10n.addVideoTrack));
     await tester.pumpAndSettle();

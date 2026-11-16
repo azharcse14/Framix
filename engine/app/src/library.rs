@@ -4,7 +4,7 @@ use std::cmp::{Ordering, Reverse};
 use std::collections::{BTreeSet, HashMap};
 use std::hash::{BuildHasher, Hasher};
 use std::path::{Path, PathBuf};
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 use framix_core::time::TICKS_PER_SECOND;
 use prost::Message as _;
@@ -457,8 +457,94 @@ fn media_sizes(store: &dyn ProjectStore, dir: &Path) -> HashMap<String, u64> {
         .sizes(&app.join(MEDIA))
         .unwrap_or_default()
         .into_iter()
-        .filter_map(|(file, len)| Some((format!("{MEDIA}/{}", file.file_name()?.to_str()?), len)))
+        .filter_map(|(file, len)| Some((media_uri(&file)?, len)))
         .collect()
+}
+
+/// The uri a project names the media copy `file` by: `media/<name>`.
+fn media_uri(file: &Path) -> Option<String> {
+    Some(format!("{MEDIA}/{}", file.file_name()?.to_str()?))
+}
+
+/// How long a media copy stays after its last write even when nothing refers to it: the
+/// platform copies a picked file in before the engine hears of it (an import in flight).
+const FRESH_COPY: Duration = Duration::from_secs(60 * 60);
+
+/// Deletes the app's media copies (`media/` next to `dir`) and the cache files (in
+/// `cache_dir`) of media that no project in `dir` (its file, backups or other copies) and no
+/// timeline of `open` refers to (ENG-063). Only files listed in those folders are removed; no
+/// path is built from a project's uri. Deletes nothing when a project file or backup can't be
+/// read: it may refer to any copy. A copy written within [`FRESH_COPY`] stays. A copy is
+/// matched by its exact `media/<name>` uri, the only form the media validator lets a copy's
+/// uri take. Best effort.
+// ponytail: decodes every project on the command thread, like [`list`]; move it to a worker
+// with the summary cache (OVL-015) if launches slow down.
+pub fn sweep<'a>(
+    store: &dyn ProjectStore,
+    dir: &Path,
+    cache_dir: Option<&Path>,
+    open: impl IntoIterator<Item = &'a framix_core::timeline::Timeline>,
+) {
+    let Some(mut used) = saved_uris(store, dir) else {
+        return;
+    };
+    for timeline in open {
+        used.extend(uris(timeline));
+    }
+    if let Some(app) = dir.parent() {
+        let now = store.now();
+        for (file, written) in store.list(&app.join(MEDIA)).unwrap_or_default() {
+            // A write time ahead of the clock counts as fresh.
+            let fresh = now
+                .duration_since(written)
+                .map_or(true, |age| age < FRESH_COPY);
+            if !fresh && media_uri(&file).is_some_and(|uri| !used.contains(&uri)) {
+                let _ = store.remove(&file);
+            }
+        }
+    }
+    if let Some(cache_dir) = cache_dir {
+        crate::cache::keep_only(store, cache_dir, &used);
+    }
+}
+
+/// The media uris of every project file in `dir` (a `<name>.framix` and each copy next to
+/// it). None when `dir` can't be listed in full or a project or backup doesn't load; copies the
+/// engine never loads (set aside as damaged, or left by a crash mid-save) count only when
+/// they decode.
+fn saved_uris(store: &dyn ProjectStore, dir: &Path) -> Option<BTreeSet<String>> {
+    let files = store.list_strict(dir).ok()?;
+    let mut loadable = BTreeSet::new();
+    for (file, _) in &files {
+        if file.extension().is_some_and(|e| e == EXTENSION) {
+            loadable.insert(file.clone());
+            loadable.extend(store.backups(file));
+        }
+    }
+    let marker = format!(".{EXTENSION}");
+    let mut used = BTreeSet::new();
+    for (file, _) in files {
+        let project = file
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.contains(&marker));
+        if !project {
+            continue;
+        }
+        match crate::store::load(store, &file) {
+            Ok(timeline) => used.extend(uris(&timeline)),
+            // Gone since the listing.
+            Err(crate::store::LoadError::Missing) => {}
+            Err(_) if !loadable.contains(&file) => {}
+            Err(_) => return None,
+        }
+    }
+    Some(used)
+}
+
+/// Every media uri `timeline` registers.
+fn uris(timeline: &framix_core::timeline::Timeline) -> impl Iterator<Item = String> + '_ {
+    timeline.all_media().map(|(_, m)| m.uri().to_owned())
 }
 
 /// `disk` is the library folder's file sizes, `media` [`media_sizes`].

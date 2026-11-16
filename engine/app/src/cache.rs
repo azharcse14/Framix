@@ -74,6 +74,23 @@ pub fn clean(
     failed.map_or(Ok(()), |kind| Err(format!("cache not cleaned: {kind}")))
 }
 
+/// Removes the cache files of every media whose uri is not in `used` (ENG-063). Only names
+/// listed in the fixed subfolders, never a partial write. Best effort: what fails stays.
+pub fn keep_only(store: &dyn ProjectStore, cache_dir: &Path, used: &BTreeSet<String>) {
+    let keys: BTreeSet<String> = used
+        .iter()
+        .filter(|uri| !uri.is_empty())
+        .map(|uri| media_key(uri))
+        .collect();
+    for folder in FOLDERS {
+        for (file, _) in store.sizes(&cache_dir.join(folder)).unwrap_or_default() {
+            if key_of(&file).is_some_and(|k| !keys.contains(k)) {
+                let _ = store.remove(&file);
+            }
+        }
+    }
+}
+
 /// How long after its last write a partial file is taken as left by a crash. A live writer
 /// keeps the file fresh; one paused longer (a suspended app, a clock jump) loses its partial,
 /// so its rename fails, no torn file is left, and the item is made again later.
