@@ -691,7 +691,7 @@ impl Engine {
                     recovered,
                     folders: found.folders,
                     deleted: found.deleted,
-                    keep_deleted_days: 0,
+                    keep_deleted_days: crate::library::KEEP_DELETED_DAYS,
                 })),
             },
             Ok(Reply::Accepted) => Event {

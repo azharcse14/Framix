@@ -34,6 +34,7 @@ final class HomeProjects extends HomeState {
     this.filtered = false,
     this.showingDeleted = false,
     this.deletedCount = 0,
+    this.keepDeletedDays = 0,
   });
 
   /// [projects] are Recently deleted ones (ProjectSummary.purgeMs set).
@@ -41,6 +42,9 @@ final class HomeProjects extends HomeState {
 
   /// How many projects are in Recently deleted (ProjectList.deleted).
   final int deletedCount;
+
+  /// How many days Recently deleted keeps a project (ProjectList.keep_deleted_days).
+  final int keepDeletedDays;
 
   final List<ProjectSummary> projects;
 
@@ -311,6 +315,7 @@ class HomeCubit extends Cubit<HomeState> {
         filtered: _query.trim().isNotEmpty || _folder.isNotEmpty || _deleted,
         showingDeleted: _deleted,
         deletedCount: list.deleted,
+        keepDeletedDays: list.keepDeletedDays,
       ),
     );
   }

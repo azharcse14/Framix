@@ -435,8 +435,19 @@ class AppLocalizationsBn extends AppLocalizations {
   String get recentlyDeleted => 'সম্প্রতি মোছা';
 
   @override
-  String get recentlyDeletedEmpty =>
-      'কিছু মোছা হয়নি। মোছা প্রজেক্ট এখানে ৩০ দিন থাকে।';
+  String recentlyDeletedEmpty(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'কিছু মোছা হয়নি। মোছা প্রজেক্ট এখানে $daysString দিন থাকে।',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get restoreProject => 'ফিরিয়ে আনুন';

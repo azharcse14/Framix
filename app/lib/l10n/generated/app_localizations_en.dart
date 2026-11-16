@@ -438,8 +438,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentlyDeleted => 'Recently deleted';
 
   @override
-  String get recentlyDeletedEmpty =>
-      'Nothing deleted. Deleted projects stay here for 30 days.';
+  String recentlyDeletedEmpty(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Nothing deleted. Deleted projects stay here for $daysString days.',
+      one: 'Nothing deleted. Deleted projects stay here for 1 day.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get restoreProject => 'Restore';

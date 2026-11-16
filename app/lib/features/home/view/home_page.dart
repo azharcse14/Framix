@@ -136,7 +136,7 @@ class _HomeView extends StatelessWidget {
                                     ? Icons.search_off
                                     : Icons.movie_creation_outlined,
                                 body: state.showingDeleted
-                                    ? l10n.recentlyDeletedEmpty
+                                    ? l10n.recentlyDeletedEmpty(state.keepDeletedDays)
                                     : state.filtered
                                     ? l10n.noMatchingProjects
                                     : l10n.projectsEmpty,
