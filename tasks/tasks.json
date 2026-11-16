@@ -16422,6 +16422,10 @@
     {
      "date": "2026-11-16",
      "text": "Older tests: none edited. Tests commit dd36698 (failing: media_range still_halves_merge_after_the_left_grows_at_its_start + proptest, photo_duration split_photo_halves_merge_after_the_duration_changes, engine_mergeable photo test); duplicate/two-insert tests pin the refusal."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Review: APPROVE, no Critical. Warning: the 'no trim or duration change reverses the order' claim was false in combination (set_photo_durations then a left-half start trim lifts l.src past r.src -> refused; not a regression). Doc comment corrected and filed as ENG-064 together with the stale MergeClips proto comment (regen needed, so left out here). Suggestions done: rewrapped the 120-char check_source doc line, bool match -> if/else."
     }
    ],
    "source": "added"
@@ -16601,6 +16605,25 @@
    "title": "export_switch_app_test: dispose the earlier engine and wait for EngineStopped before pumping the app (two live writers on one library dir, teardown deleteSync race; follow home_from_backup_test.dart:58-72); comment why snack bars are cleared (UX-044 review)",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-064",
+   "section": "ENG",
+   "group": null,
+   "title": "Still merge order gap (ENG-062): set_photo_durations then a left-half start trim lifts the left offset past the right half's, so split photo halves refuse to merge; keep the start/offset delta between halves in set_photo_durations. Also update the MergeClips proto comment ('continuous source' is video-only now; needs gen_ffi.sh)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,
