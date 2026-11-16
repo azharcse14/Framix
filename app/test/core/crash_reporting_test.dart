@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/crash_reporting.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-SentryFlutterOptions configured({String dsn = 'https://key@o1.ingest.sentry.io/1'}) {
+SentryFlutterOptions configured({
+  String dsn = 'https://key@o1.ingest.sentry.io/1',
+}) {
   final options = SentryFlutterOptions();
   configureCrashReporting(options, dsn: dsn);
   return options;
@@ -24,11 +26,14 @@ void main() {
   test('scrubs file paths and URIs from exceptions and the message', () async {
     final options = configured();
     final event = SentryEvent(
-      message: SentryMessage('open /var/mobile/Containers/Data/clip.mov failed'),
+      message: SentryMessage(
+        'open /var/mobile/Containers/Data/clip.mov failed',
+      ),
       exceptions: [
         SentryException(
           type: 'PathNotFoundException',
-          value: "Cannot open file, path = '/storage/emulated/0/DCIM/me.mp4' "
+          value:
+              "Cannot open file, path = '/storage/emulated/0/DCIM/me.mp4' "
               'from content://media/external/video/42 or file:///tmp/x.png',
         ),
       ],
@@ -57,7 +62,9 @@ void main() {
     final options = configured();
     final sent = await options.beforeSend!(
       SentryEvent(
-        exceptions: [SentryException(type: 'StateError', value: 'a/b ratio 3/4')],
+        exceptions: [
+          SentryException(type: 'StateError', value: 'a/b ratio 3/4'),
+        ],
       ),
       Hint(),
     );

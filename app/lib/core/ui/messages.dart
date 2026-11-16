@@ -20,11 +20,7 @@ _Autosave _of(ScaffoldMessengerState messenger) =>
 /// replaced: one message waits behind it. An [important] one-time notice takes the waiting
 /// place from a generic one; any other message is dropped, including a second important
 /// notice while one already waits (accepted limit: one slot).
-void showMessage(
-  BuildContext context,
-  String text, {
-  bool important = false,
-}) {
+void showMessage(BuildContext context, String text, {bool important = false}) {
   final messenger = ScaffoldMessenger.of(context);
   final autosave = _of(messenger);
   final snackBar = SnackBar(content: Text(text));
