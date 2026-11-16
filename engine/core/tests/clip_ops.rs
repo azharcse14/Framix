@@ -1,3 +1,5 @@
+mod common;
+
 use framix_core::time::Time;
 use framix_core::timeline::{
     Clip, ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackId, TrackKind,
@@ -15,7 +17,7 @@ fn place(media: u64, source_start: i64, start: i64, duration: i64) -> ClipPlacem
 
 /// One video track holding one clip: media 1, source 10, timeline [0, 100).
 fn one_clip() -> (Timeline, TrackId, ClipId) {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let c = tl.insert_clip(t, place(1, 10, 0, 100)).unwrap();
     (tl, t, c)
@@ -66,7 +68,7 @@ fn merge_joins_neighbours_and_refuses_the_rest() {
     assert_eq!(spans(&tl, t), [(1, 10, 0, 100)]);
 
     // Gap, other media, and a source jump are not mergeable.
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(t, place(1, 0, 0, 10)).unwrap();
     let gap = tl.insert_clip(t, place(1, 10, 20, 10)).unwrap();
@@ -120,7 +122,7 @@ fn bad_trims_are_refused_and_change_nothing() {
         );
     }
     // Source would go below zero: the clip's source starts at 10, so start -11 is too early.
-    let mut tl2 = Timeline::default();
+    let mut tl2 = common::timeline();
     let t2 = tl2.add_track(TrackKind::Video);
     let c2 = tl2.insert_clip(t2, place(1, 10, 50, 10)).unwrap();
     assert_eq!(
@@ -145,7 +147,7 @@ proptest! {
         source in 0i64..1_000, start in 0i64..1_000, duration in 2i64..1_000, cut in 1i64..1_000,
     ) {
         let cut = 1 + cut % (duration - 1);
-        let mut tl = Timeline::default();
+        let mut tl = common::timeline();
         let t = tl.add_track(TrackKind::Video);
         let c = tl.insert_clip(t, place(1, source, start, duration)).unwrap();
         let before = spans(&tl, t);
@@ -158,7 +160,7 @@ proptest! {
     fn random_clip_ops_keep_track_invariants(
         ops in proptest::collection::vec((0u8..5, 0usize..8, -50i64..300, -50i64..300), 0..80),
     ) {
-        let mut tl = Timeline::default();
+        let mut tl = common::timeline();
         let t = tl.add_track(TrackKind::Video);
         let _ = tl.insert_clip(t, place(1, 0, 0, 100));
         for (op, pick, a, b) in ops {

@@ -16012,12 +16012,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a29e7d8eafc0b3f1c",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "edited older tests (commit 4521634): core clip_ops, clip_ops_edges, move_clip, move_clip_edges, multi_clip, snap, timeline, timeline_validation, track_flags now start from tests/common::timeline() (media 1 and 2 registered as missing videos); app history.rs, history_ids.rs register media 1 via common::register. Assertions unchanged. project_save_dangling.rs rewritten: its setup (a clip on unregistered media) can no longer be built, so it now asserts insert_clip refuses it and the timeline still saves and reopens"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: guard placed after track/lock/overlap checks, before the transform check, so existing error-order tests keep their errors; decode maps TimelineError::UnknownMedia to ProjectError::UnknownMedia so its error stays the same; encode_for_save guard kept as data-loss defense (now unreachable through the public API)"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: approved, no Critical. W1 accepted: decode now reports a dangling clip that also breaks another rule (bad turns, overlap, bad range) as that Timeline error instead of UnknownMedia; still refused, no test or caller pins the variant. W2 done: encode_for_save guard comment says it is a defense for a future media-removal edit. Reason text now 'media MediaId(n) is not in the project' (Debug style like other TimelineError messages)"
+    }
+   ],
    "source": "added"
   }
  ]

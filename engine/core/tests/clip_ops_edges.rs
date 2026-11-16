@@ -1,6 +1,8 @@
 //! P1-018 review: overflow paths and cross-track merges.
+mod common;
+
 use framix_core::time::Time;
-use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TimelineError, TrackKind};
+use framix_core::timeline::{ClipPlacement, MediaId, TimelineError, TrackKind};
 
 fn place(source_start: i64, start: i64, duration: i64) -> ClipPlacement {
     ClipPlacement {
@@ -13,7 +15,7 @@ fn place(source_start: i64, start: i64, duration: i64) -> ClipPlacement {
 
 #[test]
 fn overflowing_source_or_end_is_refused() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let c = tl.insert_clip(t, place(i64::MAX - 5, 0, 100)).unwrap();
     assert_eq!(tl.split_clip(c, Time(50)), Err(TimelineError::TimeOverflow));
@@ -22,7 +24,7 @@ fn overflowing_source_or_end_is_refused() {
         Err(TimelineError::TimeOverflow)
     );
 
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let c = tl.insert_clip(t, place(0, i64::MAX - 100, 60)).unwrap();
     assert_eq!(tl.duplicate_clip(c), Err(TimelineError::TimeOverflow));
@@ -30,7 +32,7 @@ fn overflowing_source_or_end_is_refused() {
 
 #[test]
 fn clips_on_different_tracks_never_merge() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let a = tl.add_track(TrackKind::Video);
     let b = tl.add_track(TrackKind::Video);
     let left = tl.insert_clip(a, place(0, 0, 10)).unwrap();

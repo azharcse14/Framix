@@ -1,5 +1,7 @@
 //! Edits on several clips at once (P1-024): remove, move and duplicate a selection.
 
+mod common;
+
 use framix_core::time::Time;
 use framix_core::timeline::{
     ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId, TrackKind,
@@ -27,7 +29,7 @@ fn starts(tl: &Timeline, t: TrackId) -> Vec<(ClipId, i64)> {
 
 /// Two video tracks: v1 has a [0,10) b [10,20) c [40,50); v2 has d [5,15).
 fn sample() -> (Timeline, TrackId, TrackId, [ClipId; 4]) {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v1 = tl.add_track(TrackKind::Video);
     let v2 = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(v1, place(0, 10)).unwrap();
@@ -206,7 +208,7 @@ proptest! {
 
 #[test]
 fn a_shift_past_the_largest_time_is_refused_and_changes_nothing() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v1 = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(v1, place(10, 10)).unwrap();
     let far = tl.insert_clip(v1, place(i64::MAX - 20, 10)).unwrap();

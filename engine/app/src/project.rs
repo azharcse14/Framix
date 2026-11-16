@@ -152,7 +152,9 @@ pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
     if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || media > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
     }
-    // Open refuses clips whose media is not listed, so never write one.
+    // Open refuses clips whose media is not listed, so never write one. Timeline::insert_clip
+    // already refuses them (ENG-059); this is a defense for a future media-removal edit, which
+    // must give it a test.
     if let Some(clip) = tracks
         .iter()
         .flat_map(|t| t.clips())
@@ -240,10 +242,6 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
                 start: Time(c.start),
                 duration: Time(c.duration),
             };
-            // Every clip's media is listed (format 1's by restore_unlisted_media).
-            if timeline.media(placement.media).is_none() {
-                return Err(ProjectError::UnknownMedia(c.media_id));
-            }
             let transform = ClipTransform {
                 turns: u8::try_from(c.turns).map_err(|_| TimelineError::BadTransform)?,
                 flip_h: c.flip_h,
@@ -269,8 +267,14 @@ pub fn decode(bytes: &[u8]) -> Result<Timeline, ProjectError> {
             } else {
                 transform
             };
-            // Untrusted: checked like an edit, and set at insert so loading stays linear.
-            timeline.insert_clip_with(track, placement, transform)?;
+            // Untrusted: checked like an edit (media must be listed; format 1's is, by
+            // restore_unlisted_media), and set at insert so loading stays linear.
+            timeline
+                .insert_clip_with(track, placement, transform)
+                .map_err(|e| match e {
+                    TimelineError::UnknownMedia(id) => ProjectError::UnknownMedia(id.0),
+                    e => e.into(),
+                })?;
         }
         // After the clips: a locked track refuses inserts.
         timeline.set_track_flags(track, flags)?;

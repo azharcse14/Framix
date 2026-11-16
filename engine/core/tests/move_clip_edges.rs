@@ -1,6 +1,8 @@
 //! P1-019 review: self-skip on both sides, touching edges, and a model-based proptest.
+mod common;
+
 use framix_core::time::Time;
-use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TimelineError, TrackKind};
+use framix_core::timeline::{ClipPlacement, MediaId, TimelineError, TrackKind};
 use proptest::prelude::*;
 
 fn place(start: i64, duration: i64) -> ClipPlacement {
@@ -14,7 +16,7 @@ fn place(start: i64, duration: i64) -> ClipPlacement {
 
 #[test]
 fn small_moves_both_ways_and_touching_edges() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(t, place(0, 10)).unwrap();
     let b = tl.insert_clip(t, place(20, 10)).unwrap();
@@ -32,7 +34,7 @@ proptest! {
         pick in 0usize..8,
         to in -10i64..260,
     ) {
-        let mut tl = Timeline::default();
+        let mut tl = common::timeline();
         let t = tl.add_track(TrackKind::Video);
         let mut ids = Vec::new();
         for (start, dur) in clips {

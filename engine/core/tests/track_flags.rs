@@ -1,7 +1,7 @@
+mod common;
+
 use framix_core::time::Time;
-use framix_core::timeline::{
-    ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackKind,
-};
+use framix_core::timeline::{ClipPlacement, MediaId, TimelineError, TrackFlags, TrackKind};
 
 fn place(start: i64) -> ClipPlacement {
     ClipPlacement {
@@ -20,7 +20,7 @@ const LOCKED: TrackFlags = TrackFlags {
 
 #[test]
 fn flags_start_off_and_can_be_set() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     assert_eq!(tl.track(t).unwrap().flags(), TrackFlags::default());
     let all = TrackFlags {
@@ -37,7 +37,7 @@ fn flags_start_off_and_can_be_set() {
 
 #[test]
 fn a_locked_track_refuses_every_clip_edit() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(t, place(0)).unwrap();
     let b = tl.insert_clip(t, place(20)).unwrap();
@@ -56,7 +56,7 @@ fn a_locked_track_refuses_every_clip_edit() {
 
 #[test]
 fn audio_tracks_cannot_be_hidden_and_unknown_tracks_fail() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let audio = tl.add_track(TrackKind::Audio);
     let hidden = TrackFlags {
         hidden: true,
