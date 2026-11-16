@@ -1,4 +1,4 @@
-//! SPIKE (P1-056): Android decoder frames reach wgpu with no CPU copy. The platform layer
+//! Android decoder frames reach wgpu with no CPU copy (P1-056, P1-070). The platform layer
 //! converts a MediaCodec frame to an RGBA8 AHardwareBuffer with one GLES pass (wgpu's Vulkan
 //! backend cannot sample opaque YCbCr); this module imports that buffer as a Vulkan image.
 //! Blocking: the import waits on the queue under the Gpu's queue lock; the render thread

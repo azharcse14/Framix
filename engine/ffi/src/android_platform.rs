@@ -25,6 +25,9 @@ struct Java {
     encoder_surface: jmethodID,
     encoder_frame: jmethodID,
     encoder_finish: jmethodID,
+    decoder_open: jmethodID,
+    decoder_frame: jmethodID,
+    decoder_close: jmethodID,
 }
 
 // SAFETY: a JavaVM pointer, a global reference and method ids are valid on every thread (JNI
@@ -40,6 +43,7 @@ static JAVA: OnceLock<Java> = OnceLock::new();
 unsafe extern "C" {
     pub(crate) fn ANativeWindow_fromSurface(env: *mut JNIEnv, surface: jobject) -> *mut c_void;
     pub(crate) fn ANativeWindow_release(window: *mut c_void);
+    fn AHardwareBuffer_fromHardwareBuffer(env: *mut JNIEnv, buffer: jobject) -> *mut c_void;
 }
 
 /// JNI entry for `EnginePlatform.nativeRegister()`: registers the vtable for the process.
@@ -73,9 +77,9 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             encoder_open: Some(encoder_open),
             encoder_frame: Some(encoder_frame),
             encoder_finish: Some(encoder_finish),
-            decoder_open: Some(no_decoder_open),
-            decoder_frame: Some(no_decoder_frame),
-            decoder_close: Some(no_decoder_close),
+            decoder_open: Some(decoder_open),
+            decoder_frame: Some(decoder_frame),
+            decoder_close: Some(decoder_close),
             request_proxy: Some(no_proxy),
             // Android export is its own task; until then the pre-flight does not block.
             free_bytes: Some(unknown_free_bytes),
@@ -120,6 +124,12 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
         )?;
         let encoder_frame = method(c"encoderFrame", c"(Lcom/travela/framix/ExportEncoder;J)Z")?;
         let encoder_finish = method(c"encoderFinish", c"(Lcom/travela/framix/ExportEncoder;Z)Z")?;
+        let decoder_open = method(c"decoderOpen", c"()Lcom/travela/framix/FrameDecoder;")?;
+        let decoder_frame = method(
+            c"decoderFrame",
+            c"(Lcom/travela/framix/FrameDecoder;Ljava/lang/String;ZJ)Landroid/hardware/HardwareBuffer;",
+        )?;
+        let decoder_close = method(c"decoderClose", c"(Lcom/travela/framix/FrameDecoder;)V")?;
         let platform = (jni.NewGlobalRef)(env, this);
         (!platform.is_null()).then_some(Java {
             vm,
@@ -131,6 +141,9 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
             encoder_surface,
             encoder_frame,
             encoder_finish,
+            decoder_open,
+            decoder_frame,
+            decoder_close,
         })
     }
 }
@@ -567,25 +580,119 @@ unsafe extern "C" fn encoder_finish(_ctx: *mut c_void, encoder: *mut c_void, ok:
     })
 }
 
-/// The Android Decoder port is its own task; until then every decoder fails to open.
-unsafe extern "C" fn no_decoder_open(_: *mut c_void) -> *mut c_void {
-    null_mut()
+/// `decoder_open`: opens a Kotlin `FrameDecoder` (its own thread and EGL context). The handle
+/// is a global reference to it, deleted by `decoder_close`. Null if it could not open.
+unsafe extern "C" fn decoder_open(_ctx: *mut c_void) -> *mut c_void {
+    let mut opened = null_mut();
+    ffi_guard(|| {
+        // SAFETY: no arguments match `()Lcom/travela/framix/FrameDecoder;`; the local reference
+        // is deleted once a global one was taken.
+        unsafe {
+            with_kotlin(|env, java| {
+                let jni = &(**env).v1_6;
+                let decoder =
+                    (jni.CallObjectMethodA)(env, java.platform, java.decoder_open, [].as_ptr());
+                if (jni.ExceptionCheck)(env) || decoder.is_null() {
+                    return;
+                }
+                opened = (jni.NewGlobalRef)(env, decoder).cast();
+                (jni.DeleteLocalRef)(env, decoder);
+            })
+        };
+        ENGINE_OK
+    });
+    opened
 }
 
-unsafe extern "C" fn no_decoder_frame(
-    _: *mut c_void,
-    _: *mut c_void,
-    _: *const u8,
-    _: usize,
-    _: u32,
-    _: i64,
-    _: u32,
-    _: *mut crate::platform::EngineFrame,
+/// `decoder_frame`: Kotlin draws the frame into an RGBA8 HardwareBuffer it keeps until the next
+/// call or `decoder_close`; its `AHardwareBuffer*` is the frame's one plane (P1-070). The
+/// proxy side is ignored: Android makes no proxies yet, so it reads the original.
+#[allow(clippy::too_many_arguments)] // The vtable's C signature.
+unsafe extern "C" fn decoder_frame(
+    _ctx: *mut c_void,
+    decoder: *mut c_void,
+    uri: *const u8,
+    uri_len: usize,
+    kind: u32,
+    time_us: i64,
+    _proxy_side: u32,
+    out: *mut crate::platform::EngineFrame,
 ) -> i32 {
-    crate::ENGINE_ERR_GPU
+    ffi_guard(|| {
+        if decoder.is_null() || out.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        // SAFETY: the engine passes `uri_len` bytes valid for this call (vtable contract).
+        let uri = unsafe { std::slice::from_raw_parts(uri, uri_len) };
+        let Ok(uri) = std::ffi::CString::new(uri) else {
+            return ENGINE_ERR_NULL;
+        };
+        let image = kind == crate::platform::ENGINE_MEDIA_IMAGE;
+        let mut ahb = null_mut();
+        // SAFETY: the env calls follow their JNI signatures; the arguments match
+        // `(Lcom/travela/framix/FrameDecoder;Ljava/lang/String;ZJ)Landroid/hardware/HardwareBuffer;`;
+        // `decoder` is the global reference decoder_open made, live until decoder_close. The
+        // buffer's AHardwareBuffer stays valid after its local reference goes: Kotlin keeps the
+        // HardwareBuffer until its next call.
+        unsafe {
+            with_kotlin(|env, java| {
+                let jni = &(**env).v1_6;
+                let string = (jni.NewStringUTF)(env, uri.as_ptr());
+                if string.is_null() {
+                    return;
+                }
+                let args = [
+                    jvalue { l: decoder.cast() },
+                    jvalue { l: string },
+                    jvalue { z: image },
+                    jvalue { j: time_us },
+                ];
+                let buffer =
+                    (jni.CallObjectMethodA)(env, java.platform, java.decoder_frame, args.as_ptr());
+                (jni.DeleteLocalRef)(env, string);
+                if (jni.ExceptionCheck)(env) || buffer.is_null() {
+                    return;
+                }
+                ahb = AHardwareBuffer_fromHardwareBuffer(env, buffer);
+                (jni.DeleteLocalRef)(env, buffer);
+            })
+        };
+        if ahb.is_null() {
+            return ENGINE_ERR_GPU;
+        }
+        // SAFETY: `out` is a valid EngineFrame out pointer for the call (vtable contract).
+        unsafe {
+            *out = crate::platform::EngineFrame {
+                format: crate::platform::ENGINE_FRAME_RGBA,
+                planes: [ahb, null_mut()],
+                matrix: crate::platform::ENGINE_YCBCR_UNKNOWN,
+                range: crate::platform::ENGINE_RANGE_UNKNOWN,
+            }
+        };
+        ENGINE_OK
+    })
 }
 
-unsafe extern "C" fn no_decoder_close(_: *mut c_void, _: *mut c_void) {}
+/// `decoder_close`: frees the Kotlin decoder (its thread, codec and buffers) and the reference.
+unsafe extern "C" fn decoder_close(_ctx: *mut c_void, decoder: *mut c_void) {
+    ffi_guard(|| {
+        if decoder.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        let args = [jvalue { l: decoder.cast() }];
+        // SAFETY: the arguments match `(Lcom/travela/framix/FrameDecoder;)V`; `decoder` is the
+        // global reference from decoder_open, closed once (vtable contract) and deleted after its
+        // last use (DeleteGlobalRef is valid with an exception pending).
+        unsafe {
+            with_kotlin(|env, java| {
+                let jni = &(**env).v1_6;
+                (jni.CallVoidMethodA)(env, java.platform, java.decoder_close, args.as_ptr());
+                (jni.DeleteGlobalRef)(env, decoder.cast());
+            })
+        };
+        ENGINE_OK
+    });
+}
 
 unsafe extern "C" fn unknown_free_bytes(_: *mut c_void, _: *const u8, _: usize) -> i64 {
     -1

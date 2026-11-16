@@ -7,6 +7,10 @@
     public android.view.Surface encoderSurface(com.travela.framix.ExportEncoder);
     public boolean encoderFrame(com.travela.framix.ExportEncoder, long);
     public boolean encoderFinish(com.travela.framix.ExportEncoder, boolean);
+    public com.travela.framix.FrameDecoder decoderOpen();
+    public android.hardware.HardwareBuffer decoderFrame(com.travela.framix.FrameDecoder, java.lang.String, boolean, long);
+    public void decoderClose(com.travela.framix.FrameDecoder);
 }
 # Named in those methods' JNI signatures.
 -keep class com.travela.framix.ExportEncoder
+-keep class com.travela.framix.FrameDecoder
