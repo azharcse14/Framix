@@ -16716,6 +16716,10 @@
     {
      "date": "2026-11-16",
      "text": "fix shape: the group tearDown has no tester (stopEngine needs one), so await engine.events.drain() there and delete the per-test dirs after it, not in addTearDown"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "only teardown changed: the two Home tests' addTearDown now awaits stopEngine(tester, engine) (test/pump_until.dart) before deleteSync; the group tearDown's dispose stays (idempotent no-op then). No assertion changed or dropped. 5/5 runs green."
     }
    ],
    "source": "added"
