@@ -105,7 +105,7 @@ void main() {
   testWidgets('Done is a plain text action, not the accent', (tester) async {
     await tester.pumpWidget(app());
     await openEditor(tester);
-    export.seed(const ExportDone());
+    export.seed(const ExportDone('/plat/cache/framix-export.mp4'));
     await tester.pumpAndSettle();
     final color = tester
         .renderObject<RenderParagraph>(find.text(l10n.done))
@@ -124,7 +124,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    export.seed(const ExportDone());
+    export.seed(const ExportDone('/plat/cache/framix-export.mp4'));
     await tester.pumpAndSettle();
     expect(find.byType(ExportResultPage), findsNothing);
 
@@ -139,7 +139,7 @@ void main() {
   ) async {
     await tester.pumpWidget(app());
     await openEditor(tester);
-    export.seed(const ExportDone());
+    export.seed(const ExportDone('/plat/cache/framix-export.mp4'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip(l10n.backToEdit));
     await tester.pumpAndSettle();
@@ -167,7 +167,7 @@ void main() {
     await tester.pumpWidget(app());
     await openEditor(tester);
     preview.seed(const PreviewShown(1));
-    export.seed(const ExportDone());
+    export.seed(const ExportDone('/plat/cache/framix-export.mp4'));
     await tester.pumpAndSettle();
     final page = find.byType(ExportResultPage);
     expect(

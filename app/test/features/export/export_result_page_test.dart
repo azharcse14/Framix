@@ -69,7 +69,7 @@ void main() {
     await tester.pumpWidget(app(locale ?? const Locale('en')));
     await tester.tap(find.text('open editor'));
     await tester.pumpAndSettle();
-    cubit.seed(const ExportDone());
+    cubit.seed(const ExportDone('/plat/cache/framix-export.mp4'));
     await tester.pumpAndSettle();
   }
 
