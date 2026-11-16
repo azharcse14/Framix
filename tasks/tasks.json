@@ -15849,7 +15849,12 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-abebf57aa48005fac",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: the shared resource is one checkout's app/ (gen_ffi rm -rf's app/lib/core/engine/proto; gen-l10n rewrites l10n), not pub cache/FVM. Lock stays per checkout and keeps the flutter_test.lock file; locks are per step (re-entrant via FRAMIX_APP_LOCK), not around the whole check.sh, so cargo work does not block flutter_test.sh. codegen_lock_test.sh runs in check.sh only when scripts/ changes (or full run)."
+    }
+   ],
    "source": "added"
   }
  ]
