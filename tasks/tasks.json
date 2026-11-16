@@ -16508,15 +16508,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "worktree-agent-a175d27ec5e4ae9c3",
    "notes": [
     {
      "date": "2026-11-16",
      "text": "Scope (ENG-054 review W1/W2): also delete thumbs/ and proxies/ cache files whose media key no saved project or open history uses. Since ENG-054 a save drops unused media, so library purge, CleanProjectCache and cache_bytes/media_bytes (library.rs, engine.rs clean_cache) no longer see them: their cache files leak and project sizes undercount the copies left on disk until this lands."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "plan/design: mark-and-sweep once per engine, when OpenLibrary first sets the library (app start, before Home can import). Mark = media uris of every <id>.framix in the library folder and its backups (each must decode, NotFound ok; any other error, incl. a newer app's file or damage, skips the whole sweep), of its .broken/.tmp/.bak.tmp copies when they decode, and of every timeline in the open undo/redo history. Sweep media/: only regular files listed in <library parent>/media (no path is ever built from a project uri), kept when any marked uri's last segment equals the file name (conservative superset), or written within the last hour (an import in flight; iOS MediaPicker now stamps the copy's mtime since copy/move keep the source's). Sweep cache thumbs/ and proxies/: files whose media key no marked uri has (partials untouched). W2: the sweep removes the leftover copies, so library sizes match the disk again (only media held by the open undo history or <1h old stay uncounted)."
     }
    ],
    "source": "added"
