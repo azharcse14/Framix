@@ -16424,7 +16424,12 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-a679b60b841dcc8d8",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "Gate runs after analyze (gen-l10n does no pub get; formatter needs package_config for the language version). Excludes *.g.dart, lib/l10n/generated, lib/core/engine/proto via find. Without fvm, dart = the one next to the resolved flutter binary. Style commit 3a5793f reformatted 5 files, whitespace/trailing commas only."
+    }
+   ],
    "source": "added"
   }
  ]
