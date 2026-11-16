@@ -100,6 +100,22 @@ fn photo_and_color_clips_trim_to_any_length() {
     }
 }
 
+#[test]
+fn photo_and_color_clips_lengthen_at_their_start() {
+    // ENG-060: a still has no source range, so growing its head never moves its source below 0.
+    let (mut tl, t) = timeline();
+    for (i, media) in [PHOTO, COLOR].into_iter().enumerate() {
+        let start = 1_000 + i64::try_from(i).unwrap() * 10_000;
+        let c = tl.insert_clip(t, place(media, 0, start, 10)).unwrap();
+        assert_eq!(tl.trim_clip(c, Time(start - 1_000), Time(start + 10)), Ok(()));
+        let clip = tl.clip(c).unwrap();
+        assert_eq!(
+            (clip.source_start, clip.start, clip.duration),
+            (Time(0), Time(start - 1_000), Time(1_010))
+        );
+    }
+}
+
 /// Every video clip on `t` plays only frames its media has.
 fn assert_inside_media(tl: &Timeline, t: TrackId) -> Result<(), TestCaseError> {
     for c in tl.track(t).unwrap().clips() {
@@ -129,6 +145,21 @@ proptest! {
                 _ => tl.move_clip(id, t, Time(a.max(0) * 10)),
             };
             assert_inside_media(&tl, t)?;
+        }
+    }
+
+    #[test]
+    fn a_still_clip_trims_either_way_without_a_source_error(
+        media in prop_oneof![Just(PHOTO), Just(COLOR)],
+        source in 0i64..1_000,
+        trims in proptest::collection::vec((0i64..10_000, 1i64..10_000), 1..20),
+    ) {
+        // ENG-060: any edges in [0, ..) are fine for a photo or color, whatever its source offset.
+        let (mut tl, t) = timeline();
+        let c = tl.insert_clip(t, place(media, source, 5_000, 10)).unwrap();
+        for (start, len) in trims {
+            prop_assert_eq!(tl.trim_clip(c, Time(start), Time(start + len)), Ok(()));
+            prop_assert!(tl.clip(c).unwrap().source_start.0 >= 0);
         }
     }
 
