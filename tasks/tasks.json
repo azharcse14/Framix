@@ -16081,12 +16081,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a2186f4b8298096ce",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "plan: one fix where every call routes (with_kotlin): new jni_thread::thread_env attaches a thread once and parks a thread-local guard that detaches at thread exit (jni crate attach_current_thread_permanently semantics; the repo uses raw jni-sys 0.4.1, which has no helper, and adding the jni crate is a new dependency, so hand-rolled ~20 lines). with_kotlin wraps each call in Push/PopLocalFrame since detach no longer frees leaked locals. Host test: fake JavaVM vtable counts attach/detach (jni-sys as dev-dependency)."
+    }
+   ],
    "source": "added"
   },
   {

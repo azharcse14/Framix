@@ -21,3 +21,7 @@ prost = "0.14.4"
 # JNI shim for the Android platform vtable (android_platform.rs); raw bindings only.
 [target.'cfg(target_os = "android")'.dependencies]
 jni-sys = "=0.4.1"
+
+[dev-dependencies]
+# jni_thread's host test drives a fake JavaVM vtable.
+jni-sys = "=0.4.1"
