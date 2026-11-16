@@ -42,17 +42,23 @@ fi
 # Flutter app
 if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh; }; then
   if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flutter); fi
-  run_in app "${FLUTTER[@]}" gen-l10n
-  run git diff --exit-code -- app/lib/l10n/generated
-  run_in app "${FLUTTER[@]}" analyze
-  # Locked against other `flutter test` runs in this checkout; see the script.
+  # Codegen and its readers hold this checkout's app lock (scripts/app_lock.sh), so a
+  # concurrent check never reads a generated file while another rewrites it.
+  run_in app ../scripts/app_lock.sh "${FLUTTER[@]}" gen-l10n
+  run scripts/app_lock.sh git diff --exit-code -- app/lib/l10n/generated
+  run_in app ../scripts/app_lock.sh "${FLUTTER[@]}" analyze
   run scripts/flutter_test.sh
 fi
 
 # Generated FFI code must match its sources (header from engine/ffi, Dart from the header).
 if touched engine/ || touched app/ || touched proto/; then
   run scripts/gen_ffi.sh
-  run git diff --exit-code -- engine/ffi/include app/lib/core/engine/engine_bindings.g.dart app/lib/core/engine/proto
+  run scripts/app_lock.sh git diff --exit-code -- engine/ffi/include app/lib/core/engine/engine_bindings.g.dart app/lib/core/engine/proto
+fi
+
+# Shell script regression tests
+if touched scripts/; then
+  run scripts/codegen_lock_test.sh
 fi
 
 # Protobuf contract
