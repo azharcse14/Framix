@@ -12947,6 +12947,10 @@
     {
      "date": "2026-11-16",
      "text": "Older tests edited (setup only, assertions unchanged, commit 20fde1e): core tests/common media 1,2 are now 24 h missing videos (were 1 tick); clip_ops_edges overflow test puts its i64::MAX-5 source on a photo; engine_trim_snap, engine_edit_snapped, engine_edit_snapped_edges import 5 s videos and trim them to 2 s instead of stretching 2 s videos past their end."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Older Dart tests edited (setup only, assertions unchanged): clip_actions_test 'a trim edge dropped near the next clip snaps to it', edit_snap_haptic_test, edit_snap_sticky_test now import a 5 s first video and trim it to 2 s before the snapping trim (they stretched 2 s videos to 2.5 s / 4 s). dart format reflowed edit_snap_sticky_test's test body."
     }
    ],
    "source": "added"
