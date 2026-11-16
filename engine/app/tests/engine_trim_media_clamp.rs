@@ -142,6 +142,19 @@ fn a_snap_point_past_the_media_end_is_no_snap() {
 }
 
 #[test]
+fn an_edge_inside_the_media_never_snaps_past_it() {
+    let mut engine = Engine::default();
+    let a = import(&mut engine, 1, 2500).clip;
+    changed(run(&mut engine, trim(a, 0, 2 * S, 0)));
+    let b = import(&mut engine, 2, 1000);
+    move_to(&mut engine, b, 255 * S / 100);
+    // 2.45 s is inside a's media; b's start (2.55 s) is near but past it: no snap at all.
+    let t = changed(run(&mut engine, trim(a, 0, 245 * S / 100, S / 10)));
+    assert_eq!(span(&t, a), (0, 245 * S / 100, 0));
+    assert!(!t.snapped, "a snap point past the media is no target");
+}
+
+#[test]
 fn trim_end_to_a_playhead_past_the_media_stops_at_its_end() {
     let mut engine = Engine::default();
     let a = import(&mut engine, 1, 2000).clip;
