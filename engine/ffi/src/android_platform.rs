@@ -21,6 +21,10 @@ struct Java {
     create_preview_texture: jmethodID,
     request_thumbnail: jmethodID,
     release_preview_texture: jmethodID,
+    encoder_open: jmethodID,
+    encoder_surface: jmethodID,
+    encoder_frame: jmethodID,
+    encoder_finish: jmethodID,
 }
 
 // SAFETY: a JavaVM pointer, a global reference and method ids are valid on every thread (JNI
@@ -66,10 +70,9 @@ pub unsafe extern "C" fn Java_com_travela_framix_EnginePlatform_nativeRegister(
             create_preview_texture: Some(create_preview_texture),
             frame_available: Some(frame_available),
             request_thumbnail: Some(request_thumbnail),
-            // The MediaCodec encoder is its own task; until then exports fail to open.
-            encoder_open: Some(no_encoder_open),
-            encoder_frame: Some(no_encoder_frame),
-            encoder_finish: Some(no_encoder_finish),
+            encoder_open: Some(encoder_open),
+            encoder_frame: Some(encoder_frame),
+            encoder_finish: Some(encoder_finish),
             decoder_open: Some(no_decoder_open),
             decoder_frame: Some(no_decoder_frame),
             decoder_close: Some(no_decoder_close),
@@ -107,6 +110,16 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
         let create_preview_texture = method(c"createPreviewTexture", c"(IIJ)V")?;
         let request_thumbnail = method(c"requestThumbnail", c"(Ljava/lang/String;ZJIJ)V")?;
         let release_preview_texture = method(c"releasePreviewTexture", c"(J)V")?;
+        let encoder_open = method(
+            c"encoderOpen",
+            c"(IIIILjava/lang/String;)Lcom/travela/framix/ExportEncoder;",
+        )?;
+        let encoder_surface = method(
+            c"encoderSurface",
+            c"(Lcom/travela/framix/ExportEncoder;)Landroid/view/Surface;",
+        )?;
+        let encoder_frame = method(c"encoderFrame", c"(Lcom/travela/framix/ExportEncoder;J)Z")?;
+        let encoder_finish = method(c"encoderFinish", c"(Lcom/travela/framix/ExportEncoder;Z)Z")?;
         let platform = (jni.NewGlobalRef)(env, this);
         (!platform.is_null()).then_some(Java {
             vm,
@@ -114,6 +127,10 @@ unsafe fn lookup(env: *mut JNIEnv, this: jobject) -> Option<Java> {
             create_preview_texture,
             request_thumbnail,
             release_preview_texture,
+            encoder_open,
+            encoder_surface,
+            encoder_frame,
+            encoder_finish,
         })
     }
 }
@@ -374,27 +391,180 @@ unsafe extern "C" fn release_preview_texture(
     });
 }
 
-/// No encoder on Android yet: every export fails to open.
-unsafe extern "C" fn no_encoder_open(
-    _: *mut c_void,
-    _: u32,
-    _: u32,
-    _: u32,
-    _: u32,
-    _: *const u8,
-    _: usize,
+/// An open Kotlin `ExportEncoder` and the engine's reference to its input Surface's window, the
+/// render target of every frame (docs/adr/0005-export-encoder.md, P1-069).
+struct AndroidEncoder {
+    /// Global reference to the `ExportEncoder`.
+    encoder: jobject,
+    /// `ANativeWindow_fromSurface` reference, released by `encoder_finish`.
+    window: NonNull<c_void>,
+}
+
+/// `encoder_open`: opens a Kotlin `ExportEncoder`. Export worker only; may block.
+unsafe extern "C" fn encoder_open(
+    _ctx: *mut c_void,
+    width: u32,
+    height: u32,
+    fps: u32,
+    kbps: u32,
+    path: *const u8,
+    path_len: usize,
 ) -> *mut c_void {
-    null_mut()
+    let mut opened = null_mut();
+    ffi_guard(|| {
+        // SAFETY: the engine passes `path_len` bytes valid for this call (vtable contract).
+        let path = unsafe { std::slice::from_raw_parts(path, path_len) };
+        if let Some(encoder) = open_encoder([width, height, fps, kbps], path) {
+            opened = Box::into_raw(Box::new(encoder)).cast();
+        }
+        ENGINE_OK
+    });
+    opened
 }
 
-/// Never called: no encoder opens.
-unsafe extern "C" fn no_encoder_frame(_: *mut c_void, _: *mut c_void, _: i64) -> *mut c_void {
-    null_mut()
+/// Calls `encoderOpen(width, height, fps, kbps, path)` and takes its Surface's window. An
+/// encoder that opened but has no window is cancelled at once.
+fn open_encoder(ints: [u32; 4], path: &[u8]) -> Option<AndroidEncoder> {
+    let [Ok(width), Ok(height), Ok(fps), Ok(kbps)] = ints.map(jint::try_from) else {
+        return None;
+    };
+    let path = std::ffi::CString::new(path).ok()?;
+    let mut opened = None;
+    // SAFETY: the env calls follow their JNI signatures and run only while no exception is
+    // pending (checked after each Java call); the arguments match the method signatures looked
+    // up in `lookup`; local references are deleted before returning.
+    unsafe {
+        with_kotlin(|env, java| {
+            let jni = &(**env).v1_6;
+            let string = (jni.NewStringUTF)(env, path.as_ptr());
+            if string.is_null() {
+                return;
+            }
+            let args = [
+                jvalue { i: width },
+                jvalue { i: height },
+                jvalue { i: fps },
+                jvalue { i: kbps },
+                jvalue { l: string },
+            ];
+            let encoder =
+                (jni.CallObjectMethodA)(env, java.platform, java.encoder_open, args.as_ptr());
+            (jni.DeleteLocalRef)(env, string);
+            if (jni.ExceptionCheck)(env) || encoder.is_null() {
+                return;
+            }
+            let args = [jvalue { l: encoder }];
+            let surface =
+                (jni.CallObjectMethodA)(env, java.platform, java.encoder_surface, args.as_ptr());
+            let window = if (jni.ExceptionCheck)(env) {
+                (jni.ExceptionClear)(env);
+                None
+            } else {
+                (!surface.is_null())
+                    .then(|| NonNull::new(ANativeWindow_fromSurface(env, surface)))
+                    .flatten()
+            };
+            if !surface.is_null() {
+                (jni.DeleteLocalRef)(env, surface);
+            }
+            let global = window.map(|_| (jni.NewGlobalRef)(env, encoder));
+            match (window, global) {
+                (Some(window), Some(global)) if !global.is_null() => {
+                    opened = Some(AndroidEncoder {
+                        encoder: global,
+                        window,
+                    });
+                }
+                _ => {
+                    if let Some(window) = window {
+                        ANativeWindow_release(window.as_ptr());
+                    }
+                    let args = [jvalue { l: encoder }, jvalue { z: false }];
+                    (jni.CallBooleanMethodA)(
+                        env,
+                        java.platform,
+                        java.encoder_finish,
+                        args.as_ptr(),
+                    );
+                }
+            }
+            (jni.DeleteLocalRef)(env, encoder);
+        })
+    };
+    opened
 }
 
-/// Never called: no encoder opens.
-unsafe extern "C" fn no_encoder_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
-    crate::ENGINE_ERR_GPU
+/// `encoder_frame`: tells Kotlin the frame time, then returns the encoder's window. Rust draws
+/// into it and presents, which queues the frame into the codec; so the previous frame is
+/// already appended.
+unsafe extern "C" fn encoder_frame(
+    _ctx: *mut c_void,
+    encoder: *mut c_void,
+    time_us: i64,
+) -> *mut c_void {
+    let mut target = null_mut();
+    ffi_guard(|| {
+        // SAFETY: `encoder` came from encoder_open and is not finished (vtable contract).
+        let Some(encoder) = (unsafe { encoder.cast::<AndroidEncoder>().as_ref() }) else {
+            return ENGINE_ERR_NULL;
+        };
+        let mut taken = false;
+        let args = [jvalue { l: encoder.encoder }, jvalue { j: time_us }];
+        // SAFETY: the arguments match `(Lcom/travela/framix/ExportEncoder;J)Z`; the global
+        // reference is live until encoder_finish.
+        let called = unsafe {
+            with_kotlin(|env, java| {
+                taken = ((**env).v1_6.CallBooleanMethodA)(
+                    env,
+                    java.platform,
+                    java.encoder_frame,
+                    args.as_ptr(),
+                );
+            })
+        };
+        if called && taken {
+            target = encoder.window.as_ptr();
+        }
+        ENGINE_OK
+    });
+    target
+}
+
+/// `encoder_finish`: closes or cancels the file in Kotlin, then drops the engine's references.
+unsafe extern "C" fn encoder_finish(_ctx: *mut c_void, encoder: *mut c_void, ok: bool) -> i32 {
+    ffi_guard(|| {
+        if encoder.is_null() {
+            return ENGINE_ERR_NULL;
+        }
+        // SAFETY: `encoder` is the Box::into_raw from encoder_open, finished exactly once
+        // (vtable contract), so ownership returns here.
+        let encoder = unsafe { Box::from_raw(encoder.cast::<AndroidEncoder>()) };
+        let mut finished = false;
+        let args = [jvalue { l: encoder.encoder }, jvalue { z: ok }];
+        // SAFETY: the arguments match `(Lcom/travela/framix/ExportEncoder;Z)Z`; the global
+        // reference is deleted after its last use (DeleteGlobalRef is valid with an exception
+        // pending).
+        let called = unsafe {
+            with_kotlin(|env, java| {
+                let jni = &(**env).v1_6;
+                finished = (jni.CallBooleanMethodA)(
+                    env,
+                    java.platform,
+                    java.encoder_finish,
+                    args.as_ptr(),
+                );
+                (jni.DeleteGlobalRef)(env, encoder.encoder);
+            })
+        };
+        // SAFETY: the reference encoder_open took, released once; Kotlin released its Surface,
+        // and the renderer holds its own reference while it keeps a surface on it.
+        unsafe { ANativeWindow_release(encoder.window.as_ptr()) };
+        if called && finished {
+            ENGINE_OK
+        } else {
+            ENGINE_ERR_GPU
+        }
+    })
 }
 
 /// The Android Decoder port is its own task; until then every decoder fails to open.

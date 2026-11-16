@@ -13736,15 +13736,35 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "worktree-agent-af80de0c27bfde7ef",
    "notes": [
     {
      "date": "2026-10-24",
      "text": "P1-036: verify on device/emulator: export lands in exportDir (cacheDir, not Dart's code_cache systemTemp), Save writes Movies/Framix, Share via FileProvider (.files authority, cache-path). Emulator install kept failing on 2026-10-24, so Android save/share is built but never run."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: encoder_frame returns the codec input Surface's ANativeWindow* (same every frame); GpuRenderer draws/presents through draw_to_android_window like the preview. Surface buffers carry queue time, not frame time, so the codec runs with KEY_MAX_B_FRAMES=0 and Kotlin rewrites each output PTS from a FIFO of encoder_frame times; reordered or lost frames fail the export."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: Gpu keeps 2 window surfaces (LRU: preview + export) so a preview draw mid-export never disconnects the codec window; run_export forgets the last target only after encoder_finish (an early disconnect can drop queued frames). Codec runs async on its own HandlerThread (muxer written only there); finish waits up to 10 s for EOS."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: no Kotlin unit/instrumented tests: app/android has no test deps (JUnit/androidx.test) and new deps need approval; Rust app test with fakes covers the forget-after-finish order. Emulator: ~/.android/avd is empty (no AVDs), so no end-to-end run."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "native_warnings.sh: iOS sim + Android debug APK build OK; it fails only on 3 upstream cold-build lines (package_info_plus plugin deprecation, Gradle transform-api jar cache lines), none from app/android."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warnings filed: mid-export codec failure can block Vulkan acquire (new task), rate control sees queue times (ADR + P1-128), media layers export as test pattern until P1-070 (note there), no device run (P1-128)."
     }
    ],
    "source": "added"
@@ -13822,6 +13842,10 @@
     {
      "date": "2026-11-05",
      "text": "P1-071: Android draw_into still shows only the top layer; composite every layer into one surface frame (draw all, then present once) when the decoder lands."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "P1-069: Android export now opens; until this decoder lands, video/image layers export as the test pattern (draw_into on Android)."
     }
    ],
    "source": "added"
@@ -15868,6 +15892,68 @@
    "title": "SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change",
    "tags": [],
    "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-128",
+   "section": "P1",
+   "group": null,
+   "title": "Android instrumented test for ExportEncoder: draw frames via Surface.lockHardwareCanvas, check sample count and PTS with MediaExtractor (needs androidx.test deps, approve first)",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "Also check (P1-069 review): output bitrate within tolerance of kbps (codec rate control sees queue times, not frame times); 'reordered frame' failures on devices ignoring KEY_MAX_B_FRAMES; a full export on device/emulator (Vulkan swapchain on the codec Surface, format, queueBuffer on present)."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "TC-015",
+   "section": "TC",
+   "group": null,
+   "title": "native_warnings.sh: allowlist cold-build upstream lines (package_info_plus 10.2.2 build.gradle.kts Project.android deprecation; Gradle cache lines naming transform-api-2.0.0-deprecated-use-gradle-api.jar)",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-129",
+   "section": "P1",
+   "group": null,
+   "title": "Android export: a codec that fails mid-export (onError, reclaimed in background) must abandon its input Surface so a blocked Vulkan acquire returns (old loaders ignore the acquire timeout); pin the export window in Gpu's surface cache; attach the export worker to the JVM once per export",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
    "deferred": false,
    "subphase": null,
    "status": "todo",

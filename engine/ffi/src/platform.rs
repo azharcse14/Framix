@@ -160,7 +160,8 @@ pub struct EnginePlatform {
     >,
     /// Appends the previous frame (if any), then returns the render target for the frame at
     /// `time_us` microseconds: a BGRA texture (an `id<MTLTexture>` on iOS) valid until the next
-    /// `encoder_frame` or `encoder_finish`. Null on failure.
+    /// `encoder_frame` or `encoder_finish`; on Android the codec's input `ANativeWindow*`, the
+    /// same every frame, which the engine draws into and presents (P1-069). Null on failure.
     pub encoder_frame: Option<
         unsafe extern "C" fn(ctx: *mut c_void, encoder: *mut c_void, time_us: i64) -> *mut c_void,
     >,

@@ -225,15 +225,21 @@ pub struct Gpu {
     /// Decoder frames can be imported: Vulkan with the AHardwareBuffer extensions, or GLES.
     #[cfg(target_os = "android")]
     imports_frames: bool,
-    /// The preview window's surface, kept between draws. Its lock is also the queue lock for
-    /// the window-draw and frame-import paths (the Vulkan import submits on the raw queue), so
-    /// the renderer and the decode spike never overlap (P1-004). The other draw methods take
-    /// no lock and must not run concurrently with an import. SPIKE: the cache (and its window
-    /// reference) lives until another window is drawn or the preview releases it
+    /// The window surfaces kept between draws, least recently drawn first: the preview's and
+    /// an export encoder's (P1-069), so drawing one never disconnects the other. Its lock is
+    /// also the queue lock for the window-draw and frame-import paths (the Vulkan import submits
+    /// on the raw queue), so the renderer, the export and the decode spike never overlap
+    /// (P1-004). The other draw methods take no lock and must not run concurrently with an
+    /// import. SPIKE: a surface (and its window reference) lives until [`MAX_WINDOW_SURFACES`]
+    /// other windows were drawn after it or its owner forgets it
     /// ([`Gpu::forget_android_window`]).
     #[cfg(target_os = "android")]
-    window_surface: std::sync::Mutex<Option<WindowSurface>>,
+    window_surface: std::sync::Mutex<Vec<WindowSurface>>,
 }
+
+/// Window surfaces [`Gpu`] keeps at once: the preview's and an export encoder's.
+#[cfg(target_os = "android")]
+const MAX_WINDOW_SURFACES: usize = 2;
 
 /// A configured surface on one ANativeWindow. Fields drop in order: the surface before the
 /// window reference it draws into.
@@ -328,7 +334,7 @@ impl Gpu {
             #[cfg(target_os = "android")]
             imports_frames,
             #[cfg(target_os = "android")]
-            window_surface: std::sync::Mutex::new(None),
+            window_surface: std::sync::Mutex::new(Vec::new()),
         })
     }
 
@@ -520,9 +526,7 @@ impl Gpu {
             .window_surface
             .lock()
             .unwrap_or_else(|e| e.into_inner());
-        if cached.as_ref().is_some_and(|c| c.window.as_ptr() == window) {
-            *cached = None;
-        }
+        cached.retain(|c| c.window.as_ptr() != window);
     }
 
     /// Converts an NV12 frame (`y` R8Unorm, `cbcr` RG8Unorm at half size, rounded up) to RGB, placed on
@@ -684,19 +688,28 @@ impl Gpu {
             .unwrap_or_else(|e| e.into_inner());
         // The cached surface holds its own window reference, so a matching pointer is the same
         // live window, never a freed one at the same address.
-        let reuse = cached
-            .as_ref()
-            .is_some_and(|c| c.window.as_ptr() == window.as_ptr());
-        if !reuse {
-            // The old window's surface goes first, so it disconnects before a new one connects.
-            *cached = None;
-            // SAFETY: the caller guarantees the window is live for this call; the surface takes
-            // its own reference.
-            *cached = Some(unsafe { self.window_surface(window, width, height) }?);
+        // The drawn window's surface moves to the end, so the least recently drawn goes first.
+        match cached
+            .iter()
+            .position(|c| c.window.as_ptr() == window.as_ptr())
+        {
+            Some(index) => {
+                let drawn = cached.remove(index);
+                cached.push(drawn);
+            }
+            None => {
+                // The evicted surface goes first, so it disconnects before a new one connects.
+                if cached.len() >= MAX_WINDOW_SURFACES {
+                    cached.remove(0);
+                }
+                // SAFETY: the caller guarantees the window is live for this call; the surface
+                // takes its own reference.
+                cached.push(unsafe { self.window_surface(window, width, height) }?);
+            }
         }
         let Some(WindowSurface {
             surface, config, ..
-        }) = cached.as_mut()
+        }) = cached.last_mut()
         else {
             return Err(RenderError::SurfaceUnusable);
         };

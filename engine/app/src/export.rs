@@ -128,6 +128,8 @@ pub fn run_export_with(
         .ok_or_else(|| ExportError::Failed("timeline too long".into()))?;
     let mut encoder = host.open(&config).map_err(ExportError::Failed)?;
     let mut percent = None;
+    // The encoder's last render target, forgotten once the encoder finished (see below).
+    let mut last_target = None;
     let rendered = (0..frames).try_for_each(|n| {
         if cancel.load(Ordering::Relaxed) {
             return Err(ExportError::Cancelled);
@@ -136,6 +138,7 @@ pub fn run_export_with(
             .frame_to_time(i64::from(n))
             .ok_or_else(|| ExportError::Failed("frame time out of range".into()))?;
         let target = encoder.frame(time).map_err(ExportError::Failed)?;
+        last_target = Some(target);
         renderer
             .draw(target, time, &mut timeline.layers_at(time))
             .map_err(|e| ExportError::Failed(e.to_string()))?;
@@ -147,12 +150,18 @@ pub fn run_export_with(
         }
         Ok(())
     });
-    match rendered {
+    let finished = match rendered {
         Ok(()) => encoder.finish(true).map_err(ExportError::Failed),
         Err(e) => {
             // The render error (or the cancel) is the one worth reporting.
             let _ = encoder.finish(false);
             Err(e)
         }
+    };
+    // Only after finish: on Android the target is the codec's input window, and dropping the
+    // renderer's surface on it earlier could drop frames the codec has not taken yet (P1-069).
+    if let Some(target) = last_target {
+        renderer.forget(target);
     }
+    finished
 }
