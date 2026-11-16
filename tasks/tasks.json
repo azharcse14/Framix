@@ -12903,7 +12903,16 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-ad475eade992c4004",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: guard in the app InsertClip command arm, not core Timeline::insert_clip (core tests insert bare MediaIds widely); moving the rule into core filed as ENG-059"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "edited existing tests engine.rs, engine_clip_ops.rs, engine_move_clip.rs, engine_multi_clip.rs, engine_track_flags.rs: they now register media via common::import_video, since InsertClip needs registered media; assertions unchanged except media 7 -> imported id"
+    }
+   ],
    "source": "added"
   },
   {
@@ -15868,6 +15877,25 @@
    "title": "SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change",
    "tags": [],
    "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-059",
+   "section": "ENG",
+   "group": null,
+   "title": "Timeline::insert_clip refuses unregistered media (one home for the clip-media rule; drop the InsertClip arm and decode copies)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
    "deferred": false,
    "subphase": null,
    "status": "todo",
