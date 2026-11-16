@@ -16118,10 +16118,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "6d1a91d",
    "branch": "worktree-agent-a2186f4b8298096ce",
    "notes": [
     {
@@ -16131,6 +16131,10 @@
     {
      "date": "2026-11-16",
      "text": "done in branch worktree-agent-a2186f4b8298096ce (c021d4e test, f78fb09 fix, ee36aaa clippy fix of the test's unused field); check.sh green; code-reviewer was still running at handback, verdict pending. No Android device/emulator run (no image); correctness shown by the host fake-JavaVM test (attach 1x for 100 calls, detach 1x at thread exit) and android clippy. No criterion bench applies without a device."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. ee36aaa edited the frozen test after its commit (FAKE_VM -> FAKE_VM.0, same pointer, lint only). Hot-path saving unmeasured until a device run (no emulator). Nits left: name attached threads via JavaVMAttachArgs; test the already-attached branch; check.sh --quick prefers a stale origin/main."
     }
    ],
    "source": "added"
