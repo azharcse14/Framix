@@ -1,5 +1,7 @@
 // Frozen test of a retired command (ADR 0008); the command is deprecated on purpose.
 #![allow(deprecated)]
+mod common;
+
 use framix_app::engine::Engine;
 use framix_app::proto::{
     AddTrack, Command, InsertClip, MoveClip, TimelineChanged, TrackKind, Undo, command, event,
@@ -33,9 +35,10 @@ fn move_clip_across_tracks_and_undo() {
     let mut engine = Engine::default();
     let v1 = add_video(&mut engine);
     let v2 = add_video(&mut engine);
+    let media_id = common::import_video(&mut engine);
     let insert = command::Kind::InsertClip(InsertClip {
         track_id: v1,
-        media_id: 1,
+        media_id,
         source_start: 0,
         start: 0,
         duration: 10,
