@@ -72,14 +72,22 @@ void main() {
     final l10n = lookupAppLocalizations(const Locale('en'));
 
     // The other project, saved before the app starts: one audio track.
+    // The earlier engine stops before the app starts, so only one engine writes the
+    // library dir and none is still writing when the teardown deletes it.
     var listed = false;
-    earlier.events.listen((e) => listed |= e.hasProjectList());
+    var stopped = false;
+    earlier.events.listen(
+      (e) => listed |= e.hasProjectList(),
+      onDone: () => stopped = true,
+    );
     earlier
       ..send(Command(openLibrary: OpenLibrary(dir: dir.path)))
       ..send(Command(newProject: NewProject()))
       ..send(Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_AUDIO)))
       ..send(Command(listProjects: ListProjects()));
     await pumpUntilTrue(tester, () => listed, () => 'never saved');
+    earlier.dispose();
+    await pumpUntilTrue(tester, () => stopped, () => 'never stopped');
 
     await tester.pumpWidget(
       FramixApp(
@@ -106,6 +114,8 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await pumpUntil(tester, find.text(l10n.recentProjects(1)));
     await tester.pumpAndSettle();
+    // No platform is registered in tests, so a platform command fails and the generic
+    // snack bar can cover the bottom of the screen; clear it right before tapping there.
     tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger))
       ..clearSnackBars()
       ..removeCurrentSnackBar();
