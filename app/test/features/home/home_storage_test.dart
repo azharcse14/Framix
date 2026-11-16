@@ -27,8 +27,10 @@ void main() {
     projects = Directory('${root.path}/projects')..createSync();
     thumb = File('${root.path}/cache/thumbs/$_hash-0-128.jpg');
   });
-  tearDown(() {
+  tearDown(() async {
     engine.dispose();
+    // The engine finishes queued writes before its event stream closes.
+    await engine.events.drain<void>();
     root.deleteSync(recursive: true);
   });
 
