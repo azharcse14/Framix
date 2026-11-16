@@ -171,6 +171,15 @@ class AppLocalizationsBn extends AppLocalizations {
   String get shareFailed => 'শেয়ার খোলা যায়নি। আবার চেষ্টা করুন।';
 
   @override
+  String get exportResultTitle => 'আপনার ভিডিও তৈরি';
+
+  @override
+  String get backToEdit => 'এডিটে ফিরে যান';
+
+  @override
+  String get done => 'শেষ';
+
+  @override
   String get somethingWentWrong => 'কিছু ভুল হয়েছে। আবার চেষ্টা করুন।';
 
   @override

@@ -172,6 +172,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareFailed => 'Couldn\'t open sharing. Try again.';
 
   @override
+  String get exportResultTitle => 'Your video is ready';
+
+  @override
+  String get backToEdit => 'Back to edit';
+
+  @override
+  String get done => 'Done';
+
+  @override
   String get somethingWentWrong => 'Something went wrong. Try again.';
 
   @override

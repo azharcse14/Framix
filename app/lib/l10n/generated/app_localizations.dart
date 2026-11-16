@@ -350,6 +350,24 @@ abstract class AppLocalizations {
   /// **'Couldn\'t open sharing. Try again.'**
   String get shareFailed;
 
+  /// No description provided for @exportResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your video is ready'**
+  String get exportResultTitle;
+
+  /// No description provided for @backToEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to edit'**
+  String get backToEdit;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
   /// No description provided for @somethingWentWrong.
   ///
   /// In en, this message translates to:
