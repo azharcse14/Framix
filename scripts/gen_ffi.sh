@@ -23,7 +23,7 @@ if ! dart pub global list 2>/dev/null | grep -qx "protoc_plugin $PROTOC_PLUGIN_V
   echo "need protoc_plugin $PROTOC_PLUGIN_VERSION: dart pub global activate protoc_plugin $PROTOC_PLUGIN_VERSION" >&2
   exit 1
 fi
-if command -v fvm >/dev/null 2>&1; then DART=(fvm dart); else DART=(dart); fi
+. scripts/flutter_sdk.sh
 
 cbindgen --quiet --config engine/ffi/cbindgen.toml --crate framix_ffi \
   --output engine/ffi/include/framix_engine.h engine/ffi

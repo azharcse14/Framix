@@ -10,7 +10,7 @@ if [ "$(cargo-audit --version 2>/dev/null)" != "cargo-audit $CARGO_AUDIT_VERSION
   echo "need cargo-audit $CARGO_AUDIT_VERSION: cargo install cargo-audit --version $CARGO_AUDIT_VERSION --locked" >&2
   exit 1
 fi
-if command -v fvm >/dev/null 2>&1; then DART=(fvm dart); else DART=(dart); fi
+. scripts/flutter_sdk.sh
 
 echo "▶ cargo audit"
 cargo audit --file engine/Cargo.lock
