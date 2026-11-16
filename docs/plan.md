@@ -1001,7 +1001,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [ ] `UX-040` 360 dp en/bn app-bar fit test seeding ExportRunning and ExportDone (export + show-result now the widest states); fix stale doc comment in app_bar_fit_test.dart:21-22 \[Dart\]
 - [x] `UX-041` ExportCubit returns to ExportIdle on project switch (New/Open), so project B never shows project A's Show-result button or Result screen (UX-032 re-review) \[Dart\]
 - [x] `UX-042` Keep the exported file path in the export state (cubit or engine ExportFinished), not ExportButtons State; re-entry today re-derives it and can point at systemTemp before exportDir answers (UX-032 re-review) \[Dart\]
-- [ ] `UX-043` Theme textButtonTheme foreground = text token, so TextButtons (home dialogs, Cancel/Save) are not accent text; drop the inline Done style (UX-032 re-review) \[Dart\]
+- [x] `UX-043` Theme textButtonTheme foreground = text token, so TextButtons (home dialogs, Cancel/Save) are not accent text; drop the inline Done style (UX-032 re-review) \[Dart\]
 - [x] `UX-044` Widget test through FramixApp(home: HomePage()) that New -> export done -> Open another project shows no showExportResult button; locks in ExportCubit lazy: false (UX-041 review) \[Dart\]
 - [ ] `UX-045` An export from project A that finishes while B is open lands silently as ExportIdle: show a one-line notice (finished/failed), or have the engine cancel exports on New/Open; also A -> B -> A while running shows A's result as Idle (UX-041 review) \[Dart\]
 - [x] `UX-046` ExportCubit test: a second accepted export's ExportDone carries the second path (last accepted wins; UX-042 review) \[Dart\]
