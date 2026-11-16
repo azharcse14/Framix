@@ -119,6 +119,46 @@ fn photo_and_color_clips_lengthen_at_their_start() {
     }
 }
 
+#[test]
+fn still_halves_merge_after_the_left_grows_at_its_start() {
+    // ENG-062: the left half's source offset stops at 0 (ENG-060), yet the halves still merge.
+    let (mut tl, t) = timeline();
+    for (i, media) in [PHOTO, COLOR].into_iter().enumerate() {
+        let start = 5_000 + i64::try_from(i).unwrap() * 10_000;
+        let c = tl.insert_clip(t, place(media, 0, start, 100)).unwrap();
+        let right = tl.split_clip(c, Time(start + 50)).unwrap();
+        tl.trim_clip(c, Time(start - 1_000), Time(start + 50))
+            .unwrap();
+        assert_eq!(tl.clip(c).unwrap().source_start, Time(0));
+        assert_eq!(tl.merge_clips(c, right), Ok(()));
+        let clip = tl.clip(c).unwrap();
+        assert_eq!(
+            (clip.source_start, clip.start, clip.duration),
+            (Time(0), Time(start - 1_000), Time(1_100))
+        );
+    }
+}
+
+#[test]
+fn a_still_duplicate_does_not_merge_with_its_original() {
+    // ENG-062: a copy placed right after its original is not one of its halves.
+    let (mut tl, t) = timeline();
+    for (i, media) in [PHOTO, COLOR].into_iter().enumerate() {
+        let start = i64::try_from(i).unwrap() * 10_000;
+        let c = tl.insert_clip(t, place(media, 0, start, 100)).unwrap();
+        let copy = tl.duplicate_clip(c).unwrap();
+        assert_eq!(tl.merge_clips(c, copy), Err(TimelineError::NotMergeable));
+    }
+}
+
+#[test]
+fn two_inserts_of_one_photo_do_not_merge() {
+    let (mut tl, t) = timeline();
+    let a = tl.insert_clip(t, place(PHOTO, 0, 0, 100)).unwrap();
+    let b = tl.insert_clip(t, place(PHOTO, 0, 100, 100)).unwrap();
+    assert_eq!(tl.merge_clips(a, b), Err(TimelineError::NotMergeable));
+}
+
 /// Every video clip on `t` plays only frames its media has.
 fn assert_inside_media(tl: &Timeline, t: TrackId) -> Result<(), TestCaseError> {
     for c in tl.track(t).unwrap().clips() {
@@ -164,6 +204,30 @@ proptest! {
             prop_assert_eq!(tl.trim_clip(c, Time(start), Time(start + len)), Ok(()));
             prop_assert!(tl.clip(c).unwrap().source_start.0 >= 0);
         }
+    }
+
+    #[test]
+    fn still_split_then_start_trim_then_merge_restores_the_end(
+        media in prop_oneof![Just(PHOTO), Just(COLOR)],
+        source in 0i64..1_000,
+        start in 0i64..10_000,
+        duration in 2i64..1_000,
+        cut_seed in 0i64..i64::MAX,
+        left_seed in 0i64..i64::MAX,
+    ) {
+        // ENG-062: growing or shrinking the left half's start never stops the halves merging.
+        let (mut tl, t) = timeline();
+        let cut = 1 + cut_seed % (duration - 1);
+        // The left half's new start: anywhere in [0, start + cut).
+        let left = left_seed % (start + cut);
+        let c = tl.insert_clip(t, place(media, source, start, duration)).unwrap();
+        let right = tl.split_clip(c, Time(start + cut)).unwrap();
+        tl.trim_clip(c, Time(left), Time(start + cut)).unwrap();
+        prop_assert_eq!(tl.merge_clips(c, right), Ok(()));
+        let clips = tl.track(t).unwrap().clips();
+        prop_assert_eq!(clips.len(), 1);
+        prop_assert_eq!((clips[0].start, clips[0].end()), (Time(left), Time(start + duration)));
+        prop_assert!(clips[0].source_start.0 >= 0);
     }
 
     #[test]

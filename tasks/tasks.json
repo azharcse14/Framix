@@ -16409,12 +16409,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-a150e72a50bbd7d30",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision (Plan agent): option C. Videos keep the exact rule (l.source_start + l.duration == r.source_start). A photo/color merges with its right neighbour when same media, same transform, adjacent and r.source_start > l.source_start. Why: the picture ignores a still's offset, and the offset drifts two ways the exact rule cannot survive: a start trim clamps it at 0 (ENG-060) and set_photo_durations changes durations but keeps offsets (any split photo became unmergeable after a photo-duration change). Order survives both (split adds the cut; trims and duration changes never reverse it), while a duplicate copies its original's offset (equal -> refused) and separate inserts of one still both sit at 0 (refused), so the UX rule holds. Rejected A (pure adjacency): offers merge for duplicates. Rejected B (keep): set_photo_durations case has no user workaround. Known gaps (rare, look identical on screen): a duplicate of a start-shrunk still placed after a fresh copy is mergeable; after a left half grows (offset 0) and is split again, the new middle may not merge directly with the old right half (merging left-to-right still rejoins). No format change. Track::mergeable_with_next moved to Timeline::mergeable_with_next(track, index) because a Track cannot see media kinds; merge_refusal is now a Timeline method (still the one home)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Older tests: none edited. Tests commit dd36698 (failing: media_range still_halves_merge_after_the_left_grows_at_its_start + proptest, photo_duration split_photo_halves_merge_after_the_duration_changes, engine_mergeable photo test); duplicate/two-insert tests pin the refusal."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Review: APPROVE, no Critical. Warning: the 'no trim or duration change reverses the order' claim was false in combination (set_photo_durations then a left-half start trim lifts l.src past r.src -> refused; not a regression). Doc comment corrected and filed as ENG-064 together with the stale MergeClips proto comment (regen needed, so left out here). Suggestions done: rewrapped the 120-char check_source doc line, bool match -> if/else."
+    }
+   ],
    "source": "added"
   },
   {
@@ -16620,6 +16633,25 @@
    "title": "export_switch_app_test and home_from_backup_test: teardown waits for the app engine's EngineStopped before deleteSync (it autosaves on shutdown; UX-047 review)",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "ENG-064",
+   "section": "ENG",
+   "group": null,
+   "title": "Still merge order gap (ENG-062): set_photo_durations then a left-half start trim lifts the left offset past the right half's, so split photo halves refuse to merge; keep the start/offset delta between halves in set_photo_durations. Also update the MergeClips proto comment ('continuous source' is video-only now; needs gen_ffi.sh)",
+   "tags": [
+    "Rust"
    ],
    "owner": "claude",
    "deferred": false,

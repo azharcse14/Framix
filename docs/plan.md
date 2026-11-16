@@ -1266,6 +1266,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-061` SnapTrim / TrimToPlayhead clamp the moved edge to the media end instead of refusing (ENG-053) \[Rust\]
 - [ ] `ENG-062` Split photo/color halves stop merging after the left half grows at its start (its source offset clamps at 0, ENG-060); decide a still merge rule (adjacent, same media, same transform?) vs keeping duplicates unmergeable \[Rust\]
 - [ ] `ENG-063` Delete app media copies (Application Support/media) no saved project or open undo history refers to (split from ENG-054) \[Rust\]
+- [ ] `ENG-064` Still merge order gap (ENG-062): set_photo_durations then a left-half start trim lifts the left offset past the right half's, so split photo halves refuse to merge; keep the start/offset delta between halves in set_photo_durations. Also update the MergeClips proto comment ('continuous source' is video-only now; needs gen_ffi.sh) \[Rust\]
 
 **Security**
 
