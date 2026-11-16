@@ -844,6 +844,25 @@ impl Timeline {
         }
     }
 
+    /// `time` moved into the timeline span of `clip`'s video media (where its first and last
+    /// frames would sit), so a trim gesture that drags an edge past either end of the media
+    /// stops there instead of failing [`Timeline::check_source`] (ENG-061). Photos, colors
+    /// and unknown clips have no such span: `time` comes back unchanged.
+    pub fn clamp_to_media(&self, clip: ClipId, time: Time) -> Time {
+        let Some(c) = self.clip(clip) else {
+            return time;
+        };
+        match self.media(c.media).filter(|m| m.kind() == MediaKind::Video) {
+            // Start and source offset are non-negative, so the difference cannot overflow; a
+            // video's duration is positive, so the clamp's bounds are ordered.
+            Some(m) => {
+                let first = c.start.0 - c.source_start.0;
+                Time(time.0.clamp(first, first.saturating_add(m.duration().0)))
+            }
+            None => time,
+        }
+    }
+
     /// Turns 0..=3, and a crop that leaves at least one pixel each way of `media`; clips of a
     /// media that is not [`Timeline::placeable`] keep the default.
     fn check_transform(
