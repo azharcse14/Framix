@@ -13736,10 +13736,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "65e5700",
    "branch": "worktree-agent-af80de0c27bfde7ef",
    "notes": [
     {
@@ -13765,6 +13765,10 @@
     {
      "date": "2026-11-16",
      "text": "review: APPROVE, no Critical. Warnings filed: mid-export codec failure can block Vulkan acquire (new task), rate control sees queue times (ADR + P1-128), media layers export as test pattern until P1-070 (note there), no device run (P1-128)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "merged without a device run (no emulator image on this Mac); device/emulator export verification lives in P1-128"
     }
    ],
    "source": "added"
