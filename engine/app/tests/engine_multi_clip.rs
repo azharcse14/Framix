@@ -1,5 +1,7 @@
 //! RemoveClips, MoveClips and DuplicateClips (P1-024): one undo step each, all or nothing.
 
+mod common;
+
 use framix_app::engine::Engine;
 use framix_app::proto::{
     AddTrack, Command, DuplicateClips, InsertClip, MoveClips, RemoveClips, TimelineChanged,
@@ -32,11 +34,12 @@ fn three_clips(engine: &mut Engine) -> Vec<u64> {
         kind: TrackKind::Video as i32,
     });
     let track = changed(run(engine, add)).tracks[0].id;
+    let media_id = common::import_video(engine);
     let mut t = TimelineChanged::default();
     for start in [0, 10, 40] {
         let insert = command::Kind::InsertClip(InsertClip {
             track_id: track,
-            media_id: 1,
+            media_id,
             source_start: 0,
             start,
             duration: 10,

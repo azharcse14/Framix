@@ -1,3 +1,5 @@
+mod common;
+
 use framix_app::engine::Engine;
 use framix_app::proto::{
     AddTrack, Command, Event, GetTimeline, InsertClip, Redo, TimelineChanged, TrackKind, Undo,
@@ -34,10 +36,10 @@ fn add_video_track(engine: &mut Engine) -> TimelineChanged {
     ))
 }
 
-fn insert(track_id: u64, start: i64, duration: i64) -> command::Kind {
+fn insert(media_id: u64, track_id: u64, start: i64, duration: i64) -> command::Kind {
     command::Kind::InsertClip(InsertClip {
         track_id,
-        media_id: 7,
+        media_id,
         source_start: 0,
         start,
         duration,
@@ -58,9 +60,10 @@ fn add_track_reports_the_new_timeline() {
 fn insert_clip_reports_clip_and_duration() {
     let mut engine = Engine::default();
     let track = add_video_track(&mut engine).tracks[0].id;
-    let t = changed(run(&mut engine, insert(track, 100, 50)));
+    let media = common::import_video(&mut engine);
+    let t = changed(run(&mut engine, insert(media, track, 100, 50)));
     let clip = &t.tracks[0].clips[0];
-    assert_eq!((clip.media_id, clip.start, clip.duration), (7, 100, 50));
+    assert_eq!((clip.media_id, clip.start, clip.duration), (media, 100, 50));
     assert_eq!(t.duration, 150);
 }
 
@@ -68,9 +71,10 @@ fn insert_clip_reports_clip_and_duration() {
 fn rejected_edit_reports_failure_and_keeps_state() {
     let mut engine = Engine::default();
     let track = add_video_track(&mut engine).tracks[0].id;
-    changed(run(&mut engine, insert(track, 0, 100)));
-    assert!(!failed(run(&mut engine, insert(track, 50, 100))).is_empty());
-    assert!(!failed(run(&mut engine, insert(999, 0, 10))).is_empty());
+    let media = common::import_video(&mut engine);
+    changed(run(&mut engine, insert(media, track, 0, 100)));
+    assert!(!failed(run(&mut engine, insert(media, track, 50, 100))).is_empty());
+    assert!(!failed(run(&mut engine, insert(media, 999, 0, 10))).is_empty());
     let t = changed(run(&mut engine, command::Kind::Undo(Undo {})));
     assert!(t.tracks[0].clips.is_empty());
 }

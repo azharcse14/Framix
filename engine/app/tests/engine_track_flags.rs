@@ -1,3 +1,5 @@
+mod common;
+
 use framix_app::engine::Engine;
 use framix_app::project::{decode, encode};
 use framix_app::proto::{
@@ -37,6 +39,7 @@ fn flags_are_reported_undoable_and_lock_blocks_edits() {
         kind: TrackKind::Video as i32,
     });
     let track = changed(run(&mut engine, add)).tracks[0].id;
+    let media_id = common::import_video(&mut engine);
 
     let t = changed(run(&mut engine, flags(track, true, true, true)));
     let tr = &t.tracks[0];
@@ -44,7 +47,7 @@ fn flags_are_reported_undoable_and_lock_blocks_edits() {
 
     let insert = command::Kind::InsertClip(InsertClip {
         track_id: track,
-        media_id: 1,
+        media_id,
         source_start: 0,
         start: 0,
         duration: 10,

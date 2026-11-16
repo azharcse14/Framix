@@ -1,5 +1,7 @@
 // Frozen test of a retired command (ADR 0008); the command is deprecated on purpose.
 #![allow(deprecated)]
+mod common;
+
 use framix_app::engine::Engine;
 use framix_app::proto::{
     AddTrack, Command, DuplicateClip, InsertClip, MergeClips, RemoveClip, SplitClip,
@@ -22,16 +24,17 @@ fn changed(e: Option<event::Kind>) -> TimelineChanged {
     }
 }
 
-/// Engine with one video track holding clip [0, 100) of media 7 (source 0); returns its id.
+/// Engine with one video track holding clip [0, 100) of an imported video (source 0); returns its id.
 fn with_clip() -> (Engine, u64) {
     let mut engine = Engine::default();
     let add = command::Kind::AddTrack(AddTrack {
         kind: TrackKind::Video as i32,
     });
     let track = changed(run(&mut engine, add)).tracks[0].id;
+    let media_id = common::import_video(&mut engine);
     let insert = command::Kind::InsertClip(InsertClip {
         track_id: track,
-        media_id: 7,
+        media_id,
         source_start: 0,
         start: 0,
         duration: 100,

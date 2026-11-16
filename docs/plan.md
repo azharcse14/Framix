@@ -1246,6 +1246,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-056` Correlate replies with commands (a command id echoed in CommandAccepted/CommandFailed) so Dart blocs don't take another feature's reply as theirs (ExportCubit's first-reply guess, P1-035) \[Rust\] \[Dart\]
 - [x] `ENG-057` ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep \[Rust\]
 - [ ] `ENG-058` ProjectList and the New/Open TimelineChanged carry their command id (extend ENG-056), so Home matches replies by id instead of order and project change \[Rust\] \[Dart\]
+- [ ] `ENG-059` Timeline::insert_clip refuses unregistered media (one home for the clip-media rule; drop the InsertClip arm and decode copies) \[Rust\]
 
 **Security**
 
