@@ -225,7 +225,10 @@ class FrameDecoder private constructor(private val context: Context) {
         Video.open(context, uri)
     } catch (e: MediaCodec.CodecException) {
         if (!isCodecShortage(e) || videos.isEmpty()) throw e
-        videos.evictDownTo(0, ::closeVideo)
+        runCatching { videos.evictDownTo(0, ::closeVideo) }.exceptionOrNull()?.let {
+            e.addSuppressed(it)
+            throw e
+        }
         Video.open(context, uri)
     }
 
@@ -604,8 +607,9 @@ class FrameDecoder private constructor(private val context: Context) {
         private const val PHOTO_MAX_SIDE = 4096
 
         // ponytail: 2 of each per decoder: PIP with two videos or photos. Each decoder (preview,
-        // export) holds up to 2 MediaCodecs, so up to 4 app-wide; a phone that has fewer makes
-        // openVideo free this decoder's others and retry once. Photos are up to 64 MB textures.
+        // export) holds up to 2 MediaCodecs, so up to 4 app-wide; on a phone that has fewer,
+        // openVideo frees only this decoder's others and retries once, never the other decoder's
+        // (an export while preview holds 2 can still fail; ENG-007). Photos are up to 64 MB textures.
         // Three or more alternating media evict each other every frame (as before); a decoder
         // pool is ENG-007.
         private const val CACHED = 2
