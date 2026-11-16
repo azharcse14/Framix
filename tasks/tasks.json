@@ -16247,12 +16247,29 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-aad25f5d734b8b987",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: the path lives in ExportDone(path), taken from the ExportProject the engine accepted (the command that started the export); no proto change, since the engine refuses a second export while one runs, so the accepted path is the one ExportFinished is about. ExportFinished(ok) with no accepted export of ours goes ExportIdle (cannot happen with the eager cubit)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "old tests edited (b2500b1, assertions unchanged): ExportDone seeds carry '/plat/cache/framix-export.mp4' (export_result_page_test, export_result_review_test); fromEvent(ok) test passes exported:; export_project_switch_test accepts a start before its ExportFinished(ok). That commit follows the fix commit since it needs the new ExportDone(path)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "check.sh green: all checks passed"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Warning (latest-accepted path not pinned by a two-export test) filed as a task. Nits kept: ExportIdle fallback for ok-without-accepted-start untested; _startingPath not cleared (harmless, start() overwrites it)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -16368,6 +16385,25 @@
    "section": "UX",
    "group": null,
    "title": "An export from project A that finishes while B is open lands silently as ExportIdle: show a one-line notice (finished/failed), or have the engine cancel exports on New/Open; also A -> B -> A while running shows A's result as Idle (UX-041 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-046",
+   "section": "UX",
+   "group": null,
+   "title": "ExportCubit test: a second accepted export's ExportDone carries the second path (last accepted wins; UX-042 review)",
    "tags": [
     "Dart"
    ],
