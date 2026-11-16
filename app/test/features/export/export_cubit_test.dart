@@ -1,7 +1,36 @@
+import 'dart:async';
+
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/export/bloc/export_cubit.dart';
+
+/// Events come only from the test; each send gets the next command id (1, 2, ...).
+class _Engine implements FramixEngine {
+  final _events = StreamController<Event>.broadcast();
+  int _id = 0;
+
+  @override
+  Stream<Event> get events => _events.stream;
+
+  @override
+  int send(Command command, {bool reportsFailure = false}) => ++_id;
+
+  void emit(Event event) => _events.add(event);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Event _accepted(int id) =>
+    Event(commandAccepted: CommandAccepted(commandId: Int64(id)));
+
+Event _refused(int id) => Event(
+  commandFailed: CommandFailed(commandId: Int64(id), reason: 'busy'),
+);
+
+final _done = Event(exportFinished: ExportFinished(ok: true));
 
 void main() {
   group('fromEvent', () {
@@ -98,6 +127,53 @@ void main() {
           .firstWhere((s) => s is ExportFailed)
           .timeout(const Duration(seconds: 5));
       expect(state, isA<ExportFailed>());
+    });
+  });
+
+  /// UX-046: ExportDone shows the path of the export the engine accepted last.
+  group('two exports in a row', () {
+    late _Engine engine;
+    late ExportCubit cubit;
+
+    setUp(() {
+      engine = _Engine();
+      cubit = ExportCubit(engine);
+    });
+    tearDown(() => cubit.close());
+
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    /// Export 1 to /plat/a.mp4 (command id 1), accepted and finished.
+    Future<void> firstDone() async {
+      cubit.start('/plat/a.mp4');
+      engine
+        ..emit(_accepted(1))
+        ..emit(_done);
+      await settle();
+      expect(cubit.state, const ExportDone('/plat/a.mp4'));
+    }
+
+    test('the second accepted export is done at the second path', () async {
+      await firstDone();
+      cubit.start('/plat/b.mp4');
+      engine
+        ..emit(_accepted(2))
+        ..emit(_done);
+      await settle();
+      expect(cubit.state, const ExportDone('/plat/b.mp4'));
+    });
+
+    test('a refused second export never points at its path', () async {
+      await firstDone();
+      cubit.start('/plat/b.mp4');
+      engine.emit(_refused(2));
+      await settle();
+      expect(cubit.state, const ExportFailed('busy'));
+
+      // A stray finish after the refusal is not about the refused file.
+      engine.emit(_done);
+      await settle();
+      expect(cubit.state, isNot(const ExportDone('/plat/b.mp4')));
     });
   });
 }
