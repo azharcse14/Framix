@@ -1239,7 +1239,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
 - [x] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]
 - [ ] `ENG-051` TimelineCubit loading state until first GetTimeline reply (replaces Dart placeholder; changes frozen ENG-003 test, needs approval) \[Dart\]
-- [ ] `ENG-052` InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia) \[Rust\]
+- [x] `ENG-052` InsertClip must refer to registered media (today a bogus media_id makes the project unsaveable with UnknownMedia) \[Rust\]
 - [ ] `ENG-053` Trims and splits must stay inside the media's duration (P1-011 media registry has durations) \[Rust\]
 - [ ] `ENG-054` Prune media no clip uses (registry only grows; media cap can block saving) \[Rust\]
 - [ ] `ENG-055` Prune media no clip refers to once the undo history no longer needs it (import, delete and replace only add to the registry; P1-031 review) \[Rust\]
