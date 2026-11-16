@@ -113,3 +113,48 @@ fn halves_with_different_transforms_do_not_merge() {
     );
     assert_eq!(mergeable(&t), [false, false]);
 }
+
+fn photo() -> MediaItem {
+    MediaItem {
+        uri: "content://media/external/images/1".into(),
+        kind: MediaKind::Image as i32,
+        duration_value: 0,
+        duration_timescale: 0,
+        codec: String::new(),
+        ..video(1)
+    }
+}
+
+// ENG-062: split halves of a photo stay mergeable after the photo duration changes, but a
+// duplicate placed right after its original is never offered.
+#[test]
+fn photo_halves_merge_after_a_duration_change_and_a_duplicate_does_not() {
+    use framix_app::proto::{DuplicateClip, SetPhotoDuration};
+    let mut engine = Engine::default();
+    let t = run(
+        &mut engine,
+        command::Kind::ImportMedia(ImportMedia {
+            items: vec![photo()],
+        }),
+    );
+    let first = t.tracks[0].clips[0].id;
+    let t = run(
+        &mut engine,
+        command::Kind::DuplicateClip(DuplicateClip { clip_id: first }),
+    );
+    assert_eq!(mergeable(&t), [false, false], "a duplicate is not a half");
+
+    let t = run(
+        &mut engine,
+        command::Kind::SplitClip(SplitClip {
+            clip_id: first,
+            at: S / 2,
+        }),
+    );
+    assert_eq!(mergeable(&t), [true, false, false]);
+    let t = run(
+        &mut engine,
+        command::Kind::SetPhotoDuration(SetPhotoDuration { duration: 4 * S }),
+    );
+    assert_eq!(mergeable(&t), [true, false, false]);
+}

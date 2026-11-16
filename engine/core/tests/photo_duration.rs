@@ -113,6 +113,19 @@ fn a_timeline_without_photos_is_unchanged() {
     assert_eq!(tl, before);
 }
 
+#[test]
+fn split_photo_halves_merge_after_the_duration_changes() {
+    // ENG-062: the change keeps source offsets, so the halves' offsets no longer continue each
+    // other; they are still halves of one photo.
+    let mut tl = Timeline::default();
+    tl.import(vec![photo()]).unwrap();
+    let c = tl.tracks()[0].clips()[0].id;
+    let right = tl.split_clip(c, Time(S / 2)).unwrap();
+    tl.set_photo_durations(Time(3 * S)).unwrap();
+    assert_eq!(tl.merge_clips(c, right), Ok(()));
+    assert_eq!(spans(&tl, 0), [(0, 6)]);
+}
+
 proptest! {
     /// Photos get exactly `d`, others keep theirs, order and gaps between clips are kept.
     #[test]
