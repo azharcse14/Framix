@@ -991,7 +991,10 @@ impl Engine {
                 if e <= s {
                     (s, e) = if s != start { (start, e) } else { (s, end) };
                 }
-                let moved = (s, e) != (start, end);
+                // A dragged edge stops at the media's ends (ENG-061); stopping there is no snap.
+                let media = |t: Time| tl.clamp_to_media(id, t);
+                let (s, e) = (media(s), media(e));
+                let moved = (s, e) != (media(start), media(end));
                 snapped(
                     self.edit(|tl| tl.trim_clip(ClipId(op.clip_id), s, e)),
                     moved,
@@ -1020,6 +1023,8 @@ impl Engine {
                 let at = self.playhead;
                 timeline(self.edit(|tl| {
                     let clip = tl.clip(id).ok_or(TimelineError::UnknownClip(id))?;
+                    // The trimmed edge stops at the media's ends (ENG-061).
+                    let at = tl.clamp_to_media(id, at);
                     let (start, end) = if start_edge {
                         (at, clip.end())
                     } else {

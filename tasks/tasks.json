@@ -16296,12 +16296,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-ac9c43e0b36635a94",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: one home in core, Timeline::clamp_to_media(clip, time), clamps a time into the timeline span of the clip's video media; SnapTrim (after snapping) and TrimToPlayhead (the playhead) both call it. trim_clip/check_source still refuse, so the retired TrimClip with an explicit value past the media still fails (PastMediaEnd/NegativeTime)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: symmetric. The start edge also stops at the media's first frame (source_start 0) instead of NegativeTime; proto SnapTrim/TrimToPlayhead comments updated. A start before timeline 0 is still refused (not a source reason). Photos/colors are unchanged (no length). A clamp is not a snap: TimelineChanged.snapped is true only if the final edges differ from the clamped raw edges, so a snap target past the media end gives no haptic. Edges that collapse after the clamp (both past one end) are refused as NonPositiveDuration. No protocol version bump: wire format unchanged, only refusals became clamps."
+    }
+   ],
    "source": "added"
   },
   {

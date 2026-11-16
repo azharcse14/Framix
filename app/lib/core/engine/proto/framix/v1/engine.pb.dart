@@ -3386,12 +3386,12 @@ class SnapMove extends $pb.GeneratedMessage {
 }
 
 /// Moves a clip's edges to [start, end); moving the start moves the source offset with it.
-/// Refused on a locked track, for a start before 0 or before the media's first frame, when
-/// end <= start, or when an edge crosses a neighbouring clip. Edges first snap to the nearest
-/// edge (0, a clip start or end, the timeline end) within snap_within ticks, as Seek does.
-/// Only a moved edge snaps, the clip's own edges are no targets, and an edge snapped onto or
-/// past the other stays where dropped. 0 = no snapping, more than 10 s is capped, negative is
-/// refused.
+/// Refused on a locked track, for a start before 0, when end <= start, or when an edge crosses
+/// a neighbouring clip. Edges first snap to the nearest edge (0, a clip start or end, the
+/// timeline end) within snap_within ticks, as Seek does. Only a moved edge snaps, the clip's
+/// own edges are no targets, and an edge snapped onto or past the other stays where dropped.
+/// Then a video clip's edges stop at its media's first and last frame (not a snap). 0 = no
+/// snapping, more than 10 s is capped, negative is refused.
 class SnapTrim extends $pb.GeneratedMessage {
   factory SnapTrim({
     $fixnum.Int64? clipId,
@@ -3485,10 +3485,10 @@ class SnapTrim extends $pb.GeneratedMessage {
 }
 
 /// Trims one edge of a clip to the engine's playhead, keeping the other edge where it is now;
-/// moving the start moves the source offset with it, and nothing snaps. Refused on a locked
-/// track, when the playhead is at or beyond the other edge, for a start before 0 or before the media's first
-/// frame, or when the edge crosses a neighbouring clip. The engine uses its own playhead and
-/// clip, never the UI's copy.
+/// moving the start moves the source offset with it, and nothing snaps. On a video clip the
+/// edge stops at its media's first or last frame. Refused on a locked track, when that edge is
+/// at or beyond the other edge, or when it crosses a neighbouring clip. The engine uses its own
+/// playhead and clip, never the UI's copy.
 class TrimToPlayhead extends $pb.GeneratedMessage {
   factory TrimToPlayhead({
     $fixnum.Int64? clipId,
