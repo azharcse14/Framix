@@ -13,6 +13,6 @@ docs/architecture.md gave `core` "undo commands": every edit would need a hand-w
 
 ## Consequences
 - Undo cannot drift from the edit, and new edit types need no undo code.
-- Memory grows with history length times timeline size. The cap is GOT-051; structural sharing (Arc'd tracks) comes in if timelines get large.
+- Memory grows with history length times timeline size. History keeps at most `History::MAX_UNDO_STEPS` (100) steps and drops the oldest first, forgetting media only they used (GOT-051); a byte budget or structural sharing (Arc'd tracks) comes in if timelines get large.
 - The id counter lives inside the snapshot, so every swap raises it to the larger of the two (`Timeline::keep_ids_newer_than`, P1-043); ids are never reissued after undo or redo.
 - Merging a drag gesture into one step is still to be done when drag commands arrive.

@@ -11832,6 +11832,10 @@
     {
      "date": "2026-11-16",
      "text": "ENG-055: when the cap drops the oldest undo states, call History::forget_unused_media (as apply does when it clears redo) so media only the dropped states used leaves the registry."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "plan/decision: snapshots are full Timeline clones (no Arc sharing), so the cost is steps x timeline size. The plan gives no number, so the cap is by count only: History::MAX_UNDO_STEPS = 100 (public const, no config surface). apply pushes the old state; if undo grows past the cap the oldest states are drained from the front, and forget_unused_media runs once whenever states left (cap drop or cleared redo). Redo only fills from undo, so undo+redo never exceeds the cap. apply_merged's later calls replace current without a push, so gestures never grow history; autosave reads only current, so it is unaffected. No byte-size estimate: metadata snapshots are small (~100 clips x 100 steps is a few MB); a byte budget or Arc'd tracks come in if timelines get large."
     }
    ],
    "source": "plan"

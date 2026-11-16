@@ -8,7 +8,7 @@ use framix_core::timeline::{MediaId, Timeline};
 ///
 /// Each step stores the timeline as it was before the step (a snapshot), so undo can't
 /// drift the way a hand-written inverse can.
-// ponytail: unbounded full snapshots; the memory cap is GOT-051, and structural sharing
+// ponytail: full snapshots capped by count (GOT-051); a byte budget or structural sharing
 // (Arc'd tracks) comes in if timelines get large.
 #[derive(Clone, Debug, Default)]
 pub struct History {
@@ -45,6 +45,14 @@ impl History {
         &mut self,
         edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
     ) -> Result<T, E> {
+        self.apply_step(edit).map(|(value, _)| value)
+    }
+
+    /// [`History::apply`], also telling whether the edit made a step.
+    fn apply_step<T, E>(
+        &mut self,
+        edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
+    ) -> Result<(T, bool), E> {
         self.merging = None;
         let mut next = self.current.clone();
         let value = edit(&mut next)?;
@@ -52,14 +60,17 @@ impl History {
         if next == self.current {
             // Content is equal, but ids it handed out must still never be reissued.
             self.current.keep_ids_newer_than(&next);
-            return Ok(value);
+            return Ok((value, false));
         }
         self.undo.push(std::mem::replace(&mut self.current, next));
-        if !self.redo.is_empty() {
+        // Redo only fills from undo, so capping undo here caps the whole history.
+        let over = self.undo.len().saturating_sub(Self::MAX_UNDO_STEPS);
+        if over > 0 || !self.redo.is_empty() {
+            self.undo.drain(..over);
             self.redo.clear();
             self.forget_unused_media();
         }
-        Ok(value)
+        Ok((value, true))
     }
 
     /// Like [`History::apply`], but consecutive calls with the same `key` make one undo step
@@ -70,10 +81,10 @@ impl History {
         edit: impl FnOnce(&mut Timeline) -> Result<T, E>,
     ) -> Result<T, E> {
         if self.merging != Some(key) {
-            let steps = self.undo.len();
-            let value = self.apply(edit)?;
-            // Only a step this gesture made may take later edits.
-            if self.undo.len() > steps {
+            let (value, stepped) = self.apply_step(edit)?;
+            // Only a step this gesture made may take later edits (undo length can't tell: the
+            // cap may have dropped the oldest step).
+            if stepped {
                 self.merging = Some(key);
             }
             return Ok(value);
@@ -119,7 +130,8 @@ impl History {
     /// Unregisters, from every state left, the media no clip of any state left uses (ENG-055).
     /// Call it whenever states leave the history. Each state's clips keep their media, so undo
     /// and redo still find it; ids only go forward, so a forgotten id is never reissued.
-    // ponytail: scans every snapshot; fine while drops are rare (a new edit after undo).
+    // ponytail: scans every snapshot, on every edit once the cap is full; fine for metadata
+    // snapshots, track media use per state if large timelines make edits slow.
     fn forget_unused_media(&mut self) {
         let used: BTreeSet<MediaId> = self.timelines().flat_map(Timeline::used_media).collect();
         for timeline in std::iter::once(&mut self.current)
