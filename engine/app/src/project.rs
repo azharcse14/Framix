@@ -152,7 +152,9 @@ pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
     if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || media > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
     }
-    // Open refuses clips whose media is not listed, so never write one.
+    // Open refuses clips whose media is not listed, so never write one. Timeline::insert_clip
+    // already refuses them (ENG-059); this is a defense for a future media-removal edit, which
+    // must give it a test.
     if let Some(clip) = tracks
         .iter()
         .flat_map(|t| t.clips())
