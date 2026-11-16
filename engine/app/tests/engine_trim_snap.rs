@@ -29,7 +29,7 @@ fn video(n: u32) -> MediaItem {
         color: 0,
         uri: format!("content://media/external/video/{n}"),
         kind: MediaKind::Video as i32,
-        duration_value: 2000,
+        duration_value: 5000,
         duration_timescale: 1000,
         width: 1080,
         height: 1920,
@@ -47,16 +47,23 @@ fn trim(clip_id: u64, start: i64, end: i64, snap_within: i64) -> command::Kind {
     })
 }
 
-/// Two 2 s clips back to back: [0, 2 s) and [2 s, 4 s). Returns their ids.
+/// Two 2 s clips back to back: [0, 2 s) and [2 s, 4 s). Returns their ids. Each plays the
+/// first 2 s of a 5 s video, so trims may lengthen it (ENG-053).
 fn two_clips(engine: &mut Engine) -> (u64, u64) {
-    let t = changed(run(
-        engine,
-        command::Kind::ImportMedia(ImportMedia {
-            items: vec![video(1), video(2)],
-        }),
-    ));
-    let clips = &t.tracks[0].clips;
-    (clips[0].id, clips[1].id)
+    let mut ids = Vec::new();
+    for n in [1, 2] {
+        let t = changed(run(
+            engine,
+            command::Kind::ImportMedia(ImportMedia {
+                items: vec![video(n)],
+            }),
+        ));
+        let c = t.tracks[0].clips.last().unwrap();
+        let (id, start) = (c.id, c.start);
+        changed(run(engine, trim(id, start, start + 2 * S, 0)));
+        ids.push(id);
+    }
+    (ids[0], ids[1])
 }
 
 fn span(t: &TimelineChanged, i: usize) -> (i64, i64) {

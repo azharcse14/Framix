@@ -309,6 +309,9 @@ pub enum TimelineError {
     /// No media is registered under this id; a clip on it could never be saved.
     #[error("media {0:?} is not in the project")]
     UnknownMedia(MediaId),
+    /// A video clip's source range would run past the end of its media.
+    #[error("clip runs past the end of its media")]
+    PastMediaEnd,
 }
 
 /// The editable timeline of a video project.
@@ -408,9 +411,11 @@ impl Timeline {
             return Err(TimelineError::TrackLocked(track));
         }
         let at = free_slot(&self.tracks[index].clips, placement.start, end, None)?;
-        if self.media(placement.media).is_none() {
-            return Err(TimelineError::UnknownMedia(placement.media));
-        }
+        self.check_source(
+            placement.media,
+            placement.source_start,
+            end - placement.start.0,
+        )?;
         self.check_transform(placement.media, transform)?;
         let id = ClipId(self.allocate_id());
         let clip = Clip {
@@ -619,9 +624,8 @@ impl Timeline {
     }
 
     /// Moves a clip's edges to `[start, end)`. Moving the start also moves the source offset by
-    /// the same amount, so the frames under the rest of the clip stay put.
-    // ponytail: no media-length check yet (P1-013 brings durations); the tail can grow past
-    // the end of the media.
+    /// the same amount, so the frames under the rest of the clip stay put. A video clip stays
+    /// inside its media ([`TimelineError::PastMediaEnd`]).
     pub fn trim_clip(&mut self, clip: ClipId, start: Time, end: Time) -> Result<(), TimelineError> {
         let (t, i) = self.locate(clip)?;
         let clips = &mut self.tracks[t].clips;
@@ -648,7 +652,9 @@ impl Timeline {
         if let Some(next) = clips.get(i + 1).filter(|n| n.start < end) {
             return Err(TimelineError::Overlap(next.id));
         }
-        let trimmed = &mut clips[i];
+        // Both edges are non-negative, so the difference cannot overflow.
+        self.check_source(c.media, Time(source_start), end.0 - start.0)?;
+        let trimmed = &mut self.tracks[t].clips[i];
         trimmed.start = start;
         trimmed.source_start = Time(source_start);
         trimmed.duration = Time(end.0 - start.0);
@@ -807,6 +813,30 @@ impl Timeline {
     pub fn placeable(&self, media: MediaId) -> bool {
         self.media(media)
             .is_none_or(|m| m.kind() != MediaKind::Color)
+    }
+
+    /// `media` is registered and, for a video, `[source_start, source_start + duration)` lies
+    /// inside it (`source_start` is checked non-negative by the caller). Photos and colors have
+    /// no length. The one home of the source-range rule: insert and trim call it, and split,
+    /// merge, move and duplicate only keep or narrow a range that passed it.
+    fn check_source(
+        &self,
+        media: MediaId,
+        source_start: Time,
+        duration: i64,
+    ) -> Result<(), TimelineError> {
+        let m = self
+            .media(media)
+            .ok_or(TimelineError::UnknownMedia(media))?;
+        let past_end = m.kind() == MediaKind::Video
+            && source_start
+                .0
+                .checked_add(duration)
+                .is_none_or(|end| end > m.duration().0);
+        match past_end {
+            true => Err(TimelineError::PastMediaEnd),
+            false => Ok(()),
+        }
     }
 
     /// Turns 0..=3, and a crop that leaves at least one pixel each way of `media`; clips of a

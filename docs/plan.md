@@ -1254,6 +1254,8 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [x] `ENG-057` ffi engine_autosave_timer tests flake in the agent sandbox: the save succeeds (~340 ms) but path.exists() reports false within the 2 s window; make the check robust (wait for a saved signal) instead of a fixed sleep \[Rust\]
 - [ ] `ENG-058` ProjectList and the New/Open TimelineChanged carry their command id (extend ENG-056), so Home matches replies by id instead of order and project change \[Rust\] \[Dart\]
 - [x] `ENG-059` Timeline::insert_clip refuses unregistered media (one home for the clip-media rule; drop the InsertClip arm and decode copies) \[Rust\]
+- [ ] `ENG-060` A photo clip cannot be trimmed longer at its start: trim_clip moves its source_start below 0 (NegativeTime) though photos have no source range \[Rust\]
+- [ ] `ENG-061` SnapTrim / TrimToPlayhead clamp the moved edge to the media end instead of refusing (ENG-053) \[Rust\]
 
 **Security**
 

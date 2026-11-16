@@ -9,10 +9,11 @@ import '../../pump_until.dart';
 
 const second = 705600000;
 
-MediaItem _video(int n) => MediaItem(
+/// A [ms] long video.
+MediaItem _video(int n, int ms) => MediaItem(
   uri: 'content://media/external/video/$n',
   kind: MediaKind.MEDIA_KIND_VIDEO,
-  durationValue: Int64(2000),
+  durationValue: Int64(ms),
   durationTimescale: 1000,
   width: 1080,
   height: 1920,
@@ -60,34 +61,37 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
   }
 
-  test(
-    'a seek into another clip after a snapping trim does not tick',
-    () async {
-      await until(
-        () => engine.send(
-          Command(importMedia: ImportMedia(items: [_video(1), _video(2)])),
+  test('a seek into another clip after a snapping trim does not tick', () async {
+    await until(
+      () => engine.send(
+        Command(
+          importMedia: ImportMedia(items: [_video(1, 5000), _video(2, 2000)]),
         ),
-        (t) => t.tracks.isNotEmpty,
-      );
-      final track = cubit.state.tracks[0];
-      final (a, b) = (track.clips[0], track.clips[1]);
-      await until(
-        () => cubit.moveClip(b, track.id, 4 * second),
-        (t) => t.tracks[0].clips[1].start.toInt() == 4 * second,
-      );
-      await until(
-        () =>
-            cubit.trimClip(a, 0, 395 * second ~/ 100, snapWithin: second ~/ 10),
-        (t) => t.tracks[0].clips[0].duration.toInt() == 4 * second,
-      );
-      expect(haptics, hasLength(1));
+      ),
+      (t) => t.tracks.isNotEmpty,
+    );
+    final track = cubit.state.tracks[0];
+    final (a, b) = (track.clips[0], track.clips[1]);
+    // The first clip plays 2 s of its 5 s, so a trim may lengthen it (ENG-053).
+    await until(
+      () => cubit.trimClip(a, 0, 2 * second),
+      (t) => t.tracks[0].clips[0].duration.toInt() == 2 * second,
+    );
+    await until(
+      () => cubit.moveClip(b, track.id, 4 * second),
+      (t) => t.tracks[0].clips[1].start.toInt() == 4 * second,
+    );
+    await until(
+      () => cubit.trimClip(a, 0, 395 * second ~/ 100, snapWithin: second ~/ 10),
+      (t) => t.tracks[0].clips[0].duration.toInt() == 4 * second,
+    );
+    expect(haptics, hasLength(1));
 
-      await until(
-        () => engine.send(Command(seek: Seek(time: Int64(5 * second)))),
-        (t) => t.activeClip == b.id,
-      );
-      expect(haptics, hasLength(1));
-      expect(cubit.state.snapped, isFalse);
-    },
-  );
+    await until(
+      () => engine.send(Command(seek: Seek(time: Int64(5 * second)))),
+      (t) => t.activeClip == b.id,
+    );
+    expect(haptics, hasLength(1));
+    expect(cubit.state.snapped, isFalse);
+  });
 }

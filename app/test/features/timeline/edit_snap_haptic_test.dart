@@ -7,10 +7,11 @@ import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 
 const second = 705600000;
 
-MediaItem _video(int n) => MediaItem(
+/// A [ms] long video.
+MediaItem _video(int n, int ms) => MediaItem(
   uri: 'content://media/external/video/$n',
   kind: MediaKind.MEDIA_KIND_VIDEO,
-  durationValue: Int64(2000),
+  durationValue: Int64(ms),
   durationTimescale: 1000,
   width: 1080,
   height: 1920,
@@ -56,11 +57,15 @@ void main() {
   test('a trim that snaps ticks once; one that does not, never', () async {
     final t = await next(
       () => engine.send(
-        Command(importMedia: ImportMedia(items: [_video(1), _video(2)])),
+        Command(
+          importMedia: ImportMedia(items: [_video(1, 5000), _video(2, 2000)]),
+        ),
       ),
     );
     final track = t.tracks[0];
     final (a, b) = (track.clips[0], track.clips[1]);
+    // The first clip plays 2 s of its 5 s, so a trim may lengthen it (ENG-053).
+    await next(() => cubit.trimClip(a, 0, 2 * second));
     await next(() => cubit.moveClip(b, track.id, 4 * second));
     expect(haptics, isEmpty);
 
