@@ -16175,15 +16175,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "6273518",
    "branch": "worktree-agent-ac5710238822aae75",
    "notes": [
     {
      "date": "2026-11-16",
      "text": "plan: FrameDecoder.kt keeps videos (codec+SurfaceTexture+texture, own latched range), photos (GL texture) and outputs (ImageReader+EGL surface, keyed by size) in access-ordered LinkedHashMaps capped at 2 each; the least recently used is closed on the decoder thread before a new one opens (never cap+1 codecs). Eviction only runs after the previously shown Image/HardwareBuffer was released (start of the next call), and a shown buffer lives in an output's ImageReader, not in a video, so no buffer handed to Rust is freed early. Decoder port contract unchanged (no Rust change)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE (buffer lifetime verified: Gpu::draw polls before the next layer's decode). Warning filed: no fallback when a codec open fails with the cache full; 'within the hardware decoder limit' comment unproven. Kotlin built with gradle compileDebugKotlin (check.sh does not build Kotlin); PIP with two videos on a device pending (P1-128)."
     }
    ],
    "source": "added"
