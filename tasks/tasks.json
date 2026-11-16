@@ -16251,6 +16251,38 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
+   "done": null,
+   "commit": null,
+   "branch": "worktree-agent-a8b9edf0a3af1b828",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "Decision: a photo/color clip's source_start is not normalized to Time(0); Timeline::check_source (one home, now returns the held start) clamps a still's start at 0 and never refuses its range. The picture ignores the offset (Timeline::layer uses Time(0)), but split/merge use it to tell halves of one clip from a duplicate, so forcing 0 everywhere would make adjacent duplicates mergeable. Project format unchanged: save writes the held offset, load accepts any non-negative one (insert still refuses a negative source_start from a file)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Older tests: none edited. The ENG-060 test commit fab68ad was not rustfmt'd; a whitespace-only rustfmt commit follows the fix (assertions unchanged)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "Review: CHANGES REQUIRED only for rustfmt on the test file (fixed, whitespace only). Warning filed as ENG-062: split still halves stop merging after the left half grows at its start. Suggestion kept: a still's source offset near i64::MAX can still return TimeOverflow on a forward start trim (covered by clip_ops_edges)."
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "ENG-061",
+   "section": "ENG",
+   "group": null,
+   "title": "SnapTrim / TrimToPlayhead clamp the moved edge to the media end instead of refusing (ENG-053)",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
@@ -16260,10 +16292,10 @@
    "source": "added"
   },
   {
-   "id": "ENG-061",
+   "id": "ENG-062",
    "section": "ENG",
    "group": null,
-   "title": "SnapTrim / TrimToPlayhead clamp the moved edge to the media end instead of refusing (ENG-053)",
+   "title": "Split photo/color halves stop merging after the left half grows at its start (its source offset clamps at 0, ENG-060); decide a still merge rule (adjacent, same media, same transform?) vs keeping duplicates unmergeable",
    "tags": [
     "Rust"
    ],
