@@ -12991,6 +12991,10 @@
     {
      "date": "2026-11-16",
      "text": "ENG-063 filed for deleting unreferenced media copies on disk (the 2026-10-15 note)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: no Critical. W1 (cache files of pruned media no longer cleaned by purge/CleanProjectCache) and W2 (library size undercounts leftover media copies) moved to ENG-063. Nit: saving_more_media_than_open_allows_is_refused now hits the clip cap; name left as is."
     }
    ],
    "source": "added"
@@ -16468,7 +16472,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "Scope (ENG-054 review W1/W2): also delete thumbs/ and proxies/ cache files whose media key no saved project or open history uses. Since ENG-054 a save drops unused media, so library purge, CleanProjectCache and cache_bytes/media_bytes (library.rs, engine.rs clean_cache) no longer see them: their cache files leak and project sizes undercount the copies left on disk until this lands."
+    }
+   ],
    "source": "added"
   }
  ]
