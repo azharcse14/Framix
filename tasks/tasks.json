@@ -16740,6 +16740,10 @@
     {
      "date": "2026-11-16",
      "text": "only group tearDown changed in home_design/find/page/storage tests: tearDown is async and awaits engine.events.drain() after dispose() before deleteSync (home_folder_test pattern; broadcast stream closes on EngineStopped so drain ends outside the fake clock). No assertion changed or dropped. 4 files together 5x green (11 tests)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical/Warning (independent reviewer; the in-task reviewer did not report and was stopped). Nit: no other engine+temp-dir test needs the drain beyond UX-049."
     }
    ],
    "source": "added"
