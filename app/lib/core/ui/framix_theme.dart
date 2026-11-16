@@ -148,6 +148,10 @@ ThemeData framixDarkTheme() {
       // Outline comes from ColorScheme.outline (outline token), keeping the M3 disabled side.
       style: OutlinedButton.styleFrom(foregroundColor: c.text),
     ),
+    // Text buttons (dialog actions, app bar Done) are secondary: text color, not accent.
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: c.text),
+    ),
     extensions: const [c],
   );
 }
