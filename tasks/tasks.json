@@ -16419,15 +16419,19 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-16",
+   "commit": "f10ca11",
    "branch": "worktree-agent-af72e80673b806d3c",
    "notes": [
     {
      "date": "2026-11-16",
      "text": "finding: lazy: false alone is not load-bearing today. The first editor makes ExportCubit and TimelineCubit in the same build; TimelineCubit's GetTimeline reply (a TimelineChanged with the project) always reaches the lazy ExportCubit, so it learns the exported project anyway. Proof: the test passes with lazy: false removed; it fails (showExportResult still found in the opened project) with both lazy: false and the GetTimeline send removed. Not a bug: behavior is correct. decision: kept the app-level test (New, export done via a wrapper engine that accepts ExportProject then ExportFinished(ok), Open a project saved before start) as the guard for the whole mechanism; no edit in the new project, since an edit's TimelineChanged would also reach a lazy cubit."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE. The test guards 'ExportCubit learns the project before a switch' end to end; lazy: false alone is not load-bearing today (GetTimeline also teaches it), so the test fails only with both removed; this corrects the UX-041 review's claim."
     }
    ],
    "source": "added"
