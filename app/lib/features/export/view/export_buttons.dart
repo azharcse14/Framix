@@ -26,23 +26,14 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// The export folder: Dart temp until the platform answers (within the first frames).
   String _dir = Directory.systemTemp.path;
 
-  /// Where the last export was written; the Result screen saves and shares this file.
-  String? _exported;
-
-  /// One export file; each export replaces it.
-  String get _path => _exported ?? '$_dir/framix-export.mp4';
-
   @override
   void initState() {
     super.initState();
     ExportSharer.exportDir().then((dir) => _dir = dir);
   }
 
-  void _export(ExportCubit cubit) {
-    final path = '$_dir/framix-export.mp4';
-    _exported = path;
-    cubit.start(path);
-  }
+  /// One export file; each export replaces it.
+  void _export(ExportCubit cubit) => cubit.start('$_dir/framix-export.mp4');
 
   /// A one-time result: it replaces a message still showing (except a failed-autosave
   /// message) and outranks a generic one waiting behind that.
@@ -51,14 +42,14 @@ class _ExportButtonsState extends State<ExportButtons> {
   /// Opens the Result screen for the last exported file. The route carries the cubits it
   /// reads, as the editor sees them: in the app they sit above the Navigator, but a route
   /// must not depend on that (tests provide them inside the editor route).
-  void _showResult() => Navigator.of(context).push<void>(
+  void _showResult(String path) => Navigator.of(context).push<void>(
     MaterialPageRoute<void>(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider.value(value: context.read<PreviewCubit>()),
           BlocProvider.value(value: context.read<PlaybackCubit>()),
         ],
-        child: ExportResultPage(path: _path),
+        child: ExportResultPage(path: path),
       ),
     ),
   );
@@ -72,7 +63,7 @@ class _ExportButtonsState extends State<ExportButtons> {
       listenWhen: (_, next) =>
           next is ExportDone || next is ExportFailed || next is ExportNoSpace,
       listener: (_, state) {
-        if (state is ExportDone) return _showResult();
+        if (state is ExportDone) return _showResult(state.path);
         _tell(switch (state) {
           // Needed rounds up, free rounds down: needed always reads as more than free.
           ExportNoSpace(:final neededBytes, :final freeBytes) =>
@@ -114,7 +105,7 @@ class _ExportButtonsState extends State<ExportButtons> {
             IconButton(
               tooltip: l10n.showExportResult,
               icon: const Icon(Icons.play_circle_outline),
-              onPressed: _showResult,
+              onPressed: () => _showResult(state.path),
             ),
             export,
           ],
