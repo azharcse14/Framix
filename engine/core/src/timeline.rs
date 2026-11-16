@@ -1084,10 +1084,12 @@ impl Timeline {
         self.tracks.iter().flat_map(|t| &t.clips).map(|c| c.media)
     }
 
-    /// Unregisters every media not in `keep` (ENG-055). Clips are untouched, so `keep` must
-    /// hold their media; the ids stay used up and are never reissued.
+    /// Unregisters every media neither in `keep` nor used by a clip here (ENG-055); the ids
+    /// stay used up and are never reissued.
     pub fn forget_media_except(&mut self, keep: &BTreeSet<MediaId>) {
-        self.media.retain(|id, _| keep.contains(id));
+        let own: BTreeSet<MediaId> = self.used_media().collect();
+        self.media
+            .retain(|id, _| keep.contains(id) || own.contains(id));
     }
 
     /// Makes every id this timeline hands out from now on newer than any id `other`
