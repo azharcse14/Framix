@@ -101,6 +101,26 @@ fn a_gesture_at_the_cap_stays_one_step() {
     assert_eq!(h.timeline().tracks().len(), MAX);
 }
 
+#[test]
+fn undoing_a_gesture_at_the_cap_restores_the_state_before_it() {
+    let mut h = History::new(Timeline::default());
+    for _ in 0..MAX {
+        add_track(&mut h);
+    }
+    let start = h.timeline().aspect();
+    for (w, ht) in [(1, 1), (4, 5), (16, 9)] {
+        let aspect = AspectRatio::new(w, ht).unwrap();
+        h.apply_merged(7, |tl| {
+            tl.set_aspect(aspect);
+            Ok::<_, ()>(())
+        })
+        .unwrap();
+    }
+    assert!(h.undo());
+    assert_eq!(h.timeline().aspect(), start);
+    assert_eq!(h.timeline().tracks().len(), MAX);
+}
+
 #[derive(Clone, Debug)]
 enum Op {
     Import(u32),
