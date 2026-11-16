@@ -23,10 +23,10 @@ void main() {
   setUp(() => engine = FramixEngine.create());
   tearDown(() => engine.dispose());
 
-  MediaItem video(String uri) => MediaItem(
+  MediaItem video(String uri, {int ms = 2000}) => MediaItem(
     uri: uri,
     kind: MediaKind.MEDIA_KIND_VIDEO,
-    durationValue: Int64(2000),
+    durationValue: Int64(ms),
     durationTimescale: 1000,
     width: 1080,
     height: 1920,
@@ -302,13 +302,25 @@ void main() {
       FramixApp(
         engine: engine,
         mediaImporter: FakeImporter([
-          video('content://media/external/video/1'),
+          video('content://media/external/video/1', ms: 5000),
           video('content://media/external/video/2'),
         ]),
       ),
     );
     await tester.tap(find.byTooltip(l10n.importFromGallery));
     await pumpUntil(tester, find.text(l10n.clipCount(2)));
+    // The first clip plays 2 s of its 5 s, so a trim may lengthen it (ENG-053): [0, 2 s) and
+    // [2 s, 4 s), as two 2 s clips would be.
+    final cubit = page(tester).read<TimelineCubit>();
+    final tps = cubit.state.ticksPerSecond.toInt();
+    final track = cubit.state.tracks[0];
+    cubit.trimClip(track.clips[0], 0, 2 * tps);
+    cubit.moveClip(track.clips[1], track.id, 2 * tps);
+    await pumpUntilTrue(
+      tester,
+      () => cubit.state.tracks[0].clips[1].start.toInt() == 2 * tps,
+      () => 'second clip never moved to 2 s',
+    );
 
     // 100 px per second: move the second clip's start to 2.5 s.
     await tester.tap(find.byType(ClipBox).at(1));
