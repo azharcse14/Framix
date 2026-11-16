@@ -16521,6 +16521,18 @@
     {
      "date": "2026-11-16",
      "text": "plan/design: mark-and-sweep once per engine, when OpenLibrary first sets the library (app start, before Home can import). Mark = media uris of every <id>.framix in the library folder and its backups (each must decode, NotFound ok; any other error, incl. a newer app's file or damage, skips the whole sweep), of its .broken/.tmp/.bak.tmp copies when they decode, and of every timeline in the open undo/redo history. Sweep media/: only regular files listed in <library parent>/media (no path is ever built from a project uri), kept when any marked uri's last segment equals the file name (conservative superset), or written within the last hour (an import in flight; iOS MediaPicker now stamps the copy's mtime since copy/move keep the source's). Sweep cache thumbs/ and proxies/: files whose media key no marked uri has (partials untouched). W2: the sweep removes the leftover copies, so library sizes match the disk again (only media held by the open undo history or <1h old stay uncounted)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "test fix (before any review): copies_only_the_open_undo_history_uses_are_kept did undo-then-import, and the import clears redo, so undone.jpg was truly unreferenced; steps reordered (remove-clip case first, undo last). Assertion unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "edited older tests: storage/tests/engine_cache.rs (7 tests) now open the library before writing their cache files, since opening the library now deletes cache files no project uses; assertions unchanged."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "edited older test: app/test/features/home/home_storage_test.dart writes its thumbnail once Home (and so the library) is open, for the same reason; assertions unchanged."
     }
    ],
    "source": "added"

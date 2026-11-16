@@ -181,6 +181,10 @@ final class MediaPicker: NSObject {
     } else {
       try manager.copyItem(at: source, to: dest)
     }
+    // Copy and move keep the source's date; the engine keeps a copy written within the hour
+    // while no project knows it yet (engine/app/src/library.rs sweep, FRESH_COPY). Best
+    // effort: without it the copy is only at risk if the library opens mid-import.
+    try? manager.setAttributes([.modificationDate: Date()], ofItemAtPath: dest.path)
     return Stored(relative: "media/\(name)", url: dest, isVideo: isVideo)
   }
 

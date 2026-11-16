@@ -167,6 +167,8 @@ fn each_project_counts_its_files_and_the_caches_of_its_media() {
     let root = temp_dir("count");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
+    let mut engine = library(&lib, cache.to_str().unwrap());
     write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
     write(&cache.join(format!("thumbs/{A_HASH}-1000000-128.jpg")), 50);
     write(&cache.join(format!("proxies/{LONG_HASH}-1280.mov")), 1000);
@@ -175,7 +177,6 @@ fn each_project_counts_its_files_and_the_caches_of_its_media() {
     write(&cache.join("thumbs/unrelated.jpg"), 3);
     write(&cache.join(format!("thumbs/{A_HASH}")), 11);
 
-    let mut engine = library(&lib, cache.to_str().unwrap());
     let (first, second) = two_projects(&mut engine);
 
     assert_eq!(first.cache_bytes, 1150);
@@ -218,6 +219,8 @@ fn cleaning_removes_only_that_projects_cache_files() {
     let root = temp_dir("clean");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
+    let mut engine = library(&lib, cache.to_str().unwrap());
     write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
     write(
         &cache.join(format!("thumbs/{A_HASH}-0-128.jpg1234.part")),
@@ -234,7 +237,6 @@ fn cleaning_removes_only_that_projects_cache_files() {
     #[cfg(unix)]
     std::os::unix::fs::symlink(&outside, cache.join(format!("thumbs/{A_HASH}-9-128.jpg"))).unwrap();
 
-    let mut engine = library(&lib, cache.to_str().unwrap());
     let (first, second) = two_projects(&mut engine);
     let library_before = tree(&lib);
     let bytes_before: Vec<_> = library_before
@@ -284,8 +286,9 @@ fn cleaning_refuses_a_malformed_or_unknown_id() {
     let root = temp_dir("ids");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
-    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
     let mut engine = library(&lib, cache.to_str().unwrap());
+    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
     project_with(&mut engine, &[A]);
     list(&mut engine);
     for id in ["../projects", "", "nosuchproject", "UPPER"] {
@@ -357,6 +360,8 @@ fn files_the_platform_is_still_writing_are_not_counted_or_removed() {
     let root = temp_dir("partial");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
+    let mut engine = library(&lib, cache.to_str().unwrap());
     // Android: File.createTempFile(name, ".part"); iOS thumbs: `<name>.part`.
     let partials = [
         format!("thumbs/{A_HASH}-0-128.jpg5551234.part"),
@@ -366,7 +371,6 @@ fn files_the_platform_is_still_writing_are_not_counted_or_removed() {
         write(&cache.join(p), 50);
     }
     write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
-    let mut engine = library(&lib, cache.to_str().unwrap());
     project_with(&mut engine, &[A]);
     let p = list(&mut engine).remove(0);
     assert_eq!(p.cache_bytes, 100);
@@ -382,9 +386,10 @@ fn a_failed_autosave_before_cleaning_is_reported_once_then_cleaning_works() {
     let root = temp_dir("autosavefail");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
-    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
     let store = Shifted::default();
     let mut engine = library_on(Box::new(store.clone()), &lib, cache.to_str().unwrap());
+    write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
     project_with(&mut engine, &[A]);
     let id = list(&mut engine)[0].id.clone();
     run(
@@ -423,10 +428,11 @@ fn a_project_purged_from_recently_deleted_takes_its_caches_along() {
     let root = temp_dir("purge");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
+    let mut engine = library(&lib, cache.to_str().unwrap());
     write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
     write(&cache.join(format!("proxies/{LONG_HASH}-1280.mov")), 1000);
     write(&cache.join(format!("thumbs/{B_HASH}-0-128.jpg")), 7);
-    let mut engine = library(&lib, cache.to_str().unwrap());
     let (first, second) = two_projects(&mut engine);
     let e = run(
         &mut engine,
@@ -455,9 +461,10 @@ fn a_purged_project_with_a_damaged_file_takes_the_caches_its_backup_names() {
     let root = temp_dir("purgebackup");
     let (lib, cache) = (root.join("projects"), root.join("cache"));
     fs::create_dir_all(&lib).unwrap();
+    // Opened first: opening the library deletes cache files no project uses (ENG-063).
+    let mut engine = library(&lib, cache.to_str().unwrap());
     write(&cache.join(format!("thumbs/{A_HASH}-0-128.jpg")), 100);
     write(&cache.join(format!("thumbs/{B_HASH}-0-128.jpg")), 7);
-    let mut engine = library(&lib, cache.to_str().unwrap());
     let (first, second) = two_projects(&mut engine);
     let e = run(
         &mut engine,

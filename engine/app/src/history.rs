@@ -84,6 +84,13 @@ impl History {
         !self.undo.is_empty()
     }
 
+    /// The current timeline, then every undo and redo snapshot.
+    pub fn timelines(&self) -> impl Iterator<Item = &Timeline> {
+        std::iter::once(&self.current)
+            .chain(&self.undo)
+            .chain(&self.redo)
+    }
+
     /// Whether [`History::redo`] would do anything.
     pub fn can_redo(&self) -> bool {
         !self.redo.is_empty()

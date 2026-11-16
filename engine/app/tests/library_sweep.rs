@@ -196,10 +196,7 @@ fn copies_only_the_open_undo_history_uses_are_kept() {
             }],
         })
     };
-    // Only the redo step has it.
-    run(&mut engine, import("media/undone.jpg"));
-    run(&mut engine, command::Kind::Undo(Undo {}));
-    // Its clip is gone; the undo step has it.
+    // Its clip is gone; the undo steps have it.
     let Some(event::Kind::TimelineChanged(t)) = run(&mut engine, import("media/removed.jpg"))
     else {
         panic!("import refused");
@@ -209,6 +206,9 @@ fn copies_only_the_open_undo_history_uses_are_kept() {
         &mut engine,
         command::Kind::RemoveClip(RemoveClip { clip_id }),
     );
+    // Only the redo step has it (a later edit would clear redo, so this comes last).
+    run(&mut engine, import("media/undone.jpg"));
+    run(&mut engine, command::Kind::Undo(Undo {}));
     open_library(&mut engine);
     assert_eq!(
         store.paths(),
