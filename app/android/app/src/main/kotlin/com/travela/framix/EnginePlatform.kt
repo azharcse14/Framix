@@ -169,6 +169,26 @@ object EnginePlatform {
             d.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
         }
 
+    // The export encoder (docs/adr/0005-export-encoder.md), called by Rust (JNI) on the export
+    // worker only; each call may block. The shim holds the encoder until encoderFinish.
+
+    /** Opens an H.264 encoder writing [path]; null if it can't. */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun encoderOpen(width: Int, height: Int, fps: Int, kbps: Int, path: String): ExportEncoder? =
+        ExportEncoder.open(width, height, fps, kbps, path)
+
+    /** The Surface Rust draws [encoder]'s frames into. */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun encoderSurface(encoder: ExportEncoder): Surface = encoder.surface
+
+    /** Rust is about to draw the frame at [timeUs]; false once the encoder failed. */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun encoderFrame(encoder: ExportEncoder, timeUs: Long): Boolean = encoder.frame(timeUs)
+
+    /** Closes the file ([ok]) or cancels it; true on success. Called once per encoder. */
+    @Suppress("unused") // Kept for JNI by proguard-rules.pro.
+    fun encoderFinish(encoder: ExportEncoder, ok: Boolean): Boolean = encoder.finish(ok)
+
     /** SPIKE (P1-056): decode the pushed clip off the main thread and draw it over the preview. */
     private fun spikeDecode(producer: TextureRegistry.SurfaceProducer) {
         val clip = files?.resolve("spike_clip.mp4")?.takeIf { it.isFile } ?: return

@@ -34,7 +34,15 @@ take the previous one.
 - `engine_destroy` does not wait for a running export: it sets the export's cancel flag, so the
   worker stops at its next frame and cancels the file, and its result goes nowhere. Progress
   (once per percent) and `CancelExport` came with P1-035.
-- Android registers stub encoder calls that fail to open until its MediaCodec encoder lands
-  (input Surface as the render target, like the preview's window).
+- Android (P1-069): MediaCodec H.264 + MediaMuxer. `encoder_frame` returns the codec's input
+  Surface as an `ANativeWindow*`, the same every frame; Rust draws into it with the preview's
+  window path (`Gpu::draw_to_android_window`) and presents, which queues the frame into the codec.
+  - A queued frame carries its queue time, not its frame time (wgpu cannot set it), so the codec
+    runs without B-frames and Kotlin gives each output frame the next time `encoder_frame`
+    reported. Reordered or lost frames fail the export rather than mistime it.
+  - `Gpu` keeps two window surfaces (preview and export), so a preview draw during an export
+    does not disconnect the codec's window. The export forgets its surface only after
+    `encoder_finish`: dropping it earlier disconnects the window, which can drop frames the codec
+    has not taken yet.
 - The iOS encoder uses `AVAssetWriterInputPixelBufferAdaptor`, which works from iOS 17 and is
   not deprecated at the iOS 17 deployment target.

@@ -50,7 +50,8 @@ pub trait PreviewRenderer: Send {
         time: Time,
         layers: &mut dyn Iterator<Item = Layer<'_>>,
     ) -> Result<(), DrawError>;
-    /// Drops anything kept for `target` (e.g. a window surface) before the platform releases it.
+    /// Drops anything kept for `target` (e.g. a window surface): a preview texture before the
+    /// platform releases it, an export target once its encoder finished.
     fn forget(&mut self, target: PlatformTexture) {
         let _ = target;
     }
