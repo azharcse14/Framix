@@ -16140,7 +16140,12 @@
    "done": null,
    "commit": null,
    "branch": "worktree-agent-a607ba9a8fd7d5bbd",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "failing evidence: with the F1A5...04B1 build-file line removed from the Runner Resources files block (PBXBuildFile comment 'InfoPlist.xcstrings in Resources' still present, so the old contains() check passed), the test fails: Expected: contains 'InfoPlist.xcstrings', Actual: ['Flutter/AppFrameworkInfo.plist', 'Assets.xcassets']. Passes on the real pbxproj."
+    }
+   ],
    "source": "added"
   },
   {
