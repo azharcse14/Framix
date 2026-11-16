@@ -136,3 +136,55 @@ fn only_unused_regular_files_in_the_app_folders_are_deleted() {
     assert!(expected.contains(&"media/sub/gone.jpg".to_owned()));
     assert_eq!(fs::read(&outside).unwrap(), b"x");
 }
+
+/// ENG-064: a library folder whose entries can't be stat'd (read but no search permission)
+/// lists names only; the sweep must then keep every copy, since it can't tell what they use.
+#[cfg(unix)]
+#[test]
+fn a_library_folder_whose_entries_can_not_be_read_keeps_every_copy() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let root = TempDir::new("framix-sweep-unreadable");
+    let (lib, cache) = (root.join("projects"), root.join("cache"));
+    fs::create_dir_all(&lib).unwrap();
+    {
+        let mut engine = library(&lib, &cache);
+        run(&mut engine, command::Kind::NewProject(NewProject {}));
+        run(
+            &mut engine,
+            command::Kind::ImportMedia(ImportMedia {
+                items: vec![MediaItem {
+                    uri: "media/a.jpg".into(),
+                    kind: MediaKind::Image as i32,
+                    width: 10,
+                    height: 10,
+                    ..Default::default()
+                }],
+            }),
+        );
+        let e = run(
+            &mut engine,
+            command::Kind::ListProjects(ListProjects::default()),
+        );
+        assert!(
+            matches!(e, Some(event::Kind::ProjectList(l)) if l.projects.len() == 1),
+            "the project is saved"
+        );
+    }
+    old_file(&root.join("media/a.jpg"));
+    let project = fs::read_dir(&lib).unwrap().next().unwrap().unwrap().path();
+
+    fs::set_permissions(&lib, fs::Permissions::from_mode(0o444)).unwrap();
+    let enforced = fs::symlink_metadata(&project).is_err();
+    if enforced {
+        framix_app::library::sweep(&FileStore, &lib, Some(&cache), std::iter::empty());
+    }
+    fs::set_permissions(&lib, fs::Permissions::from_mode(0o755)).unwrap();
+
+    // Root ignores permissions, so the entry can't be made unreadable there.
+    if !enforced {
+        eprintln!("skipped: permissions are not enforced for this user");
+        return;
+    }
+    assert!(root.join("media/a.jpg").exists(), "the used copy is kept");
+}

@@ -33,6 +33,9 @@ type Files = HashMap<PathBuf, (Vec<u8>, SystemTime)>;
 #[derive(Clone, Default)]
 struct MemStore {
     files: Arc<Mutex<Files>>,
+    /// Paths whose entry can't be read (its stat fails): `list` leaves them out, as the
+    /// file store does, and `list_strict` fails.
+    unreadable: Arc<Mutex<BTreeSet<PathBuf>>>,
 }
 
 impl MemStore {
@@ -72,11 +75,21 @@ impl ProjectStore for MemStore {
 
     fn list(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
         let files = self.files.lock().unwrap();
+        let unreadable = self.unreadable.lock().unwrap();
         Ok(files
             .iter()
-            .filter(|(path, _)| path.parent() == Some(dir))
+            .filter(|(path, _)| path.parent() == Some(dir) && !unreadable.contains(*path))
             .map(|(path, (_, at))| (path.clone(), *at))
             .collect())
+    }
+
+    fn list_strict(&self, dir: &Path) -> io::Result<Vec<(PathBuf, SystemTime)>> {
+        let unreadable = self.unreadable.lock().unwrap();
+        if unreadable.iter().any(|path| path.parent() == Some(dir)) {
+            return Err(io::ErrorKind::PermissionDenied.into());
+        }
+        drop(unreadable);
+        self.list(dir)
     }
 
     fn sizes(&self, dir: &Path) -> io::Result<Vec<(PathBuf, u64)>> {
@@ -352,4 +365,19 @@ fn cache_files_of_media_no_project_uses_are_deleted() {
             &format!("{CACHE}/proxies/{KEY_GONE}-540.mov"),
         ])
     );
+}
+
+#[test]
+fn a_project_the_listing_can_not_read_keeps_every_file() {
+    let store = MemStore::default();
+    store.project("/data/projects/p1.framix", &["media/a.jpg"]);
+    store.project("/data/projects/p2.framix", &["media/b.jpg"]);
+    store.put("/data/media/a.jpg", b"a");
+    store.put("/data/media/b.jpg", b"b");
+    store
+        .unreadable
+        .lock()
+        .unwrap()
+        .insert("/data/projects/p2.framix".into());
+    assert_eq!(sweep(&store), BTreeSet::new());
 }
