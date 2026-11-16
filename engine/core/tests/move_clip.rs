@@ -1,3 +1,5 @@
+mod common;
+
 use framix_core::time::Time;
 use framix_core::timeline::{
     ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackFlags, TrackId, TrackKind,
@@ -24,7 +26,7 @@ fn starts(tl: &Timeline, t: TrackId) -> Vec<(ClipId, i64)> {
 
 #[test]
 fn moving_within_a_track_keeps_order_sorted() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(t, place(0, 10)).unwrap();
     let b = tl.insert_clip(t, place(20, 10)).unwrap();
@@ -43,7 +45,7 @@ fn moving_within_a_track_keeps_order_sorted() {
 
 #[test]
 fn moving_to_another_track_of_the_same_kind() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v1 = tl.add_track(TrackKind::Video);
     let v2 = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(v1, place(0, 10)).unwrap();
@@ -54,7 +56,7 @@ fn moving_to_another_track_of_the_same_kind() {
 
 #[test]
 fn bad_moves_are_refused_and_change_nothing() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v1 = tl.add_track(TrackKind::Video);
     let v2 = tl.add_track(TrackKind::Video);
     let audio = tl.add_track(TrackKind::Audio);

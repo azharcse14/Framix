@@ -1,3 +1,5 @@
+mod common;
+
 use framix_core::time::Time;
 use framix_core::timeline::{
     ClipId, ClipPlacement, MediaId, Timeline, TimelineError, TrackId, TrackKind,
@@ -24,7 +26,7 @@ fn starts(tl: &Timeline, track: TrackId) -> Vec<i64> {
 
 #[test]
 fn tracks_get_distinct_ids_and_keep_kind() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v = tl.add_track(TrackKind::Video);
     let a = tl.add_track(TrackKind::Audio);
     assert_ne!(v, a);
@@ -34,7 +36,7 @@ fn tracks_get_distinct_ids_and_keep_kind() {
 
 #[test]
 fn clips_stay_sorted_and_get_distinct_ids() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let c1 = tl.insert_clip(t, place(200, 100)).unwrap();
     let c2 = tl.insert_clip(t, place(0, 100)).unwrap();
@@ -45,7 +47,7 @@ fn clips_stay_sorted_and_get_distinct_ids() {
 
 #[test]
 fn overlapping_clip_is_rejected_and_timeline_unchanged() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let first = tl.insert_clip(t, place(100, 100)).unwrap();
     let before = tl.clone();
@@ -62,7 +64,7 @@ fn overlapping_clip_is_rejected_and_timeline_unchanged() {
 
 #[test]
 fn touching_clips_are_allowed() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     tl.insert_clip(t, place(100, 100)).unwrap();
     tl.insert_clip(t, place(0, 100)).unwrap();
@@ -72,7 +74,7 @@ fn touching_clips_are_allowed() {
 
 #[test]
 fn bad_clips_are_rejected() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     assert_eq!(
         tl.insert_clip(t, place(0, 0)),
@@ -94,7 +96,7 @@ fn bad_clips_are_rejected() {
 
 #[test]
 fn tracks_are_independent() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v = tl.add_track(TrackKind::Video);
     let a = tl.add_track(TrackKind::Audio);
     tl.insert_clip(v, place(0, 100)).unwrap();
@@ -104,7 +106,7 @@ fn tracks_are_independent() {
 
 #[test]
 fn clip_at_uses_half_open_ranges() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let t = tl.add_track(TrackKind::Video);
     let a = tl.insert_clip(t, place(0, 100)).unwrap();
     let b = tl.insert_clip(t, place(100, 50)).unwrap();
@@ -119,7 +121,7 @@ fn clip_at_uses_half_open_ranges() {
 
 #[test]
 fn duration_is_latest_clip_end() {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     assert_eq!(tl.duration(), Time(0));
     let v = tl.add_track(TrackKind::Video);
     let a = tl.add_track(TrackKind::Audio);
@@ -134,7 +136,7 @@ proptest! {
         ops in proptest::collection::vec((-1_000i64..1_000, -10i64..200), 0..60),
         probe in -1_200i64..1_400,
     ) {
-        let mut tl = Timeline::default();
+        let mut tl = common::timeline();
         let t = tl.add_track(TrackKind::Video);
         for (start, duration) in ops {
             let _ = tl.insert_clip(t, place(start, duration));

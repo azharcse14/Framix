@@ -1,5 +1,7 @@
 //! Snapping (P1-022): the nearest edge within a tolerance.
 
+mod common;
+
 use framix_core::time::Time;
 use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TrackKind};
 use proptest::prelude::*;
@@ -15,7 +17,7 @@ fn place(start: i64, duration: i64) -> ClipPlacement {
 
 /// Video [100, 200) and [300, 450); audio [120, 180).
 fn timeline() -> Timeline {
-    let mut tl = Timeline::default();
+    let mut tl = common::timeline();
     let v = tl.add_track(TrackKind::Video);
     let a = tl.add_track(TrackKind::Audio);
     tl.insert_clip(v, place(100, 100)).unwrap();
@@ -68,7 +70,7 @@ fn nothing_in_range_is_none() {
 
 #[test]
 fn an_empty_timeline_snaps_only_to_zero() {
-    let tl = Timeline::default();
+    let tl = common::timeline();
     assert_eq!(snap(&tl, 5, 10), Some(0));
     assert_eq!(snap(&tl, 50, 10), None);
 }

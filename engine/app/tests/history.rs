@@ -1,3 +1,5 @@
+mod common;
+
 use framix_app::history::History;
 use framix_core::time::Time;
 use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TimelineError, TrackKind};
@@ -13,7 +15,9 @@ fn place(start: i64, duration: i64) -> ClipPlacement {
 }
 
 fn with_track() -> History {
-    let mut h = History::default();
+    let mut tl = Timeline::default();
+    common::register(&mut tl, &[1]);
+    let mut h = History::new(tl);
     h.apply(|tl| Ok::<_, TimelineError>(tl.add_track(TrackKind::Video)))
         .unwrap();
     h
