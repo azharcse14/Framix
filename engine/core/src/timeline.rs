@@ -632,16 +632,18 @@ impl Timeline {
     /// A video's `r` must play the next source frame. A photo or color shows one picture
     /// whatever its offset, and its offset drifts (a start trim stops it at 0, ENG-060;
     /// [`Timeline::set_photo_durations`] keeps it), so only the order counts (ENG-062): a split
-    /// gives the right half a higher offset and no trim or duration change reverses that, while
-    /// a duplicate repeats its original's offset and is refused. Known gap: a still placed
-    /// after a lower-offset clip of the same still that is not its other half merges too.
+    /// gives the right half a higher offset and trims alone keep that, while a duplicate repeats
+    /// its original's offset and is refused. Known gaps (ENG-064): a still after a lower-offset
+    /// clip of the same still that is not its other half merges too; a photo-duration change
+    /// then a left-half start trim can lift the left offset past the right one (refused).
     fn merge_refusal(&self, l: &Clip, r: &Clip) -> Option<TimelineError> {
         let still = self
             .media(l.media)
             .is_some_and(|m| m.kind() != MediaKind::Video);
-        let next_source = match still {
-            true => r.source_start > l.source_start,
-            false => l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0),
+        let next_source = if still {
+            r.source_start > l.source_start
+        } else {
+            l.source_start.0.checked_add(l.duration.0) == Some(r.source_start.0)
         };
         // `r` picks up where `l` ends: right after it, the same media, the next source.
         let continues = l.end() == r.start && l.media == r.media && next_source;
@@ -848,9 +850,9 @@ impl Timeline {
     /// registered and, for a video, `[source_start, source_start + duration)` lies inside it
     /// ([`TimelineError::NegativeTime`], [`TimelineError::PastMediaEnd`]). Photos and colors have
     /// no length: any range is fine and a start below 0 holds as 0 (ENG-060; the picture ignores
-    /// it, merge uses its order to tell halves of one clip from a duplicate, ENG-062). The one home of the source-range
-    /// rule: insert and trim call it, and split, merge, move and duplicate only keep or narrow a
-    /// range that passed it.
+    /// it, merge uses its order to tell halves of one clip from a duplicate, ENG-062). The one
+    /// home of the source-range rule: insert and trim call it, and split, merge, move and
+    /// duplicate only keep or narrow a range that passed it.
     fn check_source(
         &self,
         media: MediaId,
