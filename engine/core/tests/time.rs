@@ -48,7 +48,31 @@ fn negative_time_floors_to_previous_frame() {
 #[test]
 fn overflow_is_none() {
     assert_eq!(rate(1, 1).frame_to_time(i64::MAX), None);
-    assert_eq!(rate(u32::MAX, 1).time_to_frame(Time(i64::MAX)), None);
+    // ENG-047: a rate this fast is rejected, and no accepted rate has a frame shorter than a
+    // tick, so time_to_frame cannot overflow even at the fastest accepted rate.
+    assert_eq!(Rate::new(u32::MAX, 1), None);
+    assert_eq!(
+        rate(705_600_000, 1).time_to_frame(Time(i64::MAX)),
+        Some(i64::MAX)
+    );
+}
+
+#[test]
+fn frames_shorter_than_a_tick_are_rejected() {
+    // ENG-047: media headers are untrusted; a frame under one tick breaks the round-trip.
+    let max = u32::try_from(TICKS_PER_SECOND).unwrap();
+    assert!(Rate::new(max, 1).is_some());
+    assert_eq!(Rate::new(max + 1, 1), None);
+    assert!(Rate::new(2 * max, 2).is_some());
+    assert_eq!(Rate::new(2 * max + 1, 2), None);
+    assert!(Rate::new(u32::MAX, 7).is_some());
+    assert_eq!(Rate::new(u32::MAX, 6), None);
+}
+
+#[test]
+fn whole_caps_at_one_frame_per_tick() {
+    let max = u32::try_from(TICKS_PER_SECOND).unwrap();
+    assert_eq!(Rate::whole(u32::MAX), rate(max, 1));
 }
 
 fn any_rate() -> impl Strategy<Value = Rate> {
@@ -58,7 +82,30 @@ fn any_rate() -> impl Strategy<Value = Rate> {
     ]
 }
 
+/// Any (num, den), with small denominators weighted so the 1-tick boundary is hit often.
+fn any_parts() -> impl Strategy<Value = (u32, u32)> {
+    prop_oneof![(any::<u32>(), 1u32..=7), (any::<u32>(), any::<u32>())]
+}
+
 proptest! {
+    /// ENG-047: `new` accepts exactly the rates whose frame is at least one tick long.
+    #[test]
+    fn new_accepts_only_frames_of_at_least_a_tick((num, den) in any_parts()) {
+        let fits = num != 0 && den != 0 && i64::from(num) <= i64::from(den) * TICKS_PER_SECOND;
+        prop_assert_eq!(Rate::new(num, den).is_some(), fits);
+    }
+
+    /// ENG-047: every accepted rate round-trips frame -> time -> frame.
+    #[test]
+    fn every_accepted_rate_round_trips((num, den) in any_parts(), frame in any::<i64>()) {
+        let r = Rate::new(num, den);
+        prop_assume!(r.is_some());
+        let r = r.unwrap();
+        let t = r.frame_to_time(frame);
+        prop_assume!(t.is_some());
+        prop_assert_eq!(r.time_to_frame(t.unwrap()), Some(frame));
+    }
+
     #[test]
     fn frame_time_round_trips(r in any_rate(), frame in -1_000_000_000i64..1_000_000_000) {
         // Slow rates (e.g. 1/14 fps) push far frames past i64 ticks; those correctly give

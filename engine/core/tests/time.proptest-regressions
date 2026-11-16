@@ -5,3 +5,5 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc 212ddad9ea0621c61352fe8aa58182f4d6ab57a0c244c34a538ba33de3ecb021 # shrinks to r = Rate { num: 1, den: 14 }, frame = -933690885
+cc 3b1519852ca665c49e14bbdbcc36945574ad0d7b5e631d0c36ee199586f88d88 # shrinks to (num, den) = (2707013845, 1), frame = -1131873871036220115
+cc ec53176fe062dbc74ecb0ed33b00dbfd407bedef57597333a658286bf58366e1 # shrinks to (num, den) = (705600001, 1)
