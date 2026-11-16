@@ -16565,6 +16565,10 @@
     {
      "date": "2026-11-16",
      "text": "tests: real-FileStore tests make entries unstat-able with a read-only, non-searchable (0o444) folder; when permissions aren't enforced (root) they return early with a message, since the case can't be built there."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "review: APPROVE, no Critical. Fixed W1: list_strict's default now fails (Unsupported), so a store or wrapper without it makes the sweep delete nothing (was: lenient list). Fixed nit: in strict mode an error listing the folder itself fails too; only an entry's NotFound stat counts as vanished. Open suggestion: the real-FileStore tests return early when permissions aren't enforced (root CI)."
     }
    ],
    "source": "added"

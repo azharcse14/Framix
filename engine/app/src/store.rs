@@ -29,9 +29,11 @@ pub trait ProjectStore: Send {
     }
     /// Like [`ProjectStore::list`], but an entry that can't be read (other than one that
     /// vanished) fails the whole listing instead of being left out. For callers that delete
-    /// what a listing doesn't name. The default is `list`, for stores that never skip one.
+    /// what a listing doesn't name. The default fails, so a store (or a wrapper) that doesn't
+    /// implement it makes those callers delete nothing.
     fn list_strict(&self, dir: &Path) -> std::io::Result<Vec<(PathBuf, SystemTime)>> {
-        self.list(dir)
+        let _ = dir;
+        Err(std::io::ErrorKind::Unsupported.into())
     }
     /// Regular files directly in `dir` (no folders, links or recursion) with their sizes; names
     /// sharing one file (hard links) count its bytes once.

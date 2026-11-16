@@ -140,8 +140,15 @@ fn files<T>(
 ) -> io::Result<Vec<(PathBuf, T)>> {
     let mut files = Vec::new();
     for entry in fs::read_dir(dir)? {
-        let (path, meta) = match entry.and_then(|e| Ok((e.path(), e.metadata()?))) {
-            Ok(listed) => listed,
+        // An error listing the folder itself ends the listing, so strict fails on it; an
+        // entry's stat that is NotFound means it vanished.
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) if strict => return Err(e),
+            Err(_) => continue,
+        };
+        let (path, meta) = match entry.metadata() {
+            Ok(meta) => (entry.path(), meta),
             Err(e) if strict && e.kind() != io::ErrorKind::NotFound => return Err(e),
             Err(_) => continue,
         };
