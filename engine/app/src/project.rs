@@ -82,8 +82,15 @@ pub enum ProjectError {
     Invalid(#[from] TimelineError),
 }
 
-/// Encodes `timeline` as a project file.
+/// Encodes `timeline` as a project file. Only media some clip uses is listed (ENG-054): the
+/// undo history, which may still need the rest, is not saved.
 pub fn encode(timeline: &Timeline) -> Vec<u8> {
+    let used: std::collections::BTreeSet<MediaId> = timeline
+        .tracks()
+        .iter()
+        .flat_map(|t| t.clips())
+        .map(|c| c.media)
+        .collect();
     let tracks = timeline
         .tracks()
         .iter()
@@ -123,7 +130,11 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
         tracks,
         aspect_width: timeline.aspect().width(),
         aspect_height: timeline.aspect().height(),
-        media: timeline.all_media().map(saved_media).collect(),
+        media: timeline
+            .all_media()
+            .filter(|(id, _)| used.contains(id))
+            .map(saved_media)
+            .collect(),
         export_resolution: match timeline.export().resolution {
             Resolution::P720 => 1,
             Resolution::P1080 => 2,
@@ -148,8 +159,8 @@ pub fn encode(timeline: &Timeline) -> Vec<u8> {
 pub fn encode_for_save(timeline: &Timeline) -> Result<Vec<u8>, ProjectError> {
     let tracks = timeline.tracks();
     let clips: usize = tracks.iter().map(|t| t.clips().len()).sum();
-    let media = timeline.all_media().count();
-    if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS || media > MAX_CLIPS {
+    // The file lists only used media, so the clip cap also keeps it within open's media cap.
+    if tracks.len() > MAX_TRACKS || clips > MAX_CLIPS {
         return Err(ProjectError::TooLarge);
     }
     // Open refuses clips whose media is not listed, so never write one. Timeline::insert_clip

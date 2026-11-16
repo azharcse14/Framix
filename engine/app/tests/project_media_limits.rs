@@ -3,7 +3,8 @@
 use framix_app::project::{MAX_CLIPS, MAX_ID, ProjectError, decode, encode, encode_for_save};
 use framix_app::project_proto::{ProjectFile, SavedClip, SavedMedia, SavedMediaKind, SavedTrack};
 use framix_core::media::{Media, MediaKind, RawMedia};
-use framix_core::timeline::{MediaId, Timeline};
+use framix_core::time::Time;
+use framix_core::timeline::{ClipPlacement, MediaId, Timeline, TrackKind};
 use prost::Message as _;
 
 fn photo() -> Media {
@@ -104,9 +105,19 @@ fn media_and_clip_spans_survive_a_round_trip() {
 
 #[test]
 fn saving_more_media_than_open_allows_is_refused() {
+    // A save lists only used media (ENG-054), so each media needs a clip to count.
     let mut tl = Timeline::default();
+    let track = tl.add_track(TrackKind::Video);
     for id in 1..=MAX_CLIPS as u64 + 1 {
         tl.restore_media(MediaId(id), photo());
+        let start = Time(id as i64 * 10);
+        let placement = ClipPlacement {
+            media: MediaId(id),
+            source_start: Time(0),
+            start,
+            duration: Time(10),
+        };
+        tl.insert_clip(track, placement).unwrap();
     }
     assert!(matches!(encode_for_save(&tl), Err(ProjectError::TooLarge)));
 }
