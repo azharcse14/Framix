@@ -13785,12 +13785,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-16",
    "done": null,
    "commit": null,
-   "branch": null,
-   "notes": [],
+   "branch": "worktree-agent-ac8823c98db2c3c1b",
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "decision: Result is a route the editor pushes on ExportDone (ExportButtons listener); save/share moved there from the app bar (no duplicate). Preview = engine preview texture without canvas gestures plus play/pause (same render path as export), not a player of the exported file. Save to gallery is the one primary (filled) button, Share outlined; Back to edit = app bar back, Done = app bar text button, pops to the first route (Home). Back/Done/system back held while a save or share reads the file."
+    }
+   ],
    "source": "added"
   },
   {
@@ -15868,6 +15873,27 @@
    "title": "SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change",
    "tags": [],
    "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "UX-039",
+   "section": "UX",
+   "group": null,
+   "title": "Export Result: play the exported file itself (native player) and show its duration and size from the engine",
+   "tags": [
+    "Dart",
+    "Rust",
+    "Native"
+   ],
+   "owner": "claude",
    "deferred": false,
    "subphase": null,
    "status": "todo",

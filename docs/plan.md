@@ -990,6 +990,7 @@ Notun user ke bojhano hobe kaj korte korte, ek sathe shob dekhiye na; guide sobs
 - [x] `UX-036` home_from_backup_test: assert the backup notice is visible inside TimelinePage after navigation (find.descendant), not only during the route transition (SYS-040 review) \[Dart\]
 - [x] `UX-037` Autosave failure snackbar can be hidden at once by another message (hideCurrentSnackBar) and shows once per streak; give it a longer duration or keep it (P1-121 review) \[Dart\]
 - [x] `UX-038` One-time notices (openedFromBackup, workRecovered, export results) can be dropped while the autosave failure message shows and one message already waits (messages.dart:27-30); let one-time notices outrank generic failures in the waiting slot; also test the showing=null reset after the autosave message closes (UX-037 review) \[Dart\]
+- [ ] `UX-039` Export Result: play the exported file itself (native player) and show its duration and size from the engine \[Dart\] \[Rust\] \[Native\]
 
 ## Design system
 
