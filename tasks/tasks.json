@@ -17062,6 +17062,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "SYS-054",
+   "section": "SYS",
+   "group": null,
+   "title": "edit_snap_sticky_test.dart:55 has its own wall-clock replyBudget loop (no WidgetTester); count polls like pumpUntilTrue (SYS-052) so a CPU stall cannot flake it",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
