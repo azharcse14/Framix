@@ -512,6 +512,8 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-130` Android JNI shim: attach the engine, render and export threads to the JVM once (thread-local guard that detaches on exit) instead of AttachCurrentThread/DetachCurrentThread per decoder_frame/encoder_frame call (P1-070 review) \[Rust\] \[Native\]
 - [x] `P1-131` Android FrameDecoder keeps a codec and photo per media (small LRU) so PIP with two videos doesn't reopen MediaCodec every frame (P1-098 for Android, P1-070 follow-up) \[Native\]
 - [x] `P1-132` Android FrameDecoder: when Video.open fails (codec resources) with the LRU full, evict the other cached videos and retry once; drop or prove the 'within the hardware decoder limit' comment; try/finally in closeVideo so a codec.release throw still deletes the texture (P1-131 review) \[Native\]
+- [ ] `P1-133` check.sh compiles the Android instrumented tests (./gradlew app:assembleDebugAndroidTest) so src/androidTest cannot break silently \[Native\]
+- [ ] `P1-134` Device check ExportEncoder on a hardware encoder: output bitrate vs kbps (rate control sees queue times), no 'reordered frame' with KEY_MAX_B_FRAMES=0, full Vulkan-swapchain export \[Native\]
 
 ## Phase 2: Audio
 

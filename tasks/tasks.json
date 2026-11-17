@@ -16106,6 +16106,14 @@
     {
      "date": "2026-11-17",
      "text": "emulator run 2026-11-17 (framix_api36, c2.android.avc.encoder): ExportEncoderTest passes, 60 samples at frame times, 320x240, bitrate within +-50% of 12000 kbps; existing ExportEncoder unchanged. Still device-only: 'reordered frame' on hardware encoders ignoring KEY_MAX_B_FRAMES, and a full Vulkan-swapchain export on a real phone."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Draws with HardwareRenderer.syncAndDraw(waitForPresent), not Surface.lockHardwareCanvas: unlockCanvasAndPost queues the buffer later on HWUI's RenderThread, so end of stream overtook the last frames."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Review fix a32fd77: the old 12000 kbps noise band could not fail on undershoot (noise floor ~7 Mbps). Probe on emulator, 8x8 noise blocks: 1466 kbps at max QP, 3874 at 4000 kbps target, 4362 at min QP. Test now 4000 kbps +-25%, measured 3874. Follow-ups: P1-133 (check.sh compiles androidTest), P1-134 (hardware encoder device checks)."
     }
    ],
    "source": "added"
@@ -16939,6 +16947,44 @@
    "title": "flutter_sdk.sh clears app/.dart_tool/hooks_runner keyed on its own pin stamp (misses a rebuild by a bare flutter) and outside the app lock: key on app/.dart_tool/version, clear under app_lock.sh",
    "tags": [
     "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-133",
+   "section": "P1",
+   "group": null,
+   "title": "check.sh compiles the Android instrumented tests (./gradlew app:assembleDebugAndroidTest) so src/androidTest cannot break silently",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-134",
+   "section": "P1",
+   "group": null,
+   "title": "Device check ExportEncoder on a hardware encoder: output bitrate vs kbps (rate control sees queue times), no 'reordered frame' with KEY_MAX_B_FRAMES=0, full Vulkan-swapchain export",
+   "tags": [
+    "Native"
    ],
    "owner": "claude",
    "deferred": false,
