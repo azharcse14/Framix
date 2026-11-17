@@ -17344,6 +17344,30 @@
    "done": null,
    "commit": null,
    "branch": "sys-066",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "review: thumbnail_project_late_test settle() bound filed separately; import_test cancelled-pick check converted here"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "SYS-067",
+   "section": "SYS",
+   "group": null,
+   "title": "thumbnail_project_late_test settle() (15 x 20 ms real time) snapshots the ask count before late first-round failures land; starved, 'asks > first' passes without a second ask; bound it with pumpUntilEarlierReplies (SYS-066 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }
