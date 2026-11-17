@@ -1,11 +1,42 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:framix/core/engine/framix_engine.dart';
+import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 
 import 'pump_until.dart';
 
-/// pumpUntilTrue's, waitUntilTrue's and waitFor's budget (SYS-052, SYS-054, SYS-056).
+/// An engine that answers each command in order, late: 4 polls of real waiting, while the
+/// test process stalls 100 ms before each (480 ms of wall time per reply).
+class _StarvedEngine implements FramixEngine {
+  final _events = StreamController<Event>.broadcast();
+  var _lastId = 0;
+  var _answered = Future<void>.value();
+
+  @override
+  Stream<Event> get events => _events.stream;
+
+  @override
+  int send(Command command, {bool reportsFailure = false}) {
+    final id = ++_lastId;
+    _answered = _answered.then((_) async {
+      for (var i = 0; i < 4; i++) {
+        sleep(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      _events.add(Event(commandFailed: CommandFailed(commandId: Int64(id))));
+    });
+    return id;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// pumpUntilTrue's, waitUntilTrue's and waitFor's budget (SYS-052, SYS-054, SYS-056), and
+/// waitForEarlierReplies' bound (SYS-060).
 void main() {
   const budget = Duration(milliseconds: 200);
 
@@ -81,5 +112,23 @@ void main() {
       ),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('waitForEarlierReplies: a starved engine has answered every earlier '
+      'command, also one sent at the end of this turn', () async {
+    // A fixed 300 ms wait saw none of these replies (SYS-060).
+    final engine = _StarvedEngine();
+    final answered = <int>[];
+    final listening = engine.events.listen(
+      (e) => answered.add(e.commandFailed.commandId.toInt()),
+    );
+    final first = engine.send(Command());
+    late final int batched;
+    // Like ThumbnailCubit, which sends its asks in a microtask.
+    scheduleMicrotask(() => batched = engine.send(Command()));
+
+    final sentinel = await waitForEarlierReplies(engine);
+    expect(answered, [first, batched, sentinel]);
+    await listening.cancel();
   });
 }

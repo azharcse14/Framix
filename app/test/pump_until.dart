@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
+import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 
 /// How long to wait for an engine reply, counted in polls of at least 20 ms real time each.
 /// Generous on purpose: a reply that writes the library (atomic save: two fsyncs, which on
@@ -67,6 +68,28 @@ Future<T> waitFor<T>(
   reply.then((_) => done = true, onError: (_) => done = true).ignore();
   await waitUntilTrue(() => done, () => what, budget: budget);
   return reply;
+}
+
+/// Waits until [engine] has answered every command sent before this call, also those sent at
+/// the end of this turn (ThumbnailCubit batches its asks so); for a plain `test` (see
+/// [waitUntilTrue]). Sends a sentinel ask the engine always refuses and waits for its reply:
+/// the engine answers in command order (one queue, one thread), so earlier replies are all in
+/// by then. A check that something was not sent gets its bound from this, not from a fixed
+/// sleep (SYS-060). Returns the sentinel's id, to leave its own CommandFailed out of a count.
+Future<int> waitForEarlierReplies(FramixEngine engine) async {
+  await Future<void>.delayed(Duration.zero);
+  late final int id;
+  bool answers(Event e) =>
+      e.hasCommandFailed() && e.commandFailed.commandId.toInt() == id ||
+      e.hasCommandAccepted() && e.commandAccepted.commandId.toInt() == id;
+  final reply = engine.events.firstWhere(answers);
+  // Size 0 is out of range on every platform; kept off [FramixEngine.failures].
+  id = engine.send(
+    Command(requestThumbnails: RequestThumbnails(maxSide: 0)),
+    reportsFailure: true,
+  );
+  await waitFor(reply, 'no reply to the sentinel $id');
+  return id;
 }
 
 /// Pumps until [finder] finds something.
