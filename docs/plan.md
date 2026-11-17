@@ -1178,9 +1178,10 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-052` Flaky under CPU load: home_storage_test 'the menu shows the sizes; Clear cache removes the cache' times out in pumpUntilTrue waiting for 'Add video track' (seen in ENG-047 check.sh, passes alone 3/3) \[Dart\]
 - [ ] `SYS-053` check.sh --quick silently skips every check when the changed list is large (untracked target dir): touched() pipes printf into grep -q under pipefail, grep exits early, printf gets SIGPIPE (141) \[—\]
 - [x] `SYS-054` edit_snap_sticky_test.dart:55 has its own wall-clock replyBudget loop (no WidgetTester); count polls like pumpUntilTrue (SYS-052) so a CPU stall cannot flake it \[Dart\]
-- [ ] `SYS-055` check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag) \[Dart\]
+- [x] `SYS-055` check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag) \[Dart\]
 - [ ] `SYS-056` Dart tests: engine reply waits via .timeout(5 s), fixed 300 ms sleeps (thumbnail_project*_test) and unbounded while-loops (command_failed_test) should use waitUntilTrue/pumpUntilTrue poll budget \[Dart\]
 - [ ] `SYS-057` gen_ffi.sh: protoc-gen-dart prints 'Can't load Kernel binary: Invalid SDK hash.' on every run (stale ~/.pub-cache protoc_plugin global snapshot from another Dart); refresh or reactivate it under the pinned Dart \[Dart\]
+- [ ] `SYS-058` check_quick_test.sh: add negative assert (untouched scripts/ stays skipped) and unset GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE before its temp-repo git calls (SYS-055 review warnings) \[Dart\]
 
 ## Engine ar platform er gobhir details
 

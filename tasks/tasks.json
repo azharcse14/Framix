@@ -17082,6 +17082,10 @@
     {
      "date": "2026-11-17",
      "text": "superseded by SYS-055 (claude-owned re-file; '—' tag made this human). Human: close with 'task.py done SYS-053 --as-human --commit <sha of SYS-055 fix>'."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "fixed by SYS-055 commit 1d9ebb1 (here-string grep -q in check.sh touched() and gen_ffi.sh)"
     }
    ],
    "source": "added"
@@ -17116,11 +17120,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "1d9ebb1",
+   "branch": "main",
    "notes": [],
    "source": "added"
   },
@@ -17148,6 +17152,25 @@
    "section": "SYS",
    "group": null,
    "title": "gen_ffi.sh: protoc-gen-dart prints 'Can't load Kernel binary: Invalid SDK hash.' on every run (stale ~/.pub-cache protoc_plugin global snapshot from another Dart); refresh or reactivate it under the pinned Dart",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-058",
+   "section": "SYS",
+   "group": null,
+   "title": "check_quick_test.sh: add negative assert (untouched scripts/ stays skipped) and unset GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE before its temp-repo git calls (SYS-055 review warnings)",
    "tags": [
     "Dart"
    ],

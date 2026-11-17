@@ -25,7 +25,8 @@ if [ $QUICK -eq 1 ] && git rev-parse --git-dir >/dev/null 2>&1; then
   changed=$({ git diff --name-only "$base" 2>/dev/null; git diff --name-only; git ls-files --others --exclude-standard; } | sort -u)
   if [ -z "$changed" ]; then echo "No changes; nothing to check."; exit 0; fi
 fi
-touched() { [ $QUICK -eq 0 ] || printf '%s\n' "$changed" | grep -q "^$1"; }
+# Here-string, not a pipe: under pipefail, grep -q exiting early gives the writer SIGPIPE (141).
+touched() { [ $QUICK -eq 0 ] || grep -q "^$1" <<<"$changed"; }
 
 # Task tracker consistency (fast, always)
 run python3 scripts/task.py check
@@ -71,6 +72,7 @@ if touched scripts/; then
   run scripts/codegen_lock_test.sh
   run scripts/flutter_sdk_test.sh
   run scripts/native_warnings_test.sh
+  run scripts/check_quick_test.sh
   # A Gradle build: in --quick mode only when the Android build script or its test changed.
   touched scripts/android_test_build && run scripts/android_test_build_test.sh
 fi
