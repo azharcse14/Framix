@@ -10,5 +10,5 @@
 # then. The lock also keeps it off generated files that codegen is rewriting.
 set -u
 cd "$(dirname "$0")/../app" || exit 1
-if command -v fvm >/dev/null 2>&1; then flutter=(fvm flutter); else flutter=(flutter); fi
-exec ../scripts/app_lock.sh "${flutter[@]}" test "$@"
+. ../scripts/flutter_sdk.sh || exit 1
+exec ../scripts/app_lock.sh "${FLUTTER[@]}" test "$@"
