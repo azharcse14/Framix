@@ -17239,11 +17239,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "6aed712",
+   "branch": "main",
    "notes": [],
    "source": "added"
   },
@@ -17271,6 +17271,25 @@
    "section": "SYS",
    "group": null,
    "title": "Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-064",
+   "section": "SYS",
+   "group": null,
+   "title": "gen_ffi_test.sh: pin the warm-up's && in gen_ffi.sh (a warm-up that exits non-zero with empty stderr must fail the run; SYS-061 review)",
    "tags": [
     "Dart"
    ],
