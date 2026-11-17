@@ -1171,6 +1171,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-047` check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up) \[Dart\]
 - [ ] `SYS-048` SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change
 - [x] `SYS-049` check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test \[Dart\]
+- [ ] `SYS-050` Flaky under CPU load: home_storage_test 'the menu shows the sizes; Clear cache removes the cache' times out in pumpUntilTrue waiting for 'Add video track' (seen in ENG-047 check.sh, passes alone 3/3) \[Dart\]
 
 ## Engine ar platform er gobhir details
 
@@ -1251,7 +1252,7 @@ Egula feature na, kintu engine design er shomoy na bhabhle pore boro rewrite lag
 - [ ] `ENG-044` CI te buf lint ar buf breaking: proto/ er protita change main er sathe compare \[—\]
 - [x] `ENG-045` engine\_create e protocol version handshake; na mile debug e shathe shathe fail, release e error event ar Sentry report \[Rust\]\[Dart\]
 - [x] `ENG-046` Project file schema o eki niyom: notun field optional ar thik default; protita purono version er fixture project diye migration test \[Rust\]
-- [ ] `ENG-047` Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe \[Rust\]
+- [x] `ENG-047` Rate::new e num > den*TICKS_PER_SECOND reject koro (frame 1 tick er choto hole round-trip bhange; media header untrusted). Frozen test overflow_is_none bodlate hobe, tai user approval lagbe \[Rust\]
 - [x] `ENG-048` time proptest gula unwrap kore dhore ney je ±1e9 frame shob rate e i64 e fit kore; dhire rate (jemon 1/14 fps) e overflow hoy ar code thik vabe None dey. Test e representable range e prop_assume \[Rust\]
 - [x] `ENG-049` Engine sends track display name/per-kind number in Track; Dart stops numbering by list index \[Rust\] \[Dart\]
 - [x] `ENG-050` Engine emits initial TimelineChanged on set_event_callback (or GetTimeline command) so the cubit never starts from a Dart-made state; see GOT-008 \[Rust\]

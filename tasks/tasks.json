@@ -12570,10 +12570,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-16",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-17",
+   "commit": "4278c13",
    "branch": "worktree-agent-a55626d1a3695965d",
    "notes": [
     {
@@ -16886,6 +16886,25 @@
    "title": "Undo history byte budget or shared snapshots (Arc'd tracks/media registry); the GOT-051 count cap alone is unbounded in bytes for very large projects",
    "tags": [
     "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-050",
+   "section": "SYS",
+   "group": null,
+   "title": "Flaky under CPU load: home_storage_test 'the menu shows the sizes; Clear cache removes the cache' times out in pumpUntilTrue waiting for 'Add video track' (seen in ENG-047 check.sh, passes alone 3/3)",
+   "tags": [
+    "Dart"
    ],
    "owner": "claude",
    "deferred": false,
