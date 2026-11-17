@@ -54,6 +54,11 @@ if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh 
   run scripts/flutter_test.sh
 fi
 
+# Android instrumented tests must compile (they only run on a device or emulator).
+if [ -f app/android/app/build.gradle.kts ] && { touched app/android/ || touched scripts/android_test_build.sh; }; then
+  run scripts/android_test_build.sh
+fi
+
 # Generated FFI code must match its sources (header from engine/ffi, Dart from the header).
 if touched engine/ || touched app/ || touched proto/; then
   run scripts/gen_ffi.sh
@@ -64,6 +69,8 @@ fi
 if touched scripts/; then
   run scripts/codegen_lock_test.sh
   run scripts/flutter_sdk_test.sh
+  # Gradle build: only when the Android build script or its test changed.
+  touched scripts/android_test_build && run scripts/android_test_build_test.sh
 fi
 
 # Protobuf contract
