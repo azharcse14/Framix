@@ -72,6 +72,9 @@ unsafe extern "C" fn no_finish(_: *mut c_void, _: *mut c_void, _: bool) -> i32 {
 }
 
 static SINK: Mutex<Option<Sender<Vec<u8>>>> = Mutex::new(None);
+/// A held request (done, done_ctx, texture_id, texture) the platform answers while
+/// `EngineStopped` is being delivered: the engine thread is still alive, its last event out.
+static ANSWER_ON_STOP: Mutex<Option<(usize, usize, i64, usize)>> = Mutex::new(None);
 static TURN: Mutex<()> = Mutex::new(());
 
 unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
@@ -79,6 +82,18 @@ unsafe extern "C" fn on_event(ptr: *mut u8, len: usize) {
     let bytes = unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec();
     // SAFETY: ownership came with the call; freed exactly once here.
     unsafe { engine_free_buffer(EngineBuffer { ptr, len }) };
+    let stopped = matches!(
+        Event::decode(bytes.as_slice()).map(|e| e.kind),
+        Ok(Some(event::Kind::EngineStopped(_)))
+    );
+    if stopped && let Some((done, ctx, id, texture)) = ANSWER_ON_STOP.lock().unwrap().take() {
+        // SAFETY: `done` is the EnginePreviewTextureDone the engine passed with `ctx`,
+        // answered once, here.
+        unsafe {
+            let done: EnginePreviewTextureDone = std::mem::transmute(done);
+            done(ctx as *mut c_void, ENGINE_OK, id, texture as *mut c_void);
+        }
+    }
     if let Some(tx) = SINK.lock().unwrap().as_ref() {
         let _ = tx.send(bytes);
     }
@@ -251,4 +266,23 @@ fn a_failed_answer_after_the_engine_stopped_releases_nothing() {
         done(ctx as *mut c_void, -1, 8, std::ptr::null_mut());
     }
     assert!(RELEASED.lock().unwrap().iter().all(|&(id, _)| id != 8));
+}
+
+/// SYS-065: an answer racing the engine's last event (sent after the final drain, before the
+/// engine thread exits) was dropped with the inbox and its texture never released.
+#[test]
+fn a_texture_made_while_the_engine_sends_its_last_event_is_released() {
+    let s = Session::start(0);
+    s.create_preview();
+    assert_eq!(
+        s.next_event(),
+        event::Kind::CommandAccepted(Default::default())
+    );
+    let (done, ctx) = HELD.lock().unwrap().take().expect("a held request");
+    *ANSWER_ON_STOP.lock().unwrap() = Some((done, ctx, 7, 0x77));
+    // SAFETY: not used after this.
+    assert_eq!(unsafe { engine_destroy(s.engine) }, ENGINE_OK);
+    // Waits for EngineStopped; on_event answered the request before passing it on.
+    drop(s);
+    assert!(RELEASED.lock().unwrap().contains(&(7, 0x77)));
 }
