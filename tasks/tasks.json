@@ -17196,11 +17196,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
+   "status": "in_progress",
+   "started": "2026-11-17",
    "done": null,
    "commit": null,
-   "branch": null,
+   "branch": "sys-059",
    "notes": [],
    "source": "added"
   }
