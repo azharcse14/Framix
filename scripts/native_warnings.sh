@@ -61,6 +61,14 @@ Problem found: Kotlin compiler warning
 sentry_flutter-[0-9.]+/android/src/main/AndroidManifest\.xml:[0-9:-]+ Warning:
 sentry_flutter-[0-9.]+/Sources/sentry_flutter_objc/.*warning: pointer is missing a nullability
 ^ *\|( +\|)*- warning: pointer is missing a nullability type specifier
+# Cold build (empty Gradle user home) only. Plugin buildscript classpaths (package_info_plus
+# 10.2.2: AGP 8.12.1; sentry_flutter 10.2.0: AGP 7.4.2) pull transform-api, whose version is
+# "2.0.0-deprecated-use-gradle-api"; the Gradle download and transform-cache info lines name
+# the file, so "deprecated" there is a file name, not a diagnostic. Whole line anchored.
+^(\[[^]]*\] *)?(Caching disabled for [A-Za-z]+Transform: [^ ]*/transform-api-2\.0\.0-deprecated-use-gradle-api\.jar because:|Downloading https://[^ ]*/transform-api-2\.0\.0-deprecated-use-gradle-api\.(jar|pom) to [^ ]*)$
+# package_info_plus 10.2.2 android/build.gradle.kts:47 uses the old android {} accessor;
+# printed when Gradle compiles that build script (cold script cache).
+^(\[[^]]*\] *)?w: file://[^ ]*/package_info_plus-10\.2\.2/android/build\.gradle\.kts:47:1: .fun Project\.android\(.* is deprecated
 # AGP CMake log line; ANDROID_NDK_HOME is not used (ndkVersion is pinned).
 Not considering ANDROID_NDK_HOME
 '
