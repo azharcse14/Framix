@@ -17339,10 +17339,10 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-17",
-   "done": null,
-   "commit": null,
+   "done": "2026-11-17",
+   "commit": "ccdd341",
    "branch": "sys-066",
    "notes": [
     {

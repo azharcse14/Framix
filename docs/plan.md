@@ -1189,7 +1189,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-063` Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies \[Dart\]
 - [ ] `SYS-064` gen_ffi_test.sh: pin the warm-up's && in gen_ffi.sh (a warm-up that exits non-zero with empty stderr must fail the run; SYS-061 review) \[Dart\]
 - [ ] `SYS-065` Flaky ffi test platform_release.rs a_texture_made_after_the_engine_stopped_is_released: failed once in check.sh (RELEASED lacks (9, 0x99), line 232), passed 5/5 on rerun; likely shared statics (HELD/RELEASED/callbacks) across its two parallel tests \[Rust\]
-- [ ] `SYS-066` Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies \[Dart\]
+- [x] `SYS-066` Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies \[Dart\]
 - [ ] `SYS-067` thumbnail_project_late_test settle() (15 x 20 ms real time) snapshots the ask count before late first-round failures land; starved, 'asks > first' passes without a second ask; bound it with pumpUntilEarlierReplies (SYS-066 review) \[Dart\]
 
 ## Engine ar platform er gobhir details
