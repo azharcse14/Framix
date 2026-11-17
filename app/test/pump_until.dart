@@ -83,8 +83,11 @@ Future<int> waitForEarlierReplies(FramixEngine engine) async {
       e.hasCommandFailed() && e.commandFailed.commandId.toInt() == id ||
       e.hasCommandAccepted() && e.commandAccepted.commandId.toInt() == id;
   final reply = engine.events.firstWhere(answers);
-  // Size 0 is out of range on every platform.
-  id = engine.send(Command(requestThumbnails: RequestThumbnails(maxSide: 0)));
+  // Size 0 is out of range on every platform; kept off [FramixEngine.failures].
+  id = engine.send(
+    Command(requestThumbnails: RequestThumbnails(maxSide: 0)),
+    reportsFailure: true,
+  );
   await waitFor(reply, 'no reply to the sentinel $id');
   return id;
 }
