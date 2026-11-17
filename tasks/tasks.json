@@ -12579,6 +12579,14 @@
     {
      "date": "2026-11-16",
      "text": "user approved the frozen-test change (2026-11-16)"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "decision: no production caller of Rate::new exists yet (media headers do not parse rates; the project file stores the export fps as enum 1/2/3 -> FrameRate::whole(24/30/60)), so no saved project or media can now fail to open; future header parsers get None and must use their invalid-rate path. Rate::whole also caps at TICKS_PER_SECOND to keep the invariant."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "test-only fix after review: every_accepted_rate_round_trips filtered random i64 frames and hit proptest's global reject limit; its generator now yields only accepted rates and representable frames (same property; still red on the old Rate::new)"
     }
    ],
    "source": "added"
