@@ -5,6 +5,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/playhead_cubit.dart';
 
+import '../../pump_until.dart';
+
 const second = 705600000;
 
 void main() {
@@ -42,7 +44,7 @@ void main() {
         ),
       ),
     );
-    await imported.timeout(const Duration(seconds: 5));
+    await waitFor(imported, 'no import reply');
   });
 
   tearDown(() async {
@@ -57,8 +59,7 @@ void main() {
     final landed = engine.events.firstWhere((e) => e.hasPlayheadChanged());
     cubit.seek(ticks, snapWithin: snapWithin);
     expect(
-      (await landed.timeout(const Duration(seconds: 5))).playheadChanged.time
-          .toInt(),
+      (await waitFor(landed, 'no seek reply')).playheadChanged.time.toInt(),
       expected,
     );
     // Let the cubit handle the same event and the haptic call reach the mock.

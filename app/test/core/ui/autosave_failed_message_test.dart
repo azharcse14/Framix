@@ -9,6 +9,8 @@ import 'package:framix/l10n/app_delegates.dart';
 import 'package:framix/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../pump_until.dart';
+
 /// The engine's failures, played by the test.
 class _FakeEngine implements FramixEngine {
   final _failures = StreamController<CommandFailed>.broadcast();
@@ -42,7 +44,7 @@ void main() {
       ),
     );
     engine.send(Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_AUDIO)));
-    final f = await failed.timeout(const Duration(seconds: 10));
+    final f = await waitFor(failed, 'no autosave failure');
     expect(f.commandId.toInt(), 0);
   });
 
