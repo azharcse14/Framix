@@ -4,8 +4,9 @@
 /// x/1001 rates) and audio sample rate divides it exactly.
 pub const TICKS_PER_SECOND: i64 = 705_600_000;
 
-/// [`TICKS_PER_SECOND`] as a `u32`: the fastest whole rate. Checked at compile time.
-const MAX_WHOLE_FPS: u32 = {
+/// [`TICKS_PER_SECOND`] as a `u32` (a timescale, and the fastest whole [`Rate`]). Checked at
+/// compile time.
+pub const TICKS_PER_SECOND_U32: u32 = {
     assert!(TICKS_PER_SECOND <= u32::MAX as i64);
     TICKS_PER_SECOND as u32
 };
@@ -37,7 +38,7 @@ impl Rate {
     /// `fps` whole frames per second; 0 counts as 1, and it is capped at one frame per tick.
     pub fn whole(fps: u32) -> Self {
         Self {
-            num: fps.clamp(1, MAX_WHOLE_FPS),
+            num: fps.clamp(1, TICKS_PER_SECOND_U32),
             den: 1,
         }
     }
@@ -57,7 +58,8 @@ impl Rate {
         i64::try_from(ticks).ok().map(Time)
     }
 
-    /// Index of the frame showing at `time`. `None` if it does not fit in an i64.
+    /// Index of the frame showing at `time`. Always `Some`: a frame is at least one tick, so
+    /// the index is never larger in magnitude than `time`.
     pub fn time_to_frame(self, time: Time) -> Option<i64> {
         let frame =
             (i128::from(time.0) * i128::from(self.num)).div_euclid(self.ticks_per_frame_num());
