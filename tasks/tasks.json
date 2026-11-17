@@ -17130,11 +17130,30 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "ea1aee6",
+   "branch": "sys-056",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-057",
+   "section": "SYS",
+   "group": null,
+   "title": "thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "sys-056",
+   "branch": null,
    "notes": [],
    "source": "added"
   }

@@ -1179,7 +1179,8 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-053` check.sh --quick silently skips every check when the changed list is large (untracked target dir): touched() pipes printf into grep -q under pipefail, grep exits early, printf gets SIGPIPE (141) \[—\]
 - [x] `SYS-054` edit_snap_sticky_test.dart:55 has its own wall-clock replyBudget loop (no WidgetTester); count polls like pumpUntilTrue (SYS-052) so a CPU stall cannot flake it \[Dart\]
 - [ ] `SYS-055` check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag) \[Dart\]
-- [ ] `SYS-056` Dart tests: engine reply waits via .timeout(5 s), fixed 300 ms sleeps (thumbnail_project*_test) and unbounded while-loops (command_failed_test) should use waitUntilTrue/pumpUntilTrue poll budget \[Dart\]
+- [x] `SYS-056` Dart tests: engine reply waits via .timeout(5 s), fixed 300 ms sleeps (thumbnail_project*_test) and unbounded while-loops (command_failed_test) should use waitUntilTrue/pumpUntilTrue poll budget \[Dart\]
+- [ ] `SYS-057` thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound) \[Dart\]
 
 ## Engine ar platform er gobhir details
 
