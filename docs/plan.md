@@ -1192,7 +1192,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-066` Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies \[Dart\]
 - [x] `SYS-067` thumbnail_project_late_test settle() (15 x 20 ms real time) snapshots the ask count before late first-round failures land; starved, 'asks > first' passes without a second ask; bound it with pumpUntilEarlierReplies (SYS-066 review) \[Dart\]
 - [ ] `SYS-068` thumbnail_project_late_test counts every CommandFailed, also its own SaveProject/OpenProject: a refused save or open passes 'asks > first' without a second ask; leave their ids out of the count (SYS-067 review) \[Dart\]
-- [ ] `SYS-069` Minimal FFmpeg 8.0.x LGPL build script (ADR 0009): iOS dynamic frameworks, Android arm64-v8a/x86_64 .so (unversioned SONAME, 16 KB aligned), macOS host build for tests; asserts *_license() and avformat_configuration(); pinned source hash; FFMPEG_BINDING_PATH binding per target \[Native\] \[C++\]
+- [x] `SYS-069` Minimal FFmpeg 8.0.x LGPL build script (ADR 0009): iOS dynamic frameworks, Android arm64-v8a/x86_64 .so (unversioned SONAME, 16 KB aligned), macOS host build for tests; asserts *_license() and avformat_configuration(); pinned source hash; FFMPEG_BINDING_PATH binding per target \[Native\] \[C++\]
 
 ## Engine ar platform er gobhir details
 

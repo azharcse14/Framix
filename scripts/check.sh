@@ -75,6 +75,7 @@ if touched scripts/; then
   run scripts/gen_ffi_test.sh
   run scripts/native_warnings_test.sh
   run scripts/check_quick_test.sh
+  run scripts/build_ffmpeg_test.sh
   # A Gradle build: in --quick mode only when the Android build script or its test changed.
   touched scripts/android_test_build && run scripts/android_test_build_test.sh
 fi
