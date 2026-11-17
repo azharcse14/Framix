@@ -13,10 +13,11 @@ const replyBudget = Duration(seconds: 10);
 Future<void> pumpUntilTrue(
   WidgetTester tester,
   bool Function() done,
-  String Function() what,
-) async {
+  String Function() what, {
+  Duration budget = replyBudget,
+}) async {
   final clock = Stopwatch()..start();
-  while (clock.elapsed < replyBudget) {
+  while (clock.elapsed < budget) {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 20)),
     );
