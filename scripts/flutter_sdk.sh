@@ -18,16 +18,19 @@ if [ -z "$flutter_sdk_pin" ] || [ "$flutter_sdk_actual" != "$flutter_sdk_pin" ];
   return 1 2>/dev/null || exit 1
 fi
 # app/.dart_tool/hooks_runner holds kernel snapshots of the SDK that built them; after an SDK
-# switch `dart run` fails with "Invalid SDK hash". Flutter writes its own version to
-# app/.dart_tool/version on every run in app/, so clear hooks_runner while that differs from the
-# pin (also after a bare flutter of another version ran there); the pinned flutter rewrites it
-# on its next run. Re-checked and cleared under the app lock, so a locked flutter run that is
-# rebuilding hooks_runner is never cut off.
-flutter_sdk_dir="$(dirname "${BASH_SOURCE[0]}")"
-flutter_sdk_version="$flutter_sdk_dir/../app/.dart_tool/version"
-if [ -f "$flutter_sdk_version" ] && [ "$(cat "$flutter_sdk_version")" != "$flutter_sdk_pin" ]; then
-  "$flutter_sdk_dir/app_lock.sh" sh -c '[ "$(cat "$1")" = "$2" ] || rm -rf "${1%/*}/hooks_runner"' \
-    sh "$flutter_sdk_version" "$flutter_sdk_pin" || true
+# switch `dart run` fails with "Invalid SDK hash". It is stale when app/.dart_tool/version
+# (written by the last Flutter pub get in app/) differs from the pin, or when a hook's
+# hook.dependencies_hash_file.json lists a <flutterRoot>/bin/cache/dart-sdk/version whose
+# content differs from the pinned SDK's (compared by content, so a symlinked SDK path matches).
+# Checked, then re-checked and cleared under the app lock so a locked run is never cut off.
+# $1 = app/.dart_tool, $2 = pin, $3 = the pinned SDK's dart-sdk/version.
+flutter_sdk_stale='{ [ -f "$1/version" ] && [ "$(cat "$1/version")" != "$2" ]; } ||
+  ! grep -ho "\"[^\"]*/bin/cache/dart-sdk/version\"" "$1"/hooks_runner/*/*/hook.dependencies_hash_file.json 2>/dev/null |
+    tr -d "\"" | while IFS= read -r v; do cmp -s "$v" "$3" || exit 1; done'
+flutter_sdk_args=(sh "$(dirname "${BASH_SOURCE[0]}")/../app/.dart_tool" "$flutter_sdk_pin" "$FLUTTER_SDK_BIN/cache/dart-sdk/version")
+if [ -d "${flutter_sdk_args[1]}/hooks_runner" ] && sh -c "$flutter_sdk_stale" "${flutter_sdk_args[@]}"; then
+  "$(dirname "${BASH_SOURCE[0]}")/app_lock.sh" sh -c "if $flutter_sdk_stale; then rm -rf \"\$1/hooks_runner\"; fi" \
+    "${flutter_sdk_args[@]}" || true
 fi
 FLUTTER=(fvm flutter)
 DART=(fvm dart)
