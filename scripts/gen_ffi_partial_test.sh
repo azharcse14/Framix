@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# Regression test (SYS-059): protoc in gen_ffi.sh runs under the app lock and writes into a temp
-# dir, so a run that fails halfway (here: a partial engine.pb.dart, then exit 1) leaves the
-# committed proto dir byte-identical. A fake protoc on PATH checks the lock is held (a
-# non-blocking lock attempt must fail), records that it ran, and writes the partial file into
-# its --dart_out. Not run under the lock itself (that would make the check vacuous); the backup
-# and restore take it.
+# Regression test (SYS-059; replaces gen_ffi_failure_test.sh): protoc in gen_ffi.sh runs under
+# the app lock and writes into a temp dir, so a run that fails halfway (here: a partial
+# engine.pb.dart, then exit 1) leaves the committed proto dir byte-identical. A fake protoc on
+# PATH checks the lock is held (a non-blocking lock attempt must fail), records that it ran, and
+# writes the partial file into its --dart_out. Not run under the lock itself: an outer holder
+# blocks the probe even if gen_ffi.sh took no lock, so it refuses an inherited FRAMIX_APP_LOCK.
+# The backup, final diff and restore take the lock per step.
 set -u
 cd "$(dirname "$0")/.." || exit 1
+if [ -n "${FRAMIX_APP_LOCK:-}" ]; then
+  echo "✗ gen_ffi_partial_test: refusing to run with FRAMIX_APP_LOCK set (its lock check would pass regardless)" >&2
+  exit 1
+fi
 proto=app/lib/core/engine/proto
 lock_file="$PWD/app/.dart_tool/flutter_test.lock"
 tmp=$(mktemp -d)
@@ -29,6 +34,7 @@ expect() { [ "$2" = "$3" ] || { echo "✗ gen_ffi_partial_test: $1: got '$2', wa
 expect "gen_ffi.sh fails when protoc fails" \
   "$(PATH="$tmp/bin:$PATH" scripts/gen_ffi.sh >/dev/null 2>&1 && echo ok || echo FAIL)" FAIL
 expect "protoc ran under the app lock" "$(cat "$tmp/marker" 2>/dev/null || echo 'never ran')" locked
-expect "proto dir unchanged" "$(diff -r "$tmp/proto" "$proto" >/dev/null 2>&1 && echo same || echo changed)" same
+expect "proto dir unchanged" \
+  "$(scripts/app_lock.sh diff -r "$tmp/proto" "$proto" >/dev/null 2>&1 && echo same || echo changed)" same
 [ $fail -eq 0 ] && echo "✓ gen_ffi_partial_test"
 exit $fail
