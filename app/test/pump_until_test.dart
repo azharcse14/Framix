@@ -9,7 +9,8 @@ import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'pump_until.dart';
 
 /// An engine that answers each command in order, late: 4 polls of real waiting, while the
-/// test process stalls 100 ms before each (480 ms of wall time per reply).
+/// test process stalls 100 ms before each (480 ms of wall time per reply). Its waits run on
+/// real timers, also inside `testWidgets`, like the native port a real engine answers on.
 class _StarvedEngine implements FramixEngine {
   final _events = StreamController<Event>.broadcast();
   var _lastId = 0;
@@ -24,7 +25,9 @@ class _StarvedEngine implements FramixEngine {
     _answered = _answered.then((_) async {
       for (var i = 0; i < 4; i++) {
         sleep(const Duration(milliseconds: 100));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await Zone.root.run(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
       }
       _events.add(Event(commandFailed: CommandFailed(commandId: Int64(id))));
     });
@@ -130,5 +133,25 @@ void main() {
     final sentinel = await waitForEarlierReplies(engine);
     expect(answered, [first, batched, sentinel]);
     await listening.cancel();
+  });
+
+  testWidgets('pumpUntilEarlierReplies: a starved engine has answered every '
+      'earlier command, also one sent at the end of this turn', (tester) async {
+    // waitForEarlierReplies' twin for testWidgets, whose fake clock hangs that one; a fixed
+    // 200 ms wait there saw none of these replies (SYS-066).
+    final engine = _StarvedEngine();
+    final answered = <int>[];
+    final listening = engine.events.listen(
+      (e) => answered.add(e.commandFailed.commandId.toInt()),
+    );
+    final first = engine.send(Command());
+    late final int batched;
+    scheduleMicrotask(() => batched = engine.send(Command()));
+
+    final sentinel = await pumpUntilEarlierReplies(tester, engine);
+    expect(answered, [first, batched, sentinel]);
+    // Not awaited: its done future completes outside the fake clock, which then never
+    // flushes the test's own end, so the test would hang.
+    unawaited(listening.cancel());
   });
 }

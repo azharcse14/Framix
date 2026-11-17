@@ -42,10 +42,7 @@ void main() {
       () => cubit(tester).state.export.fps == ExportFps.EXPORT_FPS_60,
     );
     // Let any late reply land too.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 200)),
-    );
-    await tester.pump();
+    await pumpUntilEarlierReplies(tester, engine);
     expect(
       cubit(tester).state.export.resolution,
       ExportResolution.EXPORT_RESOLUTION_4K,

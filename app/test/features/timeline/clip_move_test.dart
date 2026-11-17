@@ -91,10 +91,7 @@ void main() {
     await oneClip(tester);
     final before = clip(tester);
     await tester.dragFrom(before.center, const Offset(0, 40));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 200)),
-    );
-    await tester.pump();
+    await pumpUntilEarlierReplies(tester, engine);
     expect(clip(tester).left, closeTo(before.left, 1));
     expect(find.text(l10n.clipCount(1)), findsOneWidget);
   });

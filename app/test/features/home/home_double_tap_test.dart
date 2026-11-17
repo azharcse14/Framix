@@ -32,12 +32,7 @@ void main() {
     await tester.tap(find.text(l10n.newProject));
     await tester.tap(find.text(l10n.newProject), warnIfMissed: false);
     await pumpUntil(tester, find.byType(TimelinePage));
-    for (var i = 0; i < 10; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+    await pumpUntilEarlierReplies(tester, engine);
     expect(find.byType(TimelinePage, skipOffstage: false), findsOneWidget);
   });
 }
