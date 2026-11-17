@@ -5,6 +5,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 
+import '../../pump_until.dart';
+
 const second = 705600000;
 
 /// A [ms] long video.
@@ -49,8 +51,8 @@ void main() {
     );
     send();
     final t = (await changed).timelineChanged;
-    // Let the cubit handle the same event and the haptic call reach the mock.
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Every reply sent so far, so a tick a later reply would cause is in too.
+    await waitForEarlierReplies(engine);
     return t;
   }
 

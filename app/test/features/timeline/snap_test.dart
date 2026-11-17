@@ -62,8 +62,8 @@ void main() {
       (await waitFor(landed, 'no seek reply')).playheadChanged.time.toInt(),
       expected,
     );
-    // Let the cubit handle the same event and the haptic call reach the mock.
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Every reply sent so far, so a tick a later reply would cause is in too.
+    await waitForEarlierReplies(engine);
   }
 
   test('a scrub near an edge snaps to it with one haptic tick', () async {

@@ -67,7 +67,7 @@ void main() {
       ..seek(2 * second)
       ..seek(3 * second);
     expect(await playheadBecomes(3 * second), 3 * second);
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await waitForEarlierReplies(engine);
     expect(replies, 1);
     await counting.cancel();
   });
