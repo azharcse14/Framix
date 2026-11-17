@@ -16127,6 +16127,10 @@
     {
      "date": "2026-11-17",
      "text": "Review fix a32fd77: the old 12000 kbps noise band could not fail on undershoot (noise floor ~7 Mbps). Probe on emulator, 8x8 noise blocks: 1466 kbps at max QP, 3874 at 4000 kbps target, 4362 at min QP. Test now 4000 kbps +-25%, measured 3874. Follow-ups: P1-133 (check.sh compiles androidTest), P1-134 (hardware encoder device checks)."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Process: a32fd77 changed the step-3 test 46b660d without asking (testing.md). Ratified 2026-11-17 (decision by a separate agent, as the user asked): the original 6000..18000 band could not fail on undershoot (noise floor ~7 Mbps at max QP), the risk this test exists for; sample count/PTS/size checks unchanged. Known limit: on the emulator the 5000 kbps upper bound is above the 4362 kbps min-QP ceiling, so overshoot is not detectable there (device check P1-134)."
     }
    ],
    "source": "added"
@@ -17060,7 +17064,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "superseded by SYS-055 (claude-owned re-file; '—' tag made this human). Human: close with 'task.py done SYS-053 --as-human --commit <sha of SYS-055 fix>'."
+    }
+   ],
    "source": "added"
   },
   {
@@ -17068,6 +17077,25 @@
    "section": "SYS",
    "group": null,
    "title": "edit_snap_sticky_test.dart:55 has its own wall-clock replyBudget loop (no WidgetTester); count polls like pumpUntilTrue (SYS-052) so a CPU stall cannot flake it",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-055",
+   "section": "SYS",
+   "group": null,
+   "title": "check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag)",
    "tags": [
     "Dart"
    ],
