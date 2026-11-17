@@ -66,5 +66,39 @@ expect "plugin stderr is shown" "$(grep -q 'Invalid SDK hash' "$tmp/err" && echo
 
 expect "other protoc_plugin version" "$(FAKE_PLUGIN_VERSION=25.0.0 gen)" FAIL
 
+
+# SYS-061: the warm-up run. On a pinned SDK with no snapshot yet, the first plugin run has pub
+# print "Resolving dependencies..." on stdout; protoc would parse that as the plugin's reply and
+# fail. The fake plugin does that once per SDK (marker file), and the fake protoc rejects any
+# reply other than the one for its request, as the real one does.
+cat >"$tmp/sdk/bin/dart" <<EOF
+#!/bin/sh
+echo "\$*" >>"$log"
+case "\$*" in
+  "pub global list") echo "protoc_plugin 25.1.0" ;;
+  "pub global run protoc_plugin:protoc_plugin"*)
+    [ -e "$tmp/sdk/snapshot" ] || { echo "Resolving dependencies..."; : >"$tmp/sdk/snapshot"; }
+    [ -z "\$(cat)" ] || echo response ;;
+esac
+exit 0
+EOF
+cat >"$tmp/bin/protoc" <<'EOF'
+#!/bin/sh
+[ "$1" = --version ] && { echo "libprotoc 36.2"; exit 0; }
+[ -z "${FAKE_PROTOC_EXIT:-}" ] || { [ -z "${FAKE_PROTOC_STDERR:-}" ] || echo "$FAKE_PROTOC_STDERR" >&2; exit "$FAKE_PROTOC_EXIT"; }
+for a in "$@"; do case "$a" in --plugin=protoc-gen-dart=*) plugin=${a#--plugin=protoc-gen-dart=} ;; esac; done
+[ "$(echo request | "$plugin")" = response ] || { echo "--dart_out: protoc-gen-dart: Plugin output is unparseable." >&2; exit 1; }
+EOF
+rm -f "$tmp/sdk/snapshot"
+expect "first run on an SDK without a plugin snapshot" "$(gen)" ok
+expect "first run prints nothing on stderr" "$(cat "$tmp/err")" ""
+expect "second run" "$(gen)" ok
+
+# SYS-061: protoc failing silently (non-zero exit, empty stderr) must still fail the run.
+expect "protoc exits non-zero without stderr" "$(FAKE_PROTOC_EXIT=1 gen)" FAIL
+expect "protoc non-zero exit fails the run" \
+  "$(FAKE_PROTOC_EXIT=3 FAKE_PROTOC_STDERR="proto/framix/v1/engine.proto: syntax error" gen)" FAIL
+expect "protoc stderr is shown" "$(grep -q 'syntax error' "$tmp/err" && echo yes)" yes
+
 [ $fail -eq 0 ] && echo "✓ gen_ffi_test"
 exit $fail
