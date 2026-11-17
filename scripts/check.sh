@@ -40,8 +40,8 @@ if [ -f engine/Cargo.toml ] && touched engine/; then
 fi
 
 # Flutter app
-if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh; }; then
-  if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter) DART=(fvm dart); else FLUTTER=(flutter) DART=("$(dirname "$(realpath "$(command -v flutter)")")/dart"); fi
+if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh || touched scripts/flutter_sdk.sh || touched .fvmrc; }; then
+  . scripts/flutter_sdk.sh || exit 1
   # Codegen and its readers hold this checkout's app lock (scripts/app_lock.sh), so a
   # concurrent check never reads a generated file while another rewrites it.
   run_in app ../scripts/app_lock.sh "${FLUTTER[@]}" gen-l10n
@@ -63,6 +63,7 @@ fi
 # Shell script regression tests
 if touched scripts/; then
   run scripts/codegen_lock_test.sh
+  run scripts/flutter_sdk_test.sh
 fi
 
 # Protobuf contract

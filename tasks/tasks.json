@@ -12571,22 +12571,26 @@
    "deferred": false,
    "subphase": null,
    "status": "done",
-   "started": "2026-11-16",
+   "started": "2026-11-17",
    "done": "2026-11-17",
    "commit": "4278c13",
    "branch": "worktree-agent-a55626d1a3695965d",
    "notes": [
     {
-     "date": "2026-11-16",
+     "date": "2026-11-17",
      "text": "user approved the frozen-test change (2026-11-16)"
     },
     {
-     "date": "2026-11-16",
+     "date": "2026-11-17",
      "text": "decision: no production caller of Rate::new exists yet (media headers do not parse rates; the project file stores the export fps as enum 1/2/3 -> FrameRate::whole(24/30/60)), so no saved project or media can now fail to open; future header parsers get None and must use their invalid-rate path. Rate::whole also caps at TICKS_PER_SECOND to keep the invariant."
     },
     {
-     "date": "2026-11-16",
+     "date": "2026-11-17",
      "text": "test-only fix after review: every_accepted_rate_round_trips filtered random i64 frames and hit proptest's global reject limit; its generator now yields only accepted rates and representable frames (same property; still red on the old Rate::new)"
+    },
+    {
+     "date": "2026-11-17",
+     "text": "re-review: APPROVE, no Critical, no Warning. check.sh green (one run hit a CPU-load flake in home_storage_test, filed separately)."
     }
    ],
    "source": "added"
@@ -16568,7 +16572,16 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-16",
+     "text": "started by assistant (user said 'sob koro' 2026-11-16); task.py start refused human-owned task"
+    },
+    {
+     "date": "2026-11-17",
+     "text": "implemented (ab75da6 test, 0f40207 + cfe14fa fix): scripts/flutter_sdk.sh gates check.sh/flutter_test.sh/gen_ffi.sh/native_warnings.sh/audit.sh on fvm flutter == .fvmrc, no PATH fallback. Dev Mac: fvm 4.3.2 + Flutter 3.47.7 installed, protoc_plugin re-activated with fvm dart. check.sh green, reviewer approved. Owner human: needs task.py done --as-human by the user. Open: W3 hooks_runner stamp keyed on pin, not app/.dart_tool/version, and cleared outside app lock"
+    }
+   ],
    "source": "added"
   },
   {
@@ -16900,6 +16913,47 @@
   },
   {
    "id": "SYS-050",
+   "section": "SYS",
+   "group": null,
+   "title": "gen_ffi.sh exits 255 with no output when 'dart run ffigen' fails: out=$(...) under set -e kills the script before the captured error is printed (seen with 'Invalid SDK hash')",
+   "tags": [],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "added without --tags so owner is human; retag so an agent can pick it up"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "SYS-051",
+   "section": "SYS",
+   "group": null,
+   "title": "flutter_sdk.sh clears app/.dart_tool/hooks_runner keyed on its own pin stamp (misses a rebuild by a bare flutter) and outside the app lock: key on app/.dart_tool/version, clear under app_lock.sh",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-052",
    "section": "SYS",
    "group": null,
    "title": "Flaky under CPU load: home_storage_test 'the menu shows the sizes; Clear cache removes the cache' times out in pumpUntilTrue waiting for 'Add video track' (seen in ENG-047 check.sh, passes alone 3/3)",

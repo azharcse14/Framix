@@ -1171,7 +1171,9 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-047` check.sh runs flutter gen-l10n (and gen_ffi) outside the flutter_test lock, so a concurrent check (Stop hook) can load test files while generated l10n files are being rewritten ('loading ... failed'); take the same lock around codegen + tests (SYS-046 follow-up) \[Dart\]
 - [ ] `SYS-048` SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change
 - [x] `SYS-049` check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test \[Dart\]
-- [ ] `SYS-050` Flaky under CPU load: home_storage_test 'the menu shows the sizes; Clear cache removes the cache' times out in pumpUntilTrue waiting for 'Add video track' (seen in ENG-047 check.sh, passes alone 3/3) \[Dart\]
+- [ ] `SYS-050` gen_ffi.sh exits 255 with no output when 'dart run ffigen' fails: out=$(...) under set -e kills the script before the captured error is printed (seen with 'Invalid SDK hash')
+- [ ] `SYS-051` flutter_sdk.sh clears app/.dart_tool/hooks_runner keyed on its own pin stamp (misses a rebuild by a bare flutter) and outside the app lock: key on app/.dart_tool/version, clear under app_lock.sh \[Dart\]
+- [ ] `SYS-052` Flaky under CPU load: home_storage_test 'the menu shows the sizes; Clear cache removes the cache' times out in pumpUntilTrue waiting for 'Add video track' (seen in ENG-047 check.sh, passes alone 3/3) \[Dart\]
 
 ## Engine ar platform er gobhir details
 
