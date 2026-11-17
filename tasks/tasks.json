@@ -17215,11 +17215,30 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "96a9dc0",
+   "branch": "sys-060",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-061",
+   "section": "SYS",
+   "group": null,
+   "title": "Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "sys-060",
+   "branch": null,
    "notes": [],
    "source": "added"
   }

@@ -1183,7 +1183,8 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-057` gen_ffi.sh: protoc-gen-dart prints 'Can't load Kernel binary: Invalid SDK hash.' on every run (stale ~/.pub-cache protoc_plugin global snapshot from another Dart); refresh or reactivate it under the pinned Dart \[Dart\]
 - [ ] `SYS-058` check_quick_test.sh: add negative assert (untouched scripts/ stays skipped) and unset GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE before its temp-repo git calls (SYS-055 review warnings) \[Dart\]
 - [ ] `SYS-059` Two concurrent check.sh --quick runs in one worktree: generated proto files showed deleted and codegen_lock_test saw engine.pb.dart missing (SYS-055 log SYS-055-check-quick.log); app_lock.sh should serialize gen_ffi; find the unlocked window \[Dart\]
-- [ ] `SYS-060` thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound) \[Dart\]
+- [x] `SYS-060` thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound) \[Dart\]
+- [ ] `SYS-061` Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies \[Dart\]
 
 ## Engine ar platform er gobhir details
 
