@@ -3,7 +3,7 @@
 use framix_core::aspect::AspectRatio;
 use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{Media, MediaKind, RawMedia};
-use framix_core::time::{TICKS_PER_SECOND, Time};
+use framix_core::time::{TICKS_PER_SECOND_U32, Time};
 use framix_core::timeline::{
     ClipPlacement, ClipTransform, Crop, FIT_SCALE, MediaId, Timeline, TimelineError, TrackFlags,
     TrackKind,
@@ -383,6 +383,3 @@ fn restore_media(saved: SavedMedia) -> Result<Media, ProjectError> {
     };
     Ok(Media::validate(raw)?)
 }
-
-/// Saved durations are ticks, so their timescale is ticks per second (fits in u32).
-const TICKS_PER_SECOND_U32: u32 = TICKS_PER_SECOND as u32;
