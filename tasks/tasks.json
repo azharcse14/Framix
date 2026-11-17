@@ -16146,12 +16146,21 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "112bc03",
+   "branch": "tc-015",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "native_warnings.sh with an empty GRADLE_USER_HOME: failed pre-fix on 6 lines (5 transform-api-2.0.0-deprecated-use-gradle-api download/transform-cache info lines, package_info_plus 10.2.2 build.gradle.kts:47 Project.android); passes after the fix. New scripts/native_warnings_test.sh (fake fvm + fixture log) runs in check.sh."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "review: APPROVE, no Critical/Warning. Nits: [^ ]* path parts do not match a Gradle home with a space; second fake-fvm harness (extract a helper on a third)."
+    }
+   ],
    "source": "added"
   },
   {
