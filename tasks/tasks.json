@@ -17002,12 +17002,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "3d9cc64",
+   "branch": "p1-133",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Review APPROVE (no Critical). Fixed: quick mode also triggers on app/pubspec, .fvmrc, flutter_sdk.sh, app_lock.sh. Gradle cost: cold ~2 min, warm ~4-10 s; full check.sh runs two Gradle builds. Found SYS-053 (quick-mode SIGPIPE skip)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -17032,6 +17037,25 @@
      "text": "P1-128's +-25% band only catches undershoot on the emulator (its 8x8-block content tops out at ~4362 kbps); overshoot is only meaningful on a hardware encoder."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "SYS-053",
+   "section": "SYS",
+   "group": null,
+   "title": "check.sh --quick silently skips every check when the changed list is large (untracked target dir): touched() pipes printf into grep -q under pipefail, grep exits early, printf gets SIGPIPE (141)",
+   "tags": [
+    "—"
+   ],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]
