@@ -35,6 +35,11 @@ if grep -E '\[(WARNING|SEVERE)\]' <<<"$out" | grep -v 'No definition found for d
   exit 1
 fi
 
-rm -rf app/lib/core/engine/proto && mkdir -p app/lib/core/engine/proto
-PATH="$FLUTTER_SDK_BIN:$HOME/.pub-cache/bin:$PATH" protoc -I proto --dart_out=app/lib/core/engine/proto \
+# Into a temp dir, swapped in only on success: a failed protoc (SYS-059) must not leave the
+# committed proto files deleted. Same filesystem, so mv is a rename.
+proto_tmp=$(mktemp -d app/.dart_tool/proto.XXXXXX)
+trap 'rm -rf "$proto_tmp"' EXIT
+PATH="$FLUTTER_SDK_BIN:$HOME/.pub-cache/bin:$PATH" protoc -I proto --dart_out="$proto_tmp" \
   proto/framix/v1/engine.proto
+chmod 755 "$proto_tmp"
+rm -rf app/lib/core/engine/proto && mv "$proto_tmp" app/lib/core/engine/proto
