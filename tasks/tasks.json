@@ -6690,6 +6690,10 @@
     {
      "date": "2026-10-21",
      "text": "The minimal FFmpeg build is shared with P1-059 (FFmpeg fallback), which uses it."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "ADR 0009 sets the FFmpeg configure policy: LGPL only (no gpl/nonfree/version3), --disable-everything + --disable-autodetect, demuxers/parsers/re-wrap bsfs only, no protocols, shared libs with unversioned SONAMEs; build script asserts *_license() and avformat_configuration()."
     }
    ],
    "source": "plan"
@@ -8006,6 +8010,10 @@
     {
      "date": "2026-10-21",
      "text": "Implemented by P1-059 (FFmpeg/rsmpeg fallback)."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "ADR 0009: software decode fallback covers royalty-free codecs only (no software H.264/HEVC/AAC/... in any engine dependency, symphonia AAC included)."
     }
    ],
    "source": "plan"
@@ -9406,7 +9414,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "ADR 0009: no software decoders for patented codecs; VP9/WebM on iOS, AV1 on iPhones without an AV1 decoder, Vorbis/OGG on iOS have no platform decoder. Either mark those rows unsupported or enable a royalty-free FFmpeg decoder for them."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -9482,7 +9495,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "ADR 0009 section 4: FFmpeg entry needs name, copyright notice, LGPL-2.1-or-later text, link to the hosted source (LEG-018); also rsmpeg/rusty_ffmpeg (MIT)."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -9520,7 +9538,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "ADR 0009 section 4: ToS/EULA must mention FFmpeg's LGPL use, state we do not own FFmpeg and where its owners are, and not forbid reverse engineering; en and bn."
+    }
+   ],
    "source": "plan"
   },
   {
@@ -13494,6 +13517,10 @@
     {
      "date": "2026-10-21",
      "text": "Scope: uses SYS-024's minimal FFmpeg build rather than owning it, and is the fallback RES-003 describes. For it to ever trigger, both pickers must forward files they cannot probe (uri + kind, metadata empty) instead of dropping them, and RawMedia/Media::validate need a 'not yet probed' path. Codec tags differ by platform today (avc1/hvc1 vs avc/hevc); anything branching on codec needs one shared vocabulary."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "ADR 0009: FFmpeg probes/demuxes only; decode stays on platform codecs; dynamic linking (iOS frameworks, Android .so). rsmpeg 0.18.0 (Aug 2025, FFmpeg 8.0) vs rusty_ffmpeg 0.17.0 (FFmpeg 8.1): re-check rsmpeg release cadence when asking for the dependency."
     }
    ],
    "source": "added"
@@ -17411,7 +17438,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Scope: LGPL-2.1 6(b) with re-signed store apps; 6(c) would need the engine's relinkable object code, not only FFmpeg source; Play terms and App Store usage rules vs LGPL section 10; source not on the same server as the binary (legal.html item); ToS reverse-engineering clause."
+    }
+   ],
    "source": "added"
   },
   {
@@ -17430,7 +17462,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Scope: iOS SLA AVC notice (reported personal/non-commercial limit) for a paid app whose exports may be commercial; whether calling VideoToolbox/MediaCodec needs any Via LA AVC/AAC or Access Advance HEVC license; patent exposure of FFmpeg demuxers/parsers; VP9/AV1 pool claims before any royalty-free decoder ships."
+    }
+   ],
    "source": "added"
   },
   {
@@ -17449,7 +17486,12 @@
    "done": null,
    "commit": null,
    "branch": null,
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Hosting must carry, per shipped build: FFmpeg source tarball, changes.diff, configure line, build script; linked from the in-app Licenses page and the website store-link pages; kept 3+ years."
+    }
+   ],
    "source": "added"
   }
  ]
