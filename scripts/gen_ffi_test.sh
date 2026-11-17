@@ -100,5 +100,17 @@ expect "protoc non-zero exit fails the run" \
   "$(FAKE_PROTOC_EXIT=3 FAKE_PROTOC_STDERR="proto/framix/v1/engine.proto: syntax error" gen)" FAIL
 expect "protoc stderr is shown" "$(grep -q 'syntax error' "$tmp/err" && echo yes)" yes
 
+# SYS-064: a warm-up that fails silently (non-zero exit, empty stderr) must fail the run, even
+# when the protoc run after it would succeed. The plugin fails only on the empty warm-up request.
+cat >"$tmp/sdk/bin/dart" <<EOF
+#!/bin/sh
+case "\$*" in
+  "pub global list") echo "protoc_plugin 25.1.0" ;;
+  "pub global run protoc_plugin:protoc_plugin"*) [ -n "\$(cat)" ] || exit 1; echo response ;;
+esac
+exit 0
+EOF
+expect "warm-up exits non-zero without stderr" "$(gen)" FAIL
+
 [ $fail -eq 0 ] && echo "✓ gen_ffi_test"
 exit $fail
