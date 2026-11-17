@@ -18,11 +18,16 @@ if [ -z "$flutter_sdk_pin" ] || [ "$flutter_sdk_actual" != "$flutter_sdk_pin" ];
   return 1 2>/dev/null || exit 1
 fi
 # app/.dart_tool/hooks_runner holds kernel snapshots of the SDK that built them; after an SDK
-# switch `dart run` fails with "Invalid SDK hash". Clear it once per pin change (stamp file).
-flutter_sdk_stamp="$(dirname "${BASH_SOURCE[0]}")/../app/.dart_tool/flutter_sdk.version"
-if [ -d "${flutter_sdk_stamp%/*}" ] && [ "$(cat "$flutter_sdk_stamp" 2>/dev/null)" != "$flutter_sdk_pin" ]; then
-  rm -rf "${flutter_sdk_stamp%/*}/hooks_runner"
-  echo "$flutter_sdk_pin" >"$flutter_sdk_stamp"
+# switch `dart run` fails with "Invalid SDK hash". Flutter writes its own version to
+# app/.dart_tool/version on every run in app/, so clear hooks_runner while that differs from the
+# pin (also after a bare flutter of another version ran there); the pinned flutter rewrites it
+# on its next run. Re-checked and cleared under the app lock, so a locked flutter run that is
+# rebuilding hooks_runner is never cut off.
+flutter_sdk_dir="$(dirname "${BASH_SOURCE[0]}")"
+flutter_sdk_version="$flutter_sdk_dir/../app/.dart_tool/version"
+if [ -f "$flutter_sdk_version" ] && [ "$(cat "$flutter_sdk_version")" != "$flutter_sdk_pin" ]; then
+  "$flutter_sdk_dir/app_lock.sh" sh -c '[ "$(cat "$1")" = "$2" ] || rm -rf "${1%/*}/hooks_runner"' \
+    sh "$flutter_sdk_version" "$flutter_sdk_pin" || true
 fi
 FLUTTER=(fvm flutter)
 DART=(fvm dart)
