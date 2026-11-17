@@ -48,7 +48,7 @@ void main() {
           .where((e) => e.hasCommandFailed())
           .listen((_) => replies++);
       cubit.request(media, [0], 96);
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await waitUntilTrue(() => replies >= 1, () => 'replies: $replies');
       expect(replies, 1);
 
       final fresh = engine.events.firstWhere((e) => e.hasTimelineChanged());
@@ -57,7 +57,7 @@ void main() {
       final again = (await importOne()).tracks.first.clips.first.mediaId
           .toInt();
       cubit.request(again, [0], 96);
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await waitUntilTrue(() => replies >= 2, () => 'replies: $replies');
       expect(replies, 2);
       await counting.cancel();
       await cubit.close();

@@ -5,6 +5,8 @@ import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/playback_cubit.dart';
 import 'package:framix/features/timeline/bloc/playhead_cubit.dart';
 
+import '../../pump_until.dart';
+
 /// P1-061: the engine plays; the cubit mirrors whether it does.
 void main() {
   late FramixEngine engine;
@@ -30,7 +32,7 @@ void main() {
         ),
       ),
     );
-    await imported.timeout(const Duration(seconds: 5));
+    await waitFor(imported, 'no import reply');
   }
 
   setUp(() {
@@ -45,17 +47,19 @@ void main() {
     engine.dispose();
   });
 
-  Future<bool> playingBecomes(bool playing) => playback.stream
-      .firstWhere((p) => p == playing)
-      .timeout(const Duration(seconds: 5));
+  Future<bool> playingBecomes(bool playing) => waitFor(
+    playback.stream.firstWhere((p) => p == playing),
+    'playing never became $playing',
+  );
 
   test('play moves the playhead until pause', () async {
     await importVideo(4000);
     playback.play();
     expect(await playingBecomes(true), isTrue);
-    await playhead.stream
-        .firstWhere((t) => t > 0)
-        .timeout(const Duration(seconds: 5));
+    await waitFor(
+      playhead.stream.firstWhere((t) => t > 0),
+      'playhead never moved',
+    );
     playback.pause();
     expect(await playingBecomes(false), isFalse);
   });

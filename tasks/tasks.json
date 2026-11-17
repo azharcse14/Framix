@@ -17139,11 +17139,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "ea1aee6",
+   "branch": "main",
    "notes": [],
    "source": "added"
   },
@@ -17190,6 +17190,25 @@
    "section": "SYS",
    "group": null,
    "title": "Two concurrent check.sh --quick runs in one worktree: generated proto files showed deleted and codegen_lock_test saw engine.pb.dart missing (SYS-055 log SYS-055-check-quick.log); app_lock.sh should serialize gen_ffi; find the unlocked window",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-060",
+   "section": "SYS",
+   "group": null,
+   "title": "thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound)",
    "tags": [
     "Dart"
    ],
