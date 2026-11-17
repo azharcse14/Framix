@@ -3,7 +3,7 @@
 use framix_core::aspect::AspectRatio;
 use framix_core::export::{Bitrate, ExportSettings, FrameRate, Resolution};
 use framix_core::media::{Media, MediaKind, RawMedia};
-use framix_core::time::{TICKS_PER_SECOND, TICKS_PER_SECOND_U32, Time};
+use framix_core::time::{TICKS_PER_SECOND_U32, Time};
 use framix_core::timeline::{
     ClipPlacement, ClipTransform, Crop, FIT_SCALE, MediaId, Timeline, TimelineError, TrackFlags,
     TrackKind,
