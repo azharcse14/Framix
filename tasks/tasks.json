@@ -16983,12 +16983,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "a439423",
+   "branch": "sys-052",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Root cause: pumpUntilTrue's 10 s wall-clock budget ran out while the OS barely ran the test process (first test of a file JIT-compiles Home and the editor; under load each 20 ms poll took 100-600 ms; original check.sh log shows a ~35 s machine-wide stall). Engine reply was fast (10-200 ms after tap). Fix: budget counted in 20 ms polls (each >= 20 ms real), regression test app/test/pump_until_test.dart."
+    }
+   ],
    "source": "added"
   },
   {

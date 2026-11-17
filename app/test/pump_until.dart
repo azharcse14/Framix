@@ -1,25 +1,32 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 
-/// Wall-clock wait for an engine reply. Generous on purpose: a reply that writes the library
-/// (atomic save: two fsyncs, which on macOS are F_FULLFSYNC and flush the whole disk) took
-/// 0.8-2.5 s while other builds loaded the machine, against ~5 ms idle (P1-108). A count of
-/// pumps is not a budget: under load each 20 ms delay takes longer.
+/// How long to wait for an engine reply, counted in polls of at least 20 ms real time each.
+/// Generous on purpose: a reply that writes the library (atomic save: two fsyncs, which on
+/// macOS are F_FULLFSYNC and flush the whole disk) took 0.8-2.5 s while other builds loaded
+/// the machine, against ~5 ms idle (P1-108).
 const replyBudget = Duration(seconds: 10);
+
+/// Real time between two pumps.
+const _poll = Duration(milliseconds: 20);
 
 /// Pumps until [done], giving real time between pumps: engine events arrive through a
 /// native port, outside the fake clock. [what] is built only on failure: a finder like
 /// `.at(1)` throws in toString while it finds too little.
+///
+/// [budget] is spent in polls, not wall time: each poll takes at least 20 ms, so the wait is
+/// never shorter than [budget], and a poll the OS delays (check.sh next to other builds, a
+/// cold JIT of Home and the editor) still costs one poll. A wall-clock budget ran out while
+/// the test process barely ran (SYS-052).
 Future<void> pumpUntilTrue(
   WidgetTester tester,
   bool Function() done,
-  String Function() what,
-) async {
-  final clock = Stopwatch()..start();
-  while (clock.elapsed < replyBudget) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
+  String Function() what, {
+  Duration budget = replyBudget,
+}) async {
+  final polls = budget.inMicroseconds ~/ _poll.inMicroseconds;
+  for (var i = 0; i < polls; i++) {
+    await tester.runAsync(() => Future<void>.delayed(_poll));
     await tester.pump();
     if (done()) return;
   }
