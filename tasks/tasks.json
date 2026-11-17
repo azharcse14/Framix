@@ -13148,6 +13148,10 @@
     {
      "date": "2026-11-16",
      "text": "P1-098: check PIP with two videos and with two photos on an iOS device (no reader reopen per frame, no decoder failures with preview + export running)."
+    },
+    {
+     "date": "2026-11-16",
+     "text": "emulator for device-like checks: AVD framix_api36 (pixel_7, system-images;android-36;google_apis;arm64-v8a, swiftshader_indirect GPU, software codecs only); created in P1-128"
     }
    ],
    "source": "added"
@@ -16094,6 +16098,14 @@
     {
      "date": "2026-11-16",
      "text": "user approved androidx.test deps and an emulator AVD (2026-11-16)"
+    },
+    {
+     "date": "2026-11-16",
+     "text": "emulator: AVD framix_api36 (device pixel_7), image system-images;android-36;google_apis;arm64-v8a rev 7, in ~/.android/avd. Boot: emulator -avd framix_api36 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect. Encoder there is c2.android.avc.encoder (software). Run: cd app/android && ./gradlew app:connectedDebugAndroidTest -Ptarget-platform=android-arm64"
+    },
+    {
+     "date": "2026-11-17",
+     "text": "emulator run 2026-11-17 (framix_api36, c2.android.avc.encoder): ExportEncoderTest passes, 60 samples at frame times, 320x240, bitrate within +-50% of 12000 kbps; existing ExportEncoder unchanged. Still device-only: 'reordered frame' on hardware encoders ignoring KEY_MAX_B_FRAMES, and a full Vulkan-swapchain export on a real phone."
     }
    ],
    "source": "added"
