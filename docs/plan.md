@@ -1518,7 +1518,7 @@ Egula Phase 1 er sathei thik koro; pore change kora kothin ar store review e atk
 
 - [ ] `LEG-001` Music library: royalty-free ba licensed (na hole user er video te copyright strike) \[Backend\]
 - [ ] `LEG-002` Font license (commercial use allowed kina) \[Dart\]
-- [ ] `LEG-003` FFmpeg LGPL/GPL license ar codec patent check \[Native\]
+- [x] `LEG-003` FFmpeg LGPL/GPL license ar codec patent check \[Native\]
 - [ ] `LEG-004` Open source library der license list (in-app "Licenses" page) \[Dart\]
 - [ ] `LEG-005` Sticker, effect, stock media er license \[Backend\]
 
