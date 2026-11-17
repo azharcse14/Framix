@@ -96,13 +96,21 @@ Future<int> waitForEarlierReplies(FramixEngine engine) => _earlierReplies(
   waitUntilTrue,
 );
 
-/// [waitForEarlierReplies] for `testWidgets`, pumping while it waits (SYS-066).
-Future<int> pumpUntilEarlierReplies(WidgetTester tester, FramixEngine engine) =>
-    _earlierReplies(
-      engine,
-      tester.pump,
-      (done, what) => pumpUntilTrue(tester, done, what),
-    );
+/// [waitForEarlierReplies] for `testWidgets`, pumping while it waits (SYS-066); the earlier
+/// replies are applied and built by then. Its last pump: a reply that lands in the same poll
+/// as the sentinel's schedules its frame after that poll's pump drew.
+Future<int> pumpUntilEarlierReplies(
+  WidgetTester tester,
+  FramixEngine engine,
+) async {
+  final id = await _earlierReplies(
+    engine,
+    tester.pump,
+    (done, what) => pumpUntilTrue(tester, done, what),
+  );
+  await tester.pump();
+  return id;
+}
 
 /// [waitForEarlierReplies] after [endOfTurn], waiting with [until].
 Future<int> _earlierReplies(

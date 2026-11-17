@@ -72,10 +72,7 @@ void main() {
       ),
     );
     await tester.tap(find.byTooltip(l10n.importFromGallery));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 200)),
-    );
-    await tester.pump();
+    await pumpUntilEarlierReplies(tester, engine);
     expect(importer.calls, 1);
     expect(find.text(l10n.timelineEmpty), findsOneWidget);
   });

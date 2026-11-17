@@ -72,6 +72,8 @@ void main() {
         () => find.byTooltip(l10n.play).evaluate().isNotEmpty,
       );
       final stopped = playhead();
+      // A fixed real-time window, not pumpUntilEarlierReplies: playhead events come from the
+      // playback clock, not as replies in command order (SYS-066).
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 200)),
       );
