@@ -13541,6 +13541,10 @@
     {
      "date": "2026-11-17",
      "text": "Decision 2026-11-17 (delegated agent, user asked): rsmpeg approved, pinned =0.18.0 (+ffmpeg.8.0, MIT), in new engine/media crate only, dynamic link via FFMPEG_DLL_PATH; FFmpeg pinned 8.0.x (8.1 only if library majors match). Bindgen output in OUT_DIR, no committed bindings. Hand-written bindings rejected (unchecked struct layouts over untrusted media). Exit plan: rusty_ffmpeg 0.17+ directly + thin own wrapper if rsmpeg lags FFmpeg 9 or fails to cross-build. Runs after SYS-069."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "SYS-069 build: scripts/build_ffmpeg.sh -> third_party/ffmpeg/out/<target>/ (macos-arm64 lib/*.dylib @rpath, android-*/lib/libav{util,codec,format}.so, ios-*/frameworks + ios-xcframework/), headers in include/, no bindgen files (rusty_ffmpeg generates in OUT_DIR from include/). Check how rusty_ffmpeg's FFMPEG_DLL_PATH handles three libraries (it may link only one dylib); if so use FFMPEG_PKG_CONFIG_PATH or link args from build.rs. Only demuxers/parsers/3 bsfs, zero decoders (av_find_best_stream decoder lookups return NULL). zlib is off: compressed mov/mkv headers fail until --enable-zlib (ADR 0009 allows it explicitly)."
     }
    ],
    "source": "added"
