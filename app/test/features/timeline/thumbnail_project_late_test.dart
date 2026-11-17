@@ -72,23 +72,17 @@ void main() {
       FramixApp(engine: engine, mediaImporter: FakeImporter([_video()])),
     );
     // The host engine has no platform: every thumbnail ask that goes out fails.
-    var asks = 0;
+    final asks = <int>[];
     final counting = engine.events
         .where((e) => e.hasCommandFailed())
-        .listen((_) => asks++);
-    Future<void> settle() async {
-      for (var i = 0; i < 15; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump();
-      }
-    }
+        .listen((e) => asks.add(e.commandFailed.commandId.toInt()));
 
     await tester.tap(find.byTooltip(l10n.importFromGallery));
     await pumpUntil(tester, find.byType(ThumbnailTile));
-    await settle();
-    final first = asks;
+    // Every first-round failure is in before the count is taken, also on a starved machine
+    // (SYS-067).
+    asks.remove(await pumpUntilEarlierReplies(tester, engine));
+    final first = asks.length;
     expect(first, greaterThan(0));
 
     // Reopen the same project: same media ids and slots, but the engine dropped its
@@ -98,13 +92,17 @@ void main() {
     );
     final path = '${dir!.path}/p.framix';
     engine.send(Command(saveProject: SaveProject(path: path)));
-    await settle();
+    asks.remove(await pumpUntilEarlierReplies(tester, engine));
     engine.send(Command(openProject: OpenProject(path: path)));
     // Wait for the new ask with a deadline: a loaded machine answers late.
-    await pumpUntilTrue(tester, () => asks > first, () => 'never asked again');
+    await pumpUntilTrue(
+      tester,
+      () => asks.length > first,
+      () => 'never asked again',
+    );
     await tester.runAsync(() => dir.delete(recursive: true));
     expect(
-      asks,
+      asks.length,
       greaterThan(first),
       reason: 'the same slots ask the new project',
     );
