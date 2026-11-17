@@ -27,8 +27,9 @@ class ExportEncoderTest {
         val file = File(ApplicationProvider.getApplicationContext<Context>().cacheDir, "export-test.mp4")
         val encoder = checkNotNull(ExportEncoder.open(WIDTH, HEIGHT, FPS, KBPS, file.path))
         val times = List(FRAMES) { it * 1_000_000L / FPS }
-        // Noise, so rate control has to spend the whole bitrate (a flat color would not); KBPS is
-        // above what noise needs at the highest QP (about 7 Mbps at this size on the emulator).
+        // Noise in 8x8 blocks, so rate control decides the bitrate: on the emulator's encoder this
+        // content costs about 1.5 Mbps at the highest QP and 4.4 Mbps at the lowest, so an encoder
+        // that undershoots KBPS (rate control misled by queue times) falls below the band.
         val noise = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(WIDTH * HEIGHT)
         val random = Random(1)
@@ -41,15 +42,22 @@ class ExportEncoderTest {
             setContentRoot(node)
             setSurface(encoder.surface)
         }
-        for (time in times) {
-            assertTrue(encoder.frame(time))
-            for (i in pixels.indices) pixels[i] = random.nextInt() or 0xFF000000.toInt()
-            noise.setPixels(pixels, 0, WIDTH, 0, 0, WIDTH, HEIGHT)
-            node.beginRecording().drawBitmap(noise, 0f, 0f, null)
-            node.endRecording()
-            draw(renderer)
+        var drawn = false
+        try {
+            for (time in times) {
+                assertTrue(encoder.frame(time))
+                fillBlocks(pixels, random)
+                noise.setPixels(pixels, 0, WIDTH, 0, 0, WIDTH, HEIGHT)
+                node.beginRecording().drawBitmap(noise, 0f, 0f, null)
+                node.endRecording()
+                draw(renderer)
+            }
+            drawn = true
+        } finally {
+            renderer.destroy()
+            // A failed draw cancels the export so the codec and its thread don't outlive the test.
+            if (!drawn) encoder.finish(false)
         }
-        renderer.destroy()
         assertTrue(encoder.finish(true))
 
         val extractor = MediaExtractor()
@@ -73,10 +81,18 @@ class ExportEncoderTest {
             }
             assertEquals(times, sampleTimes)
             val kbps = bytes * 8 * FPS / FRAMES / 1000
-            assertTrue("bitrate $kbps kbps, configured $KBPS", kbps in KBPS / 2..KBPS * 3 / 2)
+            assertTrue("bitrate $kbps kbps, configured $KBPS", kbps in KBPS * 3 / 4..KBPS * 5 / 4)
         } finally {
             extractor.release()
             file.delete()
+        }
+    }
+
+    /** Fills [pixels] with opaque random colors in BLOCK x BLOCK squares. */
+    private fun fillBlocks(pixels: IntArray, random: Random) {
+        for (top in 0 until HEIGHT step BLOCK) for (left in 0 until WIDTH step BLOCK) {
+            val color = random.nextInt() or 0xFF000000.toInt()
+            for (y in top until top + BLOCK) pixels.fill(color, y * WIDTH + left, y * WIDTH + left + BLOCK)
         }
     }
 
@@ -97,7 +113,8 @@ class ExportEncoderTest {
         const val WIDTH = 320
         const val HEIGHT = 240
         const val FPS = 30
-        const val KBPS = 12_000
+        const val KBPS = 4_000
+        const val BLOCK = 8
         const val FRAMES = 60
         const val DRAW_ATTEMPTS = 100
         const val DRAW_RETRY_MS = 10L
