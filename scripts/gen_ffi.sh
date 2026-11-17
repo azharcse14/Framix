@@ -20,7 +20,8 @@ if [ "$(protoc --version 2>/dev/null)" != "libprotoc $PROTOC_VERSION" ]; then
 fi
 PROTOC_PLUGIN_VERSION=25.1.0
 . scripts/flutter_sdk.sh
-if ! "${DART[@]}" pub global list 2>/dev/null | grep -qx "protoc_plugin $PROTOC_PLUGIN_VERSION"; then
+# Here-string, not a pipe: under pipefail, grep -q exiting early gives the writer SIGPIPE (141).
+if ! grep -qx "protoc_plugin $PROTOC_PLUGIN_VERSION" <<<"$("${DART[@]}" pub global list 2>/dev/null)"; then
   echo "need protoc_plugin $PROTOC_PLUGIN_VERSION: dart pub global activate protoc_plugin $PROTOC_PLUGIN_VERSION" >&2
   exit 1
 fi
