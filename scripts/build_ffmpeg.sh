@@ -19,12 +19,18 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FFMPEG_VERSION=8.0.3
 FFMPEG_SHA256=6136812ea6d4e68bdba27e33c2a94382711cdf4f8602ffef056ff792bd6f9818
 FFMPEG_URL=${FFMPEG_URL:-https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.xz}
-NDK_VERSION=28.2.13676358 # r28c, docs/toolchain.md
+# r28c (docs/toolchain.md); one pin, shared with the app's Gradle build.
+NDK_VERSION=$(sed -n 's/^ *ndkVersion = "\(.*\)"$/\1/p' "$ROOT/app/android/app/build.gradle.kts")
 ANDROID_API=29
 IOS_MIN=17.0
 LGPL="LGPL version 2.1 or later"
 TARGETS="macos-arm64 android-arm64-v8a android-x86_64 ios-arm64 ios-sim-arm64"
 LIBS="avutil avcodec avformat" # dependency order
+# ADR 0009 section 3: containers the platform may not read, the parsers they need, and the
+# bitstream filters that only re-wrap data for the platform decoder.
+DEMUXERS="mov matroska avi mpegts flv ogg wav mp3 aac flac"
+PARSERS="h264 hevc aac ac3 mpegaudio mpegvideo mpeg4video flac vorbis opus vp8 vp9 av1"
+BSFS="h264_mp4toannexb hevc_mp4toannexb extract_extradata"
 OUT=${FFMPEG_OUT:-$ROOT/third_party/ffmpeg/out}
 WORK=${FFMPEG_WORK:-$ROOT/third_party/ffmpeg/work}
 
@@ -38,18 +44,16 @@ policy_flags() {
   # x86 SIMD needs nasm (not installed); a build without decoders gains nothing from it.
   echo --disable-x86asm
   local d
-  for d in mov matroska avi mpegts flv ogg wav mp3 aac flac; do echo "--enable-demuxer=$d"; done
-  for d in h264 hevc aac ac3 mpegaudio mpegvideo mpeg4video flac vorbis opus vp8 vp9 av1; do
-    echo "--enable-parser=$d"
-  done
-  for d in h264_mp4toannexb hevc_mp4toannexb extract_extradata; do echo "--enable-bsf=$d"; done
+  for d in $DEMUXERS; do echo "--enable-demuxer=$d"; done
+  for d in $PARSERS; do echo "--enable-parser=$d"; done
+  for d in $BSFS; do echo "--enable-bsf=$d"; done
 }
 
 # Toolchain arguments. Tool names only, never paths: the whole line is compiled into
 # avformat_configuration() and ships in the binary. build_target puts the NDK on PATH.
 target_flags() {
   case $1 in
-    macos-arm64) echo --install-name-dir=@rpath ;;
+    macos-arm64) printf '%s\n' --install-name-dir=@rpath --extra-ldflags=-Wl,-dead_strip_dylibs ;;
     android-arm64-v8a) android_flags aarch64 aarch64-linux-android ;;
     android-x86_64) android_flags x86_64 x86_64-linux-android ;;
     ios-arm64) ios_flags iphoneos "arm64-apple-ios$IOS_MIN" ;;
@@ -66,17 +70,18 @@ android_flags() {
 }
 ios_flags() {
   printf '%s\n' --enable-cross-compile --target-os=darwin --arch=arm64 \
-    "--cc=xcrun -sdk $1 clang" "--extra-cflags=--target=$2" "--extra-ldflags=--target=$2" \
+    "--cc=xcrun -sdk $1 clang" "--extra-cflags=--target=$2" "--extra-ldflags=--target=$2 -Wl,-dead_strip_dylibs" \
     --install-name-dir=@rpath
 }
 print_flags() { target_flags "$1" >/dev/null && policy_flags && target_flags "$1"; }
 
 # Reads a build report (key=value lines: <lib>_license, configuration, decoders, encoders,
-# muxers, protocols, optional hwaccels) and fails unless it meets ADR 0009 section 1 and 3.
+# muxers, protocols; optional hwaccels and demuxer_list/parser_list/bsf_list, which the build
+# always reports) and fails unless it meets ADR 0009 section 1 and 3.
 check_policy() {
   local report bad=0 lib key v cfg
   report=$(cat)
-  val() { grep -m1 "^$1=" <<<"$report" | cut -d= -f2-; }
+  val() { grep -m1 "^$1=" <<<"$report" | cut -d= -f2- || true; }
   has() { grep -q "^$1=" <<<"$report"; }
   for lib in $LIBS; do
     v=$(val "${lib}_license")
@@ -97,11 +102,20 @@ check_policy() {
     elif [ "$(val $key)" = 0 ]; then echo "ok $key = 0"
     else echo "✗ $key = $(val $key), want 0" >&2; bad=1; fi
   done
+  # Exactly the allowed set: also catches a component pulled in through a _select dependency.
+  for key in "demuxer_list:$DEMUXERS" "parser_list:$PARSERS" "bsf_list:$BSFS"; do
+    has "${key%%:*}" || continue
+    if [ "$(val "${key%%:*}")" = "$(sorted ${key#*:})" ]; then echo "ok ${key%%:*} = $(val "${key%%:*}")"
+    else echo "✗ ${key%%:*} = '$(val "${key%%:*}")', want '$(sorted ${key#*:})'" >&2; bad=1; fi
+  done
   [ $bad -eq 0 ] && echo "ok configuration: --disable-autodetect, no gpl/nonfree/version3/lib*"
   return $bad
 }
 
+sorted() { printf '%s\n' "$@" | sort | tr '\n' ' ' | sed 's/ $//'; }
+
 # Downloads the pinned tarball and extracts it only after the SHA-256 matches (fail closed).
+# Extracts fresh every run, so the manifest's "unpatched" holds.
 fetch_source() {
   SRC="$WORK/ffmpeg-$FFMPEG_VERSION"
   local tarball="$WORK/ffmpeg-$FFMPEG_VERSION.tar.xz" sum
@@ -115,11 +129,9 @@ fetch_source() {
     rm -f "$tarball"
     die "SHA-256 mismatch for $FFMPEG_URL: got $sum, want $FFMPEG_SHA256"
   fi
-  if [ ! -f "$SRC/configure" ]; then
-    rm -rf "$SRC" "$SRC.tmp" && mkdir "$SRC.tmp"
-    tar -xJf "$tarball" -C "$SRC.tmp"
-    mv "$SRC.tmp/ffmpeg-$FFMPEG_VERSION" "$SRC" && rmdir "$SRC.tmp"
-  fi
+  rm -rf "$SRC" "$SRC.tmp" && mkdir "$SRC.tmp"
+  tar -xJf "$tarball" -C "$SRC.tmp"
+  mv "$SRC.tmp/ffmpeg-$FFMPEG_VERSION" "$SRC" && rmdir "$SRC.tmp"
 }
 
 ndk_dir() {
@@ -143,6 +155,10 @@ components() {
   for kind in DECODER ENCODER MUXER PROTOCOL HWACCEL; do
     printf '%ss=%s\n' "$(tr A-Z a-z <<<$kind)" \
       "$(grep -c "^#define CONFIG_[A-Z0-9_]*_$kind 1$" "$1/config_components.h" || true)"
+  done
+  for kind in DEMUXER PARSER BSF; do
+    printf '%s_list=%s\n' "$(tr A-Z a-z <<<$kind)" "$(sorted $(sed -n \
+      "s/^#define CONFIG_\([A-Z0-9_]*\)_$kind 1$/\1/p" "$1/config_components.h" | tr A-Z a-z))"
   done
 }
 
@@ -172,14 +188,16 @@ EOF
   clang -Wall -Werror -o "$b/check" "$b/check.c" -I"$stage/include" -L"$stage/lib" \
     -lavformat -lavcodec -lavutil -Wl,-rpath,"$stage/lib"
   "$b/check"
-  echo "hwaccels=$(grep -c '^#define CONFIG_[A-Z0-9_]*_HWACCEL 1$' "$b/config_components.h" || true)"
+  components "$b" | grep -E "^(hwaccels|[a-z]+_list)="
 }
 
-# The libraries that ship must carry the verified configuration and license strings.
+# The libraries that ship must carry the verified configuration and license strings, and no
+# path of the build machine (in-tree builds keep __FILE__ relative).
 check_binaries() {
   local cfg=$1; shift
   local f
   for f in "$@"; do
+    if grep -qF -e "$WORK" -e "$HOME" -e "$ROOT" "$f"; then die "$(basename "$f") contains a build machine path"; fi
     grep -qF -- "$cfg" "$f" || die "$(basename "$f") lacks the verified configuration string"
     grep -qF -- "$LGPL" "$f" || die "$(basename "$f") lacks '$LGPL'"
   done
@@ -191,7 +209,7 @@ check_android() {
     f="lib$lib.so"
     "$readelf" -dW "$f" | grep -q "(SONAME).*\[$f\]" || die "$f: SONAME is not $f"
     if "$readelf" -dW "$f" | grep '(NEEDED)' | grep -q '\.so\.'; then die "$f: versioned NEEDED"; fi
-    if "$readelf" -lW "$f" | awk '$1 == "LOAD" && $NF != "0x4000" { bad = 1 } END { exit !bad }'; then
+    if "$readelf" -lW "$f" | awk '$1 == "LOAD" { n++; if ($NF != "0x4000") bad = 1 } END { exit !(bad || !n) }'; then
       die "$f: a LOAD segment is not 16 KB aligned"
     fi
     echo "ok $f: SONAME $f, LOAD align 0x4000"
@@ -251,7 +269,7 @@ write_manifest() {
     echo "source_changes=none (unpatched release tarball)"
     echo "target=$t"
     echo "built_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    echo "build_script=scripts/build_ffmpeg.sh @ $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+    echo "build_script=scripts/build_ffmpeg.sh @ $(git -C "$ROOT" describe --always --dirty 2>/dev/null || echo unknown) sha256 $(shasum -a 256 "$ROOT/scripts/build_ffmpeg.sh" | cut -d' ' -f1)"
     echo "$toolchain"
     echo "$report"
   } >"$OUT/$t/manifest.txt"
@@ -261,7 +279,9 @@ build_target() {
   local t=$1 b="$WORK/build/$1" stage="$WORK/build/$1/stage" flags=() l report cfg toolchain readelf=""
   while IFS= read -r l; do flags+=("$l"); done < <(print_flags "$t")
   echo "▶ FFmpeg $FFMPEG_VERSION for $t"
-  rm -rf "$b" && mkdir -p "$b"
+  # In-tree build from a fresh copy: out-of-tree builds compile absolute source paths into
+  # the libraries through __FILE__.
+  rm -rf "$b" && mkdir -p "$WORK/build" && cp -R "$SRC" "$b"
   local path=$PATH
   case $t in
     android-*)
@@ -277,7 +297,7 @@ compiler=$("$bin/clang" --version | head -1)" ;;
 compiler=$(xcrun -sdk $sdk clang --version | head -1)" ;;
     *) toolchain="compiler=$(clang --version | head -1)" ;;
   esac
-  (cd "$b" && PATH=$path "$SRC/configure" "${flags[@]}" >configure.log 2>&1) ||
+  (cd "$b" && PATH=$path ./configure "${flags[@]}" >configure.log 2>&1) ||
     { tail -20 "$b/ffbuild/config.log" >&2 || true; die "$t: configure failed ($b/configure.log)"; }
   (cd "$b" && PATH=$path make -j"$(sysctl -n hw.ncpu)" >make.log 2>&1 &&
     PATH=$path make install DESTDIR="$b/destdir" >>make.log 2>&1) ||
