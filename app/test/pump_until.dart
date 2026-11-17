@@ -57,18 +57,32 @@ Future<void> waitUntilTrue(
   Duration budget = replyBudget,
 }) => _pollUntil(() => Future<void>.delayed(_poll), done, what, budget);
 
+/// Waits until [done] (built only on failure into [what]): [pumpUntilTrue] or [waitUntilTrue].
+typedef _Until = Future<void> Function(
+  bool Function() done,
+  String Function() what,
+);
+
+/// Awaits [reply] on [until]'s budget, failing with [what] if it never comes. A failed [reply]
+/// rethrows its error.
+Future<T> _replyBy<T>(Future<T> reply, String what, _Until until) async {
+  var done = false;
+  reply.then((_) => done = true, onError: (_) => done = true).ignore();
+  await until(() => done, () => what);
+  return reply;
+}
+
 /// Awaits [reply] on [waitUntilTrue]'s budget, failing with [what] if it never comes; for a
 /// plain `test` (not `testWidgets`, see [waitUntilTrue]). A failed [reply] rethrows its error.
 Future<T> waitFor<T>(
   Future<T> reply,
   String what, {
   Duration budget = replyBudget,
-}) async {
-  var done = false;
-  reply.then((_) => done = true, onError: (_) => done = true).ignore();
-  await waitUntilTrue(() => done, () => what, budget: budget);
-  return reply;
-}
+}) => _replyBy(
+  reply,
+  what,
+  (done, what) => waitUntilTrue(done, what, budget: budget),
+);
 
 /// Waits until [engine] has answered every command sent before this call, also those sent at
 /// the end of this turn (ThumbnailCubit batches its asks so); for a plain `test` (see
@@ -76,8 +90,27 @@ Future<T> waitFor<T>(
 /// the engine answers in command order (one queue, one thread), so earlier replies are all in
 /// by then. A check that something was not sent gets its bound from this, not from a fixed
 /// sleep (SYS-060). Returns the sentinel's id, to leave its own CommandFailed out of a count.
-Future<int> waitForEarlierReplies(FramixEngine engine) async {
-  await Future<void>.delayed(Duration.zero);
+Future<int> waitForEarlierReplies(FramixEngine engine) => _earlierReplies(
+  engine,
+  () => Future<void>.delayed(Duration.zero),
+  waitUntilTrue,
+);
+
+/// [waitForEarlierReplies] for `testWidgets`, pumping while it waits (SYS-066).
+Future<int> pumpUntilEarlierReplies(WidgetTester tester, FramixEngine engine) =>
+    _earlierReplies(
+      engine,
+      tester.pump,
+      (done, what) => pumpUntilTrue(tester, done, what),
+    );
+
+/// [waitForEarlierReplies] after [endOfTurn], waiting with [until].
+Future<int> _earlierReplies(
+  FramixEngine engine,
+  Future<void> Function() endOfTurn,
+  _Until until,
+) async {
+  await endOfTurn();
   late final int id;
   bool answers(Event e) =>
       e.hasCommandFailed() && e.commandFailed.commandId.toInt() == id ||
@@ -88,7 +121,7 @@ Future<int> waitForEarlierReplies(FramixEngine engine) async {
     Command(requestThumbnails: RequestThumbnails(maxSide: 0)),
     reportsFailure: true,
   );
-  await waitFor(reply, 'no reply to the sentinel $id');
+  await _replyBy(reply, 'no reply to the sentinel $id', until);
   return id;
 }
 
