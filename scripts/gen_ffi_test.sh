@@ -106,10 +106,11 @@ cat >"$tmp/sdk/bin/dart" <<EOF
 #!/bin/sh
 case "\$*" in
   "pub global list") echo "protoc_plugin 25.1.0" ;;
-  "pub global run protoc_plugin:protoc_plugin"*) [ -n "\$(cat)" ] || exit 1; echo response ;;
+  "pub global run protoc_plugin:protoc_plugin"*) [ -n "\$(cat)" ] || exit \${FAKE_WARMUP_EXIT:-1}; echo response ;;
 esac
 exit 0
 EOF
+expect "warm-up control: same fakes, warm-up exits 0" "$(FAKE_WARMUP_EXIT=0 gen)" ok
 expect "warm-up exits non-zero without stderr" "$(gen)" FAIL
 
 [ $fail -eq 0 ] && echo "✓ gen_ffi_test"
