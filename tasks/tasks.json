@@ -17303,6 +17303,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "SYS-065",
+   "section": "SYS",
+   "group": null,
+   "title": "Flaky ffi test platform_release.rs a_texture_made_after_the_engine_stopped_is_released: failed once in check.sh (RELEASED lacks (9, 0x99), line 232), passed 5/5 on rerun; likely shared statics (HELD/RELEASED/callbacks) across its two parallel tests",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
