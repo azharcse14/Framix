@@ -17320,12 +17320,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "28d4c38",
+   "branch": "sys-065",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "root cause: not shared statics; the engine inbox outlived EngineStopped, so an answer sent between the last event and thread exit was dropped unreleased. Fixed by closing the inbox before EngineStopped + TextureAnswer that releases its texture on drop"
+    }
+   ],
    "source": "added"
   },
   {
