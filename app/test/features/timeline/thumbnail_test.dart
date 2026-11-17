@@ -41,15 +41,18 @@ void main() {
         .toInt();
 
     // The host engine has no platform, so each request that goes out fails.
-    var replies = 0;
+    final failed = <int>[];
     final counting = engine.events
         .where((e) => e.hasCommandFailed())
-        .listen((_) => replies++);
+        .listen((e) => failed.add(e.commandFailed.commandId.toInt()));
     cubit
       ..request(media, [0], 96)
       ..request(media, [0], 96);
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    expect(replies, 1);
+    await Future<void>.delayed(Duration.zero);
+    // Also not in a later turn, after the first ask went out.
+    cubit.request(media, [0], 96);
+    failed.remove(await waitForEarlierReplies(engine));
+    expect(failed, hasLength(1));
     await counting.cancel();
     await cubit.close();
   });

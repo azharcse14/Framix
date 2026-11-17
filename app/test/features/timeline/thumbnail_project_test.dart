@@ -33,15 +33,15 @@ void main() {
   test('after a new project the same ask goes out again', () async {
     final cubit = ThumbnailCubit(engine);
     // The host engine has no platform, so each request that goes out fails.
-    var replies = 0;
+    final failed = <int>[];
     final counting = engine.events
         .where((e) => e.hasCommandFailed())
-        .listen((_) => replies++);
+        .listen((e) => failed.add(e.commandFailed.commandId.toInt()));
 
     final media = await importOne();
     cubit.request(media, [0], 96);
-    await waitUntilTrue(() => replies >= 1, () => 'replies: $replies');
-    expect(replies, 1);
+    failed.remove(await waitForEarlierReplies(engine));
+    expect(failed, hasLength(1));
 
     final fresh = engine.events.firstWhere((e) => e.hasTimelineChanged());
     engine.send(Command(newProject: NewProject()));
@@ -49,8 +49,8 @@ void main() {
     final again = await importOne();
     expect(again, media, reason: 'ids restart, so the old key would match');
     cubit.request(again, [0], 96);
-    await waitUntilTrue(() => replies >= 2, () => 'replies: $replies');
-    expect(replies, 2);
+    failed.remove(await waitForEarlierReplies(engine));
+    expect(failed, hasLength(2));
 
     await counting.cancel();
     await cubit.close();

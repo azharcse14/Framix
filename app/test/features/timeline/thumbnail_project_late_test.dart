@@ -43,13 +43,13 @@ void main() {
       final t = await importOne();
       final media = t.tracks.first.clips.first.mediaId.toInt();
       final cubit = ThumbnailCubit(engine, project: t.project.toInt());
-      var replies = 0;
+      final failed = <int>[];
       final counting = engine.events
           .where((e) => e.hasCommandFailed())
-          .listen((_) => replies++);
+          .listen((e) => failed.add(e.commandFailed.commandId.toInt()));
       cubit.request(media, [0], 96);
-      await waitUntilTrue(() => replies >= 1, () => 'replies: $replies');
-      expect(replies, 1);
+      failed.remove(await waitForEarlierReplies(engine));
+      expect(failed, hasLength(1));
 
       final fresh = engine.events.firstWhere((e) => e.hasTimelineChanged());
       engine.send(Command(newProject: NewProject()));
@@ -57,8 +57,8 @@ void main() {
       final again = (await importOne()).tracks.first.clips.first.mediaId
           .toInt();
       cubit.request(again, [0], 96);
-      await waitUntilTrue(() => replies >= 2, () => 'replies: $replies');
-      expect(replies, 2);
+      failed.remove(await waitForEarlierReplies(engine));
+      expect(failed, hasLength(2));
       await counting.cancel();
       await cubit.close();
     },
