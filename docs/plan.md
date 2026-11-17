@@ -1187,7 +1187,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-061` gen_ffi_test.sh: cover the protoc-gen-dart warm-up (fake pub prints 'Resolving dependencies...' on stdout on first run per SDK) and the protoc non-zero exit branch (SYS-057 review) \[Dart\]
 - [x] `SYS-062` gen_ffi_partial_test.sh: refuse to run with FRAMIX_APP_LOCK set (lock probe goes vacuous) and run the final diff under app_lock.sh; retire or extend gen_ffi_failure_test.sh, which the partial test now covers (SYS-059 review suggestions) \[Dart\]
 - [x] `SYS-063` Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies \[Dart\]
-- [ ] `SYS-064` gen_ffi_test.sh: pin the warm-up's && in gen_ffi.sh (a warm-up that exits non-zero with empty stderr must fail the run; SYS-061 review) \[Dart\]
+- [x] `SYS-064` gen_ffi_test.sh: pin the warm-up's && in gen_ffi.sh (a warm-up that exits non-zero with empty stderr must fail the run; SYS-061 review) \[Dart\]
 - [ ] `SYS-065` Flaky ffi test platform_release.rs a_texture_made_after_the_engine_stopped_is_released: failed once in check.sh (RELEASED lacks (9, 0x99), line 232), passed 5/5 on rerun; likely shared statics (HELD/RELEASED/callbacks) across its two parallel tests \[Rust\]
 - [ ] `SYS-066` Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies \[Dart\]
 
