@@ -33,6 +33,19 @@ Future<void> pumpUntilTrue(
   throw TestFailure(what());
 }
 
+/// Waits until [done] without a WidgetTester (a plain `test` has none), at most [budget].
+Future<void> waitUntilTrue(
+  bool Function() done,
+  String Function() what, {
+  Duration budget = replyBudget,
+}) async {
+  final clock = Stopwatch()..start();
+  while (!done() && clock.elapsed < budget) {
+    await Future<void>.delayed(_poll);
+  }
+  if (!done()) throw TestFailure(what());
+}
+
 /// Pumps until [finder] finds something.
 Future<void> pumpUntil(WidgetTester tester, Finder finder) => pumpUntilTrue(
   tester,

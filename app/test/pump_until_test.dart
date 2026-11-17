@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'pump_until.dart';
 
-/// pumpUntilTrue's budget (SYS-052).
+/// pumpUntilTrue's and waitUntilTrue's budget (SYS-052, SYS-054).
 void main() {
   const budget = Duration(milliseconds: 200);
 
@@ -26,6 +26,26 @@ void main() {
   testWidgets('a reply that never comes still fails', (tester) async {
     await expectLater(
       pumpUntilTrue(tester, () => false, () => 'never', budget: budget),
+      throwsA(isA<TestFailure>()),
+    );
+  });
+
+  test('waitUntilTrue: a starved test process still gets its polls', () async {
+    var polls = 0;
+    await waitUntilTrue(
+      () {
+        // As above, for a plain test without a WidgetTester (SYS-054).
+        sleep(const Duration(milliseconds: 60));
+        return ++polls == 8;
+      },
+      () => 'gave up after $polls polls',
+      budget: budget,
+    );
+  });
+
+  test('waitUntilTrue: a reply that never comes still fails', () async {
+    await expectLater(
+      waitUntilTrue(() => false, () => 'never', budget: budget),
       throwsA(isA<TestFailure>()),
     );
   });
