@@ -17394,6 +17394,63 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "LEG-016",
+   "section": "LEG",
+   "group": "Licensing",
+   "title": "Lawyer review of FFmpeg LGPL-2.1 compliance on App Store and Google Play: relinking right for signed apps, EULA/ToS reverse-engineering clause, source offer (ADR 0009)",
+   "tags": [
+    "—"
+   ],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "LEG-017",
+   "section": "LEG",
+   "group": "Licensing",
+   "title": "Lawyer review of codec patents: H.264/HEVC/AAC only through VideoToolbox/MediaCodec in a paid app, FFmpeg demux and parsers only, Via LA / Access Advance pool duties, VP9/AV1 pool claims (ADR 0009)",
+   "tags": [
+    "—"
+   ],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "LEG-018",
+   "section": "LEG",
+   "group": "Licensing",
+   "title": "Pick and own the public URL that hosts the exact FFmpeg source, diff, configure line and build script for every shipped build, kept 3+ years (ADR 0009)",
+   "tags": [
+    "—"
+   ],
+   "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }

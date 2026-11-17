@@ -1537,6 +1537,9 @@ Egula Phase 1 er sathei thik koro; pore change kora kothin ar store review e atk
 - [ ] `LEG-013` User template/content moderation, report/block system \[Backend\]
 - [ ] `LEG-014` AI generated content label \[Rust\]\[Backend\]
 - [ ] `LEG-015` Naam er trademark search (Framix ba notun naam; Bangladesh DPDT, WIPO Global Brand Database, target desh), domain, social handle \[—\]
+- [ ] `LEG-016` Lawyer review of FFmpeg LGPL-2.1 compliance on App Store and Google Play: relinking right for signed apps, EULA/ToS reverse-engineering clause, source offer (ADR 0009) \[—\]
+- [ ] `LEG-017` Lawyer review of codec patents: H.264/HEVC/AAC only through VideoToolbox/MediaCodec in a paid app, FFmpeg demux and parsers only, Via LA / Access Advance pool duties, VP9/AV1 pool claims (ADR 0009) \[—\]
+- [ ] `LEG-018` Pick and own the public URL that hosts the exact FFmpeg source, diff, configure line and build script for every shipped build, kept 3+ years (ADR 0009) \[—\]
 
 ## Security ar reverse engineering
 
