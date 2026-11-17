@@ -1075,6 +1075,10 @@
     {
      "date": "2026-10-21",
      "text": "blocked: P1-059 (itself after LEG-003 and SYS-024), so this 1a task will stay in_progress for a while."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Order 2026-11-17: SYS-069 (FFmpeg build) -> P1-059 (rsmpeg reader) -> P1-012 fd via custom AVIOContext."
     }
    ],
    "source": "plan"
@@ -6694,6 +6698,10 @@
     {
      "date": "2026-11-17",
      "text": "ADR 0009 sets the FFmpeg configure policy: LGPL only (no gpl/nonfree/version3), --disable-everything + --disable-autodetect, demuxers/parsers/re-wrap bsfs only, no protocols, shared libs with unversioned SONAMEs; build script asserts *_license() and avformat_configuration()."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "FFmpeg build split out to SYS-069 (2026-11-17 decision by delegated agent); SYS-024 keeps App Bundle, deferred components, iOS ODR."
     }
    ],
    "source": "plan"
@@ -8014,6 +8022,10 @@
     {
      "date": "2026-11-17",
      "text": "ADR 0009: software decode fallback covers royalty-free codecs only (no software H.264/HEVC/AAC/... in any engine dependency, symphonia AAC included)."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Royalty-free software fallback for Vorbis = symphonia (AUD-005), not an FFmpeg decoder."
     }
    ],
    "source": "plan"
@@ -9418,6 +9430,10 @@
     {
      "date": "2026-11-17",
      "text": "ADR 0009: no software decoders for patented codecs; VP9/WebM on iOS, AV1 on iPhones without an AV1 decoder, Vorbis/OGG on iOS have no platform decoder. Either mark those rows unsupported or enable a royalty-free FFmpeg decoder for them."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Decision 2026-11-17: accept ADR 0009 scope. Unsupported: VP9/WebM on iOS, AV1 on iPhones without AV1 HW, HEVC without platform decoder, ProRes on Android. Vorbis/OGG on iOS: decode via symphonia (ogg+vorbis) when AUD-005 lands. Check Opus-in-OGG on iOS AVFoundation."
     }
    ],
    "source": "plan"
@@ -13521,6 +13537,10 @@
     {
      "date": "2026-11-17",
      "text": "ADR 0009: FFmpeg probes/demuxes only; decode stays on platform codecs; dynamic linking (iOS frameworks, Android .so). rsmpeg 0.18.0 (Aug 2025, FFmpeg 8.0) vs rusty_ffmpeg 0.17.0 (FFmpeg 8.1): re-check rsmpeg release cadence when asking for the dependency."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Decision 2026-11-17 (delegated agent, user asked): rsmpeg approved, pinned =0.18.0 (+ffmpeg.8.0, MIT), in new engine/media crate only, dynamic link via FFMPEG_DLL_PATH; FFmpeg pinned 8.0.x (8.1 only if library majors match). Bindgen output in OUT_DIR, no committed bindings. Hand-written bindings rejected (unchecked struct layouts over untrusted media). Exit plan: rusty_ffmpeg 0.17+ directly + thin own wrapper if rsmpeg lags FFmpeg 9 or fails to cross-build. Runs after SYS-069."
     }
    ],
    "source": "added"
@@ -17492,6 +17512,45 @@
      "text": "Hosting must carry, per shipped build: FFmpeg source tarball, changes.diff, configure line, build script; linked from the in-app Licenses page and the website store-link pages; kept 3+ years."
     }
    ],
+   "source": "added"
+  },
+  {
+   "id": "SYS-069",
+   "section": "SYS",
+   "group": null,
+   "title": "Minimal FFmpeg 8.0.x LGPL build script (ADR 0009): iOS dynamic frameworks, Android arm64-v8a/x86_64 .so (unversioned SONAME, 16 KB aligned), macOS host build for tests; asserts *_license() and avformat_configuration(); pinned source hash; FFMPEG_BINDING_PATH binding per target",
+   "tags": [
+    "Native",
+    "C++"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "AUD-005",
+   "section": "AUD",
+   "group": null,
+   "title": "Audio file decode with symphonia (mp3, flac, wav/pcm, ogg+vorbis; aac/isomp4 features off per ADR 0009); covers Vorbis/OGG on iOS; new dependency needs the user's yes",
+   "tags": [
+    "Rust"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
    "source": "added"
   }
  ]

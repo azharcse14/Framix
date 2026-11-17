@@ -1192,6 +1192,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-066` Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies \[Dart\]
 - [x] `SYS-067` thumbnail_project_late_test settle() (15 x 20 ms real time) snapshots the ask count before late first-round failures land; starved, 'asks > first' passes without a second ask; bound it with pumpUntilEarlierReplies (SYS-066 review) \[Dart\]
 - [ ] `SYS-068` thumbnail_project_late_test counts every CommandFailed, also its own SaveProject/OpenProject: a refused save or open passes 'asks > first' without a second ask; leave their ids out of the count (SYS-067 review) \[Dart\]
+- [ ] `SYS-069` Minimal FFmpeg 8.0.x LGPL build script (ADR 0009): iOS dynamic frameworks, Android arm64-v8a/x86_64 .so (unversioned SONAME, 16 KB aligned), macOS host build for tests; asserts *_license() and avformat_configuration(); pinned source hash; FFMPEG_BINDING_PATH binding per target \[Native\] \[C++\]
 
 ## Engine ar platform er gobhir details
 
@@ -1829,6 +1830,7 @@ Kono list 100% complete na, karon CapCut protimash update dey ar kichu feature r
 - [ ] `AUD-002` Mobile app ar iPad version alada kore check koro
 - [ ] `AUD-003` Free ar Pro e kon feature lock, note koro
 - [ ] `AUD-004` Protita 2-3 mash por App Store/Play Store er "What's New" dekho
+- [ ] `AUD-005` Audio file decode with symphonia (mp3, flac, wav/pcm, ogg+vorbis; aac/isomp4 features off per ADR 0009); covers Vorbis/OGG on iOS; new dependency needs the user's yes \[Rust\]
 
 ## Concept notes
 
