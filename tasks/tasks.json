@@ -17531,7 +17531,12 @@
    "done": null,
    "commit": null,
    "branch": "sys-069",
-   "notes": [],
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Plan: scripts/build_ffmpeg.sh pins FFmpeg 8.0.3 (latest 8.0.x, 2026-06-18) + SHA-256 (fail closed, curl -> verify -> extract), NDK 28.2.13676358, API 29, iOS 17.0. Targets macos-arm64 (host, cargo test), android-arm64-v8a, android-x86_64, ios-arm64, ios-sim-arm64 (toolchain.md has no x86_64 sim). One flag list (ADR 0009 s3: --disable-everything/autodetect/network/programs/doc/avdevice/avfilter/swscale/swresample, --disable-x86asm since nasm is absent and no decoders need it, shared only, listed demuxers+parsers, 3 bsfs) plus per-target toolchain args without local paths (they end up in avformat_configuration()). Darwin: --install-name-dir=@rpath; iOS libs wrapped as libav*.framework then libav*.xcframework (device+sim). Android: configure's android target gives unversioned SONAME; -Wl,-z,max-page-size=16384; llvm-readelf checks SONAME and LOAD align 0x4000. Policy verifier (--check-policy, stdin: license/configuration/component counts) is shared: host feeds it from a C program calling *_license(), avformat_configuration() and the codec/muxer/protocol iterators; cross targets feed it from their config.h/config_components.h. Output third_party/ffmpeg/out/<target> (gitignored) with manifest.txt (version, sha256, URL, toolchain, configure line) for LEG-018. Bindgen files skipped: rusty_ffmpeg generates them in OUT_DIR from the installed headers (P1-059 decision). Test scripts/build_ffmpeg_test.sh: flag generation, verifier and hash fail-closed with fakes, no network; wired into check.sh."
+    }
+   ],
    "source": "added"
   },
   {
