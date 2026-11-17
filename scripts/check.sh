@@ -55,7 +55,8 @@ if [ -f app/pubspec.yaml ] && { touched app/ || touched scripts/flutter_test.sh 
 fi
 
 # Android instrumented tests must compile (they only run on a device or emulator).
-if [ -f app/android/app/build.gradle.kts ] && { touched app/android/ || touched scripts/android_test_build.sh; }; then
+if [ -f app/android/app/build.gradle.kts ] && { touched app/android/ || touched app/pubspec || touched .fvmrc ||
+  touched scripts/android_test_build.sh || touched scripts/flutter_sdk.sh || touched scripts/app_lock.sh; }; then
   run scripts/android_test_build.sh
 fi
 
@@ -69,7 +70,7 @@ fi
 if touched scripts/; then
   run scripts/codegen_lock_test.sh
   run scripts/flutter_sdk_test.sh
-  # Gradle build: only when the Android build script or its test changed.
+  # A Gradle build: in --quick mode only when the Android build script or its test changed.
   touched scripts/android_test_build && run scripts/android_test_build_test.sh
 fi
 
