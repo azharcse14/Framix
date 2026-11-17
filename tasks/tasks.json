@@ -17368,11 +17368,30 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "0b55038",
+   "branch": "sys-067",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-068",
+   "section": "SYS",
+   "group": null,
+   "title": "thumbnail_project_late_test counts every CommandFailed, also its own SaveProject/OpenProject: a refused save or open passes 'asks > first' without a second ask; leave their ids out of the count (SYS-067 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "sys-067",
+   "branch": null,
    "notes": [],
    "source": "added"
   }
