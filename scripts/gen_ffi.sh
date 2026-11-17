@@ -19,11 +19,11 @@ if [ "$(protoc --version 2>/dev/null)" != "libprotoc $PROTOC_VERSION" ]; then
   exit 1
 fi
 PROTOC_PLUGIN_VERSION=25.1.0
-if ! dart pub global list 2>/dev/null | grep -qx "protoc_plugin $PROTOC_PLUGIN_VERSION"; then
+. scripts/flutter_sdk.sh
+if ! "${DART[@]}" pub global list 2>/dev/null | grep -qx "protoc_plugin $PROTOC_PLUGIN_VERSION"; then
   echo "need protoc_plugin $PROTOC_PLUGIN_VERSION: dart pub global activate protoc_plugin $PROTOC_PLUGIN_VERSION" >&2
   exit 1
 fi
-if command -v fvm >/dev/null 2>&1; then DART=(fvm dart); else DART=(dart); fi
 
 cbindgen --quiet --config engine/ffi/cbindgen.toml --crate framix_ffi \
   --output engine/ffi/include/framix_engine.h engine/ffi
@@ -35,5 +35,5 @@ if grep -E '\[(WARNING|SEVERE)\]' <<<"$out" | grep -v 'No definition found for d
 fi
 
 rm -rf app/lib/core/engine/proto && mkdir -p app/lib/core/engine/proto
-PATH="$HOME/.pub-cache/bin:$PATH" protoc -I proto --dart_out=app/lib/core/engine/proto \
+PATH="$FLUTTER_SDK_BIN:$HOME/.pub-cache/bin:$PATH" protoc -I proto --dart_out=app/lib/core/engine/proto \
   proto/framix/v1/engine.proto

@@ -6,7 +6,7 @@
 # "summary" still fails here (its summary line is not allowed), "none" would hide Gradle's own.
 set -euo pipefail
 cd "$(dirname "$0")/../app"
-if command -v fvm >/dev/null 2>&1; then FLUTTER=(fvm flutter); else FLUTTER=(flutter); fi
+. ../scripts/flutter_sdk.sh
 
 # Known upstream warnings, one regex per line, each with its reason. Remove a line once the
 # upstream fix lands.
