@@ -49,3 +49,6 @@ app/.claude/
 
 # FVM local SDK link and cache (.fvmrc is the pin)
 .fvm/
+
+# FFmpeg builds (scripts/build_ffmpeg.sh): source, build trees and binaries, never committed
+/third_party/ffmpeg/
