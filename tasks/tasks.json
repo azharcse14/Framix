@@ -17092,6 +17092,25 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "5fd4460",
+   "branch": "sys-054",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-055",
+   "section": "SYS",
+   "group": null,
+   "title": "check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
    "status": "todo",
    "started": null,
    "done": null,
@@ -17101,10 +17120,10 @@
    "source": "added"
   },
   {
-   "id": "SYS-055",
+   "id": "SYS-056",
    "section": "SYS",
    "group": null,
-   "title": "check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag)",
+   "title": "Dart tests: engine reply waits via .timeout(5 s), fixed 300 ms sleeps (thumbnail_project*_test) and unbounded while-loops (command_failed_test) should use waitUntilTrue/pumpUntilTrue poll budget",
    "tags": [
     "Dart"
    ],

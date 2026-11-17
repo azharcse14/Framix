@@ -45,18 +45,16 @@ void main() {
         .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
-  /// Sends [send] and waits until [done] holds for the cubit's state (at most
-  /// [replyBudget]; a plain test has no WidgetTester for pumpUntilTrue).
+  /// Sends [send] and waits until [done] holds for the cubit's state.
   Future<void> until(
     void Function() send,
     bool Function(TimelineChanged) done,
   ) async {
     send();
-    final clock = Stopwatch()..start();
-    while (!done(cubit.state) && clock.elapsed < replyBudget) {
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-    }
-    expect(done(cubit.state), isTrue);
+    await waitUntilTrue(
+      () => done(cubit.state),
+      () => 'no reply: ${cubit.state}',
+    );
     // Let a haptic call that the same event caused reach the mock.
     await Future<void>.delayed(const Duration(milliseconds: 50));
   }
