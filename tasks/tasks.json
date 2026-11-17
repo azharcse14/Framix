@@ -16977,12 +16977,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "a5e8adb",
+   "branch": "sys-051",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Review Critical: version file only changes on pub get, so staleness also keyed on each hook.dependencies_hash_file.json's dart-sdk/version (content compare). Old app/.dart_tool/flutter_sdk.version stamp is now unused (harmless)."
+    }
+   ],
    "source": "added"
   },
   {
@@ -17105,6 +17110,25 @@
    "section": "SYS",
    "group": null,
    "title": "check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-056",
+   "section": "SYS",
+   "group": null,
+   "title": "gen_ffi.sh: protoc-gen-dart prints 'Can't load Kernel binary: Invalid SDK hash.' on every run (stale ~/.pub-cache protoc_plugin global snapshot from another Dart); refresh or reactivate it under the pinned Dart",
    "tags": [
     "Dart"
    ],
