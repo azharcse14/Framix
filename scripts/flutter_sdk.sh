@@ -18,11 +18,19 @@ if [ -z "$flutter_sdk_pin" ] || [ "$flutter_sdk_actual" != "$flutter_sdk_pin" ];
   return 1 2>/dev/null || exit 1
 fi
 # app/.dart_tool/hooks_runner holds kernel snapshots of the SDK that built them; after an SDK
-# switch `dart run` fails with "Invalid SDK hash". Clear it once per pin change (stamp file).
-flutter_sdk_stamp="$(dirname "${BASH_SOURCE[0]}")/../app/.dart_tool/flutter_sdk.version"
-if [ -d "${flutter_sdk_stamp%/*}" ] && [ "$(cat "$flutter_sdk_stamp" 2>/dev/null)" != "$flutter_sdk_pin" ]; then
-  rm -rf "${flutter_sdk_stamp%/*}/hooks_runner"
-  echo "$flutter_sdk_pin" >"$flutter_sdk_stamp"
+# switch `dart run` fails with "Invalid SDK hash". It is stale when app/.dart_tool/version
+# (written by the last Flutter pub get in app/) differs from the pin, or when a hook's
+# hook.dependencies_hash_file.json lists a <flutterRoot>/bin/cache/dart-sdk/version whose
+# content differs from the pinned SDK's (compared by content, so a symlinked SDK path matches).
+# Checked, then re-checked and cleared under the app lock so a locked run is never cut off.
+# $1 = app/.dart_tool, $2 = pin, $3 = the pinned SDK's dart-sdk/version.
+flutter_sdk_stale='{ [ -f "$1/version" ] && [ "$(cat "$1/version")" != "$2" ]; } ||
+  ! grep -ho "\"[^\"]*/bin/cache/dart-sdk/version\"" "$1"/hooks_runner/*/*/hook.dependencies_hash_file.json 2>/dev/null |
+    tr -d "\"" | while IFS= read -r v; do cmp -s "$v" "$3" || exit 1; done'
+flutter_sdk_args=(sh "$(dirname "${BASH_SOURCE[0]}")/../app/.dart_tool" "$flutter_sdk_pin" "$FLUTTER_SDK_BIN/cache/dart-sdk/version")
+if [ -d "${flutter_sdk_args[1]}/hooks_runner" ] && sh -c "$flutter_sdk_stale" "${flutter_sdk_args[@]}"; then
+  "$(dirname "${BASH_SOURCE[0]}")/app_lock.sh" sh -c "if $flutter_sdk_stale; then rm -rf \"\$1/hooks_runner\"; fi" \
+    "${flutter_sdk_args[@]}" || true
 fi
 FLUTTER=(fvm flutter)
 DART=(fvm dart)
