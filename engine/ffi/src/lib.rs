@@ -6,7 +6,7 @@ use std::time::Instant;
 use framix_app::engine::{
     AUTOSAVE_DELAY, PLAYHEAD_INTERVAL, autosave_failed, command_failed, preview_answer_panicked,
 };
-use framix_app::preview::{PlatformTexture, PreviewHost as _};
+use framix_app::preview::PreviewHost as _;
 use framix_app::proto::{Command, Event, event};
 use prost::Message as _;
 
@@ -61,7 +61,7 @@ enum EngineMessage {
     Command(Vec<u8>),
     SetCallback(EngineEventCallback),
     /// The platform's answer to a preview texture request.
-    PreviewTexture(Result<PlatformTexture, String>),
+    PreviewTexture(platform::TextureAnswer),
     /// The render thread lost this preview texture on the GPU.
     PreviewLost(i64),
     /// The platform's answer to a thumbnail request: the image file's path, or why not.
@@ -209,8 +209,8 @@ fn run_engine(
                     let failed = command_failed("engine stopped");
                     deliver(callback, &framix_app::engine::answering(id, failed));
                 }
-                EngineMessage::PreviewTexture(texture) => platform::release_unused(texture),
-                EngineMessage::Thumbnail(..)
+                EngineMessage::PreviewTexture(_)
+                | EngineMessage::Thumbnail(..)
                 | EngineMessage::PreviewLost(_)
                 | EngineMessage::Proxy(..)
                 | EngineMessage::ExportProgress(..)
@@ -218,14 +218,9 @@ fn run_engine(
             }
         }
     }
-    // Textures the platform made while the engine was stopping have no engine left to use them.
-    // ponytail: an answer sent between this drain and the inbox's drop is still lost; closing
-    // the inbox first needs the senders to see it (they only see a dropped receiver).
-    for message in inbox.try_iter() {
-        if let EngineMessage::PreviewTexture(texture) = message {
-            platform::release_unused(texture);
-        }
-    }
+    // Closed before the last event, so every answer after EngineStopped fails to send and is
+    // released by its sender; queued (or racing) texture answers are released as they drop.
+    drop(inbox);
     deliver(
         callback,
         &Event {
@@ -396,7 +391,7 @@ fn serve(
             EngineMessage::PreviewTexture(texture) => {
                 let awaited = engine.awaits_preview();
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    engine.preview_texture_ready(texture)
+                    engine.preview_texture_ready(texture.take())
                 }))
                 .unwrap_or_else(|_| preview_answer_panicked(awaited))
             }

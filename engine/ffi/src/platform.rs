@@ -385,10 +385,23 @@ fn release(texture: PlatformTexture) {
     }
 }
 
-/// A platform answer no engine will use: its texture goes straight back (P1-065).
-pub(crate) fn release_unused(texture: Result<PlatformTexture, String>) {
-    if let Ok(texture) = texture {
-        release(texture);
+/// The platform's answer to `create_preview_texture` on its way to the engine. Dropped
+/// without [`TextureAnswer::take`] (a stopped engine, a closed or dropped inbox), its texture
+/// goes straight back (P1-065, SYS-065): no engine will release it.
+pub(crate) struct TextureAnswer(Result<PlatformTexture, String>);
+
+impl TextureAnswer {
+    /// Hands the answer to the engine, which now owns the texture.
+    pub(crate) fn take(mut self) -> Result<PlatformTexture, String> {
+        std::mem::replace(&mut self.0, Err(String::new()))
+    }
+}
+
+impl Drop for TextureAnswer {
+    fn drop(&mut self) {
+        if let Ok(texture) = self.0 {
+            release(texture);
+        }
     }
 }
 
@@ -531,12 +544,9 @@ pub(crate) unsafe extern "C" fn preview_texture_done(
                 handle: texture as usize,
             })
         };
-        // A stopped engine no longer wants the answer; its texture goes back at once.
-        if let Err(unsent) = engine.send(EngineMessage::PreviewTexture(texture))
-            && let EngineMessage::PreviewTexture(texture) = unsent.0
-        {
-            release_unused(texture);
-        }
+        // A stopped engine no longer wants the answer; the unsent answer gives its texture
+        // back as it drops.
+        let _ = engine.send(EngineMessage::PreviewTexture(TextureAnswer(texture)));
         ENGINE_OK
     });
 }
