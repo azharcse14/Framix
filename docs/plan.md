@@ -1184,8 +1184,9 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-058` check_quick_test.sh: add negative assert (untouched scripts/ stays skipped) and unset GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE before its temp-repo git calls (SYS-055 review warnings) \[Dart\]
 - [x] `SYS-059` Two concurrent check.sh --quick runs in one worktree: generated proto files showed deleted and codegen_lock_test saw engine.pb.dart missing (SYS-055 log SYS-055-check-quick.log); app_lock.sh should serialize gen_ffi; find the unlocked window \[Dart\]
 - [ ] `SYS-060` thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound) \[Dart\]
-- [ ] `SYS-061` gen_ffi_test.sh: cover the protoc-gen-dart warm-up (fake pub prints 'Resolving dependencies...' on stdout on first run per SDK) and the protoc non-zero exit branch (SYS-057 review) \[Dart\]
+- [x] `SYS-061` gen_ffi_test.sh: cover the protoc-gen-dart warm-up (fake pub prints 'Resolving dependencies...' on stdout on first run per SDK) and the protoc non-zero exit branch (SYS-057 review) \[Dart\]
 - [ ] `SYS-062` gen_ffi_partial_test.sh: refuse to run with FRAMIX_APP_LOCK set (lock probe goes vacuous) and run the final diff under app_lock.sh; retire or extend gen_ffi_failure_test.sh, which the partial test now covers (SYS-059 review suggestions) \[Dart\]
+- [ ] `SYS-063` gen_ffi_test.sh: pin the warm-up's && in gen_ffi.sh (a warm-up that exits non-zero with empty stderr must fail the run; SYS-061 review) \[Dart\]
 
 ## Engine ar platform er gobhir details
 
