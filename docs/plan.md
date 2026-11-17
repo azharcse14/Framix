@@ -1181,7 +1181,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-055` check.sh --quick silently skips every check when the changed list is large: touched() pipes printf into grep -q under pipefail, printf gets SIGPIPE (141); re-filed from SYS-053 (was owner human by tag) \[Dart\]
 - [ ] `SYS-056` Dart tests: engine reply waits via .timeout(5 s), fixed 300 ms sleeps (thumbnail_project*_test) and unbounded while-loops (command_failed_test) should use waitUntilTrue/pumpUntilTrue poll budget \[Dart\]
 - [ ] `SYS-057` gen_ffi.sh: protoc-gen-dart prints 'Can't load Kernel binary: Invalid SDK hash.' on every run (stale ~/.pub-cache protoc_plugin global snapshot from another Dart); refresh or reactivate it under the pinned Dart \[Dart\]
-- [ ] `SYS-058` check_quick_test.sh: add negative assert (untouched scripts/ stays skipped) and unset GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE before its temp-repo git calls (SYS-055 review warnings) \[Dart\]
+- [x] `SYS-058` check_quick_test.sh: add negative assert (untouched scripts/ stays skipped) and unset GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE before its temp-repo git calls (SYS-055 review warnings) \[Dart\]
 - [ ] `SYS-059` Two concurrent check.sh --quick runs in one worktree: generated proto files showed deleted and codegen_lock_test saw engine.pb.dart missing (SYS-055 log SYS-055-check-quick.log); app_lock.sh should serialize gen_ffi; find the unlocked window \[Dart\]
 
 ## Engine ar platform er gobhir details
