@@ -70,6 +70,8 @@ fi
 # Shell script regression tests
 if touched scripts/; then
   run scripts/codegen_lock_test.sh
+  run scripts/gen_ffi_failure_test.sh
+  run scripts/gen_ffi_partial_test.sh
   run scripts/flutter_sdk_test.sh
   run scripts/gen_ffi_test.sh
   run scripts/native_warnings_test.sh

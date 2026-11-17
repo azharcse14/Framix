@@ -35,17 +35,23 @@ if grep -E '\[(WARNING|SEVERE)\]' <<<"$out" | grep -v 'No definition found for d
   exit 1
 fi
 
-rm -rf app/lib/core/engine/proto && mkdir -p app/lib/core/engine/proto
+# Into a temp dir, swapped in only after protoc and the stderr check pass: a failed run
+# (SYS-059) must not leave the committed proto files deleted. Same filesystem, so mv is a rename.
+mkdir -p app/.dart_tool app/lib/core/engine
+proto_tmp=$(mktemp -d app/.dart_tool/proto.XXXXXX)
+trap 'rm -rf "$proto_tmp"' EXIT
 # The plugin runs on the pinned Dart (scripts/protoc_gen_dart.sh). Run it once on an empty
 # request first: when the pinned SDK has no snapshot yet, pub builds one and prints "Resolving
 # dependencies..." on stdout, which protoc would take as plugin output. Anything on stderr
 # (e.g. "Invalid SDK hash") fails the run: zero warnings.
 err=$({ PATH="$FLUTTER_SDK_BIN:$PATH" scripts/protoc_gen_dart.sh </dev/null >/dev/null &&
   PATH="$FLUTTER_SDK_BIN:$PATH" protoc -I proto --plugin=protoc-gen-dart=scripts/protoc_gen_dart.sh \
-    --dart_out=app/lib/core/engine/proto proto/framix/v1/engine.proto; } 2>&1) ||
+    --dart_out="$proto_tmp" proto/framix/v1/engine.proto; } 2>&1) ||
   { printf '%s\n' "$err" >&2; exit 1; }
 if [ -n "$err" ]; then
   printf '%s\n' "$err" >&2
   echo "✗ protoc or protoc-gen-dart printed the above" >&2
   exit 1
 fi
+chmod 755 "$proto_tmp"
+rm -rf app/lib/core/engine/proto && mv "$proto_tmp" app/lib/core/engine/proto

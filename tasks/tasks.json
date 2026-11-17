@@ -17201,11 +17201,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "648d5da",
+   "branch": "sys-059",
    "notes": [],
    "source": "added"
   },
@@ -17233,6 +17233,25 @@
    "section": "SYS",
    "group": null,
    "title": "gen_ffi_test.sh: cover the protoc-gen-dart warm-up (fake pub prints 'Resolving dependencies...' on stdout on first run per SDK) and the protoc non-zero exit branch (SYS-057 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-062",
+   "section": "SYS",
+   "group": null,
+   "title": "gen_ffi_partial_test.sh: refuse to run with FRAMIX_APP_LOCK set (lock probe goes vacuous) and run the final diff under app_lock.sh; retire or extend gen_ffi_failure_test.sh, which the partial test now covers (SYS-059 review suggestions)",
    "tags": [
     "Dart"
    ],
