@@ -35,6 +35,12 @@ if ! grep -q '^fmt' "$tmp/cargo.log" 2>/dev/null; then
   fail=1
 fi
 
+# Positive control for the grep below: engine/ is touched, so gen_ffi.sh runs. If check.sh's
+# run() log line ever changes format, this fails instead of the negative grep passing vacuously.
+if ! grep -q '^▶ scripts/gen_ffi.sh' <<<"$out"; then
+  echo "✗ check_quick_test: run() log line format changed (no '▶ scripts/gen_ffi.sh')" >&2
+  fail=1
+fi
 # Negative direction: scripts/ is committed and unchanged, so --quick must skip its tests. A
 # touched() that always says yes would run them (and pass the check above).
 if grep -q '^▶ scripts/check_quick_test.sh' <<<"$out"; then
