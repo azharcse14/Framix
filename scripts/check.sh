@@ -64,6 +64,7 @@ fi
 if touched scripts/; then
   run scripts/codegen_lock_test.sh
   run scripts/flutter_sdk_test.sh
+  run scripts/native_warnings_test.sh
 fi
 
 # Protobuf contract
