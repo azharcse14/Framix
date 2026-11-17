@@ -17184,6 +17184,25 @@
    "branch": null,
    "notes": [],
    "source": "added"
+  },
+  {
+   "id": "SYS-059",
+   "section": "SYS",
+   "group": null,
+   "title": "Two concurrent check.sh --quick runs in one worktree: generated proto files showed deleted and codegen_lock_test saw engine.pb.dart missing (SYS-055 log SYS-055-check-quick.log); app_lock.sh should serialize gen_ffi; find the unlocked window",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
   }
  ]
 }
