@@ -507,11 +507,13 @@ Ei phase e engine er mul pipeline dandabe: pick → decode → render → previe
 - [x] `P1-125` App test MemStores that implement set_aside (engine_autosave_restore.rs, engine_autosave_broken.rs) must override copies, per the ProjectStore::copies rule (P1-123 review) \[Rust\]
 - [x] `P1-126` Autosave panic: report once per failure streak and keep retrying while idle (ffi lib.rs stalled path; P1-121 review) \[Rust\]
 - [x] `P1-127` Caught autosave panic should go through Engine's Err path: one 'report once until saved' latch (not autosave_failed + ffi autosave_panicked) and mark_saved_work(false) so the crash marker knows work is unsaved (P1-126 review) \[Rust\]
-- [ ] `P1-128` Android instrumented test for ExportEncoder: draw frames via Surface.lockHardwareCanvas, check sample count and PTS with MediaExtractor (needs androidx.test deps, approve first) \[Native\]
+- [x] `P1-128` Android instrumented test for ExportEncoder: draw frames via Surface.lockHardwareCanvas, check sample count and PTS with MediaExtractor (needs androidx.test deps, approve first) \[Native\]
 - [ ] `P1-129` Android export: a codec that fails mid-export (onError, reclaimed in background) must abandon its input Surface so a blocked Vulkan acquire returns (old loaders ignore the acquire timeout); pin the export window in Gpu's surface cache; attach the export worker to the JVM once per export \[Native\]
 - [x] `P1-130` Android JNI shim: attach the engine, render and export threads to the JVM once (thread-local guard that detaches on exit) instead of AttachCurrentThread/DetachCurrentThread per decoder_frame/encoder_frame call (P1-070 review) \[Rust\] \[Native\]
 - [x] `P1-131` Android FrameDecoder keeps a codec and photo per media (small LRU) so PIP with two videos doesn't reopen MediaCodec every frame (P1-098 for Android, P1-070 follow-up) \[Native\]
 - [x] `P1-132` Android FrameDecoder: when Video.open fails (codec resources) with the LRU full, evict the other cached videos and retry once; drop or prove the 'within the hardware decoder limit' comment; try/finally in closeVideo so a codec.release throw still deletes the texture (P1-131 review) \[Native\]
+- [ ] `P1-133` check.sh compiles the Android instrumented tests (./gradlew app:assembleDebugAndroidTest) so src/androidTest cannot break silently \[Native\]
+- [ ] `P1-134` Device check ExportEncoder on a hardware encoder: output bitrate vs kbps (rate control sees queue times), no 'reordered frame' with KEY_MAX_B_FRAMES=0, full Vulkan-swapchain export \[Native\]
 
 ## Phase 2: Audio
 

@@ -16094,11 +16094,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "a32fd77",
+   "branch": "main",
    "notes": [
     {
      "date": "2026-11-16",
@@ -16107,6 +16107,26 @@
     {
      "date": "2026-11-16",
      "text": "device checks pending: P1-131 PIP with two videos; P1-132 force a codec shortage (PIP with 3+ high-res videos, or export while preview holds 2 codecs) and confirm the open retry recovers within one decoder."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "user approved androidx.test deps and an emulator AVD (2026-11-16)"
+    },
+    {
+     "date": "2026-11-17",
+     "text": "emulator: AVD framix_api36 (device pixel_7), image system-images;android-36;google_apis;arm64-v8a rev 7, in ~/.android/avd. Boot: emulator -avd framix_api36 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect. Encoder there is c2.android.avc.encoder (software). Run: cd app/android && ./gradlew app:connectedDebugAndroidTest -Ptarget-platform=android-arm64"
+    },
+    {
+     "date": "2026-11-17",
+     "text": "emulator run 2026-11-17 (framix_api36, c2.android.avc.encoder): ExportEncoderTest passes, 60 samples at frame times, 320x240, bitrate within +-50% of 12000 kbps; existing ExportEncoder unchanged. Still device-only: 'reordered frame' on hardware encoders ignoring KEY_MAX_B_FRAMES, and a full Vulkan-swapchain export on a real phone."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Draws with HardwareRenderer.syncAndDraw(waitForPresent), not Surface.lockHardwareCanvas: unlockCanvasAndPost queues the buffer later on HWUI's RenderThread, so end of stream overtook the last frames."
+    },
+    {
+     "date": "2026-11-17",
+     "text": "Review fix a32fd77: the old 12000 kbps noise band could not fail on undershoot (noise floor ~7 Mbps). Probe on emulator, 8x8 noise blocks: 1466 kbps at max QP, 3874 at 4000 kbps target, 4362 at min QP. Test now 4000 kbps +-25%, measured 3874. Follow-ups: P1-133 (check.sh compiles androidTest), P1-134 (hardware encoder device checks)."
     }
    ],
    "source": "added"
@@ -16969,6 +16989,49 @@
    "commit": null,
    "branch": null,
    "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-133",
+   "section": "P1",
+   "group": null,
+   "title": "check.sh compiles the Android instrumented tests (./gradlew app:assembleDebugAndroidTest) so src/androidTest cannot break silently",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "P1-134",
+   "section": "P1",
+   "group": null,
+   "title": "Device check ExportEncoder on a hardware encoder: output bitrate vs kbps (rate control sees queue times), no 'reordered frame' with KEY_MAX_B_FRAMES=0, full Vulkan-swapchain export",
+   "tags": [
+    "Native"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "P1-128's +-25% band only catches undershoot on the emulator (its 8x8-block content tops out at ~4362 kbps); overshoot is only meaningful on a hardware encoder."
+    }
+   ],
    "source": "added"
   }
  ]
