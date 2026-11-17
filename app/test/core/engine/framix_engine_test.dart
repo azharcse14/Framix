@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 
+import '../../pump_until.dart';
+
 Command _addVideoTrack() =>
     Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_VIDEO));
 
@@ -11,7 +13,7 @@ void main() {
     addTearDown(engine.dispose);
     final next = engine.events.first;
     engine.send(_addVideoTrack());
-    final event = await next.timeout(const Duration(seconds: 5));
+    final event = await waitFor(next, 'no reply');
     expect(event.timelineChanged.tracks, hasLength(1));
   });
 
@@ -22,7 +24,7 @@ void main() {
     for (var i = 0; i < 3; i++) {
       engine.send(_addVideoTrack());
     }
-    final events = await three.timeout(const Duration(seconds: 5));
+    final events = await waitFor(three, 'not three replies');
     expect(events.map((e) => e.timelineChanged.tracks.length), [1, 2, 3]);
   });
 
@@ -31,7 +33,7 @@ void main() {
     addTearDown(engine.dispose);
     final next = engine.events.first;
     engine.send(Command(undo: Undo()));
-    final event = await next.timeout(const Duration(seconds: 5));
+    final event = await waitFor(next, 'no reply');
     expect(event.hasCommandFailed(), isTrue);
   });
 
@@ -39,6 +41,6 @@ void main() {
     final engine = FramixEngine.create();
     final done = engine.events.toList();
     engine.dispose();
-    expect(await done.timeout(const Duration(seconds: 5)), isEmpty);
+    expect(await waitFor(done, 'stream never closed'), isEmpty);
   });
 }

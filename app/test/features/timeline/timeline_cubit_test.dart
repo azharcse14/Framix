@@ -3,6 +3,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 
+import '../../pump_until.dart';
+
 void main() {
   late FramixEngine engine;
   late TimelineCubit cubit;
@@ -17,8 +19,7 @@ void main() {
     engine.dispose();
   });
 
-  Future<TimelineChanged> next() =>
-      cubit.stream.first.timeout(const Duration(seconds: 5));
+  Future<TimelineChanged> next() => waitFor(cubit.stream.first, 'no timeline');
 
   test('starts with an empty timeline', () {
     expect(cubit.state.tracks, isEmpty);
@@ -49,7 +50,7 @@ void main() {
 
     final late = TimelineCubit(engine);
     addTearDown(late.close);
-    final state = await late.stream.first.timeout(const Duration(seconds: 5));
+    final state = await waitFor(late.stream.first, 'no timeline');
     expect(state.tracks.single.kind, TrackKind.TRACK_KIND_VIDEO);
     expect(state.canUndo, isTrue);
   });

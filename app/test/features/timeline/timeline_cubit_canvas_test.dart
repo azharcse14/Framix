@@ -4,6 +4,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/timeline_cubit.dart';
 
+import '../../pump_until.dart';
+
 const second = 705600000;
 
 void main() {
@@ -11,7 +13,7 @@ void main() {
   late TimelineCubit cubit;
 
   Future<TimelineChanged> next(bool Function(TimelineChanged) test) =>
-      cubit.stream.firstWhere(test).timeout(const Duration(seconds: 5));
+      waitFor(cubit.stream.firstWhere(test), 'no matching timeline');
 
   setUp(() async {
     engine = FramixEngine.create();

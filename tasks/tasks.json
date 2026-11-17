@@ -17139,11 +17139,11 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "ea1aee6",
+   "branch": "main",
    "notes": [],
    "source": "added"
   },
@@ -17158,12 +17158,17 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "todo",
-   "started": null,
-   "done": null,
-   "commit": null,
-   "branch": null,
-   "notes": [],
+   "status": "done",
+   "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "c72c393",
+   "branch": "main",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "Root cause: ~/.pub-cache/bin/protoc-gen-dart shim is rewritten by whichever Dart last (re)built the global snapshot (here a 3.13.7 Dart); it runs bare dart from PATH, which gen_ffi made the pinned 3.13.5, on the 3.13.7 snapshot -> Invalid SDK hash, exit 253, fallback to pub global run. Fix: --plugin=scripts/protoc_gen_dart.sh (pinned dart pub global run), warm-up run, fail on stderr."
+    }
+   ],
    "source": "added"
   },
   {
@@ -17201,6 +17206,44 @@
    "done": null,
    "commit": null,
    "branch": "sys-059",
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-060",
+   "section": "SYS",
+   "group": null,
+   "title": "thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [],
+   "source": "added"
+  },
+  {
+   "id": "SYS-061",
+   "section": "SYS",
+   "group": null,
+   "title": "gen_ffi_test.sh: cover the protoc-gen-dart warm-up (fake pub prints 'Resolving dependencies...' on stdout on first run per SDK) and the protoc non-zero exit branch (SYS-057 review)",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
    "notes": [],
    "source": "added"
   }

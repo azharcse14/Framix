@@ -4,6 +4,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/thumbnail_cubit.dart';
 
+import '../../pump_until.dart';
+
 MediaItem _video() => MediaItem(
   uri: 'content://media/external/video/1',
   kind: MediaKind.MEDIA_KIND_VIDEO,
@@ -38,7 +40,7 @@ void main() {
 
     final media = await importOne();
     cubit.request(media, [0], 96);
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await waitUntilTrue(() => replies >= 1, () => 'replies: $replies');
     expect(replies, 1);
 
     final fresh = engine.events.firstWhere((e) => e.hasTimelineChanged());
@@ -47,7 +49,7 @@ void main() {
     final again = await importOne();
     expect(again, media, reason: 'ids restart, so the old key would match');
     cubit.request(again, [0], 96);
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await waitUntilTrue(() => replies >= 2, () => 'replies: $replies');
     expect(replies, 2);
 
     await counting.cancel();

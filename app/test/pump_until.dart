@@ -49,11 +49,25 @@ Future<void> pumpUntilTrue(
 );
 
 /// [pumpUntilTrue] for a plain `test`, which has no WidgetTester: waits in real time.
+/// Never inside `testWidgets`: its fake clock never fires the poll timer, so it hangs.
 Future<void> waitUntilTrue(
   bool Function() done,
   String Function() what, {
   Duration budget = replyBudget,
 }) => _pollUntil(() => Future<void>.delayed(_poll), done, what, budget);
+
+/// Awaits [reply] on [waitUntilTrue]'s budget, failing with [what] if it never comes; for a
+/// plain `test` (not `testWidgets`, see [waitUntilTrue]). A failed [reply] rethrows its error.
+Future<T> waitFor<T>(
+  Future<T> reply,
+  String what, {
+  Duration budget = replyBudget,
+}) async {
+  var done = false;
+  reply.then((_) => done = true, onError: (_) => done = true).ignore();
+  await waitUntilTrue(() => done, () => what, budget: budget);
+  return reply;
+}
 
 /// Pumps until [finder] finds something.
 Future<void> pumpUntil(WidgetTester tester, Finder finder) => pumpUntilTrue(

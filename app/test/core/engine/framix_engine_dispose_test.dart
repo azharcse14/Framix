@@ -2,13 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 
+import '../../pump_until.dart';
+
 void main() {
   test('dispose completes the stream even with commands in flight', () async {
     final engine = FramixEngine.create();
     final done = engine.events.toList();
     engine.send(Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_VIDEO)));
     engine.dispose();
-    await done.timeout(const Duration(seconds: 5));
+    await waitFor(done, 'stream never closed');
   });
 
   test('a reply in flight at dispose is delivered, not dropped', () async {
@@ -16,7 +18,7 @@ void main() {
     final events = engine.events.toList();
     engine.send(Command(addTrack: AddTrack(kind: TrackKind.TRACK_KIND_VIDEO)));
     engine.dispose();
-    final got = await events.timeout(const Duration(seconds: 5));
+    final got = await waitFor(events, 'stream never closed');
     expect(got.where((e) => e.hasTimelineChanged()), isNotEmpty);
     expect(got.where((e) => e.hasEngineStopped()), isEmpty);
   });

@@ -4,6 +4,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/timeline/bloc/playhead_cubit.dart';
 
+import '../../pump_until.dart';
+
 /// 705,600,000 ticks per second (engine core::time); the engine also reports it.
 const second = 705600000;
 
@@ -32,7 +34,7 @@ void main() {
         ),
       ),
     );
-    await imported.timeout(const Duration(seconds: 5));
+    await waitFor(imported, 'no import reply');
   });
 
   tearDown(() async {
@@ -40,9 +42,10 @@ void main() {
     engine.dispose();
   });
 
-  Future<int> playheadBecomes(int ticks) => cubit.stream
-      .firstWhere((t) => t == ticks)
-      .timeout(const Duration(seconds: 5));
+  Future<int> playheadBecomes(int ticks) => waitFor(
+    cubit.stream.firstWhere((t) => t == ticks),
+    'playhead never became $ticks',
+  );
 
   test(
     'seek moves the playhead; the engine clamps it to the timeline',

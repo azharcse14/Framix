@@ -37,9 +37,10 @@ void main() {
       final last = engine.send(
         Command(removeClip: RemoveClip(clipId: Int64(997))),
       );
-      while (!failures.contains(last)) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
+      await waitUntilTrue(
+        () => failures.contains(last),
+        () => 'not refused: $last',
+      );
       await sub.cancel();
       expect(failures, [plain, last]);
       expect(failures, isNot(contains(owned)));
@@ -89,9 +90,10 @@ void main() {
     final last = engine.send(
       Command(removeClip: RemoveClip(clipId: Int64(997))),
     );
-    while (!failures.contains(last)) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
+    await waitUntilTrue(
+      () => failures.contains(last),
+      () => 'not refused: $last',
+    );
     await sub.cancel();
     await cubit.close();
     expect(failures, [last]);
@@ -107,9 +109,10 @@ void main() {
     final last = engine.send(
       Command(removeClip: RemoveClip(clipId: Int64(997))),
     );
-    while (!failures.contains(last)) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
+    await waitUntilTrue(
+      () => failures.contains(last),
+      () => 'not refused: $last',
+    );
     await sub.cancel();
     await cubit.close();
     expect(cubit.state, const PreviewUnavailable());
@@ -129,9 +132,10 @@ void main() {
       final last = engine.send(
         Command(removeClip: RemoveClip(clipId: Int64(997))),
       );
-      while (!failures.contains(last)) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
+      await waitUntilTrue(
+        () => failures.contains(last),
+        () => 'not refused: $last',
+      );
       await sub.cancel();
       await cubit.close();
       expect(failures, [last]);

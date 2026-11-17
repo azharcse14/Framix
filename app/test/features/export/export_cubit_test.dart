@@ -6,6 +6,8 @@ import 'package:framix/core/engine/framix_engine.dart';
 import 'package:framix/core/engine/proto/framix/v1/engine.pb.dart';
 import 'package:framix/features/export/bloc/export_cubit.dart';
 
+import '../../pump_until.dart';
+
 /// Events come only from the test; each send gets the next command id (1, 2, ...).
 class _Engine implements FramixEngine {
   final _events = StreamController<Event>.broadcast();
@@ -93,9 +95,10 @@ void main() {
     test('a refused start is failed', () async {
       // An empty project cannot be exported.
       cubit.start('/tmp/framix-test.mp4');
-      final state = await cubit.stream
-          .firstWhere((s) => s is ExportFailed)
-          .timeout(const Duration(seconds: 5));
+      final state = await waitFor(
+        cubit.stream.firstWhere((s) => s is ExportFailed),
+        'never failed',
+      );
       expect((state as ExportFailed).reason, isNotEmpty);
     });
 
@@ -123,9 +126,10 @@ void main() {
       await engine.events.firstWhere((e) => e.hasTimelineChanged());
       cubit.start('/tmp/framix-test.mp4');
       // No platform encoder in host tests: the export is accepted, then fails to open.
-      final state = await cubit.stream
-          .firstWhere((s) => s is ExportFailed)
-          .timeout(const Duration(seconds: 5));
+      final state = await waitFor(
+        cubit.stream.firstWhere((s) => s is ExportFailed),
+        'never failed',
+      );
       expect(state, isA<ExportFailed>());
     });
   });
