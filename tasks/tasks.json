@@ -16559,6 +16559,10 @@
     {
      "date": "2026-11-16",
      "text": "started by assistant (user said 'sob koro' 2026-11-16); task.py start refused human-owned task"
+    },
+    {
+     "date": "2026-11-17",
+     "text": "implemented (ab75da6 test, 0f40207 + cfe14fa fix): scripts/flutter_sdk.sh gates check.sh/flutter_test.sh/gen_ffi.sh/native_warnings.sh/audit.sh on fvm flutter == .fvmrc, no PATH fallback. Dev Mac: fvm 4.3.2 + Flutter 3.47.7 installed, protoc_plugin re-activated with fvm dart. check.sh green, reviewer approved. Owner human: needs task.py done --as-human by the user. Open: W3 hooks_runner stamp keyed on pin, not app/.dart_tool/version, and cleared outside app lock"
     }
    ],
    "source": "added"
@@ -16897,6 +16901,30 @@
    "title": "gen_ffi.sh exits 255 with no output when 'dart run ffigen' fails: out=$(...) under set -e kills the script before the captured error is printed (seen with 'Invalid SDK hash')",
    "tags": [],
    "owner": "human",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
+   "done": null,
+   "commit": null,
+   "branch": null,
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "added without --tags so owner is human; retag so an agent can pick it up"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "SYS-051",
+   "section": "SYS",
+   "group": null,
+   "title": "flutter_sdk.sh clears app/.dart_tool/hooks_runner keyed on its own pin stamp (misses a rebuild by a bare flutter) and outside the app lock: key on app/.dart_tool/version, clear under app_lock.sh",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
    "deferred": false,
    "subphase": null,
    "status": "todo",

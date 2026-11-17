@@ -1172,6 +1172,7 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [ ] `SYS-048` SYS-047 review follow-ups: gen-l10n lock regression test; lock bare flutter analyze (CLAUDE.md) and native_warnings.sh flutter build; gen_ffi.sh compare lock path not just presence; flock -o on Linux; codegen_lock_test checks flock exists; --quick runs Flutter on app_lock.sh change
 - [x] `SYS-049` check.sh has no dart format gate (L10N-017 review): add dart format --set-exit-if-changed over app/lib and app/test \[Dart\]
 - [ ] `SYS-050` gen_ffi.sh exits 255 with no output when 'dart run ffigen' fails: out=$(...) under set -e kills the script before the captured error is printed (seen with 'Invalid SDK hash')
+- [ ] `SYS-051` flutter_sdk.sh clears app/.dart_tool/hooks_runner keyed on its own pin stamp (misses a rebuild by a bare flutter) and outside the app lock: key on app/.dart_tool/version, clear under app_lock.sh \[Dart\]
 
 ## Engine ar platform er gobhir details
 
