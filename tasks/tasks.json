@@ -17277,11 +17277,35 @@
    "owner": "claude",
    "deferred": false,
    "subphase": null,
-   "status": "in_progress",
+   "status": "done",
    "started": "2026-11-17",
+   "done": "2026-11-17",
+   "commit": "98e234b",
+   "branch": "sys-063",
+   "notes": [
+    {
+     "date": "2026-11-17",
+     "text": "proof: serial 400 ms engine-event starvation + mutations (dup Seek, dup placement, cancel->start, start sends while running, dup seek w/o same-point guard, dup snapped TimelineChanged): old form passed vacuously (playhead, canvas, export x2) or caught only at a later step (snap, edit_snap_haptic/sticky); new form failed at the intended check"
+    }
+   ],
+   "source": "added"
+  },
+  {
+   "id": "SYS-064",
+   "section": "SYS",
+   "group": null,
+   "title": "Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies",
+   "tags": [
+    "Dart"
+   ],
+   "owner": "claude",
+   "deferred": false,
+   "subphase": null,
+   "status": "todo",
+   "started": null,
    "done": null,
    "commit": null,
-   "branch": "sys-063",
+   "branch": null,
    "notes": [],
    "source": "added"
   }

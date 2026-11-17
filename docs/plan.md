@@ -1186,7 +1186,8 @@ User egula dekhe na, kintu egula chhara production app chole na. Auto save ar cr
 - [x] `SYS-060` thumbnail_test 'a time already asked for is not sent again': 300 ms fixed sleep is a positive reply wait; use a sentinel request and waitUntilTrue (keep the no-duplicate bound) \[Dart\]
 - [ ] `SYS-061` gen_ffi_test.sh: cover the protoc-gen-dart warm-up (fake pub prints 'Resolving dependencies...' on stdout on first run per SDK) and the protoc non-zero exit branch (SYS-057 review) \[Dart\]
 - [ ] `SYS-062` gen_ffi_partial_test.sh: refuse to run with FRAMIX_APP_LOCK set (lock probe goes vacuous) and run the final diff under app_lock.sh; retire or extend gen_ffi_failure_test.sh, which the partial test now covers (SYS-059 review suggestions) \[Dart\]
-- [ ] `SYS-063` Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies \[Dart\]
+- [x] `SYS-063` Remaining fixed-sleep upper bounds ('nothing more happened') in playhead, timeline_cubit_canvas, export_cubit(_start), snap, edit_snap_haptic/sticky tests pass vacuously when starved; bound them like SYS-060 (waitForEarlierReplies) where they wait on engine replies \[Dart\]
+- [ ] `SYS-064` Fixed 200 ms 'nothing more happened' sleeps inside testWidgets (clip_move_test:95, export_settings_quick_test:46) pass vacuously when starved; bound them with a pumpUntilTrue-based twin of waitForEarlierReplies \[Dart\]
 
 ## Engine ar platform er gobhir details
 
