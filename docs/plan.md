@@ -232,7 +232,7 @@ Shob jaygay latest stable version, beta ba nightly na; version pin kora, ar niyo
 - [x] `TC-012` Widget tests with two simultaneous pointers (startGesture x2) never finish after their assertions pass when a real FramixEngine is alive (0% CPU wait); P1-030's pinch test was dropped for it. Investigate (fake-async vs NativeCallable) and add the pinch test back \[Dart\]
 - [x] `TC-013` native_warnings.sh fails since P1-041: jni 1.0.3 Groovy space-assignment warnings (fixed in jni 1.1.0, needs sentry_flutter 10.2.0, 14 days old on 2026-11-05) and Flutter Gradle plugin libraryVariants / Project dependency notation for library plugins; AppIntents line wording 'skipped. No' not in the allowlist \[Native\] \[Dart\]
 - [x] `TC-014` Upgrade sentry_flutter/sentry to 10.2.0+ (jni 1.1.0) once 14 days old (2026-11-05) and drop the jni Groovy allowlist line in scripts/native_warnings.sh \[Dart\] \[Native\]
-- [ ] `TC-015` native_warnings.sh: allowlist cold-build upstream lines (package_info_plus 10.2.2 build.gradle.kts Project.android deprecation; Gradle cache lines naming transform-api-2.0.0-deprecated-use-gradle-api.jar) \[Native\]
+- [x] `TC-015` native_warnings.sh: allowlist cold-build upstream lines (package_info_plus 10.2.2 build.gradle.kts Project.android deprecation; Gradle cache lines naming transform-api-2.0.0-deprecated-use-gradle-api.jar) \[Native\]
 - [ ] `TC-016` fvm is not installed on the dev Mac, so check.sh silently falls back to Homebrew Flutter 3.47.9 instead of the pinned 3.47.7: install fvm (or pin Homebrew), and make check.sh fail when the Flutter version differs from .fvmrc
 
 ## AI diye code lekha (Claude Code)
