@@ -4,6 +4,9 @@
 # exits at the first match, the writer gets SIGPIPE (141), and every step was skipped while
 # check.sh printed "all checks passed". Runs check.sh on a temp repo with stub tools.
 set -u
+# Git env from a caller (a hook, git rebase --exec) would point the temp-repo git calls, and
+# check.sh's, at the real repo; drop every repo-local git variable git itself lists.
+unset $(git rev-parse --local-env-vars)
 src="$(cd "$(dirname "$0")" && pwd)/check.sh"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -29,6 +32,19 @@ out=$(PATH="$tmp/bin:$PATH" "$tmp/scripts/check.sh" --quick 2>&1)
 if ! grep -q '^fmt' "$tmp/cargo.log" 2>/dev/null; then
   echo "✗ check_quick_test: large changed list: engine/ not seen as touched (cargo never ran)" >&2
   printf '%s\n' "$out" | tail -5 >&2
+  fail=1
+fi
+
+# Positive control for the grep below: engine/ is touched, so gen_ffi.sh runs. If check.sh's
+# run() log line ever changes format, this fails instead of the negative grep passing vacuously.
+if ! grep -q '^▶ scripts/gen_ffi.sh' <<<"$out"; then
+  echo "✗ check_quick_test: run() log line format changed (no '▶ scripts/gen_ffi.sh')" >&2
+  fail=1
+fi
+# Negative direction: scripts/ is committed and unchanged, so --quick must skip its tests. A
+# touched() that always says yes would run them (and pass the check above).
+if grep -q '^▶ scripts/check_quick_test.sh' <<<"$out"; then
+  echo "✗ check_quick_test: untouched scripts/ was not skipped in --quick" >&2
   fail=1
 fi
 
