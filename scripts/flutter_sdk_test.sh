@@ -44,5 +44,31 @@ echo 1.2.9 >"$tmp/app/.dart_tool/version"
 gate >/dev/null
 expect "hooks_runner cleared after a rebuild by another SDK" "$(hooks)" cleared
 
+# Review of SYS-051: version only changes on pub get, so also key on the SDK each hook was built
+# with (hook.dependencies_hash_file.json lists <flutterRoot>/bin/cache/dart-sdk/version).
+mkdir -p "$tmp/sdk/pin/bin/cache/dart-sdk" "$tmp/sdk/old/bin/cache/dart-sdk"
+echo "3.13.5" >"$tmp/sdk/pin/bin/cache/dart-sdk/version"
+echo "3.13.4" >"$tmp/sdk/old/bin/cache/dart-sdk/version"
+ln -s "$tmp/sdk/pin" "$tmp/sdk/link"
+printf '#!/bin/sh\necho "  \\"frameworkVersion\\": \\"1.2.3\\","\necho "  \\"flutterRoot\\": \\"%s\\","\n' "$tmp/sdk/pin" >"$tmp/bin/fvm"
+echo 1.2.3 >"$tmp/app/.dart_tool/version"
+hook_built_by() {
+  mkdir -p "$tmp/app/.dart_tool/hooks_runner/framix/abc"
+  printf '{"file_system":[{"path":"%s/bin/cache/dart-sdk/version","hash":1}],"environment":[]}' "$1" \
+    >"$tmp/app/.dart_tool/hooks_runner/framix/abc/hook.dependencies_hash_file.json"
+}
+hook_built_by "$tmp/sdk/old"
+gate >/dev/null
+expect "hooks_runner cleared after a pin bump and pub get (built by the old SDK)" "$(hooks)" cleared
+hook_built_by "$tmp/sdk/pin"
+gate >/dev/null
+expect "hooks_runner kept when built by the pinned SDK (hash file)" "$(hooks)" kept
+hook_built_by "$tmp/sdk/link"
+gate >/dev/null
+expect "hooks_runner kept when built by the pinned SDK through a symlink" "$(hooks)" kept
+hook_built_by "$tmp/sdk/gone"
+gate >/dev/null
+expect "hooks_runner cleared when built by a deleted SDK" "$(hooks)" cleared
+
 [ $fail -eq 0 ] && echo "✓ flutter_sdk_test"
 exit $fail
