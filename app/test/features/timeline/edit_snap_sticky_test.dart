@@ -55,8 +55,8 @@ void main() {
       () => done(cubit.state),
       () => 'no reply: ${cubit.state}',
     );
-    // Let a haptic call that the same event caused reach the mock.
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Every reply sent so far, so a tick a later reply would cause is in too.
+    await waitForEarlierReplies(engine);
   }
 
   test('a seek into another clip after a snapping trim does not tick', () async {

@@ -104,7 +104,7 @@ void main() {
 
     test('cancel with nothing running leaves the state alone', () async {
       cubit.cancel();
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await waitForEarlierReplies(engine);
       expect(cubit.state, isA<ExportIdle>());
     });
 

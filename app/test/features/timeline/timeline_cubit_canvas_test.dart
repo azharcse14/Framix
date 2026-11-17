@@ -71,7 +71,7 @@ void main() {
         ..placeClip(turned, x: 300, y: 0, scale: 1200, gesture: 1);
       final c = (await placed).tracks.first.clips.first;
       expect((c.x, c.scale, c.rotation), (300, 1200, 90));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await waitForEarlierReplies(engine);
       expect(replies, 1);
       await counting.cancel();
     },
